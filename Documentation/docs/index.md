@@ -6,7 +6,7 @@ Ubiq is a Unity networking library, for research, teaching and development.
 
 Ubiq is built and maintained by the Virtual Environments and Computer Graphics group at University College London.
 
-Ubiq is 100% open source. It is free for non-commerical purposes, and commerical friendly licenses are readily available.
+Ubiq is 100% free and open source.
 
 ## Features
 
