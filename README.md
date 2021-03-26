@@ -15,7 +15,7 @@ Instructions for setting up your own server are included. Ubiq does not rely on 
 
 ## Documentation
 
-To find out more about Ubiq please visit our Introduction here.
+To find out more about Ubiq please visit our Introduction [here](https://ucl-vr.github.io/ubiq/).
 
 ## Quick Start
 
