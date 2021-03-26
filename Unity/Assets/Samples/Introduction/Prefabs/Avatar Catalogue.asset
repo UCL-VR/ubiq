@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12c0edc7d9e66814f8b5d07fec25ce24, type: 3}
+  m_Name: Avatar Catalogue
+  m_EditorClassIdentifier: 
+  prefabs:
+  - {fileID: 3877150251308271018, guid: 00ccccae2ed89a6458efab77974fbc11, type: 3}
+  - {fileID: 8584876310294661434, guid: 59d71f74f12579640b37976109a9017d, type: 3}
+  - {fileID: 578913934812125513, guid: 112804ffc787308429391b270b8efe7b, type: 3}
+  - {fileID: 2067851956730261046, guid: 2f4e79c45fe5e9a44be61eccee4a20b3, type: 3}
+  - {fileID: 3172939939781028348, guid: e19c5579408584b48be6e095782d87d7, type: 3}

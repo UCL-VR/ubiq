@@ -1,0 +1,4 @@
+Skybox texture: https://opengameart.org/content/urban-skyboxes
+Apartment original blend file: https://www.blendswap.com/blend/16135
+Copper image: http://www.imageafter.com/image.php?image=b19metals236.jpg
+Aluminium image: http://www.imageafter.com/image.php?image=b19grounds025.jpg

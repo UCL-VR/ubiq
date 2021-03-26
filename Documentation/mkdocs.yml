@@ -1,0 +1,32 @@
+site_name: My Docs
+nav:
+    - Home: index.md
+    - Tutorials:
+        - Getting Started:
+            - Getting Ubiq: gettingubiq.md
+            - Setting Up VR: settingupvr.md
+            - Creating Networked Objects: creatinganetworkedobject.md
+            - Object Spawning: spawningobjects.md
+            - Ownership: objectownership.md
+            - Interaction with Ubiq XR: ubiqxrinteraction.md
+            - Servers and Rooms: serversandrooms.md
+            - Testing with Local Loopback: localloopback.md
+        - Server:
+            - Running the server: serversetup.md
+    - Nexus: nexus.md
+    - Advanced:
+        - Messaging:
+            - Introduction: messaging.md
+            - Object and Component Ids: objectids.md
+            - Generating Unique Ids: generatinguniqueids.md
+            - Types: networkidtype.md
+            - Reserved IDs: reservedids.md
+        - WebRtc: webrtc.md
+        - Servers and Rooms: server.md
+    - Programming:
+        - Async Design Patterns: asyncdesignpatterns.md
+    - Development:
+        - Packaging: packaging.md
+    - Meta: mkdocs.md
+    
+theme: readthedocs    

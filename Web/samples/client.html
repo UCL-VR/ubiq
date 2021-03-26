@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>UCL CVE WebRTC Client Example</title>
+  </head>
+  <body>
+    <script src="../connections.js" ></script> <!--ucl cve components-->
+    <script src="../lib.js" ></script> <!--ucl cve components-->
+    <script src="main.js" ></script> <!--example implementation-->
+    <div>
+      UCL CVE Browser Examples
+    </div>
+    <div>
+      <div>
+        Peer Connection 1
+      </div>
+      <canvas id="avatarcanvas" width="300" height="300" style="border:1px solid" ></canvas>
+      <button id="avatarbutton" onclick="pc1.callVirtualAvatar()">Start Avatar</button>
+      <audio id="audioplayer" controls src="audio/scott_holmes_hotshot.mp3"></audio>
+      <button id="playbutton" onclick="pc1.playAudioFile()">Play</button>
+
+      
+      <video id="videoelement" autoplay></video>
+      <audio id="audioelement" autoplay controls></audio>
+      <button id="callbutton">Call</button>
+      
+      <div>
+        <div>Chat</div>
+        <div id="conversation"></div>
+        <input id="messagebox">
+        <button id="sendbutton">Send</button>
+      </div>
+    </div>
+    <script type="text/javascript">
+      pc1.onLoaded();
+    </script>
+    
+  </body>
+</html>

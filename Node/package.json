@@ -1,0 +1,14 @@
+{
+  "name": "ubiqserver",
+  "version": "0.0.7",
+  "description": "Ubiq Server",
+  "main": "app.js",
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "jsonschema": "^1.4.0",
+    "uuid-by-string": "^3.0.2",
+    "wrtc": "^0.4.6",
+    "ws": "7.3.0"
+  }
+}
