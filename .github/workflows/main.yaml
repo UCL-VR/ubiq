@@ -24,4 +24,4 @@ jobs:
           pip install mkdocs-material 
       - name: Deploy 
         run: | 
-          mkdocs gh-deploy
+          mkdocs gh-deploy -config-file Documentation/mkdocs.yaml --remote-branch gh-pages
