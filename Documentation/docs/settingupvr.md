@@ -8,7 +8,7 @@ Ubiq uses Unity's XR Plug-in Management system for all samples. This allows you 
 
 2. Enable the plug-in here - just tick either the Oculus or Windows Mixed Reality box. Also tick the box for "Initialize XR on Startup".
 
-![](images\f5bb3981-78f3-49f2-b606-5359674d8c9d.png)
+![](images/f5bb3981-78f3-49f2-b606-5359674d8c9d.png)
 
 ## OpenVR (desktop)
 
@@ -20,12 +20,12 @@ Ubiq uses Unity's XR Plug-in Management system for all samples. This allows you 
 
 1\. Install android build tools. In Unity Hub, click `Installs` on the left-hand menu. Click the three dots in the top right corner of the box for your Unity 2019.4.x installation and select `Add modules` from the dropdown. Select `Android Build Support` and both subsequent options (`Android SDK & NDK Tools` and `OpenJDK`). Wait for installation to complete, then re-open your project.
 
-![](images\b5c1f706-b9dc-4265-ac50-396e0026ee66.png)
+![](images/b5c1f706-b9dc-4265-ac50-396e0026ee66.png)
 
 2\. In Unity, open the project settings window (Edit/Project Settings\...) and go to the XR Plug-in Management menu.
 
 3\. Click the Android tab and check the boxes for Oculus and "Initialize XR on Startup".
 
-![](images\ea68f5a9-95c3-46f6-97ef-b975a6c6108a.png)
+![](images/ea68f5a9-95c3-46f6-97ef-b975a6c6108a.png)
 
 4\. (Optional) To create your first build for the Quest, follow the Oculus `Enable Device for Development and Testing` guide: https://developer.oculus.com/documentation/unity/unity-enable-device/
