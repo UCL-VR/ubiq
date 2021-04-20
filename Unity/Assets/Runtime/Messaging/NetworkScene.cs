@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine;
 using UnityEngine.Profiling;
 using System.Linq;
+using Ubiq.Logging;
 
 namespace Ubiq.Messaging
 {
@@ -16,19 +17,33 @@ namespace Ubiq.Messaging
         public NetworkScene scene;
         public INetworkObject networkObject;
         public ushort componentId;
+        public INetworkComponent component;
 
+        /// <summary>
+        /// Sends the message to the network. If the objectid is uninitialised, the message will be sent
+        /// to the context address (i.e. the objects with the same object and component ids).
+        /// </summary>
+        /// <param name="message"></param>
         public void Send(ReferenceCountedSceneGraphMessage message)
         {
-            message.objectid = networkObject.Id;
-            message.componentid = componentId;
+            if (!message.objectid)
+            {
+                message.objectid = networkObject.Id;
+                message.componentid = componentId;
+            }
+            scene.Send(message.buffer);
+        }
+
+        public void Send(NetworkId objectid, ushort componentid, ReferenceCountedSceneGraphMessage message)
+        {
+            message.objectid = objectid;
+            message.componentid = componentid;
             scene.Send(message.buffer);
         }
 
         public void Send(NetworkId objectid, ushort componentid, string message)
         {
-            var bytes = Encoding.UTF8.GetBytes(message);
-            var msg = ReferenceCountedSceneGraphMessage.Rent(bytes.Length);
-            Array.Copy(bytes, 0, msg.bytes, msg.start, bytes.Length);
+            var msg = ReferenceCountedSceneGraphMessage.Rent(message);
             msg.componentid = componentid;
             msg.objectid = objectid;
             scene.Send(msg.buffer);
@@ -58,6 +73,8 @@ namespace Ubiq.Messaging
         private List<INetworkConnection> connections = new List<INetworkConnection>();
         private List<Action> actions = new List<Action>();
         private HashSet<string> existingIdAssignments = new HashSet<string>();
+
+        private EventLogger events;
 
         public T GetNetworkComponent<T>() where T : class
         {
@@ -112,6 +129,9 @@ namespace Ubiq.Messaging
                     }
                 }
             }
+
+            events = new ComponentEventLogger(this);
+            events.Log("Awake", Id, SystemInfo.deviceName, SystemInfo.deviceModel, SystemInfo.deviceUniqueIdentifier);
         }
 
         /// <summary>
@@ -207,6 +227,7 @@ namespace Ubiq.Messaging
             context.scene = this;
             context.networkObject = networkObject;
             context.componentId = GetComponentId(component);
+            context.component = component;
 
             return context;
         }

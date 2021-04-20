@@ -21,10 +21,12 @@ namespace Ubiq.Messaging
     /// <summary>
     /// Wraps a reference counted message for when interacting with the scene graph bus
     /// </summary>
-    // this is a wrapper rather than a subclass, because the networking code will allocated reference counted objects, with no knowledge of the sgb
+    /// <remarks>
+    /// This is a wrapper rather than a subclass, because the networking code will allocate reference counted objects, with no knowledge of the sgb
+    /// </remarks>
     public struct ReferenceCountedSceneGraphMessage : IReferenceCounter
     {
-        internal const int header = 10;
+        internal const int header = 10; // 8 Bytes for the ObjectId and 2 bytes for the ComponentId
         internal ReferenceCountedMessage buffer;
 
         public ReferenceCountedSceneGraphMessage(ReferenceCountedMessage buffer)
@@ -51,6 +53,14 @@ namespace Ubiq.Messaging
             get
             {
                 return buffer.bytes;
+            }
+        }
+
+        public Span<byte> data
+        {
+            get
+            {
+                return new Span<byte>(bytes, start, length);
             }
         }
 
@@ -90,15 +100,15 @@ namespace Ubiq.Messaging
 
         public static ReferenceCountedSceneGraphMessage Rent(int length)
         {
-            // expected header length is 4 bytes for the node id and 4 bytes for the entity id
-            return new ReferenceCountedSceneGraphMessage(MessagePool.Shared.Rent(length + ReferenceCountedSceneGraphMessage.header));
+            var msg = new ReferenceCountedSceneGraphMessage(MessagePool.Shared.Rent(length + header));
+            msg.objectid = new NetworkId(0);
+            return msg;
         }
 
         public static ReferenceCountedSceneGraphMessage Rent(string content)
         {
-            var bytes = Encoding.UTF8.GetBytes(content);
-            var msg = Rent(bytes.Length);
-            Array.Copy(bytes, 0, msg.bytes, msg.start, bytes.Length);
+            var msg = Rent(Encoding.UTF8.GetByteCount(content));
+            Encoding.UTF8.GetBytes(content, 0, content.Length, msg.bytes, msg.start);
             return msg;
         }
 
@@ -138,7 +148,7 @@ namespace Ubiq.Messaging
         {
             ulong numeric;
             id = id.Replace("-", "");
-            if(ulong.TryParse(id, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.CurrentCulture, out numeric))
+            if (ulong.TryParse(id, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.CurrentCulture, out numeric))
             {
                 a = (uint)(numeric >> 32);
                 b = (uint)(numeric & 0xffffffffL);
@@ -210,6 +220,11 @@ namespace Ubiq.Messaging
         public static NetworkId Unique()
         {
             return IdGenerator.GenerateUnique();
+        }
+
+        public static implicit operator bool(NetworkId id)
+        {
+            return (id.a != 0 || id.b != 0);
         }
     }
 

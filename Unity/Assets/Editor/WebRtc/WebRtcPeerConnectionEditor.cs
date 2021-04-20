@@ -37,8 +37,6 @@ namespace Ubiq.WebRtc
                 EditorGUILayout.LabelField("Last Message", component.stats.lastMessageReceived);
                 EditorGUILayout.LabelField("State", component.stats.signalingstate.ToString());
                 EditorGUILayout.LabelField("Connection", component.stats.connectionstate.ToString());
-                EditorGUILayout.LabelField("Signaling Messages", $"{component.stats.sentSignalingMessages} / {component.stats.receivedSignalingMessages}");
-                EditorGUILayout.LabelField("Ice Messages", $"{component.stats.sentIceMessages} / {component.stats.receivedIceMessages}");
             }
         }
     }
