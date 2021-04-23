@@ -1,5 +1,5 @@
 {
-    "name": "Unity.Ubiq.WebRtc.External.Editor",
+    "name": "Ubiq.WebRtc.External.Editor",
     "references": [],
     "includePlatforms": [
         "Editor"

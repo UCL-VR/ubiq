@@ -6,6 +6,7 @@ using System.Data;
 using UnityEngine;
 using Ubiq.Rooms;
 using Ubiq.Messaging;
+using Ubiq.Logging;
 
 namespace Ubiq.WebRtc
 {
@@ -19,6 +20,8 @@ namespace Ubiq.WebRtc
         private Dictionary<string, WebRtcPeerConnection> peerUUIDToConnection;
         private NetworkContext context;
 
+        private EventLogger debug;
+
         private void Awake()
         {
             client = GetComponentInParent<RoomClient>();
@@ -28,6 +31,7 @@ namespace Ubiq.WebRtc
         private void Start()
         {
             context = NetworkScene.Register(this);
+            debug = new ContextEventLogger(context);
             client.OnJoinedRoom.AddListener(OnJoinedRoom);
             client.OnPeerRemoved.AddListener(OnPeerRemoved);
         }
@@ -55,6 +59,7 @@ namespace Ubiq.WebRtc
                 m.objectid = pcid; // the shared Id is set by this peer, but it must be chosen so as not to conflict with any other shared id on the network
                 m.uuid = client.Me.UUID; // this is so the other end can identify us if we are removed from the room
                 Send(peer.NetworkObjectId, m);
+                debug.Log("CreateAndRequestPeerConnection", pcid, peer.NetworkObjectId);
             }
         }
 
@@ -77,6 +82,7 @@ namespace Ubiq.WebRtc
             switch (msg.type)
             {
                 case "RequestPeerConnection":
+                    debug.Log("CreatePeerConnectionForRequest", msg.objectid);
                     var pc = CreatePeerConnection(msg.objectid, msg.uuid);
                     pc.stats.peer = msg.uuid;
                     pc.AddLocalAudioSource();

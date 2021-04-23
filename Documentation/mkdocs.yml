@@ -15,6 +15,10 @@ nav:
             - Running the server: serversetup.md
     - Nexus: nexus.md
     - Advanced:
+        - Logging:
+            - Introduction: eventlogging.md
+            - Analysis: eventloganalysis.md
+            - Serialisation and Memory: eventlogserialisation.md
         - Messaging:
             - Introduction: messaging.md
             - Object and Component Ids: objectids.md

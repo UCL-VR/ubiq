@@ -22,11 +22,6 @@ namespace Ubiq.Networking
     public class ReferenceCountedMessage // a class making it easier to implement reference counting methods
     {
         /// <summary>
-        /// Reserved. May be set to a node Id but there is no guarantee all connections will transmit it.
-        /// </summary>
-        public int header;
-
-        /// <summary>
         /// Buffer that contains the message payload. The message can be anywhere in the buffer. The buffer should not be copied or passed as an argument, as this will break reference counting. Buffer cannot be null.
         /// </summary>
         public byte[] bytes; // Byte buffers are used as opposed to Memory or Span, because the Socket class ultimately uses byte buffers for the Send and Receive calls.

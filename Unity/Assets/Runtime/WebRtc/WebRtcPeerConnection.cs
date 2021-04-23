@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Ubiq.Logging;
 using Ubiq.Messaging;
 using UnityEngine;
 
@@ -49,6 +50,8 @@ namespace Ubiq.WebRtc
         private ConcurrentQueue<Action> UnityJobs;
         private List<Pixiv.Webrtc.Interop.AudioSourceInterface> audiointerfaces = new List<Pixiv.Webrtc.Interop.AudioSourceInterface>();
 
+        private EventLogger debug;
+
         public float volume = 1;
         private float _volume = 1; // default gain in webrtc source
 
@@ -65,10 +68,6 @@ namespace Ubiq.WebRtc
             public string lastMessageReceived;
             public volatile PeerConnectionInterface.SignalingState signalingstate;
             public volatile PeerConnectionInterface.IceConnectionState connectionstate;
-            public int sentSignalingMessages;
-            public int receivedSignalingMessages;
-            public int sentIceMessages;
-            public int receivedIceMessages;
         }
 
         public Stats stats;
@@ -129,6 +128,7 @@ namespace Ubiq.WebRtc
         void Start()
         {
             context = NetworkScene.Register(this);
+            debug = new ContextEventLogger(context);
 
             factory = GetComponentInParent<WebRtcPeerConnectionFactory>();
             if (factory == null)
@@ -143,7 +143,7 @@ namespace Ubiq.WebRtc
             factory.GetRtcConfiguration(config =>
             {
                 pc = factory.CreatePeerConnection(config, this);
-            });           
+            });
         }
 
         private IEnumerator WaitForPeerConnection(Action OnPcCreated)
@@ -159,6 +159,7 @@ namespace Ubiq.WebRtc
         {
             StartCoroutine(WaitForPeerConnection(() =>
             {
+                debug.Log("AddLocalAudioSource");
                 var audiosource = factory.CreateAudioSource();
                 var audiotrack = factory.CreateAudioTrack("localAudioSource", audiosource);
                 pc.AddTrack(audiotrack, new[] { "localAudioSource" });
@@ -221,7 +222,7 @@ namespace Ubiq.WebRtc
                 var message = CreateSessionDescriptionMessage(offer);
                 pc.SetLocalDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver()), offer);
                 Send("description", message);
-                stats.sentSignalingMessages++;
+                debug.Log("SendOffer", polite);
 
             })), new PeerConnectionInterface.RtcOfferAnswerOptions());
         }
@@ -248,22 +249,24 @@ namespace Ubiq.WebRtc
 
             if (message.type == "description")
             {
-                stats.receivedSignalingMessages++;
-
                 var sessionDescription = JsonUtility.FromJson<SessionDescriptionMessage>(message.args);
                 if (sessionDescription.type == "offer")
                 {
+                    debug.Log("ReceivedOffer");
                     if (signallingState != PeerConnectionInterface.SignalingState.Stable)
                     {
                         if (!polite)
                         {
                             // Ignore the other peer's offer. Our offer will take precedence over theirs and we can expect an answer soon.
+                            debug.Log("IgnoredOffer");
                             return;
                         }
                         else
                         {
+                            debug.Log("Rollback");
                             pc.SetLocalDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(() =>
                             {
+                                debug.Log("AcceptOffer");
                                 pc.SetRemoteDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(CreateAnswer)), SessionDescription.Create(SdpType.Offer, sessionDescription.sdp, IntPtr.Zero));
                             })), SessionDescription.Create(SdpType.Rollback, "", IntPtr.Zero));
 
@@ -271,18 +274,20 @@ namespace Ubiq.WebRtc
                     }
                     else
                     {
+                        debug.Log("AcceptOffer");
                         pc.SetRemoteDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(CreateAnswer)), SessionDescription.Create(SdpType.Offer, sessionDescription.sdp, IntPtr.Zero));
                     }
                 }
                 else // desc.type == "answer"
                 {
+                    debug.Log("ReceivedAnswer");
                     pc.SetRemoteDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver()), SessionDescription.Create(SdpType.Answer, sessionDescription.sdp, IntPtr.Zero));
                 }
             }
 
             if (message.type == "icecandidate")
             {
-                stats.receivedIceMessages++;
+                debug.Log("ReceivedIceCandidate", message.args);
 
                 if (message.args == "null")
                 {
@@ -314,7 +319,7 @@ namespace Ubiq.WebRtc
                 var message = CreateSessionDescriptionMessage(answer);
                 pc.SetLocalDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver()), answer);
                 Send("description", message);
-                stats.sentSignalingMessages++;
+                debug.Log("SendAnswer");
             })),
             new PeerConnectionInterface.RtcOfferAnswerOptions());
         }
@@ -391,58 +396,53 @@ namespace Ubiq.WebRtc
         public void OnIceCandidate(IceCandidateInterface candidate)
         {
             Send("icecandidate", new IceCandidateMessage(candidate));
-            stats.sentIceMessages++;
+            debug.Log("SendIceCandidate");
         }
 
         public void OnIceCandidatesRemoved(DisposableCandidate[] candidates)
         {
+            debug.Log("OnIceCandidatesRemoved");
         }
 
         public void OnIceConnectionChange(PeerConnectionInterface.IceConnectionState newState)
         {
+            debug.Log("OnIceConnectionChange", newState);
         }
 
         public void OnIceConnectionReceivingChange(bool receiving)
         {
+            debug.Log("OnIceConnectionReceivingChange", receiving);
         }
 
         public void OnIceGatheringChange(PeerConnectionInterface.IceGatheringState newState)
         {
+            debug.Log("OnIceGatheringChange", newState);
         }
 
         public void OnInterestingUsage(int usagePattern)
         {
-            UnityJobs.Enqueue(() => { Debug.Log("WebRtc OnInterestingUsage " + usagePattern); });
+            debug.Log("OnInterestingUsage", usagePattern);
         }
 
         public void OnRemoveStream(DisposableMediaStreamInterface stream)
         {
+            debug.Log("OnRemoveStream");
         }
 
         public void OnRemoveTrack(DisposableRtpReceiverInterface receiver)
         {
+            debug.Log("OnRemoveTrack");
         }
 
         public void OnSignalingChange(PeerConnectionInterface.SignalingState newState)
         {
             signallingState = newState;
-            stats.signalingstate = newState;
+            debug.Log("OnSignalingChange", newState);
         }
 
         public void OnStandardizedIceConnectionChange(PeerConnectionInterface.IceConnectionState newState)
         {
-            UnityJobs.Enqueue(() =>
-            {
-                switch (newState)
-                {
-                    case PeerConnectionInterface.IceConnectionState.Failed:
-                        Debug.LogError("Unable to establish a peer to peer connection. OnStandardizedIceConnectionChange " + newState);
-                        break;
-                    default:
-                        break;
-                };
-                stats.connectionstate = newState;
-            });
+            debug.Log("OnStandardizedIceConnectionChange", newState);
         }
 
         private void OnDestroy()
