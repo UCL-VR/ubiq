@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
-using Utf8Json.Formatters;
+using Ubiq.Logging.Utf8Json.Formatters;
 
-namespace Utf8Json.Resolvers
+namespace Ubiq.Logging.Utf8Json.Resolvers
 {
     public sealed class BuiltinResolver : IJsonFormatterResolver
     {

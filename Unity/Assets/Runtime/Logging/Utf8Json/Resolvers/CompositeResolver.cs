@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace Utf8Json.Resolvers
+namespace Ubiq.Logging.Utf8Json.Resolvers
 {
     public sealed class CompositeResolver : IJsonFormatterResolver
     {

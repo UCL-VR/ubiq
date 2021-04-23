@@ -2,11 +2,11 @@
 using System.Reflection;
 using System.Collections.Generic;
 using System.Text;
-using Utf8Json.Internal;
+using Ubiq.Logging.Utf8Json.Internal;
 using System.Linq;
 using Ubiq.Logging.Utf8Json;
 
-namespace Utf8Json.Resolvers
+namespace Ubiq.Logging.Utf8Json.Resolvers
 {
     /// <summary>
     /// Get formatter from [JsonFormatter] attribute.

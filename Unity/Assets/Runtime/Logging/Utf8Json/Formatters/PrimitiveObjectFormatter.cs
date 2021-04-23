@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Utf8Json.Internal;
+using Ubiq.Logging.Utf8Json.Internal;
 
-namespace Utf8Json.Formatters
+namespace Ubiq.Logging.Utf8Json.Formatters
 {
     public sealed class PrimitiveObjectFormatter : IJsonFormatter<object>
     {

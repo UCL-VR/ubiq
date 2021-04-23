@@ -1,6 +1,6 @@
-﻿using Utf8Json.Internal;
+﻿using Ubiq.Logging.Utf8Json.Internal;
 
-namespace Utf8Json.Formatters
+namespace Ubiq.Logging.Utf8Json.Formatters
 {
     // multi dimentional array serialize to [[seq], [seq]]
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Utf8Json.Internal.DoubleConversion
+namespace Ubiq.Logging.Utf8Json.Internal.DoubleConversion
 {
 #pragma warning disable 660
 #pragma warning disable 661

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Utf8Json.Internal.DoubleConversion;
+using Ubiq.Logging.Utf8Json.Internal.DoubleConversion;
 
 #if NETSTANDARD
 using System.Runtime.CompilerServices;
 #endif
 
-namespace Utf8Json.Internal
+namespace Ubiq.Logging.Utf8Json.Internal
 {
     /// <summary>
     /// zero-allocate itoa, dtoa, atoi, atod converters.

@@ -15,7 +15,7 @@ namespace Ubiq.Logging
         }
 
         private ReferenceCountedSceneGraphMessage buffer;
-        private const int headerLength = 1;
+        private const int headerLength = 2;
 
         public Span<byte> Header
         {
@@ -38,10 +38,11 @@ namespace Ubiq.Logging
             return Encoding.UTF8.GetString(buffer.bytes, buffer.start + headerLength, buffer.length - headerLength);
         }
 
-        public static ReferenceCountedSceneGraphMessage Rent(ReadOnlySpan<byte> bytes)
+        public static ReferenceCountedSceneGraphMessage Rent(ReadOnlySpan<byte> bytes, byte tag)
         {
             var message = new LogManagerMessage(ReferenceCountedSceneGraphMessage.Rent(bytes.Length + headerLength));
             message.Header[0] = 0x1;
+            message.Header[1] = tag;
             bytes.CopyTo(message.Bytes);
             return message.buffer;
         }

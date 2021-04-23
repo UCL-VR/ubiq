@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
-using Utf8Json.Formatters.Internal;
-using Utf8Json.Internal;
+using Ubiq.Logging.Utf8Json.Formatters.Internal;
+using Ubiq.Logging.Utf8Json.Internal;
 using System.Text.RegularExpressions;
 
 #if NETSTANDARD
@@ -13,7 +13,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 #endif
 
-namespace Utf8Json.Formatters
+namespace Ubiq.Logging.Utf8Json.Formatters
 {
     // MEMO:should write/read base64 directly like corefxlab/System.Binary.Base64
     // https://github.com/dotnet/corefxlab/tree/master/src/System.Binary.Base64/System/Binary
@@ -686,7 +686,7 @@ namespace Utf8Json.Formatters
 #endif
 }
 
-namespace Utf8Json.Formatters.Internal
+namespace Ubiq.Logging.Utf8Json.Formatters.Internal
 {
     internal static class StandardClassLibraryFormatterHelper
     {

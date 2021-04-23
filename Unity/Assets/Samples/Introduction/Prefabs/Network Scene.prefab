@@ -304,6 +304,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 225323da4818d5f46ad641084486429e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Listen: -1
   Memory: 0
   MaxMemory: 52428800
-  mode: 1
+  Mode: 1

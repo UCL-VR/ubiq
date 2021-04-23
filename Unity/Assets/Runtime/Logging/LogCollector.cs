@@ -26,16 +26,9 @@ namespace Ubiq.Logging
 
         public const ushort ComponentId = 0;
 
-        private byte[] workingArea;
-        private Stream outputStream;
+        public int Count { get; private set; }
 
-        public int Count => entries;
-
-        private int entries;
-        private byte[] startArray;
-        private byte[] endArray;
-        private byte[] seperator;
-
+        private IOutputStream[] outputStreams;
         private NetworkContext context;
 
         /// <summary>
@@ -78,7 +71,7 @@ namespace Ubiq.Logging
             {
                 case 0x1:
                     {
-                        Push(logmessage.Bytes);
+                        Push(logmessage.Bytes, logmessage.Header[1]);
                     }
                     break;
                 case 0x2:
@@ -99,17 +92,22 @@ namespace Ubiq.Logging
 
         private void Awake()
         {
-            workingArea = new byte[0];
-            startArray = Encoding.UTF8.GetBytes("[");
-            endArray = Encoding.UTF8.GetBytes("]");
-            seperator = Encoding.UTF8.GetBytes(",\n");
+            Count = 0;
+
+            // Right now we only support two tag types; this may change in the future.
+            // We create the FileOutputStreams before we know whether we will recieve events of that type - this is because the JsonFileOutputStream
+            // doesn't create the file until it actually receives an event, so it is cheap to make these objects, and then we can rely on them 
+            // always existing.
+
+            outputStreams = new IOutputStream[3];
+            outputStreams[(byte)EventType.Application] = new JsonFileOutputStream("Application");
+            outputStreams[(byte)EventType.User] = new JsonFileOutputStream("User");
         }
 
         // Start is called before the first frame update
         void Start()
         {
             FindLocalManagers();
-            OpenFileStream();
             try
             {
                 context = NetworkScene.Register(this);
@@ -149,6 +147,85 @@ namespace Ubiq.Logging
             }
         }
 
+        private interface IOutputStream : IDisposable
+        {
+            void Write(ReadOnlySpan<byte> record);
+        }
+
+        private class JsonFileOutputStream : IOutputStream
+        {
+            Stream outputStream;
+
+            private byte[] startArray;
+            private byte[] endArray;
+            private byte[] seperator;
+            private int entries;
+            private byte[] workingArea;
+            private string postfix;
+
+            public JsonFileOutputStream(string postfix)
+            {
+                startArray = Encoding.UTF8.GetBytes("[");
+                endArray = Encoding.UTF8.GetBytes("]");
+                seperator = Encoding.UTF8.GetBytes(",\n");
+
+                workingArea = new byte[0];
+                entries = 0;
+                this.postfix = postfix;
+            }
+
+            public void Write(ReadOnlySpan<byte> record)
+            {
+                if (record.Length > workingArea.Length)
+                {
+                    Array.Resize(ref workingArea, record.Length); // Until Unity updates to Core 2.1 so Streams can take a Span
+                }
+
+                if(outputStream == null)
+                {
+                    int i = 0;
+                    string filename = Filepath(i);
+                    while (File.Exists(filename))
+                    {
+                        filename = Filepath(i++);
+                    }
+
+                    outputStream = File.Open(filename, FileMode.Create, FileAccess.Write, FileShare.Read);
+                    outputStream.Write(startArray, 0, startArray.Length);
+                }
+
+                if (entries > 0)
+                {
+                    outputStream.Write(seperator, 0, seperator.Length);
+                }
+
+                record.CopyTo(new Span<byte>(workingArea));
+                outputStream.Write(workingArea, 0, record.Length);
+                outputStream.Flush(); // This is mainly so other programs can read the logs while Ubiq is running; we don't care about the progress of the flush.
+                entries++;
+            }
+
+            private string Filepath(int i)
+            {
+                return Path.Combine(Application.persistentDataPath, $"{postfix}_log_{DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss")}_{i}.json");
+            }
+
+            public void Dispose()
+            {
+                if (outputStream != null)
+                {
+                    outputStream.Write(endArray, 0, endArray.Length);
+                    outputStream.Close();
+                    outputStream = null;
+                }
+            }
+        }
+
+        private IOutputStream ResolveOutputStream(byte tag)
+        {
+            return outputStreams[tag];
+        }
+
         /// <summary>
         /// Receive a Span containing a structured log message. While the Span is a byte type, this method assumes it is UTF8.
         /// </summary>
@@ -157,51 +234,25 @@ namespace Ubiq.Logging
         /// with reference counted argumnets. The Span will also prevent this being called across yield or await boundaries, which
         /// is not supported.
         /// </remarks>
-        public void Push(ReadOnlySpan<byte> record)
+        public void Push(ReadOnlySpan<byte> record, byte tag)
         {
-            if(record.Length > workingArea.Length)
-            {
-                Array.Resize(ref workingArea, record.Length); // Until Unity updates to Core 2.1 
-            }
-
-            if(outputStream != null)
-            {
-                if(entries > 0)
-                {
-                    outputStream.Write(seperator, 0, seperator.Length);
-                }
-
-                record.CopyTo(new Span<byte>(workingArea));
-                outputStream.Write(workingArea, 0, record.Length);
-                outputStream.FlushAsync(); // This is mainly so other programs can read the logs while Ubiq is running; we don't care about the progress of the flush.
-                entries++;
-            }
-        }
-
-        private string Filepath(int i)
-        {
-            return Path.Combine(Application.persistentDataPath, $"ubiqlog_{DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss")}_{i}.json");
-        }
-
-        public void OpenFileStream()
-        {
-            int i = 0;
-            string filename = Filepath(i);
-            while (File.Exists(filename))
-            {
-                filename = Filepath(i++);
-            }
-
-            outputStream = File.Open(filename, FileMode.Create, FileAccess.Write, FileShare.Read);
-            entries = 0;
-            outputStream.Write(startArray, 0, startArray.Length);
+            ResolveOutputStream(tag).Write(record);
+            Count++;
         }
 
         private void OnDestroy()
         {
-            outputStream.Write(endArray, 0, endArray.Length);
-            outputStream.Close();
-            outputStream = null;
+            if (outputStreams != null)
+            {
+                for (int i = 0; i < outputStreams.Length; i++)
+                {
+                    if(outputStreams[i] != null)
+                    {
+                        outputStreams[i].Dispose();
+                        outputStreams[i] = null;
+                    }
+                }
+            }
         }
     }
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Utf8Json.Internal.DoubleConversion
+namespace Ubiq.Logging.Utf8Json.Internal.DoubleConversion
 {
     using uint64_t = UInt64;
     using int16_t = Int16;

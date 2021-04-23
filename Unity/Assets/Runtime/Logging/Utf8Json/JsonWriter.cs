@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Text;
-using Utf8Json.Internal;
+using Ubiq.Logging.Utf8Json.Internal;
 
 #if NETSTANDARD
 using System.Runtime.CompilerServices;
 #endif
 
-namespace Utf8Json
+namespace Ubiq.Logging.Utf8Json
 {
     public struct JsonWriter : IDisposable
     {
         static readonly byte[] emptyBytes = new byte[0];
+
+        public byte Tag;
 
         byte[] buffer;
         int offset;

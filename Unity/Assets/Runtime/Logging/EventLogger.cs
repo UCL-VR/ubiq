@@ -3,11 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Ubiq.Messaging;
-using Utf8Json;
-using Utf8Json.Resolvers;
+using Ubiq.Logging.Utf8Json;
+using Ubiq.Logging.Utf8Json.Resolvers;
 
 namespace Ubiq.Logging
 {
+    [Flags]
+    public enum EventType : sbyte // sbyte because Unity's 'Everything' option sets the field to all -1 (all 1's in 2's complement)
+    {
+        Application = 1,
+        User = 2
+    }
+
     /// <summary>
     /// EventLoggers are used to create events and send them to LogManager instances. The LogManager then ensures they
     /// are delivered to the appropriate endpoint.
@@ -16,14 +23,14 @@ namespace Ubiq.Logging
     /// </summary>
     public abstract class EventLogger
     {
-        private string Type;
         internal LogManager manager;
-
         private static bool initialised;
 
-        public EventLogger(Type type)
+        public EventType EventType { get; set; }
+
+        public EventLogger(EventType type)
         {
-            Type = type.FullName;
+            EventType = type;
             if (!initialised)
             {
                 CompositeResolver.Register(UbiqResolver.Instance);
@@ -33,7 +40,7 @@ namespace Ubiq.Logging
 
         private bool ShouldLog()
         {
-            return manager != null;
+            return manager != null && (manager.Listen & EventType) > 0;
         }
 
         public void Log(string Event)
@@ -99,6 +106,7 @@ namespace Ubiq.Logging
         protected JsonWriter BeginWriter()
         {
             var writer = new JsonWriter();
+            writer.Tag = (byte)EventType;
             writer.Begin();
             WriteHeader(ref writer);
             return writer;
@@ -112,17 +120,33 @@ namespace Ubiq.Logging
 
         protected virtual void WriteHeader(ref JsonWriter writer)
         {
-            writer.Write("type", Type);
             writer.Write("ticks", DateTime.Now.Ticks);
         }
     }
 
+    public abstract class TypedEventLogger : EventLogger
+    {
+        private string Type;
+
+        public TypedEventLogger(Type type, EventType eventType):base(eventType)
+        {
+            Type = type.FullName;
+        }
+
+        protected override void WriteHeader(ref JsonWriter writer)
+        {
+            base.WriteHeader(ref writer);
+            writer.Write("type", Type);
+        }
+    }
+
+
     /// <summary>
     /// The most common event logger that is designed to operate with Ubiq Network or Component MonoBehaviours.
     /// </summary>
-    public class ComponentEventLogger : EventLogger
+    public class ComponentEventLogger : TypedEventLogger
     {
-        public ComponentEventLogger(MonoBehaviour component):base(component.GetType())
+        public ComponentEventLogger(MonoBehaviour component):base(component.GetType(), EventType.Application)
         {
             try
             {
@@ -136,11 +160,11 @@ namespace Ubiq.Logging
     /// <summary>
     /// An Event Logger for Objects that have a Network Identity
     /// </summary>
-    public class ContextEventLogger : EventLogger
+    public class ContextEventLogger : TypedEventLogger
     {
         private NetworkContext context;
 
-        public ContextEventLogger(NetworkContext context) : base(context.component.GetType())
+        public ContextEventLogger(NetworkContext context) : base(context.component.GetType(), EventType.Application)
         {
             this.context = context;
             try
@@ -158,6 +182,24 @@ namespace Ubiq.Logging
             writer.Write("sceneid", context.scene.Id);
             writer.Write("objectid", context.networkObject.Id);
             writer.Write("componentid", context.componentId);
+        }
+    }
+
+    /// <summary>
+    /// An Event Logger for user-defined events such as measurements in an experiment. (This still requires a MonoBehaviour refrence from which to find the LogManager).
+    /// </summary>
+    public class UserEventLogger : EventLogger
+    {
+        public UserEventLogger(MonoBehaviour component):base(EventType.User)
+        {
+            try
+            {
+                LogManager.Find(component).Register(this);
+            }
+            catch (NullReferenceException)
+            {
+                Debug.LogWarning("UserEventLogger could not find a LogManager: any logs generated will be lost!");
+            }
         }
     }
 

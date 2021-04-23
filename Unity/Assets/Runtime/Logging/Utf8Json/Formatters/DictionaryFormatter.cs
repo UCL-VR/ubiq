@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Concurrent;
 #endif
 
-namespace Utf8Json.Formatters
+namespace Ubiq.Logging.Utf8Json.Formatters
 {
     // unfortunately, can't use IDictionary<KVP> because supports IReadOnlyDictionary.
     public abstract class DictionaryFormatterBase<TKey, TValue, TIntermediate, TEnumerator, TDictionary> : IJsonFormatter<TDictionary>

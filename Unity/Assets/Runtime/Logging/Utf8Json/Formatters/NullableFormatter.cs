@@ -1,7 +1,7 @@
 ﻿
 using System;
 
-namespace Utf8Json.Formatters
+namespace Ubiq.Logging.Utf8Json.Formatters
 {
     public sealed class NullableFormatter<T> : IJsonFormatter<T?>
         where T : struct

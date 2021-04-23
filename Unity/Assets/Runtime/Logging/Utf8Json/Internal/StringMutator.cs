@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace Utf8Json.Internal
+namespace Ubiq.Logging.Utf8Json.Internal
 {
     internal static class StringMutator
     {

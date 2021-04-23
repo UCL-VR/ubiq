@@ -2,10 +2,10 @@
 using System.IO;
 using System.Linq;
 using System.Text;
-using Utf8Json.Internal;
-using Utf8Json.Resolvers;
+using Ubiq.Logging.Utf8Json.Internal;
+using Ubiq.Logging.Utf8Json.Resolvers;
 
-namespace Utf8Json
+namespace Ubiq.Logging.Utf8Json
 {
     /// <summary>
     /// High-Level API of Utf8Json.

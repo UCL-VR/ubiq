@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace Utf8Json
+namespace Ubiq.Logging.Utf8Json
 {
     public interface IJsonFormatterResolver
     {

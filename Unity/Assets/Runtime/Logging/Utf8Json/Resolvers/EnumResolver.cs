@@ -1,12 +1,12 @@
 ﻿using System;
-using Utf8Json.Internal;
+using Ubiq.Logging.Utf8Json.Internal;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Text;
-using Utf8Json.Formatters;
-using Utf8Json.Resolvers.Internal;
+using Ubiq.Logging.Utf8Json.Formatters;
+using Ubiq.Logging.Utf8Json.Resolvers.Internal;
 
-namespace Utf8Json.Resolvers
+namespace Ubiq.Logging.Utf8Json.Resolvers
 {
     public static class EnumResolver
     {
@@ -17,7 +17,7 @@ namespace Utf8Json.Resolvers
     }
 }
 
-namespace Utf8Json.Resolvers.Internal
+namespace Ubiq.Logging.Utf8Json.Resolvers.Internal
 {
     internal sealed class EnumDefaultResolver : IJsonFormatterResolver
     {

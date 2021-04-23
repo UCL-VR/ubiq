@@ -1,7 +1,7 @@
 ﻿using System;
-using Utf8Json.Internal;
+using Ubiq.Logging.Utf8Json.Internal;
 
-namespace Utf8Json.Formatters
+namespace Ubiq.Logging.Utf8Json.Formatters
 {
     public sealed class SByteFormatter : IJsonFormatter<SByte>, IObjectPropertyNameFormatter<SByte>
     {

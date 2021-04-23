@@ -1,10 +1,10 @@
 ﻿#if NETSTANDARD
 
 using System;
-using Utf8Json.Internal;
-using Utf8Json.Formatters.Internal;
+using Ubiq.Logging.Utf8Json.Internal;
+using Ubiq.Logging.Utf8Json.Formatters.Internal;
 
-namespace Utf8Json.Formatters.Internal
+namespace Ubiq.Logging.Utf8Json.Formatters.Internal
 {
     // reduce static constructor generate size on generics(especially IL2CPP on Unity)
     internal static class ValueTupleFormatterHelper
@@ -152,7 +152,7 @@ namespace Utf8Json.Formatters.Internal
     }
 }
 
-namespace Utf8Json.Formatters
+namespace Ubiq.Logging.Utf8Json.Formatters
 {
 
     public sealed class ValueTupleFormatter<T1> : IJsonFormatter<ValueTuple<T1>>

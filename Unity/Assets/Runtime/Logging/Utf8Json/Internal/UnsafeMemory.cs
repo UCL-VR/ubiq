@@ -2,7 +2,7 @@
 
 using System.Runtime.CompilerServices;
 
-namespace Utf8Json.Internal
+namespace Ubiq.Logging.Utf8Json.Internal
 {
     public static partial class UnsafeMemory32
     {

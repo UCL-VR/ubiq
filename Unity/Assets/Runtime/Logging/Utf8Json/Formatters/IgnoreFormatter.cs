@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Utf8Json.Formatters
+namespace Ubiq.Logging.Utf8Json.Formatters
 {
     public sealed class IgnoreFormatter<T> : IJsonFormatter<T>
     {

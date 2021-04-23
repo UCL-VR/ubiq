@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Ubiq.Messaging;
 using UnityEngine;
 
-namespace Utf8Json.Resolvers
+namespace Ubiq.Logging.Utf8Json.Resolvers
 {
     public class UbiqResolver : IJsonFormatterResolver
     {

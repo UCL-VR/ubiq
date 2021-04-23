@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Utf8Json.Internal;
+using Ubiq.Logging.Utf8Json.Internal;
 
 #if NETSTANDARD
 using System.Runtime.CompilerServices;
 #endif
 
-namespace Utf8Json
+namespace Ubiq.Logging.Utf8Json
 {
     // JSON RFC: https://www.ietf.org/rfc/rfc4627.txt
 

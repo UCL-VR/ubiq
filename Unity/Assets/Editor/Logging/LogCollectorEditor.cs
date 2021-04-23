@@ -16,12 +16,6 @@ namespace Ubiq.Logging
 
             GUILayout.Label($"Entries: {component.Count}");
 
-            serializedObject.Update();
-
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("mode"));
-
-            serializedObject.ApplyModifiedProperties();
-
             GUI.enabled = component.NetworkEnabled;
 
             if (GUILayout.Button("Start Collection"))

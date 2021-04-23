@@ -8,7 +8,7 @@ using Ubiq.Extensions;
 using Ubiq.Messaging;
 using Ubiq.Networking.JmBucknall.Structures;
 using UnityEngine;
-using Utf8Json;
+using Ubiq.Logging.Utf8Json;
 
 namespace Ubiq.Logging
 {
@@ -26,6 +26,8 @@ namespace Ubiq.Logging
         public static NetworkId Id = new NetworkId("92e9-e831-8281-2761");
         NetworkId INetworkObject.Id => Id;
         public const ushort ComponentId = 0;
+
+        public EventType Listen = (EventType)(-1);
 
         public int Memory;
         public int MaxMemory = 1024 * 1024 * 50;
@@ -113,7 +115,7 @@ namespace Ubiq.Logging
                     {
                         if (transmitRemote)
                         {
-                            var message = LogManagerMessage.Rent(writer.GetSpan());
+                            var message = LogManagerMessage.Rent(writer.GetSpan(), writer.Tag);
                             message.objectid = LogCollector.Id;
                             message.componentid = LogCollector.ComponentId;
                             context.Send(message);
@@ -123,7 +125,7 @@ namespace Ubiq.Logging
                         {
                             foreach (var item in localCollectors)
                             {
-                                item.Push(writer.GetSpan());
+                                item.Push(writer.GetSpan(), writer.Tag);
                             }
                         }
                     }

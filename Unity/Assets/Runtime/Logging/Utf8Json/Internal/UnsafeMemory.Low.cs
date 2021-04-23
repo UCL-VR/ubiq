@@ -3,7 +3,7 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace Utf8Json.Internal
+namespace Ubiq.Logging.Utf8Json.Internal
 {
     // for string key property name write optimization.
 

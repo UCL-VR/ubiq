@@ -7,7 +7,7 @@ using System.Threading;
 using System.Runtime.CompilerServices;
 #endif
 
-namespace Utf8Json.Internal
+namespace Ubiq.Logging.Utf8Json.Internal
 {
     /// <summary>
     /// The Dynamic Array pool is a wrapper around a regular array pool that is designed to allow

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace Utf8Json.Internal.DoubleConversion
+namespace Ubiq.Logging.Utf8Json.Internal.DoubleConversion
 {
     using uint64_t = System.UInt64;
     using uint32_t = System.UInt32;

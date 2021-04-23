@@ -3,10 +3,10 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
-using Utf8Json.Internal;
+using Ubiq.Logging.Utf8Json.Internal;
 using System.Runtime.Serialization;
 
-namespace Utf8Json.Formatters
+namespace Ubiq.Logging.Utf8Json.Formatters
 {
     public static class EnumFormatterHelper
     {
@@ -125,7 +125,7 @@ namespace Utf8Json.Formatters
     }
 }
 
-namespace Utf8Json.Formatters
+namespace Ubiq.Logging.Utf8Json.Formatters
 {
     // can inehrit for set optimize manual serialize/deserialize func.
     public class EnumFormatter<T> : IJsonFormatter<T>, IObjectPropertyNameFormatter<T>

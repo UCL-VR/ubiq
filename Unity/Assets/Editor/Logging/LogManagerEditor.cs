@@ -14,6 +14,7 @@ namespace Ubiq.Logging
 
             serializedObject.Update();
             EditorGUILayout.PropertyField(serializedObject.FindProperty("Mode"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("Listen"));
             serializedObject.ApplyModifiedProperties();
 
             GUILayout.Label($"Memory: { ToMB(component.Memory) }/{ ToMB(component.MaxMemory) } Mb");

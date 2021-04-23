@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
-using Utf8Json.Internal;
+using Ubiq.Logging.Utf8Json.Internal;
 
-namespace Utf8Json.Formatters
+namespace Ubiq.Logging.Utf8Json.Formatters
 {
     public sealed class DateTimeFormatter : IJsonFormatter<DateTime>
     {
