@@ -4,7 +4,7 @@ The logging functionality uses a custom Json serialiser that facilitates buildin
 
 This is based on the [neuecc's Utf8Json](https://github.com/neuecc/Utf8Json), but with modifications to track memory usage and remove code generation requirements.
 
-The Utf8Json serialiser is in the Ubiq.Logging.Serialisation.Utf8Json namspace. It is not recommended to use the serialiser for purposes other than logging; import an unmodified version of the library separately instead.
+The Utf8Json serialiser is in the `Ubiq.Logging.Utf8Json` namspace. It is not recommended to use the serialiser for purposes other than logging; import an unmodified version of the library separately instead.
 
 ## Formatters
 

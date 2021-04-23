@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using Utf8Json.Internal;
 using System.Linq;
+using Ubiq.Logging.Utf8Json;
 
 namespace Utf8Json.Resolvers
 {

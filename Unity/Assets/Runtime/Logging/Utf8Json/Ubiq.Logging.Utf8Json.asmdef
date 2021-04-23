@@ -1,12 +1,14 @@
 {
-    "name": "Unity.Ubiq.WebRtc.External",
-    "references": [],
+    "name": "Ubiq.Logging.Utf8Json",
+    "references": [
+        "Unity.TextMeshPro"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": false,
+    "allowUnsafeCode": true,
     "overrideReferences": false,
     "precompiledReferences": [],
-    "autoReferenced": false,
+    "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false

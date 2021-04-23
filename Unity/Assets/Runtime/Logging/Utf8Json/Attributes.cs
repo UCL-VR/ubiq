@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Utf8Json
+namespace Ubiq.Logging.Utf8Json
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class JsonFormatterAttribute : Attribute
@@ -12,13 +12,13 @@ namespace Utf8Json
 
         public JsonFormatterAttribute(Type formatterType)
         {
-            this.FormatterType = formatterType;
+            FormatterType = formatterType;
         }
 
         public JsonFormatterAttribute(Type formatterType, params object[] arguments)
         {
-            this.FormatterType = formatterType;
-            this.Arguments = arguments;
+            FormatterType = formatterType;
+            Arguments = arguments;
         }
     }
 
