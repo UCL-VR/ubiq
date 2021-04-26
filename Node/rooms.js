@@ -370,7 +370,7 @@ class RoomPeer{
     sendRejected(joinArgs,reason){
         this.send(
             Message.Create(
-                this.objectid,
+                this.objectId,
                 1,
                 {
                     type: "Rejected",
