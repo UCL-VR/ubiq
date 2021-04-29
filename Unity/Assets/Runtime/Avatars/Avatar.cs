@@ -18,11 +18,17 @@ namespace Ubiq.Avatars
         [Serializable]
         public class AvatarEvent : UnityEvent<Avatar> { }
 
+        /// <summary>
+        /// The AvatarManager that created this Avatar. Each Avatar must have an AvatarManager, as this is the object that will keep the Dictionaries up to date.
+        /// </summary>
+        public AvatarManager AvatarManager { get; set; }
+
         public AvatarEvent OnUpdated;
-        public SerializableDictionary Properties;
+        public SerializableDictionary Properties { get; protected set; }
 
         private void Awake()
         {
+            Properties = new SerializableDictionary();
             if (OnUpdated == null)
             {
                 OnUpdated = new AvatarEvent();
