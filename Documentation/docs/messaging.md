@@ -4,11 +4,11 @@ Ubiq is built around message-based exchanges on unicast connections between peer
 
 ## The Medium is the Message
 
-Ubiq delivers individual messages between instances of networked objects (which are Unity Components). How messages get from Component A to Component B is the responsiblity of the Messaging Layer, and is abstracted from the developer.
+Ubiq delivers individual messages between instances of networked objects (most commonly Unity Components). How messages get from Component A to Component B is the responsiblity of the Messaging Layer, and is abstracted from the developer.
 
 Network Components only recieve messages addressed to them directly, so they can rely on knowing the type of the message by virtue of having recieved it.
 
-The expected programming model is that Components implement send and recieve functionality in the same script, which is also where the type is defined. By the time a message reaches a Component, it is received as the exact raw sequence of bytes sent by the Component's counterpart. Individual components choose the best serialisation method and transmission frequency for their use case.
+The expected programming model is that Components implement send and recieve functionality in the same script, which is also where the format is defined. By the time a message reaches a Component, it is received as the exact raw sequence of bytes sent by the Component's counterpart. Individual components choose the best serialisation method and transmission frequency for their use case.
 
 ## Scene Graph as a Bus
 

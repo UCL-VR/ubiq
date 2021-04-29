@@ -26,7 +26,9 @@ nav:
             - Types: networkidtype.md
             - Reserved IDs: reservedids.md
         - WebRtc: webrtc.md
-        - Servers and Rooms: server.md
+        - Servers and Rooms: 
+            - Introduction: serverintroduction.md
+            - Server: serverdesign.md
     - Programming:
         - Async Design Patterns: asyncdesignpatterns.md
     - Development:
