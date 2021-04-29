@@ -34,8 +34,12 @@ namespace Ubiq.Rooms
         public ConnectionDefinition[] servers;
 
         private Dictionary<string, Action<string>> blobCallbacks;
-        private float LastPingTime;
-        public static float ServerTimeout = 5f;
+        private float PingSent;
+        private float PingReceived;
+        private float HeartbeatReceived => Time.realtimeSinceStartup - PingReceived;
+        private float HeartbeatSent => Time.realtimeSinceStartup - PingSent;
+        public static float HeartbeatTimeout = 5f;
+        public static float HeartbeatInterval = 1f;
 
         public class TimeoutNotification : Notification
         {
@@ -50,7 +54,7 @@ namespace Ubiq.Rooms
             {
                 get
                 {
-                    return $"No Connection ({ Time.realtimeSinceStartup - client.LastPingTime } seconds ago)";
+                    return $"No Connection ({ client.HeartbeatReceived } seconds ago)";
                 }
             }
         }
@@ -354,7 +358,7 @@ namespace Ubiq.Rooms
                     break;
                 case "Ping":
                     {
-                        LastPingTime = Time.realtimeSinceStartup;
+                        PingReceived = Time.realtimeSinceStartup;
                         PlayerNotifications.Delete(ref notification);
                     }
                     break;
@@ -398,15 +402,19 @@ namespace Ubiq.Rooms
 
         private void Update()
         {
-            if((Me as IPeerInterfaceFriend).NeedsUpdate())
+            if ((Me as IPeerInterfaceFriend).NeedsUpdate())
             {
                 SendToServer("UpdatePeer", Me.GetPeerInfo());
             }
-            if((Room as IRoomInterfaceFriend).NeedsUpdate())
+            if ((Room as IRoomInterfaceFriend).NeedsUpdate())
             {
                 SendToServer("UpdateRoom", Room.GetRoomInfo());
             }
-            if((Time.realtimeSinceStartup - LastPingTime) > ServerTimeout)
+            if (HeartbeatSent > HeartbeatInterval)
+            {
+                Ping();
+            }
+            if (HeartbeatReceived > HeartbeatTimeout)
             {
                 if (notification == null)
                 {
@@ -469,6 +477,7 @@ namespace Ubiq.Rooms
 
         public void Ping()
         {
+            PingSent = Time.realtimeSinceStartup;
             SendToServer("Ping", null);
         }
     }
