@@ -144,6 +144,13 @@ namespace Ubiq.Messaging
 
         public static NetworkScene FindNetworkScene(MonoBehaviour component)
         {
+            return FindNetworkScene(component.transform);
+        }
+
+        public static NetworkScene FindNetworkScene(Transform component)
+        {
+            // Check if the scene is simply a parent, or if we can find a root scene.
+
             var scene = component.GetComponentInParent<NetworkScene>();
             if (scene)
             {
@@ -154,28 +161,17 @@ namespace Ubiq.Messaging
                 return rootNetworkScene;
             }
 
-            var queue = new Queue<Transform>();
+            // Check each common ancestor to find cousin scenes
 
-            for (int i = 0; i < SceneManager.sceneCount; i++)
+            do
             {
-                foreach(var root in SceneManager.GetSceneAt(i).GetRootGameObjects())
+                scene = component.GetComponentInChildren<NetworkScene>();
+                if (scene)
                 {
-                    queue.Enqueue(root.transform);
+                    return scene;
                 }
-            }
-
-            while (queue.Count > 0)
-            {
-                var next = queue.Dequeue();
-                if (next.GetComponent<NetworkScene>())
-                {
-                    return next.GetComponent<NetworkScene>();
-                }
-                foreach (Transform child in next)
-                {
-                    queue.Enqueue(child);
-                }
-            }
+                component = component.parent;
+            } while (component != null);
 
             return null;
         }
