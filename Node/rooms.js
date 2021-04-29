@@ -266,11 +266,13 @@ class RoomPeer{
 
             message.type = message.object.type;
 
-            try {
-                message.args = JSON.parse(message.object.args);
-            } catch {
-                console.log("Peer " + this.uuid + ": Invalid JSON in message args");
-                return;
+            if(message.object.args){
+                try {
+                    message.args = JSON.parse(message.object.args);
+                } catch {
+                    console.log("Peer " + this.uuid + ": Invalid JSON in message args");
+                    return;
+                }
             }
 
             switch(message.type){
@@ -337,6 +339,9 @@ class RoomPeer{
                         console.log(argsResult.instance);
                         console.log(argsResult.errors);
                     }
+                    break;
+                case "Ping":
+                    this.sendPing();
                     break;
             };
         }else{
@@ -459,6 +464,19 @@ class RoomPeer{
                 {
                     type: "Blob",
                     args: JSON.stringify(blobArgs)
+                }
+            )
+        )
+    }
+
+    sendPing(){
+        this.send(
+            Message.Create(
+                this.objectId,
+                1,
+                {
+                    type: "Ping",
+                    args: null
                 }
             )
         )
