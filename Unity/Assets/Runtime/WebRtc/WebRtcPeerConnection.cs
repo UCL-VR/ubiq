@@ -11,6 +11,7 @@ using System.Threading;
 using Ubiq.Logging;
 using Ubiq.Messaging;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Ubiq.WebRtc
 {
@@ -62,15 +63,42 @@ namespace Ubiq.WebRtc
 
         private bool polite = false;
 
-        public struct Stats
+        public struct PeerConnectionState
         {
-            public string peer;
-            public string lastMessageReceived;
-            public volatile PeerConnectionInterface.SignalingState signalingstate;
-            public volatile PeerConnectionInterface.IceConnectionState connectionstate;
+            public string Peer;
+            public string LastMessageReceived;
+            public volatile PeerConnectionInterface.SignalingState SignalingState;
+            public volatile PeerConnectionInterface.IceConnectionState ConnectionState;
         }
 
-        public Stats stats;
+        public PeerConnectionState State;
+
+        [Serializable]
+        public class StateChangedEvent : UnityEvent<PeerConnectionState> 
+        {
+            public new void AddListener(UnityAction<PeerConnectionState> call)
+            {
+                base.AddListener(call);
+                if(connection)
+                {
+                    call(connection.State);
+                }
+            }
+
+            protected WebRtcPeerConnection connection;
+
+            public void SetConnection(WebRtcPeerConnection connection)
+            {
+                this.connection = connection;
+                Invoke(connection.State);
+            }
+        }
+        public StateChangedEvent OnStateChanged;
+
+        private void RaiseStateChange()
+        {
+            UnityJobs.Enqueue(() => { OnStateChanged.Invoke(State); });
+        }
 
         private volatile PeerConnectionInterface.SignalingState signallingState;
 
@@ -121,6 +149,11 @@ namespace Ubiq.WebRtc
 
         private void Awake()
         {
+            if (OnStateChanged == null)
+            {
+                OnStateChanged = new StateChangedEvent();
+            }
+            OnStateChanged.SetConnection(this);
             UnityJobs = new ConcurrentQueue<Action>();
             volumeModifier = 1f;
         }
@@ -225,6 +258,7 @@ namespace Ubiq.WebRtc
                 debug.Log("SendOffer", polite);
 
             })), new PeerConnectionInterface.RtcOfferAnswerOptions());
+            RaiseStateChange();
         }
 
         public void ProcessMessage(ReferenceCountedSceneGraphMessage data)
@@ -245,7 +279,7 @@ namespace Ubiq.WebRtc
         /// </summary>
         public void OnRtcMessage(Message message)
         {
-            stats.lastMessageReceived = DateTime.Now.ToShortTimeString();
+            State.LastMessageReceived = DateTime.Now.ToShortTimeString();
 
             if (message.type == "description")
             {
@@ -376,6 +410,7 @@ namespace Ubiq.WebRtc
 
         public void OnConnectionChange()
         {
+            RaiseStateChange();
         }
 
         public void OnDataChannel(DisposableDataChannelInterface dataChannel)
@@ -407,21 +442,26 @@ namespace Ubiq.WebRtc
         public void OnIceConnectionChange(PeerConnectionInterface.IceConnectionState newState)
         {
             debug.Log("OnIceConnectionChange", newState);
+            State.ConnectionState = newState;
+            RaiseStateChange();
         }
 
         public void OnIceConnectionReceivingChange(bool receiving)
         {
             debug.Log("OnIceConnectionReceivingChange", receiving);
+            RaiseStateChange();
         }
 
         public void OnIceGatheringChange(PeerConnectionInterface.IceGatheringState newState)
         {
             debug.Log("OnIceGatheringChange", newState);
+            RaiseStateChange();
         }
 
         public void OnInterestingUsage(int usagePattern)
         {
             debug.Log("OnInterestingUsage", usagePattern);
+            RaiseStateChange();
         }
 
         public void OnRemoveStream(DisposableMediaStreamInterface stream)
@@ -436,13 +476,16 @@ namespace Ubiq.WebRtc
 
         public void OnSignalingChange(PeerConnectionInterface.SignalingState newState)
         {
-            signallingState = newState;
             debug.Log("OnSignalingChange", newState);
+            signallingState = newState;
+            RaiseStateChange();
         }
 
         public void OnStandardizedIceConnectionChange(PeerConnectionInterface.IceConnectionState newState)
         {
             debug.Log("OnStandardizedIceConnectionChange", newState);
+            State.ConnectionState = newState;
+            RaiseStateChange();
         }
 
         private void OnDestroy()
