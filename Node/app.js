@@ -2,9 +2,12 @@
 const { RoomServer } = require("./rooms");
 const { SandboxServer } = require("./sandbox");
 const { WrappedWebSocketServer, WrappedTcpServer } = require("./connections")
+const { Cli } = require("./cli");
 
-server = new RoomServer(); 
-server.addServer(new WrappedTcpServer(8004));
-server.addServer(new WrappedWebSocketServer(8005));
+conf = Cli.parse();
 
-sandbox = new SandboxServer(8006); // remember to set the port appropriately for the branch
+roomServer = new RoomServer();
+roomServer.addServer(new WrappedTcpServer(conf.port));
+roomServer.addServer(new WrappedWebSocketServer(conf.webSocketPort));
+
+sandbox = new SandboxServer(conf.sandboxPort);
