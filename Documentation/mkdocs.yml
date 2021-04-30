@@ -28,7 +28,8 @@ nav:
         - WebRtc: webrtc.md
         - Servers and Rooms: 
             - Introduction: serverintroduction.md
-            - Server: serverdesign.md
+            - Server Overview: serveroverview.md
+            - Heartbeat: serverheartbeat.md
     - Programming:
         - Async Design Patterns: asyncdesignpatterns.md
     - Development:
