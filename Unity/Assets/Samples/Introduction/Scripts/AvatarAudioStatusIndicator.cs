@@ -64,6 +64,7 @@ namespace Ubiq.Samples
                 case Pixiv.Webrtc.PeerConnectionInterface.IceConnectionState.Disconnected:
                 case Pixiv.Webrtc.PeerConnectionInterface.IceConnectionState.Failed:
                 case Pixiv.Webrtc.PeerConnectionInterface.IceConnectionState.Closed:
+                case Pixiv.Webrtc.PeerConnectionInterface.IceConnectionState.New: 
                     indicator.gameObject.SetActive(true);
                     break;
                 default:

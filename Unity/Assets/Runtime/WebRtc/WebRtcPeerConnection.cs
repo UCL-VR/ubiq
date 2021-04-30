@@ -69,6 +69,7 @@ namespace Ubiq.WebRtc
             public string LastMessageReceived;
             public volatile PeerConnectionInterface.SignalingState SignalingState;
             public volatile PeerConnectionInterface.IceConnectionState ConnectionState;
+            public volatile PeerConnectionInterface.IceGatheringState IceState;
         }
 
         public PeerConnectionState State;
@@ -179,6 +180,14 @@ namespace Ubiq.WebRtc
             });
         }
 
+        /// <summary>
+        /// Calls OnPcCreated after the underlying Peer Connection has been made.
+        /// </summary>
+        public void OnPeerConnection(Action OnPcCreated)
+        {
+            StartCoroutine(WaitForPeerConnection(OnPcCreated));
+        }
+
         private IEnumerator WaitForPeerConnection(Action OnPcCreated)
         {
             while (pc == null)
@@ -190,21 +199,21 @@ namespace Ubiq.WebRtc
 
         public void AddLocalAudioSource()
         {
-            StartCoroutine(WaitForPeerConnection(() =>
+            OnPeerConnection(() =>
             {
                 debug.Log("AddLocalAudioSource");
                 var audiosource = factory.CreateAudioSource();
                 var audiotrack = factory.CreateAudioTrack("localAudioSource", audiosource);
                 pc.AddTrack(audiotrack, new[] { "localAudioSource" });
-            }));
+            });
         }
 
         public void CreateDataChannel(string label, string protocol, int id, bool ordered, int maxRetransmitTime, Action<DisposableDataChannelInterface> OnDataChannel)
         {
-            StartCoroutine(WaitForPeerConnection(() =>
+            OnPeerConnection(() =>
             {
                 OnDataChannel(pc.CreateDataChannel(label, id, maxRetransmitTime, ordered, protocol));
-            }));
+            });
         }
 
         // for now the unity-based audio and video are unsupported. support will be added back when we have a good and stable native audio experience.
@@ -269,7 +278,7 @@ namespace Ubiq.WebRtc
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                debug.Log("Exception", e.Message);
                 return;
             }
         }
@@ -455,6 +464,7 @@ namespace Ubiq.WebRtc
         public void OnIceGatheringChange(PeerConnectionInterface.IceGatheringState newState)
         {
             debug.Log("OnIceGatheringChange", newState);
+            State.IceState = newState;
             RaiseStateChange();
         }
 
