@@ -33,10 +33,10 @@ namespace Ubiq.WebRtc
 
             if (component.isReady)
             {
-                EditorGUILayout.LabelField("Peer", component.stats.peer);
-                EditorGUILayout.LabelField("Last Message", component.stats.lastMessageReceived);
-                EditorGUILayout.LabelField("State", component.stats.signalingstate.ToString());
-                EditorGUILayout.LabelField("Connection", component.stats.connectionstate.ToString());
+                EditorGUILayout.LabelField("Peer", component.State.Peer);
+                EditorGUILayout.LabelField("Last Message", component.State.LastMessageReceived);
+                EditorGUILayout.LabelField("State", component.State.SignalingState.ToString());
+                EditorGUILayout.LabelField("Connection", component.State.ConnectionState.ToString());
             }
         }
     }

@@ -9,7 +9,7 @@ using UnityEngine.Events;
 namespace Ubiq.Avatars
 {
     /// <summary>
-    /// Manages the avatars for a client
+    /// Manages the Avatars for a RoomClient
     /// </summary>
     [NetworkComponentId(typeof(AvatarManager), 2)]
     public class AvatarManager : MonoBehaviour
@@ -20,6 +20,8 @@ namespace Ubiq.Avatars
         private RoomClient client;
         private Dictionary<NetworkId, Avatar> avatars;
         private Dictionary<NetworkId, PeerInfo> peers;
+
+        public RoomClient RoomClient => client;
 
         [SerializeField, HideInInspector]
         public Avatar LocalAvatar;
@@ -94,6 +96,7 @@ namespace Ubiq.Avatars
             {
                 var prefab = Avatars.GetPrefab(args.prefabUuid);
                 var created = Instantiate(prefab, transform).GetComponentInChildren<Avatar>();
+                created.AvatarManager = this;
                 created.Id = args.objectId;
                 avatars.Add(created.Id, created);
                 created.OnUpdated.AddListener(UpdatePeer);
@@ -166,6 +169,7 @@ namespace Ubiq.Avatars
             if (parms != null)
             {
                 var args = JsonUtility.FromJson<AvatarArgs>(parms);
+                args.properties["peer-uuid"] = peer.UUID; // If the Avatar is being generated for a peer, add that to the arguments to be stored with the avatar.
                 if (peer.UUID == client.Me.UUID)
                 {
                     UpdateAvatar(args, true);

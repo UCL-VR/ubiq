@@ -5,16 +5,16 @@ using Ubiq.Messaging;
 using UnityEngine;
 using UnityEngine.Events;
 using Ubiq.Dictionaries;
-using UnityEngine.Profiling;
+using Ubiq.XR.Notifications;
 
 namespace Ubiq.Rooms
 {
     /// <summary>
-    /// Maintains a representation of a shared room. This component exchanges messages with other room managers
-    /// and the matchmaking service in order to keep all peers in sync.
-    /// The room manager is responsible for forwarding messages to other peers, until p2p connections can be e
+    /// Maintains a representation of a shared room. This component exchanges messages with other room managers and the 
+    /// matchmaking service in order to keep all peers in sync.
+    /// The room manager is responsible for forwarding messages to other peers, until p2p connections can be established.
     /// </summary>
-    [RequireComponent(typeof(NetworkScene))] //not strictly true, but anyone advanced enough to use multiple clients in one scene can remove this...
+    [RequireComponent(typeof(NetworkScene))] //not strictly true, but anyone advanced enough to use multiple clients in one scene can remove this... (while a NetworkScene can have multiple RoomClients, RoomClients must have a NetworkScene)
     [NetworkComponentId(typeof(RoomClient), 1)]
     public class RoomClient : MonoBehaviour, INetworkComponent
     {
@@ -34,6 +34,32 @@ namespace Ubiq.Rooms
         public ConnectionDefinition[] servers;
 
         private Dictionary<string, Action<string>> blobCallbacks;
+        private float PingSent;
+        private float PingReceived;
+        private float HeartbeatReceived => Time.realtimeSinceStartup - PingReceived;
+        private float HeartbeatSent => Time.realtimeSinceStartup - PingSent;
+        public static float HeartbeatTimeout = 5f;
+        public static float HeartbeatInterval = 1f;
+
+        public class TimeoutNotification : Notification
+        {
+            private RoomClient client;
+
+            public TimeoutNotification(RoomClient client)
+            {
+                this.client = client;
+            }
+
+            public override string Message
+            {
+                get
+                {
+                    return $"No Connection ({ client.HeartbeatReceived } seconds ago)";
+                }
+            }
+        }
+
+        private TimeoutNotification notification;
 
         // In C#, interfaces do not have to be as accessible as classes that implement them, so we can use explicit
         // implementations to create the equivalent of C++ friends.
@@ -330,6 +356,12 @@ namespace Ubiq.Rooms
                         }
                     }
                     break;
+                case "Ping":
+                    {
+                        PingReceived = Time.realtimeSinceStartup;
+                        PlayerNotifications.Delete(ref notification);
+                    }
+                    break;
             }
         }
 
@@ -370,13 +402,24 @@ namespace Ubiq.Rooms
 
         private void Update()
         {
-            if((Me as IPeerInterfaceFriend).NeedsUpdate())
+            if ((Me as IPeerInterfaceFriend).NeedsUpdate())
             {
                 SendToServer("UpdatePeer", Me.GetPeerInfo());
             }
-            if((Room as IRoomInterfaceFriend).NeedsUpdate())
+            if ((Room as IRoomInterfaceFriend).NeedsUpdate())
             {
                 SendToServer("UpdateRoom", Room.GetRoomInfo());
+            }
+            if (HeartbeatSent > HeartbeatInterval)
+            {
+                Ping();
+            }
+            if (HeartbeatReceived > HeartbeatTimeout)
+            {
+                if (notification == null)
+                {
+                    notification = PlayerNotifications.Show(new TimeoutNotification(this));
+                }
             }
         }
 
@@ -430,6 +473,12 @@ namespace Ubiq.Rooms
             var uuid = Guid.NewGuid().ToString();
             SetBlob(room, uuid, blob);
             return uuid;
+        }
+
+        public void Ping()
+        {
+            PingSent = Time.realtimeSinceStartup;
+            SendToServer("Ping", null);
         }
     }
 }
