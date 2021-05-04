@@ -31,7 +31,7 @@ namespace Ubiq.WebRtc
 
             var component = target as WebRtcPeerConnection;
 
-            if (component.isReady)
+            if (component.IsReady)
             {
                 EditorGUILayout.LabelField("Peer", component.State.Peer);
                 EditorGUILayout.LabelField("Last Message", component.State.LastMessageReceived);
