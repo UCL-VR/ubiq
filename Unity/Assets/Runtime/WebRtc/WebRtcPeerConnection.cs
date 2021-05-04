@@ -262,11 +262,12 @@ namespace Ubiq.WebRtc
                 }
 
                 var message = CreateSessionDescriptionMessage(offer);
-                pc.SetLocalDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver()), offer);
+                pc.SetLocalDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(debug)), offer);
                 Send("description", message);
                 debug.Log("SendOffer", polite);
 
-            })), new PeerConnectionInterface.RtcOfferAnswerOptions());
+            },
+            debug)), new PeerConnectionInterface.RtcOfferAnswerOptions());
             RaiseStateChange();
         }
 
@@ -310,21 +311,22 @@ namespace Ubiq.WebRtc
                             pc.SetLocalDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(() =>
                             {
                                 debug.Log("AcceptOffer");
-                                pc.SetRemoteDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(CreateAnswer)), SessionDescription.Create(SdpType.Offer, sessionDescription.sdp, IntPtr.Zero));
-                            })), SessionDescription.Create(SdpType.Rollback, "", IntPtr.Zero));
+                                pc.SetRemoteDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(CreateAnswer, debug)), SessionDescription.Create(SdpType.Offer, sessionDescription.sdp, IntPtr.Zero));
+                            }, debug
+                            )), SessionDescription.Create(SdpType.Rollback, "", IntPtr.Zero));
 
                         }
                     }
                     else
                     {
                         debug.Log("AcceptOffer");
-                        pc.SetRemoteDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(CreateAnswer)), SessionDescription.Create(SdpType.Offer, sessionDescription.sdp, IntPtr.Zero));
+                        pc.SetRemoteDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(CreateAnswer, debug)), SessionDescription.Create(SdpType.Offer, sessionDescription.sdp, IntPtr.Zero));
                     }
                 }
                 else // desc.type == "answer"
                 {
                     debug.Log("ReceivedAnswer");
-                    pc.SetRemoteDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver()), SessionDescription.Create(SdpType.Answer, sessionDescription.sdp, IntPtr.Zero));
+                    pc.SetRemoteDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(debug)), SessionDescription.Create(SdpType.Answer, sessionDescription.sdp, IntPtr.Zero));
                 }
             }
 
@@ -360,10 +362,11 @@ namespace Ubiq.WebRtc
             pc.CreateAnswer(new DisposableCreateSessionDescriptionObserver(new CreateSessionDescriptionObserver((answer) =>
             {
                 var message = CreateSessionDescriptionMessage(answer);
-                pc.SetLocalDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver()), answer);
+                pc.SetLocalDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(debug)), answer);
                 Send("description", message);
                 debug.Log("SendAnswer");
-            })),
+            },
+            debug)),
             new PeerConnectionInterface.RtcOfferAnswerOptions());
         }
 
@@ -511,12 +514,15 @@ namespace Ubiq.WebRtc
 
     public class CreateSessionDescriptionObserver : IManagedCreateSessionDescriptionObserver
     {
-        CreateSessionDescriptionObserver()
+        private EventLogger debug;
+
+        CreateSessionDescriptionObserver(EventLogger debug)
         {
+            this.debug = debug;
             this._OnSuccess = (a) => { };
         }
 
-        public CreateSessionDescriptionObserver(Action<DisposableSessionDescriptionInterface> OnSuccess)
+        public CreateSessionDescriptionObserver(Action<DisposableSessionDescriptionInterface> OnSuccess, EventLogger debug) :this(debug)
         {
             this._OnSuccess = OnSuccess;
         }
@@ -537,12 +543,15 @@ namespace Ubiq.WebRtc
 
     public class SetSessionDecsriptionObserver : IManagedSetSessionDescriptionObserver
     {
-        public SetSessionDecsriptionObserver()
+        private EventLogger debug;
+
+        public SetSessionDecsriptionObserver(EventLogger debug)
         {
+            this.debug = debug;
             this._OnSuccess = () => { };
         }
 
-        public SetSessionDecsriptionObserver(Action OnSuccess)
+        public SetSessionDecsriptionObserver(Action OnSuccess, EventLogger debug):this(debug)
         {
             this._OnSuccess = OnSuccess;
         }
@@ -556,7 +565,7 @@ namespace Ubiq.WebRtc
 
         public void OnFailure(RtcError error)
         {
-            Debug.LogError(error.Message);
+            debug.Log(error.Message);
         }
     }
 }
