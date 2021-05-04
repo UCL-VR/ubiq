@@ -65,6 +65,7 @@ namespace Ubiq.WebRtc
         {
             public string Peer;
             public string LastMessageReceived;
+            public bool HasRemote;
             public volatile PeerConnectionInterface.SignalingState SignalingState;
             public volatile PeerConnectionInterface.IceConnectionState ConnectionState;
             public volatile PeerConnectionInterface.IceGatheringState IceState;
@@ -433,6 +434,8 @@ namespace Ubiq.WebRtc
                 {
                     SendAnnouncement();
                 }
+                State.HasRemote = hasRemotePeer;
+                RaiseStateChange();
             }
         }
 

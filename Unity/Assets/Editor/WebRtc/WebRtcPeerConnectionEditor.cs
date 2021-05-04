@@ -38,6 +38,7 @@ namespace Ubiq.WebRtc
                 EditorGUILayout.LabelField("State", component.State.SignalingState.ToString());
                 EditorGUILayout.LabelField("Connection", component.State.ConnectionState.ToString());
                 EditorGUILayout.LabelField("Ice", component.State.IceState.ToString());
+                EditorGUILayout.LabelField("Remote", component.State.HasRemote.ToString());
             }
         }
     }
