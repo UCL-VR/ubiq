@@ -1,13 +1,9 @@
 ﻿using Pixiv.Cricket;
-using Pixiv.Rtc;
 using Pixiv.Webrtc;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using Ubiq.Logging;
 using Ubiq.Messaging;
 using UnityEngine;
@@ -48,9 +44,8 @@ namespace Ubiq.WebRtc
 
         private WebRtcPeerConnectionFactory factory;
         private DisposablePeerConnectionInterface pc;
-        private ConcurrentQueue<Action> UnityJobs;
-        private List<Pixiv.Webrtc.Interop.AudioSourceInterface> audiointerfaces = new List<Pixiv.Webrtc.Interop.AudioSourceInterface>();
-
+        private ConcurrentQueue<Action> unityJobs;
+        private List<Pixiv.Webrtc.Interop.AudioSourceInterface> audioInterfaces = new List<Pixiv.Webrtc.Interop.AudioSourceInterface>();
         private EventLogger debug;
 
         public float volume = 1;
@@ -62,17 +57,23 @@ namespace Ubiq.WebRtc
         private NetworkContext context;
 
         private bool polite = false;
+        private bool hasRemotePeer = false;
+
+        public bool IsReady { get { return pc != null; } }
 
         public struct PeerConnectionState
         {
             public string Peer;
             public string LastMessageReceived;
+            public bool HasRemote;
             public volatile PeerConnectionInterface.SignalingState SignalingState;
             public volatile PeerConnectionInterface.IceConnectionState ConnectionState;
             public volatile PeerConnectionInterface.IceGatheringState IceState;
         }
 
         public PeerConnectionState State;
+
+        private volatile PeerConnectionInterface.SignalingState signallingState;
 
         [Serializable]
         public class StateChangedEvent : UnityEvent<PeerConnectionState> 
@@ -98,18 +99,28 @@ namespace Ubiq.WebRtc
 
         private void RaiseStateChange()
         {
-            UnityJobs.Enqueue(() => { OnStateChanged.Invoke(State); });
+            OnMainThread(() => 
+            { 
+                OnStateChanged.Invoke(State); 
+            });
         }
-
-        private volatile PeerConnectionInterface.SignalingState signallingState;
-
-        public bool isReady { get { return pc != null; } }
 
         [Serializable]
         public struct Message
         {
             public string type;
             public string args;
+        }
+
+        [Serializable]
+        public class AnnouncementMessage
+        {
+            public bool acknowledged; // Whether the sender of the message has received an announcement from the receiver
+
+            public AnnouncementMessage(bool hasRemotePeer)
+            {
+                acknowledged = hasRemotePeer;
+            }
         }
 
         [Serializable]
@@ -148,6 +159,20 @@ namespace Ubiq.WebRtc
             });
         }
 
+        /// <summary>
+        /// Sends a message only when an acknowledgement that the remote instance has been created
+        /// </summary>
+        private void SendOnRemotePeer<T>(string type, T args)
+        {
+            OnMainThread(() =>
+            {
+                OnRemotePeer(() =>
+                {
+                    Send(type, args);
+                });
+            });
+        }
+
         private void Awake()
         {
             if (OnStateChanged == null)
@@ -155,7 +180,7 @@ namespace Ubiq.WebRtc
                 OnStateChanged = new StateChangedEvent();
             }
             OnStateChanged.SetConnection(this);
-            UnityJobs = new ConcurrentQueue<Action>();
+            unityJobs = new ConcurrentQueue<Action>();
             volumeModifier = 1f;
         }
 
@@ -178,6 +203,13 @@ namespace Ubiq.WebRtc
             {
                 pc = factory.CreatePeerConnection(config, this);
             });
+
+            OnPeerConnection(SendAnnouncement);
+        }
+
+        private void OnMainThread(Action Action)
+        {
+            unityJobs.Enqueue(Action);
         }
 
         /// <summary>
@@ -185,12 +217,46 @@ namespace Ubiq.WebRtc
         /// </summary>
         public void OnPeerConnection(Action OnPcCreated)
         {
-            StartCoroutine(WaitForPeerConnection(OnPcCreated));
+            if (pc != null)
+            {
+                OnPcCreated();
+            }
+            else
+            {
+                StartCoroutine(WaitForPeerConnection(OnPcCreated));
+            }
         }
 
         private IEnumerator WaitForPeerConnection(Action OnPcCreated)
         {
             while (pc == null)
+            {
+                yield return null;
+            }
+            OnPcCreated();
+        }
+
+        /// <summary>
+        /// Calls OnRemoteCreated when the counterpart Peer Connection has been made.
+        /// </summary>
+        /// <remarks>
+        /// Naive use of this method assumes PeerConnections are dyads. This is not enforced technically however; do not create three-way PeerConnection objects with the same Id without handling this case explicitly.
+        /// </remarks>
+        public void OnRemotePeer(Action OnRemote)
+        {
+            if (hasRemotePeer)
+            {
+                OnRemote();
+            }
+            else
+            {
+                StartCoroutine(WaitForRemotePeerConnection(OnRemote));
+            }
+        }
+
+        private IEnumerator WaitForRemotePeerConnection(Action OnPcCreated)
+        {
+            while (!hasRemotePeer)
             {
                 yield return null;
             }
@@ -232,9 +298,9 @@ namespace Ubiq.WebRtc
 
         private void Update()
         {
-            lock (audiointerfaces)
+            lock (audioInterfaces)
             {
-                foreach (var item in audiointerfaces)
+                foreach (var item in audioInterfaces)
                 {
                     var newvolume = Mathf.Clamp(volume * volumeModifier, 0, 10);
                     if (_volume != newvolume)
@@ -246,7 +312,7 @@ namespace Ubiq.WebRtc
             }
 
             Action action;
-            while (UnityJobs.TryDequeue(out action))
+            while (unityJobs.TryDequeue(out action))
             {
                 action();
             }
@@ -254,21 +320,24 @@ namespace Ubiq.WebRtc
 
         public void OnRenegotiationNeeded()
         {
-            pc.CreateOffer(new DisposableCreateSessionDescriptionObserver(new CreateSessionDescriptionObserver((offer) =>
+            OnPeerConnection(() => // This may be called externally, before the pc is created
             {
-                if(signallingState != PeerConnectionInterface.SignalingState.Stable)
+                pc.CreateOffer(new DisposableCreateSessionDescriptionObserver(new CreateSessionDescriptionObserver((offer) =>
                 {
-                    return;
-                }
+                    if (signallingState != PeerConnectionInterface.SignalingState.Stable)
+                    {
+                        return;
+                    }
 
-                var message = CreateSessionDescriptionMessage(offer);
-                pc.SetLocalDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(debug)), offer);
-                Send("description", message);
-                debug.Log("SendOffer", polite);
+                    var message = CreateSessionDescriptionMessage(offer);
+                    pc.SetLocalDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(debug)), offer);
 
-            },
-            debug)), new PeerConnectionInterface.RtcOfferAnswerOptions());
-            RaiseStateChange();
+                    debug.Log("SendOffer", polite);
+                    SendOnRemotePeer("description", message);
+                },
+                debug)), new PeerConnectionInterface.RtcOfferAnswerOptions());
+                RaiseStateChange();
+            });
         }
 
         public void ProcessMessage(ReferenceCountedSceneGraphMessage data)
@@ -355,6 +424,19 @@ namespace Ubiq.WebRtc
                     pc.AddIceCandidate(candidate);
                 }
             }
+
+            if (message.type == "announcement")
+            {
+                debug.Log("ReceivedAnnouncement", hasRemotePeer, message.args, true);
+                hasRemotePeer = true;
+                var args = JsonUtility.FromJson<AnnouncementMessage>(message.args);
+                if (!args.acknowledged)
+                {
+                    SendAnnouncement();
+                }
+                State.HasRemote = hasRemotePeer;
+                RaiseStateChange();
+            }
         }
 
         private void CreateAnswer()
@@ -363,7 +445,7 @@ namespace Ubiq.WebRtc
             {
                 var message = CreateSessionDescriptionMessage(answer);
                 pc.SetLocalDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(debug)), answer);
-                Send("description", message);
+                SendOnRemotePeer("description", message);
                 debug.Log("SendAnswer");
             },
             debug)),
@@ -402,9 +484,9 @@ namespace Ubiq.WebRtc
                     {
                         if (track is IAudioTrackInterface)
                         {
-                            lock (audiointerfaces)
+                            lock (audioInterfaces)
                             {
-                                audiointerfaces.Add((track as IAudioTrackInterface).GetSource());
+                                audioInterfaces.Add((track as IAudioTrackInterface).GetSource());
                             }
                         }
                     }
@@ -427,7 +509,7 @@ namespace Ubiq.WebRtc
 
         public void OnDataChannel(DisposableDataChannelInterface dataChannel)
         {
-            UnityJobs.Enqueue(() =>
+            unityJobs.Enqueue(() =>
             {
                 foreach (var item in GetComponentsInChildren<WebRtcDataChannel>())
                 {
@@ -442,7 +524,7 @@ namespace Ubiq.WebRtc
 
         public void OnIceCandidate(IceCandidateInterface candidate)
         {
-            Send("icecandidate", new IceCandidateMessage(candidate));
+            SendOnRemotePeer("icecandidate", new IceCandidateMessage(candidate));
             debug.Log("SendIceCandidate");
         }
 
@@ -499,6 +581,12 @@ namespace Ubiq.WebRtc
             debug.Log("OnStandardizedIceConnectionChange", newState);
             State.ConnectionState = newState;
             RaiseStateChange();
+        }
+
+        private void SendAnnouncement()
+        {
+            debug.Log("SendingAnnoucement", hasRemotePeer);
+            Send("announcement", new AnnouncementMessage(hasRemotePeer));
         }
 
         private void OnDestroy()

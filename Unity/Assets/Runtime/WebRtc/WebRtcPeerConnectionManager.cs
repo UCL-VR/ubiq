@@ -95,19 +95,12 @@ namespace Ubiq.WebRtc
                 pc.MakePolite();
                 pc.AddLocalAudioSource();
 
-                // If the polite peer (this one) is created first, the offer will be lost, and that is no problem because it will rollback. However, if the instruction to make
-                // the impolite peer completes before the polite peer is created, then the negotiation will get stuck, so only send the instruction once the polite peer
-                // has been initialised.
-
-                pc.OnPeerConnection(() =>
-                {
-                    Message m;
-                    m.type = "RequestPeerConnection";
-                    m.objectid = pcid; // the shared Id is set by this peer, but it must be chosen so as not to conflict with any other shared id on the network
-                    m.uuid = client.Me.UUID; // this is so the other end can identify us if we are removed from the room
-                    Send(peer.NetworkObjectId, m);
-                    debug.Log("RequestPeerConnection", pcid, peer.NetworkObjectId);
-                });
+                Message m;
+                m.type = "RequestPeerConnection";
+                m.objectid = pcid; // the shared Id is set by this peer, but it must be chosen so as not to conflict with any other shared id on the network
+                m.uuid = client.Me.UUID; // this is so the other end can identify us if we are removed from the room
+                Send(peer.NetworkObjectId, m);
+                debug.Log("RequestPeerConnection", pcid, peer.NetworkObjectId);
             }
         }
 
@@ -155,7 +148,6 @@ namespace Ubiq.WebRtc
             pc.State.Peer = peerUuid;
 
             peerUUIDToConnection.Add(peerUuid, pc);
-
             OnPeerConnection.Invoke(pc);
 
             return pc;
