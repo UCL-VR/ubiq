@@ -69,6 +69,7 @@ namespace Ubiq.WebRtc
             public string LastMessageReceived;
             public volatile PeerConnectionInterface.SignalingState SignalingState;
             public volatile PeerConnectionInterface.IceConnectionState ConnectionState;
+            public volatile PeerConnectionInterface.IceGatheringState IceState;
         }
 
         public PeerConnectionState State;
@@ -179,6 +180,14 @@ namespace Ubiq.WebRtc
             });
         }
 
+        /// <summary>
+        /// Calls OnPcCreated after the underlying Peer Connection has been made.
+        /// </summary>
+        public void OnPeerConnection(Action OnPcCreated)
+        {
+            StartCoroutine(WaitForPeerConnection(OnPcCreated));
+        }
+
         private IEnumerator WaitForPeerConnection(Action OnPcCreated)
         {
             while (pc == null)
@@ -190,21 +199,21 @@ namespace Ubiq.WebRtc
 
         public void AddLocalAudioSource()
         {
-            StartCoroutine(WaitForPeerConnection(() =>
+            OnPeerConnection(() =>
             {
                 debug.Log("AddLocalAudioSource");
                 var audiosource = factory.CreateAudioSource();
                 var audiotrack = factory.CreateAudioTrack("localAudioSource", audiosource);
                 pc.AddTrack(audiotrack, new[] { "localAudioSource" });
-            }));
+            });
         }
 
         public void CreateDataChannel(string label, string protocol, int id, bool ordered, int maxRetransmitTime, Action<DisposableDataChannelInterface> OnDataChannel)
         {
-            StartCoroutine(WaitForPeerConnection(() =>
+            OnPeerConnection(() =>
             {
                 OnDataChannel(pc.CreateDataChannel(label, id, maxRetransmitTime, ordered, protocol));
-            }));
+            });
         }
 
         // for now the unity-based audio and video are unsupported. support will be added back when we have a good and stable native audio experience.
@@ -253,11 +262,12 @@ namespace Ubiq.WebRtc
                 }
 
                 var message = CreateSessionDescriptionMessage(offer);
-                pc.SetLocalDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver()), offer);
+                pc.SetLocalDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(debug)), offer);
                 Send("description", message);
                 debug.Log("SendOffer", polite);
 
-            })), new PeerConnectionInterface.RtcOfferAnswerOptions());
+            },
+            debug)), new PeerConnectionInterface.RtcOfferAnswerOptions());
             RaiseStateChange();
         }
 
@@ -269,7 +279,7 @@ namespace Ubiq.WebRtc
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                debug.Log("Exception", e.Message);
                 return;
             }
         }
@@ -301,21 +311,22 @@ namespace Ubiq.WebRtc
                             pc.SetLocalDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(() =>
                             {
                                 debug.Log("AcceptOffer");
-                                pc.SetRemoteDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(CreateAnswer)), SessionDescription.Create(SdpType.Offer, sessionDescription.sdp, IntPtr.Zero));
-                            })), SessionDescription.Create(SdpType.Rollback, "", IntPtr.Zero));
+                                pc.SetRemoteDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(CreateAnswer, debug)), SessionDescription.Create(SdpType.Offer, sessionDescription.sdp, IntPtr.Zero));
+                            }, debug
+                            )), SessionDescription.Create(SdpType.Rollback, "", IntPtr.Zero));
 
                         }
                     }
                     else
                     {
                         debug.Log("AcceptOffer");
-                        pc.SetRemoteDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(CreateAnswer)), SessionDescription.Create(SdpType.Offer, sessionDescription.sdp, IntPtr.Zero));
+                        pc.SetRemoteDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(CreateAnswer, debug)), SessionDescription.Create(SdpType.Offer, sessionDescription.sdp, IntPtr.Zero));
                     }
                 }
                 else // desc.type == "answer"
                 {
                     debug.Log("ReceivedAnswer");
-                    pc.SetRemoteDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver()), SessionDescription.Create(SdpType.Answer, sessionDescription.sdp, IntPtr.Zero));
+                    pc.SetRemoteDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(debug)), SessionDescription.Create(SdpType.Answer, sessionDescription.sdp, IntPtr.Zero));
                 }
             }
 
@@ -351,10 +362,11 @@ namespace Ubiq.WebRtc
             pc.CreateAnswer(new DisposableCreateSessionDescriptionObserver(new CreateSessionDescriptionObserver((answer) =>
             {
                 var message = CreateSessionDescriptionMessage(answer);
-                pc.SetLocalDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver()), answer);
+                pc.SetLocalDescription(new DisposableSetSessionDescriptionObserver(new SetSessionDecsriptionObserver(debug)), answer);
                 Send("description", message);
                 debug.Log("SendAnswer");
-            })),
+            },
+            debug)),
             new PeerConnectionInterface.RtcOfferAnswerOptions());
         }
 
@@ -455,6 +467,7 @@ namespace Ubiq.WebRtc
         public void OnIceGatheringChange(PeerConnectionInterface.IceGatheringState newState)
         {
             debug.Log("OnIceGatheringChange", newState);
+            State.IceState = newState;
             RaiseStateChange();
         }
 
@@ -501,12 +514,15 @@ namespace Ubiq.WebRtc
 
     public class CreateSessionDescriptionObserver : IManagedCreateSessionDescriptionObserver
     {
-        CreateSessionDescriptionObserver()
+        private EventLogger debug;
+
+        CreateSessionDescriptionObserver(EventLogger debug)
         {
+            this.debug = debug;
             this._OnSuccess = (a) => { };
         }
 
-        public CreateSessionDescriptionObserver(Action<DisposableSessionDescriptionInterface> OnSuccess)
+        public CreateSessionDescriptionObserver(Action<DisposableSessionDescriptionInterface> OnSuccess, EventLogger debug) :this(debug)
         {
             this._OnSuccess = OnSuccess;
         }
@@ -527,12 +543,15 @@ namespace Ubiq.WebRtc
 
     public class SetSessionDecsriptionObserver : IManagedSetSessionDescriptionObserver
     {
-        public SetSessionDecsriptionObserver()
+        private EventLogger debug;
+
+        public SetSessionDecsriptionObserver(EventLogger debug)
         {
+            this.debug = debug;
             this._OnSuccess = () => { };
         }
 
-        public SetSessionDecsriptionObserver(Action OnSuccess)
+        public SetSessionDecsriptionObserver(Action OnSuccess, EventLogger debug):this(debug)
         {
             this._OnSuccess = OnSuccess;
         }
@@ -546,7 +565,7 @@ namespace Ubiq.WebRtc
 
         public void OnFailure(RtcError error)
         {
-            Debug.LogError(error.Message);
+            debug.Log(error.Message);
         }
     }
 }
