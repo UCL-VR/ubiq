@@ -160,7 +160,7 @@ namespace Ubiq.WebRtc
         }
 
         /// <summary>
-        /// Sends a message only when an acknowledgement that the remote instance has been created
+        /// Sends a message after the Remote PeerConnection has announced it has finished its initialisation
         /// </summary>
         private void SendOnRemotePeer<T>(string type, T args)
         {
