@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Ubiq.Dictionaries;
 using Ubiq.Messaging;
 using UnityEngine;
@@ -20,12 +21,76 @@ namespace Ubiq.Rooms
     }
 
     /// <summary>
+    /// The RoomInterface class provides encapsulation for the RoomInfo data transfer object. It provides a single
+    /// reference that is safe to store, and prevents unsafe writes. All accesses to the RoomClient's current Room
+    /// should go through this.
+    /// </summary>
+    public abstract class RoomInterface
+    {
+        public string Name { get; protected set; }
+        public string UUID { get; protected set; }
+        public string JoinCode { get; protected set; }
+        public bool Publish { get; protected set; }
+
+        protected SerializableDictionary properties;
+
+        public RoomInterface()
+        {
+            properties = new SerializableDictionary();
+        }
+
+        public string this[string key]
+        {
+            get => properties[key];
+            set => properties[key] = value;
+        }
+
+        public IEnumerable<KeyValuePair<string, string>> Properties
+        {
+            get => properties.Enumerator;
+        }
+
+        public RoomInfo GetRoomInfo()
+        {
+            return new RoomInfo(Name, UUID, JoinCode, Publish, properties);
+        }
+    }
+
+    /// <summary>
+    /// The PeerInterface class provides encapsulation of the PeerInfo data transfer object, similar to the RoomInterface above.
+    /// </summary>
+    public abstract class PeerInterface
+    {
+        public string UUID { get; private set; }
+
+        public PeerInterface(String uuid)
+        {
+            UUID = uuid;
+            properties = new SerializableDictionary();
+        }
+
+        protected SerializableDictionary properties;
+        protected NetworkId networkId;
+
+        public string this[string key]
+        {
+            get => properties[key];
+            set => properties[key] = value;
+        }
+
+        public PeerInfo GetPeerInfo()
+        {
+            return new PeerInfo(UUID, networkId, properties);
+        }
+    }
+
+    /// <summary>
     /// An immutable description of a remote peer. This type is used by the RoomClient to store information about the other peers
     /// in a room, and as a data transfer object when communicating with the RoomServer.
     /// </summary>
     /// <remarks>
     /// While the object is technically immutable, note that the serialised dictionary is a reference. This means while user code
-    /// cannot change the dictionary, the properties of an existing copy of PeerInfo may change, if RoomClient receives an update.
+    /// cannot change the dictionary, the properties of an existing PeerInfo may change, if RoomClient receives an update.
     /// </remarks>
     [Serializable]
     public struct PeerInfo
@@ -46,7 +111,7 @@ namespace Ubiq.Rooms
         /// </summary>
         public string this[string key]
         {
-            get => properties[key];
+            get => properties != null ? properties[key] : null;
         }
 
         /// <summary>
@@ -78,8 +143,18 @@ namespace Ubiq.Rooms
         }
     }
 
+    /// <summary>
+    /// An immutable description of a Room. This type is used by RoomClient to communicate information about a room to other peers, 
+    /// and to other objects via events.
+    /// This representation of a room cannot be changed; use the RoomClient::Room member if you need to change properties of the
+    /// current room.
+    /// </summary>
+    /// <remarks>
+    /// While the object is technically immutable, note that the serialised dictionary is a reference. This means while user code
+    /// cannot change the dictionary, the properties of an existing copy of PeerInfo may change, if RoomClient receives an update.
+    /// </remarks>
     [Serializable]
-    public struct RoomInfo //todo: make this a struct (means anything that uses the dictionary must check if its initialised)
+    public struct RoomInfo
     {
         public string Name
         {
@@ -96,14 +171,14 @@ namespace Ubiq.Rooms
         /// </summary>
         public string this[string key]
         {
-            get => properties[key];
+            get => properties != null ? properties[key] : null;
         }
 
         public IEnumerable<KeyValuePair<string, string>> Properties
         {
             get
             {
-                return properties.Enumerator;
+                return properties != null ? properties.Enumerator : Enumerable.Empty<KeyValuePair<string, string>>();
             }
         }
 

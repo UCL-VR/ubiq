@@ -90,6 +90,10 @@ class RoomServer{
         console.log(peer.uuid + " joined room " + room.uuid);
     }
 
+    async leave(peer){
+        peer.room.removePeer(peer);
+    }
+
     getPublishableRooms(){
         return {
             rooms: this.roomDatabase.all().filter(r => r.publish === true).map(r => r.getRoomArgs()),
@@ -287,6 +291,9 @@ class RoomPeer{
                         console.log(argsResult.instance);
                         console.log(argsResult.errors);
                     }
+                    break;
+                case "Leave":
+                    this.server.leave(this);
                     break;
                 case "UpdatePeer":
                     var argsResult = this.validator.validate(message.args,this.updatePeerArgsSchema);
