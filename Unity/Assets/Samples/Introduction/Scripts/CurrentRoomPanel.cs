@@ -37,7 +37,7 @@ namespace Ubiq.Samples
             }
         }
 
-        private void RoomClient_OnJoinedRoom()
+        private void RoomClient_OnJoinedRoom(RoomInfo room)
         {
             UpdateControl(true);
         }
@@ -49,7 +49,7 @@ namespace Ubiq.Samples
                 return;
             }
 
-            if (mainMenu.roomClient.joinedRoom)
+            if (mainMenu.roomClient.JoinedRoom)
             {
                 notInRoomPanel.SetActive(false);
                 inRoomPanel.SetActive(true);

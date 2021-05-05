@@ -99,9 +99,9 @@ namespace Ubiq.Samples
             return spawned;
         }
 
-        private void OnRoom()
+        private void OnRoom(RoomInfo room)
         {
-            foreach (var item in roomClient.Room.Properties)
+            foreach (var item in room.Properties)
             {
                 if(item.Key.StartsWith("SpawnedObject"))
                 {

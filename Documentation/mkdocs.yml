@@ -30,6 +30,7 @@ nav:
             - Introduction: serverintroduction.md
             - Server Overview: serveroverview.md
             - Heartbeat: serverheartbeat.md
+            - Leaving and Joining: leavingandjoiningrooms.md
     - Programming:
         - Async Design Patterns: asyncdesignpatterns.md
     - Development:

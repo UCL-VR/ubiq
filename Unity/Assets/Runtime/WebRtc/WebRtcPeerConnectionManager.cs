@@ -78,13 +78,18 @@ namespace Ubiq.WebRtc
         // and existing peers to accept that connection.
         // This is because we need to know that the remote peer is established, before beginning the exchange of messages.
 
-        public void OnJoinedRoom()
+        public void OnJoinedRoom(RoomInfo room)
         {
             foreach (var peer in client.Peers)
             {
                 if (peer.UUID == client.Me.UUID)
                 {
-                    continue; // don't connect to ones self!
+                    continue; // Don't connect to ones self!
+                }
+
+                if(peerUUIDToConnection.ContainsKey(peer.UUID))
+                {
+                    continue; // This peer existed in the previous room and we already have a connection to it
                 }
 
                 var pcid = NetworkScene.GenerateUniqueId(); //A single audio channel exists between two peers. Each audio channel has its own Id.

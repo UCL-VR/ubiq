@@ -55,7 +55,7 @@ namespace Ubiq.Rooms
 
             managerReorderableList.DoLayoutList();
 
-            if(component.joinedRoom)
+            if(component.JoinedRoom)
             {
                 EditorGUILayout.HelpBox("Joined Room " + component.Room.UUID, MessageType.Info);
             }
@@ -84,6 +84,11 @@ namespace Ubiq.Rooms
             if(GUILayout.Button("Create Room")) // creates a room with a random id and joins it
             {
                 component.JoinNew($"Editor Room {IdGenerator.GenerateUnique().ToString()}", true); // publish true because we probably need other Editor inspectors to see it
+            }
+
+            if(GUILayout.Button("Leave Room"))
+            {
+                component.Leave();
             }
 
             if (GUILayout.Button("Refresh"))

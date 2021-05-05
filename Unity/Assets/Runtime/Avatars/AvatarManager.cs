@@ -155,7 +155,7 @@ namespace Ubiq.Avatars
             }
         }
 
-        private void OnJoinedRoom()
+        private void OnJoinedRoom(RoomInfo room)
         {
             foreach (var item in client.Peers)
             {

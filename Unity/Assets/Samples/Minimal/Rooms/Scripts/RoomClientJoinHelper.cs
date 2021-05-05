@@ -45,7 +45,7 @@ namespace Ubiq.Samples.Minimal.Rooms
 
             roomClients.Remove(primary);
 
-            primary.OnJoinedRoom.AddListener(() =>
+            primary.OnJoinedRoom.AddListener((RoomInfo room) =>
             {
                 foreach (var item in roomClients)
                 {
