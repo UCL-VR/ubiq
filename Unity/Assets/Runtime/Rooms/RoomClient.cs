@@ -218,6 +218,10 @@ namespace Ubiq.Rooms
             {
                 OnRoomsAvailable = new RoomsAvailableEvent();
             }
+            if (OnRoom == null)
+            {
+                OnRoom = new RoomEvent();
+            }
             if (OnLeftRoom == null)
             {
                 OnLeftRoom = new RoomEvent();
