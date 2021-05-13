@@ -61,14 +61,12 @@ namespace Ubiq.Samples
         {
             switch (state.ConnectionState)
             {
-                case Pixiv.Webrtc.PeerConnectionInterface.IceConnectionState.Disconnected:
-                case Pixiv.Webrtc.PeerConnectionInterface.IceConnectionState.Failed:
-                case Pixiv.Webrtc.PeerConnectionInterface.IceConnectionState.Closed:
-                case Pixiv.Webrtc.PeerConnectionInterface.IceConnectionState.New: 
-                    indicator.gameObject.SetActive(true);
+                case Pixiv.Webrtc.PeerConnectionInterface.IceConnectionState.Connected:
+                case Pixiv.Webrtc.PeerConnectionInterface.IceConnectionState.Completed:
+                    indicator.gameObject.SetActive(false);
                     break;
                 default:
-                    indicator.gameObject.SetActive(false);
+                    indicator.gameObject.SetActive(true);
                     break;
             }
         }
