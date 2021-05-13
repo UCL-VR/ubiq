@@ -22,19 +22,25 @@ namespace Ubiq.Samples
         {
             UpdateControl(false);
             backgroundDefaultColor = background.color;
+        }
 
+        private void Start()
+        {
             mainMenu.roomClient.OnJoinedRoom.AddListener(RoomClient_OnJoinedRoom);
+        }
+
+        private void OnDestroy()
+        {
+            if (mainMenu.roomClient)
+            {
+                mainMenu.roomClient.OnJoinedRoom.RemoveListener(RoomClient_OnJoinedRoom);
+            }
         }
 
         private void OnDisable()
         {
             StopAllCoroutines();
             background.color = backgroundDefaultColor;
-
-            if (mainMenu.roomClient)
-            {
-                mainMenu.roomClient.OnJoinedRoom.RemoveListener(RoomClient_OnJoinedRoom);
-            }
         }
 
         private void RoomClient_OnJoinedRoom(RoomInfo room)
