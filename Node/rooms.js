@@ -1,6 +1,7 @@
 const { Message, NetworkId } = require('./messaging');
 const { randString } = require('./joincode');
 const { Validator } = require('jsonschema');
+const { EventEmitter } = require('events');
 
 const VERSION_STRING = "0.0.4";
 const RoomServerReservedId = 1;
@@ -19,8 +20,9 @@ class SerialisedDictionary{
 // This is the primary server for rendezvous and bootstrapping. It accepts websocket connections,
 // (immediately handing them over to RoomPeer instances) and performs book-keeping for finding
 // and joining rooms.
-class RoomServer{
+class RoomServer extends EventEmitter{
     constructor(){
+        super();
         this.roomDatabase = new RoomDatabase();
         this.version = VERSION_STRING;
         this.objectId = new NetworkId(RoomServerReservedId);
@@ -30,6 +32,7 @@ class RoomServer{
     addServer(server){
         console.log("Added RoomServer port " + server.port);
         server.onConnection.push(this.onConnection.bind(this));
+
     }
 
     onConnection(wrapped){
@@ -77,8 +80,9 @@ class RoomServer{
             if (args.hasOwnProperty("name")) {
                 name = args.name;
             }
-            room = new Room(server,uuid,joincode,publish,name);
+            room = new Room(this,uuid,joincode,publish,name);
             this.roomDatabase.add(room);
+            this.emit("create",room);
 
             console.log(room.uuid + " created with joincode " + joincode);
         }
@@ -87,17 +91,24 @@ class RoomServer{
             peer.room.removePeer(peer);
         }
         room.addPeer(peer);
+
         console.log(peer.uuid + " joined room " + room.uuid);
     }
 
-    getPublishableRooms(){
-        return {
-            rooms: this.roomDatabase.all().filter(r => r.publish === true).map(r => r.getRoomArgs()),
-            version: this.version
+    getRooms(){
+        return this.roomDatabase.all();
+    }
+
+    getRoomArgs({publishable = true} = {}){
+        if(publishable){
+            return this.roomDatabase.all().filter(r => r.publish === true).map(r => r.getRoomArgs());
+        } else {
+            return this.roomDatabase.all().map(r => r.getRoomArgs());
         }
     }
 
     removeRoom(room){
+        this.emit("destroy",room);
         this.roomDatabase.remove(room.uuid);
         console.log("RoomServer: Deleting empty room " + room.uuid);
     }
@@ -249,7 +260,7 @@ class RoomPeer{
     }
 
     onMessage(message){
-        if(NetworkId.Compare(message.objectId, server.objectId) && message.componentId == this.server.componentId){
+        if(NetworkId.Compare(message.objectId, this.server.objectId) && message.componentId == this.server.componentId){
             try {
                 message.object = message.toObject();
             } catch {
@@ -310,7 +321,10 @@ class RoomPeer{
                 case "RequestRooms":
                     var argsResult = this.validator.validate(message.args,this.requestRoomsArgsSchema);
                     if (argsResult.valid) {
-                        this.sendRooms(this.server.getPublishableRooms());
+                        this.sendRooms({
+                            rooms: this.server.getRoomArgs({publishable:true}),
+                            version: this.server.version
+                        });
                     } else {
                         console.log(result.instance);
                         console.log(argsResult.instance);
@@ -399,7 +413,7 @@ class RoomPeer{
         );
     }
 
-    sendRoom(){
+    sendRoomUpdate(){
         this.send(
             Message.Create(
                 this.objectId,
@@ -425,7 +439,7 @@ class RoomPeer{
         )
     }
 
-    sendPeer(peer){
+    sendPeerUpdate(peer){
         this.send(
             Message.Create(
                 this.objectId,
@@ -489,7 +503,7 @@ class Room{
 
     updatePeer(peer){ // The peer arguments are only stored in one place (RoomPeer), so from the rooms point of view, updating the peer is just sending a message
         this.peers.forEach(otherpeer => {
-            otherpeer.sendPeer(peer);
+            otherpeer.sendPeerUpdate(peer);
         });
     }
 
@@ -527,7 +541,7 @@ class Room{
         this.name = args.name;
         Object.assign(this.properties, SerialisedDictionary.From(args.properties));  // This line converts the key/value properties array into a JS object, and merges it with the existing properties.
         this.peers.forEach(peer =>{
-            peer.sendRoom();
+            peer.sendRoomUpdate();
         });
     }
 
@@ -563,7 +577,7 @@ class RoomDatabase{
 
     // Remove room from the database by uuid
     remove(uuid){
-        delete this.byJoincode[this.byUuid[uuid]];
+        delete this.byJoincode[this.byUuid[uuid].joincode];
         delete this.byUuid[uuid];
     }
 
