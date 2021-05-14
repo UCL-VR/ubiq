@@ -39,7 +39,7 @@ namespace Ubiq.Samples
             return go.GetComponent<BrowseMenuControl>();
         }
 
-        private void RoomClient_OnJoinedRoom()
+        private void RoomClient_OnJoinedRoom(RoomInfo room)
         {
             UpdateAvailableRooms();
 
@@ -74,7 +74,7 @@ namespace Ubiq.Samples
             int controlI = 0;
             for (int roomI = 0; roomI < rooms.Count; controlI++,roomI++)
             {
-                if (mainMenu.roomClient.joinedRoom &&
+                if (mainMenu.roomClient.JoinedRoom &&
                     mainMenu.roomClient.Room.UUID == rooms[roomI].UUID)
                 {
                     joinedControl.gameObject.SetActive(true);

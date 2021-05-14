@@ -95,6 +95,10 @@ class RoomServer extends EventEmitter{
         console.log(peer.uuid + " joined room " + room.uuid);
     }
 
+    async leave(peer){
+        peer.room.removePeer(peer);
+    }
+
     getRooms(){
         return this.roomDatabase.all();
     }
@@ -277,11 +281,13 @@ class RoomPeer{
 
             message.type = message.object.type;
 
-            try {
-                message.args = JSON.parse(message.object.args);
-            } catch {
-                console.log("Peer " + this.uuid + ": Invalid JSON in message args");
-                return;
+            if(message.object.args){
+                try {
+                    message.args = JSON.parse(message.object.args);
+                } catch {
+                    console.log("Peer " + this.uuid + ": Invalid JSON in message args");
+                    return;
+                }
             }
 
             switch(message.type){
@@ -296,6 +302,9 @@ class RoomPeer{
                         console.log(argsResult.instance);
                         console.log(argsResult.errors);
                     }
+                    break;
+                case "Leave":
+                    this.server.leave(this);
                     break;
                 case "UpdatePeer":
                     var argsResult = this.validator.validate(message.args,this.updatePeerArgsSchema);
@@ -351,6 +360,9 @@ class RoomPeer{
                         console.log(argsResult.instance);
                         console.log(argsResult.errors);
                     }
+                    break;
+                case "Ping":
+                    this.sendPing();
                     break;
             };
         }else{
@@ -473,6 +485,19 @@ class RoomPeer{
                 {
                     type: "Blob",
                     args: JSON.stringify(blobArgs)
+                }
+            )
+        )
+    }
+
+    sendPing(){
+        this.send(
+            Message.Create(
+                this.objectId,
+                1,
+                {
+                    type: "Ping",
+                    args: null
                 }
             )
         )

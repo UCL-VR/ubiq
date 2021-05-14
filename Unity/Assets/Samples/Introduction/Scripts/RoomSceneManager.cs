@@ -22,16 +22,16 @@ namespace Ubiq.Samples
             client.OnJoinedRoom.AddListener(OnJoinedRoom);
         }
 
-        private void OnJoinedRoom()
+        private void OnJoinedRoom(RoomInfo room)
         {
-            var name = client.Room["scene-name"];
+            var name = room["scene-name"];
             if(name == null)
             {
                 UpdateRoomScene(); // if we've joined a room without a scene
             }
         }
 
-        private void OnRoom()
+        private void OnRoom(RoomInfo room)
         {
             var name = client.Room["scene-name"];
             if (name != null)

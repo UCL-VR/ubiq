@@ -35,7 +35,7 @@ namespace Ubiq.Samples
             return go.GetComponent<RoomsMenuControl>();
         }
 
-        private void OnJoinedRoom()
+        private void OnJoinedRoom(RoomInfo room)
         {
             UpdateAvailableRooms();
 
@@ -62,7 +62,7 @@ namespace Ubiq.Samples
                 return;
             }
 
-            if (roomClient.joinedRoom) {    // Update joined room
+            if (roomClient.JoinedRoom) {    // Update joined room
                 if (joinedControl != null)
                 {
                     joinedControl.gameObject.SetActive(true);
@@ -73,7 +73,7 @@ namespace Ubiq.Samples
             int controlI = 0;
             for (int roomI = 0; roomI < rooms.Count; controlI++,roomI++)
             {
-                if (roomClient.joinedRoom &&
+                if (roomClient.JoinedRoom &&
                     roomClient.Room.UUID == rooms[roomI].UUID)
                 {
                     // Skip room we are currently in - handled elsewhere
