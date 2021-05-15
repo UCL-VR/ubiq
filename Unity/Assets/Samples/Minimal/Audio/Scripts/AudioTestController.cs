@@ -59,7 +59,7 @@ public class AudioTestController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        stateText.text = "Connection State: " + pc.stats.connectionstate.ToString() + " " + pc.stats.signalingstate.ToString();
+        stateText.text = "Connection State: " + pc.State.ConnectionState.ToString() + " " + pc.State.SignalingState.ToString();
     }
 }
 

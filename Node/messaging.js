@@ -109,32 +109,7 @@ class Message{
     }
 }
 
-class Scene{
-    constructor(){
-        this.components = {};
-        this.objects = [];
-        this.objects.push(this);
-        this.send = function(message){}
-    }
-
-    addComponent(component){
-        this.components[component.id] = component;
-        component.context = this;
-    }
-
-    processMessage(message){
-        this.objects.forEach(object => {
-            if(object.id == message.objectId){
-                if(object.components.hasOwnProperty(message.componentId)){
-                    object.components[message.componentId].processMessage(message);
-                }
-            }
-        })
-    }
-}
-
 module.exports = {
     Message,
-    Scene,
     NetworkId
 }

@@ -26,6 +26,8 @@ namespace Ubiq.Logging
         internal LogManager manager;
         private static bool initialised;
 
+        public bool mirrorToConsole;
+
         public EventType EventType { get; set; }
 
         public EventLogger(EventType type)
@@ -36,6 +38,7 @@ namespace Ubiq.Logging
                 CompositeResolver.Register(UbiqResolver.Instance);
                 initialised = true;
             }
+            mirrorToConsole = false;
         }
 
         private bool ShouldLog()
@@ -51,6 +54,10 @@ namespace Ubiq.Logging
                 writer.Write("event", Event);
                 EndWriter(ref writer);
             }
+            if(mirrorToConsole)
+            {
+                Debug.Log(string.Format("{0}", Event));
+            }
         }
 
         public void Log<T1>(string Event, T1 arg1)
@@ -61,6 +68,10 @@ namespace Ubiq.Logging
                 writer.Write("event", Event);
                 writer.Write("arg1", arg1);
                 EndWriter(ref writer);
+            }
+            if (mirrorToConsole)
+            {
+                Debug.Log(String.Format("{0} {1}", Event, arg1));
             }
         }
 
@@ -73,6 +84,10 @@ namespace Ubiq.Logging
                 writer.Write("arg1", arg1);
                 writer.Write("arg2", arg2);
                 EndWriter(ref writer);
+            }
+            if (mirrorToConsole)
+            {
+                Debug.Log(String.Format("{0} {1}", Event, arg1));
             }
         }
 
@@ -87,6 +102,10 @@ namespace Ubiq.Logging
                 writer.Write("arg3", arg3);
                 EndWriter(ref writer);
             }
+            if (mirrorToConsole)
+            {
+                Debug.Log(String.Format("{0} {1} {2} {3}", Event, arg1, arg2, arg3));
+            }
         }
 
         public void Log<T1, T2, T3, T4>(string Event, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
@@ -100,6 +119,10 @@ namespace Ubiq.Logging
                 writer.Write("arg3", arg3);
                 writer.Write("arg4", arg4);
                 EndWriter(ref writer);
+            }
+            if (mirrorToConsole)
+            {
+                Debug.Log(String.Format("{0} {1} {2} {3} {4}", Event, arg1, arg2, arg3, arg4));
             }
         }
 

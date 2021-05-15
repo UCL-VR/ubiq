@@ -73,6 +73,7 @@ namespace Ubiq.Messaging
         private List<INetworkConnection> connections = new List<INetworkConnection>();
         private List<Action> actions = new List<Action>();
         private HashSet<string> existingIdAssignments = new HashSet<string>();
+        private List<ObjectProperties> matching = new List<ObjectProperties>();
 
         private EventLogger events;
 
@@ -144,6 +145,13 @@ namespace Ubiq.Messaging
 
         public static NetworkScene FindNetworkScene(MonoBehaviour component)
         {
+            return FindNetworkScene(component.transform);
+        }
+
+        public static NetworkScene FindNetworkScene(Transform component)
+        {
+            // Check if the scene is simply a parent, or if we can find a root scene.
+
             var scene = component.GetComponentInParent<NetworkScene>();
             if (scene)
             {
@@ -154,28 +162,17 @@ namespace Ubiq.Messaging
                 return rootNetworkScene;
             }
 
-            var queue = new Queue<Transform>();
+            // Check each common ancestor to find cousin scenes
 
-            for (int i = 0; i < SceneManager.sceneCount; i++)
+            do
             {
-                foreach(var root in SceneManager.GetSceneAt(i).GetRootGameObjects())
+                scene = component.GetComponentInChildren<NetworkScene>();
+                if (scene)
                 {
-                    queue.Enqueue(root.transform);
+                    return scene;
                 }
-            }
-
-            while (queue.Count > 0)
-            {
-                var next = queue.Dequeue();
-                if (next.GetComponent<NetworkScene>())
-                {
-                    return next.GetComponent<NetworkScene>();
-                }
-                foreach (Transform child in next)
-                {
-                    queue.Enqueue(child);
-                }
-            }
+                component = component.parent;
+            } while (component != null);
 
             return null;
         }
@@ -210,18 +207,16 @@ namespace Ubiq.Messaging
                 }
             }
 
-            actions.Add((Action)(() => // this may be called while iterating over objectproperties, so register it to execute when outside of the iterator
+            if (!objectProperties.ContainsKey(networkObject))
             {
-                if (!objectProperties.ContainsKey(networkObject))
+                objectProperties.Add(networkObject, new ObjectProperties()
                 {
-                    objectProperties.Add(networkObject, new ObjectProperties()
-                    {
-                        identity = networkObject,
-                        scene = this,
-                    });
-                }
-                objectProperties[networkObject].components[GetComponentId(component)] = component;
-            }));
+                    identity = networkObject,
+                    scene = this,
+                });
+            }
+
+            objectProperties[networkObject].components[GetComponentId(component)] = component;
 
             NetworkContext context = new NetworkContext();
             context.scene = this;
@@ -267,12 +262,36 @@ namespace Ubiq.Messaging
 
         private void Update()
         {
-            ReceiveConnectionMessages();
+            foreach (var item in objectProperties)
+            {
+                // Checks if the Unity object has been destroyed. When Unity objects are destroyed, the managed reference can remain around, but the object is invalid. Unity overrides the truth check to indicate this.
+
+                if (item.Key is UnityEngine.Object)
+                {
+                    if (!(item.Key as UnityEngine.Object))
+                    {
+                        actions.Add(() =>
+                        {
+                            try
+                            {
+                                objectProperties.Remove(item.Key);
+                            }
+                            catch (KeyNotFoundException)
+                            {
+                            }
+                        });
+                        continue;
+                    }
+                }
+            }
+
             foreach (var action in actions)
             {
                 action();
             }
             actions.Clear();
+
+            ReceiveConnectionMessages();
         }
 
         /// <summary>
@@ -291,67 +310,54 @@ namespace Ubiq.Messaging
                         try
                         {
                             var sgbmessage = new ReferenceCountedSceneGraphMessage(m);
+
+                            matching.Clear();
                             foreach (var item in objectProperties)
                             {
-                                // Checks if the Unity object has been destroyed. When Unity objects are destroyed, the managed reference can remain around, but the object is invalid. Unity overrides the truth check to indicate this.
-
-                                if (item.Key is UnityEngine.Object)
-                                {
-                                    if(!(item.Key as UnityEngine.Object))
-                                    {
-                                        actions.Add(() =>
-                                        {
-                                            try
-                                            {
-                                                objectProperties.Remove(item.Key);
-                                            }
-                                            catch (KeyNotFoundException)
-                                            {
-                                            }
-                                        });
-                                        continue;
-                                    }
-                                }
-
                                 if (item.Key.Id == sgbmessage.objectid)
                                 {
-                                    INetworkComponent component = null;
+                                    matching.Add(item.Value);
+                                }
+                            }
 
-                                    try
-                                    {
-                                        component = item.Value.components[sgbmessage.componentid];
-                                    }
-                                    catch(KeyNotFoundException)
-                                    {
-                                        continue;
-                                    }
+                            foreach (var item in matching)
+                            {
+                                INetworkComponent component = null;
 
-                                    try
+                                try
+                                {
+                                    component = item.components[sgbmessage.componentid];
+                                }
+                                catch (KeyNotFoundException)
+                                {
+                                    continue;
+                                }
+
+                                try
+                                {
+                                    Profiler.BeginSample("Component Message Processing " + component.ToString());
+                                    component.ProcessMessage(sgbmessage);
+                                }
+                                catch (MissingReferenceException e)
+                                {
+                                    if (component is UnityEngine.Object)
                                     {
-                                        Profiler.BeginSample("Component Message Processing " + component.ToString());
-                                        component.ProcessMessage(sgbmessage);
-                                    }
-                                    catch(MissingReferenceException e)
-                                    {
-                                        if(component is UnityEngine.Object)
+                                        if (!(component as UnityEngine.Object))
                                         {
-                                            if(!(component as UnityEngine.Object))
-                                            {
-                                                item.Value.components.Remove(sgbmessage.componentid);
-                                                return;
-                                            }
+                                            item.components.Remove(sgbmessage.componentid);
+                                            return;
                                         }
+                                    }
 
-                                        throw e;
-                                    }
-                                    finally
-                                    {
-                                        Profiler.EndSample();
-                                    }
+                                    throw e;
+                                }
+                                finally
+                                {
+                                    Profiler.EndSample();
                                 }
                             }
                         }
-                        catch(Exception e)
+                        catch (Exception e)
                         {
                             Debug.LogException(e); // because otherwise this will not be visible to the main thread
                         }
