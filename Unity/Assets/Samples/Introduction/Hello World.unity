@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.17593624, g: 0.22017018, b: 0.3024987, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -508,6 +508,85 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1830741440
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 7290265296070105308}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 2af9cb30a1a769f4e9b102f610527b35,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 29
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2af9cb30a1a769f4e9b102f610527b35,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 2.6750476
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2af9cb30a1a769f4e9b102f610527b35,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2af9cb30a1a769f4e9b102f610527b35,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 4.407597
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2af9cb30a1a769f4e9b102f610527b35,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.95047975
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2af9cb30a1a769f4e9b102f610527b35,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2af9cb30a1a769f4e9b102f610527b35,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.31078643
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2af9cb30a1a769f4e9b102f610527b35,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2af9cb30a1a769f4e9b102f610527b35,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2af9cb30a1a769f4e9b102f610527b35,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -36.213
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2af9cb30a1a769f4e9b102f610527b35,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2af9cb30a1a769f4e9b102f610527b35,
+        type: 3}
+      propertyPath: m_Name
+      value: Grass_2 (3)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2af9cb30a1a769f4e9b102f610527b35,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
+    - target: {fileID: 8164078558771037576, guid: 2af9cb30a1a769f4e9b102f610527b35,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2af9cb30a1a769f4e9b102f610527b35, type: 3}
 --- !u!1001 &3637619017510839440
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1469,6 +1548,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f2d44976f09b5df40b4d00077fec932a, type: 3}
+--- !u!4 &7290265296070105308 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7290265295817051041, guid: f2d44976f09b5df40b4d00077fec932a,
+    type: 3}
+  m_PrefabInstance: {fileID: 7290265296070105307}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8245267066359241567
 PrefabInstance:
   m_ObjectHideFlags: 0
