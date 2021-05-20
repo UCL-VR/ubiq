@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -6,6 +7,7 @@ using UnityEngine;
 using Ubiq.Rooms;
 using Ubiq.Messaging;
 using Ubiq.Logging;
+using UnityEngine.Events;
 
 namespace Ubiq.CsWebRtc
 {
@@ -16,49 +18,104 @@ namespace Ubiq.CsWebRtc
     public class CsWebRtcPeerConnectionManager : MonoBehaviour, INetworkComponent
     {
         private RoomClient client;
-        private Dictionary<string, WebRtcPeerConnection> peerUUIDToConnection;
+        private Dictionary<string, CsWebRtcPeerConnection> peerUUIDToConnection;
         private NetworkContext context;
 
-        private EventLogger debug;
+        /// <summary>
+        /// Fires when a new (local) PeerConnection is created by an instance of this Component. This may be a new or replacement PeerConnection.
+        /// </summary>
+        /// <remarks>
+        /// WebRtcPeerConnection manager is designed to create connections based on the Peers in a RoomClient's Room, so the event includes a
+        /// PeerInfo struct, with information about which peer the connection is intended to reach.
+        /// </remarks>
+        public OnPeerConnectionEvent OnPeerConnection = new OnPeerConnectionEvent();
+        public class OnPeerConnectionEvent : UnityEvent<CsWebRtcPeerConnection> {
+            private CsWebRtcPeerConnectionManager owner;
+
+            public new void AddListener(UnityAction<CsWebRtcPeerConnection> call)
+            {
+                base.AddListener(call);
+                if (owner) {
+                    foreach (var item in owner.peerUUIDToConnection.Values)
+                    {
+                        call(item);
+                    }
+                }
+            }
+
+            public void SetOwner(CsWebRtcPeerConnectionManager owner)
+            {
+                this.owner = owner;
+                foreach (var item in owner.peerUUIDToConnection.Values)
+                {
+                    Invoke(item);
+                }
+            }
+        }
+
+        private EventLogger logger;
 
         private void Awake()
         {
             client = GetComponentInParent<RoomClient>();
-            peerUUIDToConnection = new Dictionary<string, WebRtcPeerConnection>();
+            peerUUIDToConnection = new Dictionary<string, CsWebRtcPeerConnection>();
+            if(OnPeerConnection == null)
+            {
+                OnPeerConnection = new OnPeerConnectionEvent();
+            }
+            OnPeerConnection.SetOwner(this);
         }
 
         private void Start()
         {
             context = NetworkScene.Register(this);
-            debug = new ContextEventLogger(context);
+            logger = new ContextEventLogger(context);
             client.OnJoinedRoom.AddListener(OnJoinedRoom);
+            client.OnLeftRoom.AddListener(OnLeftRoom);
             client.OnPeerRemoved.AddListener(OnPeerRemoved);
+        }
+
+        // Cleanup all peers
+        private void OnLeftRoom(RoomInfo room)
+        {
+            foreach(var connection in peerUUIDToConnection.Values) {
+                Destroy(connection.gameObject);
+            }
+
+            peerUUIDToConnection.Clear();
         }
 
         // It is the responsibility of the new peer (the one joining the room) to begin the process of creating a peer connection,
         // and existing peers to accept that connection.
         // This is because we need to know that the remote peer is established, before beginning the exchange of messages.
-
-        public void OnJoinedRoom()
+        private void OnJoinedRoom(RoomInfo room)
         {
             foreach (var peer in client.Peers)
             {
                 if (peer.UUID == client.Me.UUID)
                 {
-                    continue; // don't connect to ones self!
+                    continue; // Don't connect to ones self!
+                }
+
+                if(peerUUIDToConnection.ContainsKey(peer.UUID))
+                {
+                    continue; // This peer existed in the previous room and we already have a connection to it
                 }
 
                 var pcid = NetworkScene.GenerateUniqueId(); //A single audio channel exists between two peers. Each audio channel has its own Id.
+
+                logger.Log("CreatePeerConnectionForPeer", pcid, peer.NetworkObjectId);
+
                 var pc = CreatePeerConnection(pcid, peer.UUID);
                 pc.MakePolite();
                 pc.AddLocalAudioSource();
-                pc.stats.peer = peer.UUID;
+
                 Message m;
                 m.type = "RequestPeerConnection";
                 m.objectid = pcid; // the shared Id is set by this peer, but it must be chosen so as not to conflict with any other shared id on the network
                 m.uuid = client.Me.UUID; // this is so the other end can identify us if we are removed from the room
                 Send(peer.NetworkObjectId, m);
-                debug.Log("CreateAndRequestPeerConnection", pcid, peer.NetworkObjectId);
+                logger.Log("RequestPeerConnection", pcid, peer.NetworkObjectId);
             }
         }
 
@@ -81,9 +138,8 @@ namespace Ubiq.CsWebRtc
             switch (msg.type)
             {
                 case "RequestPeerConnection":
-                    debug.Log("CreatePeerConnectionForRequest", msg.objectid);
+                    logger.Log("CreatePeerConnectionForRequest", msg.objectid);
                     var pc = CreatePeerConnection(msg.objectid, msg.uuid);
-                    pc.stats.peer = msg.uuid;
                     pc.AddLocalAudioSource();
                     break;
             }
@@ -97,15 +153,17 @@ namespace Ubiq.CsWebRtc
             public string uuid;
         }
 
-        private WebRtcPeerConnection CreatePeerConnection(NetworkId objectid, string uuid)
+        private CsWebRtcPeerConnection CreatePeerConnection(NetworkId objectid, string peerUuid)
         {
             var go = new GameObject(objectid.ToString());
             go.transform.SetParent(transform);
 
-            var pc = go.AddComponent<WebRtcPeerConnection>();
+            var pc = go.AddComponent<CsWebRtcPeerConnection>();
             pc.Id = objectid;
+            pc.State.Peer = peerUuid;
 
-            peerUUIDToConnection.Add(uuid, pc);
+            peerUUIDToConnection.Add(peerUuid, pc);
+            OnPeerConnection.Invoke(pc);
 
             return pc;
         }
