@@ -77,6 +77,8 @@ namespace Ubiq.Messaging
 
         private EventLogger events;
 
+        public RecorderReplayer recorderReplayer = null;
+
         public T GetNetworkComponent<T>() where T : class
         {
             foreach (var networkObject in objectProperties.Select(p => p.Value))
@@ -133,6 +135,12 @@ namespace Ubiq.Messaging
 
             events = new ComponentEventLogger(this);
             events.Log("Awake", Id, SystemInfo.deviceName, SystemInfo.deviceModel, SystemInfo.deviceUniqueIdentifier);
+
+            // Try getting a RecorderReplayer if script is attached to the NetworkScene
+            if(TryGetComponent(out RecorderReplayer recRep))
+            {
+                recorderReplayer = recRep;
+            }
         }
 
         /// <summary>
@@ -292,6 +300,11 @@ namespace Ubiq.Messaging
             actions.Clear();
 
             ReceiveConnectionMessages();
+            
+            if (recorderReplayer != null)
+            {
+                recorderReplayer.UpdateFrameNr(); // increments frame number
+            }
         }
 
         /// <summary>
@@ -305,6 +318,7 @@ namespace Ubiq.Messaging
                 do
                 {
                     m = c.Receive();
+
                     if(m != null)
                     {
                         try
@@ -318,6 +332,12 @@ namespace Ubiq.Messaging
                                 {
                                     matching.Add(item.Value);
                                 }
+
+                                // record just avatars for now
+                                if (recorderReplayer  != null && recorderReplayer.recording && item.Key is Ubiq.Avatars.Avatar)
+                                {
+                                    recorderReplayer.Record(sgbmessage);
+                                }
                             }
 
                             foreach (var item in matching)
@@ -326,7 +346,7 @@ namespace Ubiq.Messaging
 
                                 try
                                 {
-                                    component = item.components[sgbmessage.componentid];
+                                    component = item.components[sgbmessage.componentid]; // select designated componet for sgbmessage
                                 }
                                 catch (KeyNotFoundException)
                                 {
@@ -335,6 +355,7 @@ namespace Ubiq.Messaging
 
                                 try
                                 {
+
                                     Profiler.BeginSample("Component Message Processing " + component.ToString());
                                     component.ProcessMessage(sgbmessage);
                                 }
