@@ -31,6 +31,7 @@ namespace Ubiq.Messaging
                 message.objectid = networkObject.Id;
                 message.componentid = componentId;
             }
+            Record(networkObject, message); // only if recording == true
             scene.Send(message.buffer);
         }
 
@@ -38,7 +39,10 @@ namespace Ubiq.Messaging
         {
             message.objectid = objectid;
             message.componentid = componentid;
+
+            Record(networkObject, message);
             scene.Send(message.buffer);
+
         }
 
         public void Send(NetworkId objectid, ushort componentid, string message)
@@ -46,6 +50,7 @@ namespace Ubiq.Messaging
             var msg = ReferenceCountedSceneGraphMessage.Rent(message);
             msg.componentid = componentid;
             msg.objectid = objectid;
+            Record(networkObject, msg);
             scene.Send(msg.buffer);
         }
 
@@ -62,6 +67,15 @@ namespace Ubiq.Messaging
         public void SendJson<T>(T message)
         {
             SendJson(networkObject.Id, message);
+        }
+
+        public void Record(INetworkObject obj, ReferenceCountedSceneGraphMessage message)
+        {
+            // probably not that ideal but at least I can distinguish between messages sent from avatar's component and other components
+            if (scene.recorderReplayer != null && scene.recorderReplayer.recording && obj is Ubiq.Avatars.Avatar)
+            {
+                scene.recorderReplayer.Record(obj, message);
+            }
         }
     }
 
@@ -335,7 +349,8 @@ namespace Ubiq.Messaging
                                     // record just avatars for now
                                     if (recorderReplayer != null && recorderReplayer.recording && item.Key is Ubiq.Avatars.Avatar)
                                     {
-                                        recorderReplayer.Record(sgbmessage);
+                                        recorderReplayer.Record(item.Key, sgbmessage);
+                                     
                                     }
                                 }
 

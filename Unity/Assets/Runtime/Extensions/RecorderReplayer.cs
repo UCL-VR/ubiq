@@ -5,6 +5,7 @@ using Ubiq.Avatars;
 using Ubiq.Messaging;
 using System.IO;
 using System.Text;
+using Avatar = Ubiq.Avatars.Avatar;
 
 public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
 {
@@ -14,12 +15,14 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
     public string recFileName;
 
     public NetworkScene scene;
+    public AvatarManager avatarManager;
 
     // format of recorded data: (time), frame, object ID, component ID, sgbmessage
     private string recordedData;
     private int frameNr = 0;
 
     private string path;
+    private Dictionary<NetworkId, Avatar> avatars;
 
     public NetworkId Id { get; } = new NetworkId();
 
@@ -28,12 +31,29 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
         throw new System.NotImplementedException();
     }
 
-    public void Record(ReferenceCountedSceneGraphMessage message)
-    { 
+    public void Record(INetworkObject obj, ReferenceCountedSceneGraphMessage message)
+    {
+        string uid;
+        if(obj is Avatar) // check it here too in case we later record other things than avatars as well
+        {
+            //Avatar avatar = obj as Avatar;
+            uid = (obj as Avatar).Properties["texture-uid"]; // get texture of avatar so we can later replay a look-alike avatar
+            recordedData = Time.unscaledTime + "," + frameNr + "," + message.objectid + "," + message.componentid + "," + uid + "," + message + "\n";
 
-        recordedData = Time.unscaledTime + "," + frameNr + "," + message.objectid + "," + message.componentid + "," + message + "\n";
+        }
+        else
+        {
+
+        }
 
         File.AppendAllText(path + "/" + recFileName, recordedData);
+    }
+
+    public void Replay()
+    {
+        // Load data from file into (dunno yet)
+        // keep change of IDs in mind
+        // create new avatars and change IDs of messages to be sent to new avatars
     }
 
     // so we know how many of the messages belonge to one frame,

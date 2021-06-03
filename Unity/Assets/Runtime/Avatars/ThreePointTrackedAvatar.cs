@@ -95,7 +95,14 @@ namespace Ubiq.Avatars
             var message = ReferenceCountedSceneGraphMessage.Rent(transformBytes.Length);
             transformBytes.CopyTo(new Span<byte>(message.bytes, message.start, message.length));
 
+            // if recording happens here the object does not have an objectid yet (so I'll do it in the NetworkContext)
+            /*if (context.scene.recorderReplayer != null && context.scene.recorderReplayer.recording)
+            {
+                context.scene.recorderReplayer.Record(avatar, message);
+            }*/
+
             context.Send(message);
+            
         }
 
         public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
