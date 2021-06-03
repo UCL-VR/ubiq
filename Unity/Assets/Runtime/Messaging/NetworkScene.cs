@@ -331,13 +331,14 @@ namespace Ubiq.Messaging
                                 if (item.Key.Id == sgbmessage.objectid)
                                 {
                                     matching.Add(item.Value);
+
+                                    // record just avatars for now
+                                    if (recorderReplayer != null && recorderReplayer.recording && item.Key is Ubiq.Avatars.Avatar)
+                                    {
+                                        recorderReplayer.Record(sgbmessage);
+                                    }
                                 }
 
-                                // record just avatars for now
-                                if (recorderReplayer  != null && recorderReplayer.recording && item.Key is Ubiq.Avatars.Avatar)
-                                {
-                                    recorderReplayer.Record(sgbmessage);
-                                }
                             }
 
                             foreach (var item in matching)
