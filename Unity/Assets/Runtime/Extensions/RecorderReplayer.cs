@@ -60,7 +60,8 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
         {
             //Avatar avatar = obj as Avatar;
             uid = (obj as Avatar).Properties["texture-uid"]; // get texture of avatar so we can later replay a look-alike avatar
-            recordedData = Time.unscaledTime + "," + frameNr + "," + message.objectid + "," + message.componentid + "," + message + "\n";
+            
+            recordedData = Time.unscaledTime + "," + frameNr + "," + message.ToString().Replace("\n","\\n") + "\n";
 
             if (!recordedObjectids.ContainsKey(message.objectid))
             {
@@ -68,7 +69,7 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
             }
             lineNr += 1;
         }
-        File.AppendAllText(recordFile, recordedData);
+        File.AppendAllText(recordFile, recordedData, System.Text.Encoding.UTF8);
     }
 
     public void Replay()
@@ -85,19 +86,21 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
 
     public void LoadRecording(string replayFile)
     {
-        if (File.Exists(path + "/" + replayFile + "Ids"))
+        if (File.Exists(path + "/" + replayFile + "IDs.txt"))
         {
             File.WriteAllLines(replayFile + "Ids",
             replayedObjectids.Select(x => x.Key + "," + x.Value));
 
         }
-        //if (File.Exists(path + "/" + replayFile))
-        //{
-        //    replayedData = File.ReadAllLines(path + "/" + replayFile);
-        //    replayedDataLength = replayedData.Length;
-
-        //}
-
+        if (File.Exists(path + "/" + replayFile + ".txt"))
+        {
+            Debug.Log("Load recording...");
+            foreach (string line in File.ReadLines(path + "/" + replayFile))
+            {
+                
+            }
+            Debug.Log("Recording loaded!");
+        }
         initReplay = true;
     }
 
