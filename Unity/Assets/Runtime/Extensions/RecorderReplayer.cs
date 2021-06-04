@@ -14,7 +14,7 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
 
     public NetworkScene scene;
     public AvatarManager avatarManager;
-    
+
     private string path;
 
     // Recording
@@ -28,12 +28,14 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
 
     // Replaying
     public string replayFile;
-    private string[] replayedData;
+    private ReferenceCountedSceneGraphMessage[] replayedMessages;
+    private int[] replayedFrames;
     private int replayedDataLength;
     private int numberOfRecAvatars;
     private int numberOfRecLines;
     private Dictionary<NetworkId, string> replayedObjectids;
     private bool initReplay = false;
+    
 
     public NetworkId Id { get; } = new NetworkId();
 
@@ -88,8 +90,18 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
     {
         if (File.Exists(path + "/" + replayFile + "IDs.txt"))
         {
-            File.WriteAllLines(replayFile + "Ids",
-            replayedObjectids.Select(x => x.Key + "," + x.Value));
+            string[] recInfo = File.ReadAllLines(path + "/" + replayFile + "IDs.txt");
+
+            numberOfRecLines = int.Parse(recInfo[0].Split(',')[0]);
+            numberOfRecAvatars = int.Parse(recInfo[1].Split(',')[0]);
+
+            foreach (string info in recInfo)
+            {
+                var s = info.Split(',');
+
+                replayedObjectids.Add(new NetworkId(s[0]), s[2]);
+            }
+          
 
         }
         if (File.Exists(path + "/" + replayFile + ".txt"))
