@@ -7,7 +7,7 @@ namespace Ubiq.XR
     /// <summary>
     /// This VR Player Controller supports a typical Head and Two Hand tracked rig.
     /// </summary>
-    public class PlayerController : MonoBehaviour
+    public class XRPlayerController : MonoBehaviour
     {
         public bool dontDestroyOnLoad = true;
 

@@ -8,7 +8,7 @@ namespace Ubiq.XR.IK
     [RequireComponent(typeof(Animator))]
     public class PlayerIKController : MonoBehaviour
     {
-        public PlayerController player;
+        public XRPlayerController player;
         public Transform avatarHead;
         protected Animator animator;
 
