@@ -55,7 +55,7 @@ namespace Ubiq.Rooms
             {
                 get
                 {
-                    return $"No Connection ({ client.heartbeatReceived } seconds ago)";
+                    return $"No Connection ({ client.heartbeatReceived.ToString("0") } seconds ago)";
                 }
             }
         }

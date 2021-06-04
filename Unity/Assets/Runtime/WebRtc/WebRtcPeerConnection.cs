@@ -633,7 +633,7 @@ namespace Ubiq.WebRtc
 
         public void OnFailure(RtcError error)
         {
-            Debug.LogError(error.Message);
+            debug.Log(error.Message);
         }
 
         public void OnSuccess(DisposableSessionDescriptionInterface desc)
