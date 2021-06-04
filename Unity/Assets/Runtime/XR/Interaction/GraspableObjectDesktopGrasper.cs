@@ -64,7 +64,6 @@ namespace Ubiq.XR
             {
                 if (Input.GetMouseButtonDown(mouseButton)) // test if there is a graspable object under the cursor on this click. todo: key modifider for mac
                 {
-
                     RaycastHit hit = new RaycastHit();
                     if (Physics.Raycast(mainCamera.ScreenPointToRay(Input.mousePosition), out hit, 100,
                                          Physics.DefaultRaycastLayers))

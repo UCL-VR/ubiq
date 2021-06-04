@@ -50,8 +50,7 @@ namespace Ubiq.XR
             {
                 var ray = mainCamera.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
-                if (Physics.Raycast(ray.origin, ray.direction, out hit, 100, Physics.AllLayers)
-                )
+                if (Physics.Raycast(ray.origin, ray.direction, out hit, 100, Physics.AllLayers))
                 {
                     transform.LookAt(hit.point);
                 }

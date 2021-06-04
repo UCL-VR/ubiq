@@ -13,7 +13,8 @@ namespace Ubiq.XR
     /// <remarks>
     /// This code is based on the Unity Interactive 360 samples, but modified so it doesn't need physics collisions.
     /// </remarks>
-    public class DesktopRaycaster : MonoBehaviour
+    [RequireComponent(typeof(Camera))]
+    public class DesktopUIRaycaster : MonoBehaviour
     {
         [System.Serializable]
         public class RaycastHitEvent : UnityEvent<Vector3,Vector3> { };
@@ -26,9 +27,12 @@ namespace Ubiq.XR
         private PointerEventData eventData;
         private List<RaycastResult> raycastResults;
 
+        private Camera mainCamera;
+
         private void Awake()
         {
             raycastResults = new List<RaycastResult>();
+            mainCamera = GetComponent<Camera>();
         }
 
         private void Start()
@@ -52,14 +56,13 @@ namespace Ubiq.XR
 
         private void PerformRaycast()
         {
-            // Generate a new ray at our input object facing forward
-            var ray = new Ray(transform.position, transform.forward);
+            var ray = mainCamera.ScreenPointToRay(Input.mousePosition);
 
             // Check if there is a 3d object between us and the canvas.
             var distance = float.PositiveInfinity;
             RaycastHit rayHit;
             if(Physics.Raycast(ray, out rayHit, distance,
-                Physics.DefaultRaycastLayers,QueryTriggerInteraction.Ignore))
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
             {
                 distance = rayHit.distance;
             }
@@ -74,11 +77,7 @@ namespace Ubiq.XR
 
                 if (RayIntersectsRectTransform(canvasTransform, ray, ref distance))
                 {
-                    // Now use the Graphic Raycaster to perform a raycast into the canvas to get the actual control.
-                    // The GraphicRaycaster expects the position to be in screenspace, of a particular event camera.
-                    var screenPoint = graphicRaycaster.eventCamera.WorldToScreenPoint(ray.GetPoint(distance));
-
-                    eventData.position = screenPoint;
+                    eventData.position = Input.mousePosition;
 
                     raycastResults.Clear();
                     graphicRaycaster.Raycast(eventData, raycastResults);
@@ -97,7 +96,7 @@ namespace Ubiq.XR
                 return;
             }
 
-            onRaycastHit.Invoke(raycastResult.worldPosition,raycastResult.worldNormal);
+            onRaycastHit.Invoke(raycastResult.worldPosition, raycastResult.worldNormal);
 
             //If we are looking at the same object that we were looking at, we don't need to do anything and can exit
             if (eventData.pointerEnter == raycastResult.gameObject)

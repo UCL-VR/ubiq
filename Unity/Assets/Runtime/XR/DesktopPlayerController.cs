@@ -42,27 +42,34 @@ namespace Ubiq.XR
             deltaTime = Time.smoothDeltaTime;
 #endif
 
-            Cursor.lockState = CursorLockMode.Locked;
-
-            float xRotation = Input.GetAxisRaw("Mouse X");
-            float yRotation = Input.GetAxisRaw("Mouse Y");
-
-            var eul = transform.localEulerAngles;
-            eul.y += xRotation * rotationSpeed * deltaTime;
-            transform.localEulerAngles = eul;
-
-            eul = cameraContainer.localEulerAngles;
-            eul.x -= yRotation * rotationSpeed * deltaTime;
-            var delta = Mathf.DeltaAngle(eul.x,0.0f);
-            if (delta > -minHeadPitch)
+            if (Input.GetMouseButton(1))
             {
-                eul.x = minHeadPitch;
+                Cursor.lockState = CursorLockMode.Locked;
+
+                float xRotation = Input.GetAxisRaw("Mouse X");
+                float yRotation = Input.GetAxisRaw("Mouse Y");
+
+                var eul = transform.localEulerAngles;
+                eul.y += xRotation * rotationSpeed * deltaTime;
+                transform.localEulerAngles = eul;
+
+                eul = cameraContainer.localEulerAngles;
+                eul.x -= yRotation * rotationSpeed * deltaTime;
+                var delta = Mathf.DeltaAngle(eul.x, 0.0f);
+                if (delta > -minHeadPitch)
+                {
+                    eul.x = minHeadPitch;
+                }
+                else if (delta < -maxHeadPitch)
+                {
+                    eul.x = maxHeadPitch;
+                }
+                cameraContainer.localEulerAngles = eul;
             }
-            else if (delta < -maxHeadPitch)
+            else
             {
-                eul.x = maxHeadPitch;
+                Cursor.lockState = CursorLockMode.None;
             }
-            cameraContainer.localEulerAngles = eul;
         }
 
         private void OnKeys()
