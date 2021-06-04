@@ -45,22 +45,6 @@ namespace Ubiq.WebRtc
                 {
                     Permission.RequestUserPermission(Permission.Microphone);
                 }
-
-                try
-                {
-                    AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
-                    AndroidJavaObject activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
-                    AndroidJavaObject audioManager = activity.Call<AndroidJavaObject>("getSystemService", "audio");
-                    int mode1 = audioManager.Call<Int32>("getMode");
-                    //audioManager.Call("setMode", 3); // 3 is Communication Mode
-                    int mode2 = audioManager.Call<Int32>("getMode");
-
-                    Debug.Log($"Android Audio Mode changed from {mode1} to {mode2}");
-                }
-                catch (Exception e)
-                {
-                    Debug.Log(e.ToString());
-                }
             }
 
             threads = WebRtcThreads.Acquire();
