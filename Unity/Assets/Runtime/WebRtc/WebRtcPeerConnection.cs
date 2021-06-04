@@ -66,9 +66,23 @@ namespace Ubiq.WebRtc
             public string Peer;
             public string LastMessageReceived;
             public bool HasRemote;
+            /// <summary>
+            /// https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/signalingState
+            /// </summary>
             public volatile PeerConnectionInterface.SignalingState SignalingState;
+            /// <summary>
+            /// https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceConnectionState
+            /// </summary>
             public volatile PeerConnectionInterface.IceConnectionState ConnectionState;
+            /// <summary>
+            /// https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceGatheringState
+            /// </summary>
             public volatile PeerConnectionInterface.IceGatheringState IceState;
+
+            public override string ToString()
+            {
+                return $"Peer: {Peer}\nHasRemote: {HasRemote}\n{SignalingState},{ConnectionState},{IceState}";
+            }
         }
 
         public PeerConnectionState State;

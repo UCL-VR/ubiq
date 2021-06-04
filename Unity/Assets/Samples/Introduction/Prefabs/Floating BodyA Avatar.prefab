@@ -51,9 +51,6 @@ MonoBehaviour:
   OnUpdated:
     m_PersistentCalls:
       m_Calls: []
-  Properties:
-    keys: []
-    values: []
   local: 1
 --- !u!114 &2075108969
 MonoBehaviour:
@@ -243,7 +240,7 @@ PrefabInstance:
     - target: {fileID: 6899223575991022060, guid: b0d64f917d2447e4f85037ad6283d5bf,
         type: 3}
       propertyPath: m_Name
-      value: Status Indicator
+      value: Player Status Indicator
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b0d64f917d2447e4f85037ad6283d5bf, type: 3}
