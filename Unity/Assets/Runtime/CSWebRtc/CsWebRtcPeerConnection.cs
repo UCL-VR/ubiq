@@ -31,203 +31,8 @@ namespace Ubiq.CsWebRtc
     [NetworkComponentId(typeof(CsWebRtcPeerConnection), 78)]
     public class CsWebRtcPeerConnection : MonoBehaviour, INetworkComponent, INetworkObject {
 
-        // private class RTCPeerConnectionHandler : IDisposable
-        // {
-        //     private CancellationTokenSource cts;
-
-        //     public RTCPeerConnectionHandler () {
-        //         cts = new CancellationTokenSource();
-        //     }
-
-        //     public void Dispose()
-        //     {
-        //         cts.Cancel();
-        //     }
-        // }
-
-        // Debug - this is not the way to do this. Probably mic endpoint (src) should be shared between peers
-        // Adapted from WindowsAudioEndPoint.cs
-        // https://github.com/sipsorcery-org/SIPSorceryMedia.Windows/blob/master/src/WindowsAudioEndPoint.cs
-        public class DummyAudioEndPoint : IAudioSource, IAudioSink
-        {
-            public event EncodedSampleDelegate OnAudioSourceEncodedSample;
-            public event RawAudioSampleDelegate OnAudioSourceRawSample;
-            public event SourceErrorDelegate OnAudioSourceError;
-            public event SourceErrorDelegate OnAudioSinkError;
-
-            // private IAudioEncoder _audioEncoder;
-            // private MediaFormatManager<AudioFormat> _audioFormatManager;
-
-            private bool _disableSink;
-            private bool _disableSource;
-
-            public delegate void LogAvailableDelegate(string log);
-            public event LogAvailableDelegate OnLogAvailable;
-
-            private System.Timers.Timer timer;
-
-            private List<AudioFormat> dummyFormats = new List<AudioFormat>();
-
-            private void InitPlaybackDevice()
-            {
-                // try
-                // {
-                //     _waveOutEvent?.Stop();
-
-                //     _waveSinkFormat = new WaveFormat(
-                //         audioSinkSampleRate,
-                //         DEVICE_BITS_PER_SAMPLE,
-                //         DEVICE_CHANNELS);
-
-                //     // Playback device.
-                //     _waveOutEvent = new WaveOutEvent();
-                //     _waveOutEvent.DeviceNumber = audioOutDeviceIndex;
-                //     _waveProvider = new BufferedWaveProvider(_waveSinkFormat);
-                //     _waveProvider.DiscardOnBufferOverflow = true;
-                //     _waveOutEvent.Init(_waveProvider);
-                // }
-                // catch (Exception excp)
-                // {
-                //     logger.LogWarning(0, excp, "WindowsAudioEndPoint failed to initialise playback device.");
-                //     OnAudioSinkError?.Invoke($"WindowsAudioEndPoint failed to initialise playback device. {excp.Message}");
-                // }
-            }
-
-            private void InitRecordingDevice()
-            {
-                // if (WaveInEvent.DeviceCount > 0)
-                // {
-                //     if (WaveInEvent.DeviceCount > audioInDeviceIndex)
-                //     {
-                //         _waveInEvent = new WaveInEvent();
-                //         _waveInEvent.BufferMilliseconds = AUDIO_SAMPLE_PERIOD_MILLISECONDS;
-                //         _waveInEvent.NumberOfBuffers = INPUT_BUFFERS;
-                //         _waveInEvent.DeviceNumber = audioInDeviceIndex;
-                //         _waveInEvent.WaveFormat = _waveSourceFormat;
-                //         _waveInEvent.DataAvailable += LocalAudioSampleAvailable;
-                //     }
-                //     else
-                //     {
-                //         logger.LogWarning($"The requested audio input device index {audioInDeviceIndex} exceeds the maximum index of {WaveInEvent.DeviceCount - 1}.");
-                //         OnAudioSourceError?.Invoke($"The requested audio input device index {audioInDeviceIndex} exceeds the maximum index of {WaveInEvent.DeviceCount - 1}.");
-                //     }
-                // }
-                // else
-                // {
-                //     logger.LogWarning("No audio capture devices are available.");
-                //     OnAudioSourceError?.Invoke("No audio capture devices are available.");
-                // }
-            }
-
-            public DummyAudioEndPoint(
-                bool disableSource = false,
-                bool disableSink = false)
-            {
-                timer = new System.Timers.Timer();
-                timer.Elapsed += (obj, e) =>
-                {
-                    var unixTime = ((DateTimeOffset)(DateTime.Now)).ToUnixTimeSeconds();
-                    LocalAudioSampleAvailable(unixTime.ToString());
-                };
-                timer.Interval = 5000;
-
-                // logger = SIPSorcery.LogFactory.CreateLogger<WindowsAudioEndPoint>();
-                // _audioFormatManager = new MediaFormatManager<AudioFormat>(audioEncoder.SupportedFormats);
-                // _audioEncoder = audioEncoder;
-                dummyFormats.Add(new AudioFormat(SDPWellKnownMediaFormatsEnum.G722));
-
-                _disableSource = disableSource;
-                _disableSink = disableSink;
-
-                if (!_disableSink)
-                {
-                    InitPlaybackDevice();//_audioOutDeviceIndex, DefaultAudioPlaybackRate.GetHashCode());
-                }
-
-                if (!_disableSource)
-                {
-                    InitRecordingDevice();
-                }
-
-                timer.Start();
-            }
-
-            public void ExternalAudioSourceRawSample(AudioSamplingRatesEnum samplingRate, uint durationMilliseconds, short[] sample)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void GotAudioRtp(IPEndPoint remoteEndPoint, uint ssrc, uint seqnum, uint timestamp, int payloadID, bool marker, byte[] payload)
-            {
-                OnLogAvailable?.Invoke($"{remoteEndPoint} {ssrc} {seqnum} {timestamp} {payloadID} {marker} {System.Text.Encoding.ASCII.GetString(payload)}");
-                // if (_waveProvider != null && _audioEncoder != null)
-                // {
-                //     var pcmSample = _audioEncoder.DecodeAudio(payload, _audioFormatManager.SelectedFormat);
-                //     byte[] pcmBytes = pcmSample.SelectMany(x => BitConverter.GetBytes(x)).ToArray();
-                //     _waveProvider?.AddSamples(pcmBytes, 0, pcmBytes.Length);
-                // }
-            }
-
-            private void OnTimedEvent (object src, System.Timers.ElapsedEventArgs e) {
-                LocalAudioSampleAvailable(((DateTimeOffset)(DateTime.Now)).ToUnixTimeSeconds().ToString());
-            }
-
-            // Debug - just send an ASCII string
-            public void LocalAudioSampleAvailable (string msg)
-            {
-                var bytes = System.Text.Encoding.ASCII.GetBytes(msg);
-                OnAudioSourceEncodedSample?.Invoke((uint)bytes.Length,bytes);
-            }
-
-            public bool HasEncodedAudioSubscribers()
-            {
-                return true;
-                // throw new NotImplementedException();
-            }
-
-            public bool IsAudioSourcePaused()
-            {
-                return !timer.Enabled;
-                // throw new NotImplementedException();
-            }
-
-            public void RestrictFormats(Func<AudioFormat, bool> filter)
-            {
-                // throw new NotImplementedException();
-            }
-
-            public List<AudioFormat> GetAudioSourceFormats()
-            {
-                return dummyFormats;
-                // throw new NotImplementedException();
-            }
-
-            public void SetAudioSourceFormat(AudioFormat audioFormat)
-            {
-                // throw new NotImplementedException();
-            }
-
-            public Task StartAudio() { timer.Start(); return Task.CompletedTask; }
-            public Task PauseAudio() { timer.Stop(); return Task.CompletedTask; }
-            public Task ResumeAudio() { timer.Start(); return Task.CompletedTask; }
-            public Task CloseAudio() { timer.Stop(); return Task.CompletedTask; }
-
-            public List<AudioFormat> GetAudioSinkFormats()
-            {
-                return dummyFormats;
-                // throw new NotImplementedException();
-            }
-
-            public void SetAudioSinkFormat(AudioFormat audioFormat)
-            {
-                // throw new NotImplementedException();
-            }
-
-            public Task StartAudioSink() { return Task.CompletedTask; }
-            public Task PauseAudioSink() { return Task.CompletedTask; }
-            public Task ResumeAudioSink() { return Task.CompletedTask; }
-            public Task CloseAudioSink() { return Task.CompletedTask; }
-        }
+        public WebRtcUnityAudioSource audioSource { get; private set; }
+        public WebRtcUnityAudioSink audioSink { get; private set; }
 
         public struct PeerConnectionState
         {
@@ -243,72 +48,67 @@ namespace Ubiq.CsWebRtc
 
         public NetworkId Id { get; set; }
 
-        public void MakePolite(){polite = true;}
-        public void AddLocalAudioSource(){}
+        // public void AddLocalAudioSource(){}
 
         // SipSorcery Peer Connection
         private RTCPeerConnection rtcPeerConnection;
         private NetworkContext context;
-        private ConcurrentQueue<Action> mainThreadActions;
+        private ConcurrentQueue<Action> mainThreadActions = new ConcurrentQueue<Action>();
+        private Queue<Message> messageQueue = new Queue<Message>();
 
-        private bool polite;
-
-        private Task initTask;
-
-        private CancellationTokenSource cts;
+        private Task setupTask;
 
         // Debug
         private const string STUN_URL = "stun:stun.l.google.com:19302";
 
-        private void Awake ()
-        {
-            cts = new CancellationTokenSource();
-            mainThreadActions = new ConcurrentQueue<Action>();
-        }
-
-        // private async Task SetupConnection()
-        // {
-        //     rtcPeerConnection = await
-        // }
-
-        private void Start ()
-        {
-            context = NetworkScene.Register(this);
-            rtcPeerConnection = CreatePeerConnection().Result;
-            if (!polite)
-            {
-                SendOffer();
-            }
-
-            initTask = Init();
-        }
-
         private void OnDestroy()
         {
-            if (rtcPeerConnection != null)
+            Teardown();
+        }
+
+        public void Setup (NetworkId objectId, string peerUuid,
+            bool polite, WebRtcUnityAudioSource source, WebRtcUnityAudioSink sink)
+        {
+            if (setupTask != null)
             {
+                // Already setup
+                return;
+            }
+
+            this.Id = objectId;
+            this.State.Peer = peerUuid;
+            this.audioSource = source;
+            this.audioSink = sink;
+            this.context = NetworkScene.Register(this);
+
+            this.setupTask = Task.Run(() => DoSetup(polite));
+        }
+
+        private async void Teardown ()
+        {
+            if (setupTask != null)
+            {
+                await setupTask;
                 rtcPeerConnection.Dispose();
-                rtcPeerConnection = null;
             }
         }
 
-        private async Task Init ()
+        private async Task DoSetup(bool polite)
         {
-            rtcPeerConnection = await CreatePeerConnection();
+            var pc = await CreatePeerConnection(audioSource,audioSink,mainThreadActions);
             if (!polite)
             {
-                await SendOffer();
+                var offer = pc.createOffer();
+                await pc.setLocalDescription(offer);
+                mainThreadActions.Enqueue(() => Send("Offer",offer.toJSON()));
             }
+
+            rtcPeerConnection = pc;
         }
 
-        private async Task SendOffer ()
-        {
-            var offer = rtcPeerConnection.createOffer();
-            await rtcPeerConnection.setLocalDescription(offer);
-            OnMainThread(() => Send("Offer",offer.toJSON()));
-        }
-
-        private Task<RTCPeerConnection> CreatePeerConnection()
+        private Task<RTCPeerConnection> CreatePeerConnection(
+            IAudioSource audioSource, IAudioSink audioSink,
+            ConcurrentQueue<Action> mainThreadActions )
         {
             var config = new RTCConfiguration
             {
@@ -318,28 +118,27 @@ namespace Ubiq.CsWebRtc
 
             // debug
             // var audioSource = new AudioExtrasSource(new AudioEncoder(), new AudioSourceOptions { AudioSource = AudioSourcesEnum.Music });
-            var audioEp = new DummyAudioEndPoint();
+            // var audioEp = new DummyAudioEndPoint();
 
-            // audioSource.OnAudioSourceEncodedSample += pc.SendAudio;
-            audioEp.OnAudioSourceEncodedSample += pc.SendAudio;
+            audioSource.OnAudioSourceEncodedSample += pc.SendAudio;
 
-            MediaStreamTrack audioTrack = new MediaStreamTrack(audioEp.GetAudioSourceFormats(), MediaStreamStatusEnum.SendRecv);
+            var audioTrack = new MediaStreamTrack(audioSource.GetAudioSourceFormats(), MediaStreamStatusEnum.SendRecv);
 
             pc.addTrack(audioTrack);
 
-            pc.OnAudioFormatsNegotiated += (formats) => audioEp.SetAudioSourceFormat(formats[0]);//.First());
+            pc.OnAudioFormatsNegotiated += (formats) => audioSource.SetAudioSourceFormat(formats[0]);
 
             pc.onconnectionstatechange += async (state) =>
             {
-                OnMainThread(() => Debug.Log($"Peer connection state change to {state}."));
+                mainThreadActions.Enqueue(() => Debug.Log($"Peer connection state change to {state}."));
 
                 if (state == RTCPeerConnectionState.connected)
                 {
-                    await audioEp.StartAudio();
+                    await audioSource.StartAudio();
                 }
                 else if (state == RTCPeerConnectionState.closed || state == RTCPeerConnectionState.failed)
                 {
-                    await audioEp.CloseAudio();
+                    await audioSource.CloseAudio();
                 }
             };
             pc.onicecandidate += (iceCandidate) =>
@@ -347,7 +146,7 @@ namespace Ubiq.CsWebRtc
                 if (pc.signalingState == RTCSignalingState.have_remote_offer ||
                     pc.signalingState == RTCSignalingState.stable)
                 {
-                    OnMainThread(() => Send("IceCandidate",iceCandidate.toJSON()));
+                    mainThreadActions.Enqueue(() => Send("IceCandidate",iceCandidate.toJSON()));
                 }
             };
             pc.OnRtpPacketReceived += (IPEndPoint rep, SDPMediaTypesEnum media, RTPPacket rtpPkt) =>
@@ -355,29 +154,21 @@ namespace Ubiq.CsWebRtc
                 //logger.LogDebug($"RTP {media} pkt received, SSRC {rtpPkt.Header.SyncSource}.");
                 if (media == SDPMediaTypesEnum.audio)
                 {
-                    audioEp.GotAudioRtp(rep, rtpPkt.Header.SyncSource, rtpPkt.Header.SequenceNumber, rtpPkt.Header.Timestamp, rtpPkt.Header.PayloadType, rtpPkt.Header.MarkerBit == 1, rtpPkt.Payload);
+                    audioSink.GotAudioRtp(rep, rtpPkt.Header.SyncSource, rtpPkt.Header.SequenceNumber, rtpPkt.Header.Timestamp, rtpPkt.Header.PayloadType, rtpPkt.Header.MarkerBit == 1, rtpPkt.Payload);
                 }
             };
 
             // Diagnostics.
-            pc.OnReceiveReport += (re, media, rr) => OnMainThread(
+            pc.OnReceiveReport += (re, media, rr) => mainThreadActions.Enqueue(
                 () => Debug.Log($"RTCP Receive for {media} from {re}\n{rr.GetDebugSummary()}"));
-            pc.OnSendReport += (media, sr) => OnMainThread(
+            pc.OnSendReport += (media, sr) => mainThreadActions.Enqueue(
                 () => Debug.Log($"RTCP Send for {media}\n{sr.GetDebugSummary()}"));
-            pc.GetRtpChannel().OnStunMessageReceived += (msg, ep, isRelay) => OnMainThread(
+            pc.GetRtpChannel().OnStunMessageReceived += (msg, ep, isRelay) => mainThreadActions.Enqueue(
                 () => Debug.Log($"STUN {msg.Header.MessageType} received from {ep}."));
-            pc.oniceconnectionstatechange += (state) => OnMainThread(
+            pc.oniceconnectionstatechange += (state) => mainThreadActions.Enqueue(
                 () => Debug.Log($"ICE connection state change to {state}."));
 
-            // Debug
-            audioEp.OnLogAvailable += (msg) => OnMainThread(() => Debug.Log(msg));
-
             return Task.FromResult(pc);
-        }
-
-        private void OnMainThread(Action Action)
-        {
-            mainThreadActions.Enqueue(Action);
         }
 
         private void Update()
@@ -385,6 +176,15 @@ namespace Ubiq.CsWebRtc
             while (mainThreadActions.TryDequeue(out Action action))
             {
                 action();
+            }
+
+            // If RtcPeerConnection is initialised, process buffered messages
+            if (setupTask.IsCompleted)
+            {
+                while (messageQueue.Count > 0)
+                {
+                    DoProcessMessage(messageQueue.Dequeue());
+                }
             }
         }
 
@@ -397,22 +197,26 @@ namespace Ubiq.CsWebRtc
 
         public void ProcessMessage(ReferenceCountedSceneGraphMessage data)
         {
-            // try
-            // {
-            //     OnRtcMessage(data.FromJson<Message>());
-            // }
-            // catch (Exception e)
-            // {
-            //     debug.Log("Exception", e.Message);
-            //     return;
-            // }
-            var msg = data.FromJson<Message>();
+            var message = data.FromJson<Message>();
 
-            switch(msg.type)
+            // Buffer messages until the RtcPeerConnection is initialised
+            if (setupTask == null || !setupTask.IsCompleted)
+            {
+                messageQueue.Enqueue(message);
+            }
+            else
+            {
+                DoProcessMessage(message);
+            }
+        }
+
+        private void DoProcessMessage(Message message)
+        {
+            switch(message.type)
             {
                 case "Offer":
-                    // var offer = JsonUtility.FromJson<RTCSessionDescriptionInit>(msg.args);
-                    if (RTCSessionDescriptionInit.TryParse(msg.args,out RTCSessionDescriptionInit offer))
+                    // var offer = JsonUtility.FromJson<RTCSessionDescriptionInit>(message.args);
+                    if (RTCSessionDescriptionInit.TryParse(message.args,out RTCSessionDescriptionInit offer))
                     {
                         Debug.Log($"Got remote SDP, type {offer.type}");
 
@@ -438,9 +242,9 @@ namespace Ubiq.CsWebRtc
                     }
                     break;
                 case "IceCandidate":
-                    // var candidate = JsonUtility.FromJson<RTCIceCandidateInit>(msg.args);
+                    // var candidate = JsonUtility.FromJson<RTCIceCandidateInit>(message.args);
                     //
-                    if (RTCIceCandidateInit.TryParse(msg.args,out RTCIceCandidateInit candidate))
+                    if (RTCIceCandidateInit.TryParse(message.args,out RTCIceCandidateInit candidate))
                     {
                         Debug.Log($"Got remote Ice Candidate, uri {candidate.candidate}");
                         rtcPeerConnection.addIceCandidate(candidate);

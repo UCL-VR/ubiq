@@ -17,8 +17,9 @@ namespace Ubiq.CsWebRtc
     [NetworkComponentId(typeof(CsWebRtcPeerConnectionManager), 50)]
     public class CsWebRtcPeerConnectionManager : MonoBehaviour, INetworkComponent
     {
+        private WebRtcUnityAudioSource audioSource;
         private RoomClient client;
-        private Dictionary<string, CsWebRtcPeerConnection> peerUUIDToConnection;
+        private Dictionary<string, CsWebRtcPeerConnection> peerUuidToConnection;
         private NetworkContext context;
 
         /// <summary>
@@ -36,7 +37,7 @@ namespace Ubiq.CsWebRtc
             {
                 base.AddListener(call);
                 if (owner) {
-                    foreach (var item in owner.peerUUIDToConnection.Values)
+                    foreach (var item in owner.peerUuidToConnection.Values)
                     {
                         call(item);
                     }
@@ -46,7 +47,7 @@ namespace Ubiq.CsWebRtc
             public void SetOwner(CsWebRtcPeerConnectionManager owner)
             {
                 this.owner = owner;
-                foreach (var item in owner.peerUUIDToConnection.Values)
+                foreach (var item in owner.peerUuidToConnection.Values)
                 {
                     Invoke(item);
                 }
@@ -58,12 +59,10 @@ namespace Ubiq.CsWebRtc
         private void Awake()
         {
             client = GetComponentInParent<RoomClient>();
-            peerUUIDToConnection = new Dictionary<string, CsWebRtcPeerConnection>();
-            if(OnPeerConnection == null)
-            {
-                OnPeerConnection = new OnPeerConnectionEvent();
-            }
+            peerUuidToConnection = new Dictionary<string, CsWebRtcPeerConnection>();
             OnPeerConnection.SetOwner(this);
+
+            audioSource = CreateAudioSource();
         }
 
         private void Start()
@@ -78,11 +77,12 @@ namespace Ubiq.CsWebRtc
         // Cleanup all peers
         private void OnLeftRoom(RoomInfo room)
         {
-            foreach(var connection in peerUUIDToConnection.Values) {
-                Destroy(connection.gameObject);
+            foreach(var pc in peerUuidToConnection.Values) {
+                Destroy(pc.audioSource.gameObject);
+                Destroy(pc.gameObject);
             }
 
-            peerUUIDToConnection.Clear();
+            peerUuidToConnection.Clear();
         }
 
         // It is the responsibility of the new peer (the one joining the room) to begin the process of creating a peer connection,
@@ -97,7 +97,7 @@ namespace Ubiq.CsWebRtc
                     continue; // Don't connect to ones self!
                 }
 
-                if(peerUUIDToConnection.ContainsKey(peer.UUID))
+                if(peerUuidToConnection.ContainsKey(peer.UUID))
                 {
                     continue; // This peer existed in the previous room and we already have a connection to it
                 }
@@ -106,9 +106,7 @@ namespace Ubiq.CsWebRtc
 
                 logger.Log("CreatePeerConnectionForPeer", pcid, peer.NetworkObjectId);
 
-                var pc = CreatePeerConnection(pcid, peer.UUID);
-                pc.MakePolite();
-                pc.AddLocalAudioSource();
+                var pc = CreatePeerConnection(pcid, peer.UUID, polite: true);
 
                 Message m;
                 m.type = "RequestPeerConnection";
@@ -121,14 +119,12 @@ namespace Ubiq.CsWebRtc
 
         public void OnPeerRemoved(PeerInfo peer)
         {
-            try
+            if (peerUuidToConnection.TryGetValue(peer.UUID, out var connection))
             {
-                Destroy(peerUUIDToConnection[peer.UUID].gameObject);
-                peerUUIDToConnection.Remove(peer.UUID);
-            }
-            catch (KeyNotFoundException)
-            {
-                // never had this peer or already done
+                // Audiosinks are created per connection
+                Destroy(connection.audioSink.gameObject);
+                Destroy(connection.gameObject);
+                peerUuidToConnection.Remove(peer.UUID);
             }
         }
 
@@ -139,8 +135,7 @@ namespace Ubiq.CsWebRtc
             {
                 case "RequestPeerConnection":
                     logger.Log("CreatePeerConnectionForRequest", msg.objectid);
-                    var pc = CreatePeerConnection(msg.objectid, msg.uuid);
-                    pc.AddLocalAudioSource();
+                    var pc = CreatePeerConnection(msg.objectid, msg.uuid, polite: false);
                     break;
             }
         }
@@ -153,16 +148,35 @@ namespace Ubiq.CsWebRtc
             public string uuid;
         }
 
-        private CsWebRtcPeerConnection CreatePeerConnection(NetworkId objectid, string peerUuid)
+        private WebRtcUnityAudioSource CreateAudioSource()
         {
-            var go = new GameObject(objectid.ToString());
-            go.transform.SetParent(transform);
+            var audioSource = new GameObject("WebRTC Microphone Input")
+                .AddComponent<WebRtcUnityAudioSource>();
 
-            var pc = go.AddComponent<CsWebRtcPeerConnection>();
-            pc.Id = objectid;
-            pc.State.Peer = peerUuid;
+            audioSource.transform.SetParent(transform);
+            return audioSource;
+        }
 
-            peerUUIDToConnection.Add(peerUuid, pc);
+        private CsWebRtcPeerConnection CreatePeerConnection(NetworkId objectid,
+            string peerUuid, bool polite)
+        {
+            var name = objectid.ToString();
+
+            var audioSink = new GameObject("WebRTC Audio Output + " + name)
+                .AddComponent<WebRtcUnityAudioSink>();
+
+            var pc = new GameObject("WebRTC Peer Connection " + name)
+                .AddComponent<CsWebRtcPeerConnection>();
+
+            pc.transform.SetParent(transform);
+
+            // The audiosink can be made 3d and moved around by event listeners
+            // but for now, make it a child to avoid cluttering scene graph
+            audioSink.transform.SetParent(pc.transform);
+
+            pc.Setup(objectid,peerUuid,polite,audioSource,audioSink);
+
+            peerUuidToConnection.Add(peerUuid, pc);
             OnPeerConnection.Invoke(pc);
 
             return pc;

@@ -3,28 +3,31 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class VolumeMeterController : MonoBehaviour
+namespace Ubiq.Samples
 {
-    private Image image;
-    private Material material;
-
-    public float Volume;
-
-    private void Awake()
+    public class VolumeMeterController : MonoBehaviour
     {
-        image = GetComponent<Image>();
-        material = image.material; // take a copy
-    }
+        private Image image;
+        private Material material;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+        public float Volume;
 
-    // Update is called once per frame
-    void Update()
-    {
-        material.SetFloat("_Volume", Volume);
+        private void Awake()
+        {
+            image = GetComponent<Image>();
+            material = image.material; // take a copy
+        }
+
+        // Start is called before the first frame update
+        void Start()
+        {
+
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+            material.SetFloat("_Volume", Volume);
+        }
     }
 }

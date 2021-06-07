@@ -14,7 +14,7 @@ EditorBuildSettings:
   - enabled: 0
     path: 
     guid: 00000000000000000000000000000000
-  - enabled: 1
+  - enabled: 0
     path: Assets/Samples/Introduction/Scenes/Apartment.unity
     guid: 64bff52f73c71a844825016cf8111b18
   m_configObjects:

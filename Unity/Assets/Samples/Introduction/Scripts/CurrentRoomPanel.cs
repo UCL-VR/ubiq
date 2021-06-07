@@ -18,12 +18,6 @@ namespace Ubiq.Samples
 
         private Color backgroundDefaultColor;
 
-        private void OnEnable()
-        {
-            UpdateControl(false);
-            backgroundDefaultColor = background.color;
-        }
-
         private void Start()
         {
             mainMenu.roomClient.OnJoinedRoom.AddListener(RoomClient_OnJoinedRoom);
@@ -35,6 +29,12 @@ namespace Ubiq.Samples
             {
                 mainMenu.roomClient.OnJoinedRoom.RemoveListener(RoomClient_OnJoinedRoom);
             }
+        }
+
+        private void OnEnable()
+        {
+            UpdateControl(false);
+            backgroundDefaultColor = background.color;
         }
 
         private void OnDisable()
@@ -61,9 +61,9 @@ namespace Ubiq.Samples
                 inRoomPanel.SetActive(true);
                 control.Bind(mainMenu.roomClient);
 
-                if (onJoinedRoom)
+                if (isActiveAndEnabled && onJoinedRoom)
                 {
-                    StartCoroutine(HighlightBackground());
+                    StartCoroutine(PulseBackground());
                 }
             }
             else
@@ -73,7 +73,7 @@ namespace Ubiq.Samples
             }
         }
 
-        private IEnumerator HighlightBackground()
+        private IEnumerator PulseBackground()
         {
             var delta = backgroundDefaultColor - backgroundHighlightOnJoinColor;
             var totalTime = 0.0f;
