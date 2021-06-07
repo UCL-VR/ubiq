@@ -66,11 +66,11 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
             // save all messages that are happening in one frame in same line
             if (frameNr == 0 || previousFrame != frameNr)
             {
-                if (recordedData != "")
+                if (recordedData != null)
                 {
                     File.AppendAllText(recordFile, recordedData + "\n", System.Text.Encoding.UTF8);
                     lineNr += 1;
-                    recordedData = "";
+                    recordedData = null;
                 }
                 recordedData = Time.unscaledTime + "," + frameNr;
 
