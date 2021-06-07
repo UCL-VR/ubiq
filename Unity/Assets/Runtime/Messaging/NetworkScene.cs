@@ -313,12 +313,14 @@ namespace Ubiq.Messaging
             }
             actions.Clear();
 
+            // increment frame number before 
+            if (recorderReplayer != null && recorderReplayer.recording)
+            {
+                recorderReplayer.UpdateFrameNr(); // increments frame number when recording!
+            }
+
             ReceiveConnectionMessages();
             
-            if (recorderReplayer != null)
-            {
-                recorderReplayer.UpdateFrameNr(); // increments frame number
-            }
         }
 
         /// <summary>

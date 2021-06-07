@@ -26,18 +26,19 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
     private Dictionary<NetworkId, string> recordedObjectids;
     private int lineNr = 0; // number of lines in recordFile
     private int frameNr = 0;
+    private int previousFrame = 0;
     private bool initFile = false;
 
     // Replaying
     public string replayFile;
-    private ReferenceCountedSceneGraphMessage[] replayedMessages;
+    private List<ReferenceCountedSceneGraphMessage>[] replayedMessages;
     private int[] replayedFrames;
     private int replayedDataLength;
     private int numberOfRecAvatars;
     private int numberOfRecLines;
     private Dictionary<NetworkId, string> replayedObjectids;
     private bool initReplay = false;
-    
+
 
     public NetworkId Id { get; } = new NetworkId();
 
@@ -60,20 +61,34 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
         }
 
         string uid;
-        if(obj is Avatar) // check it here too in case we later record other things than avatars as well
+        if (obj is Avatar) // check it here too in case we later record other things than avatars as well
         {
+            // save all messages that are happening in one frame in same line
+            if (frameNr == 0 || previousFrame != frameNr)
+            {
+                if (recordedData != "")
+                {
+                    File.AppendAllText(recordFile, recordedData + "\n", System.Text.Encoding.UTF8);
+                    lineNr += 1;
+                    recordedData = "";
+                }
+                recordedData = Time.unscaledTime + "," + frameNr;
+
+                previousFrame++;
+            }
+
             //Avatar avatar = obj as Avatar;
             uid = (obj as Avatar).Properties["texture-uid"]; // get texture of avatar so we can later replay a look-alike avatar
-            
-            recordedData = Time.unscaledTime + "," + frameNr + "," + message.ToString().Replace("\n","\\n").Replace("\r","\\r") + "\n";
+
+            //recordedData = Time.unscaledTime + "," + frameNr + "," + message.ToString().Replace("\n", "\\n").Replace("\r", "\\r") + "\n";
+            recordedData = recordedData + "," + message.ToString().Replace("\n", "\\n").Replace("\r", "\\r");
 
             if (!recordedObjectids.ContainsKey(message.objectid))
             {
                 recordedObjectids.Add(message.objectid, uid);
             }
-            lineNr += 1;
         }
-        File.AppendAllText(recordFile, recordedData, System.Text.Encoding.UTF8);
+        //File.AppendAllText(recordFile, recordedData, System.Text.Encoding.UTF8);
     }
 
     public void Replay()
@@ -92,51 +107,50 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
     {
         initReplay = true;
 
-        if (File.Exists(path + "/" + replayFile + "IDs.txt"))
+        string filepath = path + "/" + replayFile + "IDs.txt";
+        if (File.Exists(filepath))
         {
-            using (StreamReader reader = File.OpenText(path + "/" + replayFile + "IDs.txt"))
-            {
-                await LoadRecInfo(reader);
-            }
+            Debug.Log("Load info...");
+            numberOfRecLines = await LoadRecInfo(filepath);
+            Debug.Log("Info loaded!");
         }
-
-        if (File.Exists(path + "/" + replayFile + ".txt"))
+        filepath  = path + "/" + replayFile + ".txt";
+        if (File.Exists(filepath))
         {
-
-            using (StreamReader reader = File.OpenText(path + "/" + replayFile + ".txt"))
-            {
-                Debug.Log("Load recording...");
-                
-                await LoadMessages(reader);
-
-                Debug.Log("Loading finished!");
-            }
-
+            Debug.Log("Load recording...");
+            await LoadMessages(filepath);
+            Debug.Log("Recording loaded!");
         }
 
     }
 
-    private async Task LoadMessages(StreamReader reader)
+    // async method here probably not necesary
+
+    private async Task<int> LoadRecInfo(string filepath)
     {
-        string msg;
-        string[] msgParts;
-        int i = 0;
-        replayedFrames = new int[numberOfRecLines];
-        replayedMessages = new ReferenceCountedSceneGraphMessage[numberOfRecLines];
-        while ((msg = await reader.ReadLineAsync()) != null)
+        using (StreamReader reader = File.OpenText(filepath))
         {
-            msgParts = msg.Split(','); // time, frameNr, message
-            replayedFrames[i] = int.Parse(msgParts[1]);
-            replayedMessages[i] = ReferenceCountedSceneGraphMessage.Rent(msgParts[2].Replace("\\n", "\n").Replace("\\r", "\r"));
-
-            i++;
+            string recInfo;
+            int i = 0;
+            while ((recInfo = await reader.ReadLineAsync()) != null)
+            {
+                if (i == 0)
+                {
+                    numberOfRecLines = int.Parse(recInfo.Split(',')[0]);
+                }
+                else if (i == 1)
+                {
+                    numberOfRecAvatars = int.Parse(recInfo.Split(',')[0]);
+                }
+                else
+                {
+                    var s = recInfo.Split(',');
+                    replayedObjectids.Add(new NetworkId(s[0]), s[1]);
+                }
+                i++;
+            }
         }
-    }
-
-    private async Task LoadRecInfo(StreamReader sr)
-    {
         //string[] recInfo = File.ReadAllLines(path + "/" + replayFile + "IDs.txt");
-
         //numberOfRecLines = int.Parse(recInfo[0].Split(',')[0]);
         //numberOfRecAvatars = int.Parse(recInfo[1].Split(',')[0]);
 
@@ -146,12 +160,36 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
 
         //    replayedObjectids.Add(new NetworkId(s[0]), s[1]);
         //}
+        return numberOfRecLines;
+    }
+
+    private async Task LoadMessages(string filepath)
+    {
+        using (StreamReader reader = File.OpenText(filepath))
+        {
+            string msg;
+            string[] msgParts;
+            int i = 0;
+            replayedFrames = new int[numberOfRecLines];
+            replayedMessages = new List<ReferenceCountedSceneGraphMessage>[numberOfRecLines];
+            while ((msg = await reader.ReadLineAsync()) != null)
+            {
+                msgParts = msg.Split(','); // time, frameNr, message(s)
+                replayedFrames[i] = int.Parse(msgParts[1]);
+                for (int j = 2; j < msgParts.Length; j++)
+                {
+                    replayedMessages[i].Add(ReferenceCountedSceneGraphMessage.Rent(msgParts[2].Replace("\\n", "\n").Replace("\\r", "\r")));
+                }
+                i++;
+            }
+        }
     }
 
     // so we know how many of the messages belonge to one frame,
     // this is called after all connections have received their messages after one Update()
     public void UpdateFrameNr()
     {
+        previousFrame = frameNr;
         frameNr += 1;
     }
 
@@ -172,13 +210,13 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
         replayedObjectids = new Dictionary<NetworkId, string>();
     }
 
-// Update is called once per frame
-void Update()
+    // Update is called once per frame
+    void Update()
     {
         // get messages 
         if (recording)
         {
-        
+
         }
         else
         {
