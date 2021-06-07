@@ -176,9 +176,10 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
             {
                 msgParts = msg.Split(','); // time, frameNr, message(s)
                 replayedFrames[i] = int.Parse(msgParts[1]);
+                replayedMessages[i] = new List<ReferenceCountedSceneGraphMessage>();
                 for (int j = 2; j < msgParts.Length; j++)
                 {
-                    replayedMessages[i].Add(ReferenceCountedSceneGraphMessage.Rent(msgParts[2].Replace("\\n", "\n").Replace("\\r", "\r")));
+                    replayedMessages[i].Add(ReferenceCountedSceneGraphMessage.Rent(msgParts[j].Replace("\\n", "\n").Replace("\\r", "\r")));
                 }
                 i++;
             }
