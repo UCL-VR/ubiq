@@ -7,6 +7,11 @@ using UnityEngine;
 
 namespace Ubiq.Networking
 {
+    /// <summary>
+    /// Represents a point-to-point connection to another endpoint. 
+    /// The INetworkConnection is designed to be polled on the main Unity thread.
+    /// Call Dispose to close the connection.
+    /// </summary>
     public interface INetworkConnection : IDisposable
     {
         ReferenceCountedMessage Receive();
