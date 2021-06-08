@@ -227,10 +227,10 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  movementSpeed: 2
-  rotationSpeed: 180
-  maxHeadPitch: 40
-  minHeadPitch: -40
+  movementSpeed: 2.5
+  rotationSpeed: 360
+  maxHeadPitch: 45
+  minHeadPitch: -45
 --- !u!114 &3914411122208059719
 MonoBehaviour:
   m_ObjectHideFlags: 0

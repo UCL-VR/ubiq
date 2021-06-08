@@ -14,7 +14,7 @@ namespace Ubiq.Samples
     /// </summary>
     public class AvatarAudioStatusIndicator : MonoBehaviour
     {
-        public Image indicator;
+        public Button indicator;
 
         /// <summary>
         /// The Avatar that this Indicator sits underneath. The Indicator must exist under an Avatar.
@@ -23,9 +23,12 @@ namespace Ubiq.Samples
 
         private WebRtcPeerConnection pc;
 
+        private Text messageBox;
+
         private void Awake()
         {
             avatar = GetComponentInParent<Avatars.Avatar>();
+            messageBox = indicator.GetComponentInChildren<Text>();
         }
 
         private void Start()
@@ -66,6 +69,7 @@ namespace Ubiq.Samples
                     indicator.gameObject.SetActive(false);
                     break;
                 default:
+                    messageBox.text = state.ToString();
                     indicator.gameObject.SetActive(true);
                     break;
             }

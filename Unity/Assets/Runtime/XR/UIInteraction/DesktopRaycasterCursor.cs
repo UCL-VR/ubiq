@@ -2,16 +2,16 @@ using UnityEngine;
 
 namespace Ubiq.XR
 {
-    [RequireComponent(typeof(DesktopRaycaster))]
+    [RequireComponent(typeof(DesktopUIRaycaster))]
     public class DesktopRaycasterCursor : MonoBehaviour
     {
         public new Renderer renderer;
 
-        private DesktopRaycaster desktopRaycaster;
+        private DesktopUIRaycaster desktopRaycaster;
 
         private void Awake()
         {
-            desktopRaycaster = GetComponent<DesktopRaycaster>();
+            desktopRaycaster = GetComponent<DesktopUIRaycaster>();
         }
 
         private void OnEnable()
