@@ -12,13 +12,18 @@ using UnityEngine.Android;
 namespace Ubiq.CsWebRtc
 {
     // Uses the Unity Microphone API to provide audio to any number of peer connections
+    // TODO Need to work out how best to "switch off" the mic when no-one else
+    // is present. Could use Microphone.End(), or could just skip through
+    // samples without encoding/sending. At the moment, mic is never switched
+    // off. To complicate matters, C# event thread safety is an issue.
+    // TODO What happens when the audio device is changed while listening?
     public class WebRtcUnityAudioSource : MonoBehaviour, IAudioSource
     {
         // IAudioSource implementation starts
         // Thread safe and can be called before Awake() and after OnDestroy()
-        public event EncodedSampleDelegate OnAudioSourceEncodedSample;
-        public event RawAudioSampleDelegate OnAudioSourceRawSample;
-        public event SourceErrorDelegate OnAudioSourceError;
+        public event EncodedSampleDelegate OnAudioSourceEncodedSample = delegate {};
+        public event RawAudioSampleDelegate OnAudioSourceRawSample = delegate {};
+        public event SourceErrorDelegate OnAudioSourceError = delegate {};
         public bool IsAudioSourcePaused() => isPaused;
         public bool HasEncodedAudioSubscribers() => OnAudioSourceEncodedSample != null;
         public void RestrictFormats(Func<AudioFormat, bool> filter) => audioFormatManager?.RestrictFormats(filter);
@@ -37,8 +42,9 @@ namespace Ubiq.CsWebRtc
             public AudioClip audioClip { get; private set; }
             public float gain;
 
-            private int readPos;
-            private int micPos;
+            private int absReadPos;
+            private int absMicPos;
+            private int lastMicPos;
 
             public float[] samples { get; private set; }
 
@@ -51,17 +57,19 @@ namespace Ubiq.CsWebRtc
                     return;
                 }
 
-                var deltaMicPos = Microphone.GetPosition(deviceName) - micPos;
+                var micPos = Microphone.GetPosition(deviceName);
+                var deltaMicPos = micPos - lastMicPos;
                 if (deltaMicPos < 0)
                 {
                     deltaMicPos += audioClip.samples;
                 }
-                micPos += deltaMicPos;
+                absMicPos += deltaMicPos;
+                lastMicPos = micPos;
 
-                if (micPos > audioClip.samples && readPos > audioClip.samples)
+                if (absMicPos > audioClip.samples && absReadPos > audioClip.samples)
                 {
-                    micPos %= audioClip.samples;
-                    readPos %= audioClip.samples;
+                    absMicPos %= audioClip.samples;
+                    absReadPos %= audioClip.samples;
                 }
             }
 
@@ -73,7 +81,7 @@ namespace Ubiq.CsWebRtc
                 }
 
                 UpdateMicrophonePosition();
-                return readPos + samples.Length < micPos;
+                return absReadPos + samples.Length < absMicPos;
             }
 
             public bool Advance()
@@ -83,8 +91,8 @@ namespace Ubiq.CsWebRtc
                     return false;
                 }
 
-                audioClip.GetData(samples,readPos % audioClip.samples);
-                readPos += samples.Length;
+                audioClip.GetData(samples,absReadPos % audioClip.samples);
+                absReadPos += samples.Length;
                 return true;
             }
 
@@ -105,7 +113,7 @@ namespace Ubiq.CsWebRtc
 
                 audioClip = Microphone.Start(deviceName,loop:true,
                     micBuffLengthSeconds,frequency);
-                micPos = readPos = Microphone.GetPosition(deviceName);
+                absMicPos = absReadPos = lastMicPos = Microphone.GetPosition(deviceName);
             }
 
             public void End ()
@@ -191,7 +199,7 @@ namespace Ubiq.CsWebRtc
                 }
 
                 var encoded = audioEncoder.Encode(pcmSamples);
-                OnAudioSourceEncodedSample.Invoke((uint)encoded.Length,encoded);
+                OnAudioSourceEncodedSample.Invoke((uint)pcmSamples.Length,encoded);
             }
         }
 

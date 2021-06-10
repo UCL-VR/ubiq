@@ -9,22 +9,17 @@
 // using UnityEngine;
 // using UnityEngine.Events;
 
-// // using SIP
 
 using System;
+using System.Net;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using UnityEngine;
+using UnityEngine.Events;
 using SIPSorcery.Net;
-using Ubiq.Messaging;
-
-// Debug
-using SIPSorcery.Media;
 using SIPSorceryMedia.Abstractions;
-using SIPSorceryMedia;
-using System.Net;
-using System.Threading;
+using Ubiq.Messaging;
 
 namespace Ubiq.CsWebRtc
 {
@@ -33,33 +28,31 @@ namespace Ubiq.CsWebRtc
 
         public WebRtcUnityAudioSource audioSource { get; private set; }
         public WebRtcUnityAudioSink audioSink { get; private set; }
+        public NetworkId Id { get; private set; }
+        public string PeerUuid { get; private set; }
 
-        public struct PeerConnectionState
-        {
-            public string Peer;
-            // public string LastMessageReceived;
-            // public bool HasRemote;
-            // public volatile PeerConnectionInterface.SignalingState SignalingState;
-            // public volatile PeerConnectionInterface.IceConnectionState ConnectionState;
-            // public volatile PeerConnectionInterface.IceGatheringState IceState;
-        }
+        public RTCIceConnectionState iceConnectionState { get; private set; }
+        public RTCPeerConnectionState peerConnectionState { get; private set; }
 
-        public PeerConnectionState State;
+        [Serializable] public class IceConnectionStateEvent : UnityEvent<RTCIceConnectionState> { }
+        [Serializable] public class PeerConnectionStateEvent : UnityEvent<RTCPeerConnectionState> { }
 
-        public NetworkId Id { get; set; }
+        public IceConnectionStateEvent onIceConnectionStateChanged;
+        public PeerConnectionStateEvent onPeerConnectionStateChanged;
 
-        // public void AddLocalAudioSource(){}
-
-        // SipSorcery Peer Connection
-        private RTCPeerConnection rtcPeerConnection;
         private NetworkContext context;
         private ConcurrentQueue<Action> mainThreadActions = new ConcurrentQueue<Action>();
         private Queue<Message> messageQueue = new Queue<Message>();
-
         private Task setupTask;
+
+        // SipSorcery Peer Connection
+        private RTCPeerConnection rtcPeerConnection;
 
         // Debug
         private const string STUN_URL = "stun:stun.l.google.com:19302";
+        private const string TURN_URL = "turn:20.84.122.207";
+        private const string TURN_USER = "ubiqtestuser";
+        private const string TURN_PASS = "1rZ$aU9C^cdbstHb";
 
         private void OnDestroy()
         {
@@ -75,8 +68,17 @@ namespace Ubiq.CsWebRtc
                 return;
             }
 
+            if (onIceConnectionStateChanged == null)
+            {
+                onIceConnectionStateChanged = new IceConnectionStateEvent();
+            }
+            if (onPeerConnectionStateChanged == null)
+            {
+                onPeerConnectionStateChanged = new PeerConnectionStateEvent();
+            }
+
             this.Id = objectId;
-            this.State.Peer = peerUuid;
+            this.PeerUuid = peerUuid;
             this.audioSource = source;
             this.audioSink = sink;
             this.context = NetworkScene.Register(this);
@@ -110,35 +112,46 @@ namespace Ubiq.CsWebRtc
             IAudioSource audioSource, IAudioSink audioSink,
             ConcurrentQueue<Action> mainThreadActions )
         {
-            var config = new RTCConfiguration
+            var pc = new RTCPeerConnection(new RTCConfiguration
             {
-                iceServers = new List<RTCIceServer> { new RTCIceServer { urls = STUN_URL } }
-            };
-            var pc = new RTCPeerConnection(config);
+                iceServers = new List<RTCIceServer>
+                {
+                    new RTCIceServer { urls = STUN_URL },
+                    new RTCIceServer
+                    {
+                        urls = TURN_URL,
+                        username = TURN_USER,
+                        credential = TURN_PASS,
+                        credentialType = RTCIceCredentialType.password
+                    }
+                }
+            });
 
-            // debug
-            // var audioSource = new AudioExtrasSource(new AudioEncoder(), new AudioSourceOptions { AudioSource = AudioSourcesEnum.Music });
-            // var audioEp = new DummyAudioEndPoint();
+            pc.addTrack(new MediaStreamTrack(
+                audioSource.GetAudioSourceFormats(),
+                MediaStreamStatusEnum.SendRecv));
+            pc.OnAudioFormatsNegotiated += (formats) =>
+                audioSource.SetAudioSourceFormat(formats[0]);
+            // audioSink.SetAudioSinkFormat(formats[0]);
 
             audioSource.OnAudioSourceEncodedSample += pc.SendAudio;
 
-            var audioTrack = new MediaStreamTrack(audioSource.GetAudioSourceFormats(), MediaStreamStatusEnum.SendRecv);
-
-            pc.addTrack(audioTrack);
-
-            pc.OnAudioFormatsNegotiated += (formats) => audioSource.SetAudioSourceFormat(formats[0]);
-
-            pc.onconnectionstatechange += async (state) =>
+            pc.onconnectionstatechange += (state) =>
             {
-                mainThreadActions.Enqueue(() => Debug.Log($"Peer connection state change to {state}."));
+                mainThreadActions.Enqueue(() =>
+                {
+                    peerConnectionState = state;
+                    onPeerConnectionStateChanged.Invoke(state);
+                    Debug.Log($"Peer connection state change to {state}.");
+                });
 
                 if (state == RTCPeerConnectionState.connected)
                 {
-                    await audioSource.StartAudio();
+                    // audioSource.OnAudioSourceEncodedSample += pc.SendAudio;
                 }
                 else if (state == RTCPeerConnectionState.closed || state == RTCPeerConnectionState.failed)
                 {
-                    await audioSource.CloseAudio();
+                    // audioSource.OnAudioSourceEncodedSample -= pc.SendAudio;
                 }
             };
             pc.onicecandidate += (iceCandidate) =>
@@ -165,8 +178,12 @@ namespace Ubiq.CsWebRtc
                 () => Debug.Log($"RTCP Send for {media}\n{sr.GetDebugSummary()}"));
             pc.GetRtpChannel().OnStunMessageReceived += (msg, ep, isRelay) => mainThreadActions.Enqueue(
                 () => Debug.Log($"STUN {msg.Header.MessageType} received from {ep}."));
-            pc.oniceconnectionstatechange += (state) => mainThreadActions.Enqueue(
-                () => Debug.Log($"ICE connection state change to {state}."));
+            pc.oniceconnectionstatechange += (state) => mainThreadActions.Enqueue(() =>
+            {
+                iceConnectionState = state;
+                onIceConnectionStateChanged.Invoke(state);
+                Debug.Log($"ICE connection state change to {state}.");
+            });
 
             return Task.FromResult(pc);
         }

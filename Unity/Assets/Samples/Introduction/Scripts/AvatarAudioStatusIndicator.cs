@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Ubiq.Messaging;
 using Ubiq.Extensions;
-using Ubiq.WebRtc;
+using Ubiq.CsWebRtc;
 using UnityEngine;
 using Ubiq.Rooms;
 using UnityEngine.UI;
@@ -21,8 +21,6 @@ namespace Ubiq.Samples
         /// </summary>
         private Avatars.Avatar avatar;
 
-        private WebRtcPeerConnection pc;
-
         private Text messageBox;
 
         private void Awake()
@@ -33,14 +31,14 @@ namespace Ubiq.Samples
 
         private void Start()
         {
-            // Start by finding the WebRtcPeerConnectionManager for the Network Scene. 
+            // Start by finding the WebRtcPeerConnectionManager for the Network Scene.
             // We will listen to events on this to find when a peer connection has been created to monitor.
             // There may not be a manager in scene if audio is not desired, so be prepared for null references.
 
             try
             {
                 // The NetworkScene is usually found in Start, so no objects will contain direct references to it. Find the manager by searching the graph instead.
-                var peerConnectionManager = avatar.AvatarManager.RoomClient.GetClosestComponent<WebRtcPeerConnectionManager>();
+                var peerConnectionManager = avatar.AvatarManager.RoomClient.GetClosestComponent<CsWebRtcPeerConnectionManager>();
                 if (peerConnectionManager)
                 {
                     peerConnectionManager.OnPeerConnection.AddListener(OnPeerConnection);
@@ -52,20 +50,19 @@ namespace Ubiq.Samples
             }
         }
 
-        void OnPeerConnection(WebRtcPeerConnection connection)
+        void OnPeerConnection(CsWebRtcPeerConnection connection)
         {
-            if(avatar.Properties["peer-uuid"] == connection.State.Peer)
+            if(avatar.Properties["peer-uuid"] == connection.PeerUuid)
             {
-                connection.OnStateChanged.AddListener(OnStateChange);
+                connection.onIceConnectionStateChanged.AddListener(OnStateChange);
             }
         }
 
-        void OnStateChange(WebRtcPeerConnection.PeerConnectionState state)
+        void OnStateChange(SIPSorcery.Net.RTCIceConnectionState state)
         {
-            switch (state.ConnectionState)
+            switch (state)
             {
-                case Pixiv.Webrtc.PeerConnectionInterface.IceConnectionState.Connected:
-                case Pixiv.Webrtc.PeerConnectionInterface.IceConnectionState.Completed:
+                case SIPSorcery.Net.RTCIceConnectionState.connected:
                     indicator.gameObject.SetActive(false);
                     break;
                 default:

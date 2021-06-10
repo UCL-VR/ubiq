@@ -7,6 +7,7 @@ using UnityEngine;
 using Ubiq.Rooms;
 using Ubiq.Messaging;
 using Ubiq.Logging;
+using Ubiq.Avatars;
 using UnityEngine.Events;
 
 namespace Ubiq.CsWebRtc
@@ -63,6 +64,7 @@ namespace Ubiq.CsWebRtc
             OnPeerConnection.SetOwner(this);
 
             audioSource = CreateAudioSource();
+            audioSource.StartAudio();
         }
 
         private void Start()
@@ -117,7 +119,7 @@ namespace Ubiq.CsWebRtc
             }
         }
 
-        public void OnPeerRemoved(PeerInfo peer)
+        private void OnPeerRemoved(PeerInfo peer)
         {
             if (peerUuidToConnection.TryGetValue(peer.UUID, out var connection))
             {
@@ -181,6 +183,28 @@ namespace Ubiq.CsWebRtc
 
             return pc;
         }
+
+        // private void OnPeerConnectionStateChanged (SIPSorcery.Net.RTCPeerConnectionState _)
+        // {
+        //     var useAudioSource = false;
+        //     foreach (var connection in peerUuidToConnection.Values)
+        //     {
+        //         if (connection.peerConnectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)
+        //         {
+        //             useAudioSource = true;
+        //             break;
+        //         }
+        //     }
+
+        //     if (useAudioSource)
+        //     {
+        //         audioSource.StartAudio();
+        //     }
+        //     else
+        //     {
+        //         audioSource.CloseAudio();
+        //     }
+        // }
 
         public void Send(NetworkId sharedId, Message m)
         {
