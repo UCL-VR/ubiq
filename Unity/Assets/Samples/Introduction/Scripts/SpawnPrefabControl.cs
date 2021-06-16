@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Ubiq;
 using UnityEngine;
 using UnityEngine.UI;
+using Ubiq.Spawning;
 
 namespace Ubiq.Samples
 {

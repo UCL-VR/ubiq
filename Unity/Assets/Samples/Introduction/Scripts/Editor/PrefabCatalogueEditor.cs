@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
 
-namespace Ubiq.Samples
+namespace Ubiq.Spawning
 {
     [CustomEditor(typeof(PrefabCatalogue))]
     public class PrefabCatalogueEditor : Editor

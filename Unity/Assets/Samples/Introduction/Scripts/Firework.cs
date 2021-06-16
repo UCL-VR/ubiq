@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Ubiq.Messaging;
 using Ubiq.XR;
 using UnityEngine;
+using Ubiq.Spawning;
 
 namespace Ubiq.Samples
 {

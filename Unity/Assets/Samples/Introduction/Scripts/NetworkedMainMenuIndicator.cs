@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Ubiq.Messaging;
+using Ubiq.Spawning;
 
 namespace Ubiq.Samples
 {

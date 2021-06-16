@@ -6,6 +6,7 @@ using UnityEngine.Events;
 using Ubiq.Rooms;
 using Ubiq.Messaging;
 using Ubiq.XR;
+using Ubiq.Spawning;
 
 namespace Ubiq.Samples
 {
