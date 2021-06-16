@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Ubiq.CsWebRtc;
+using Ubiq.Voip;
 
 namespace Ubiq.Samples
 {
@@ -10,7 +10,7 @@ namespace Ubiq.Samples
     public class VolumeMeterControllerListener : MonoBehaviour
     {
         public float gain = 1.0f;
-        public CsWebRtcPeerConnectionManager peerConnectionManager;
+        public VoipPeerConnectionManager peerConnectionManager;
 
         private Image image;
         private Material material;
@@ -33,7 +33,7 @@ namespace Ubiq.Samples
             peerConnectionManager.OnPeerConnection.RemoveListener(OnPeerConnection);
         }
 
-        private void OnPeerConnection (CsWebRtcPeerConnection pc)
+        private void OnPeerConnection (VoipPeerConnection pc)
         {
             pc.audioSink.OnVolumeChange += OnVolumeChange;
         }

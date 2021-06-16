@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Ubiq.CsWebRtc;
+using Ubiq.Voip;
 
 namespace Ubiq.Avatars
 {
@@ -21,14 +21,14 @@ namespace Ubiq.Avatars
         private void Start()
         {
             var peerConnectionManager = avatar.AvatarManager.RoomClient.
-                GetComponentInChildren<CsWebRtcPeerConnectionManager>();
+                GetComponentInChildren<VoipPeerConnectionManager>();
             if (peerConnectionManager)
             {
                 peerConnectionManager.OnPeerConnection.AddListener(OnPeerConnection);
             }
         }
 
-        private void OnPeerConnection(CsWebRtcPeerConnection peerConnection)
+        private void OnPeerConnection(VoipPeerConnection peerConnection)
         {
             if (peerConnection.PeerUuid == avatar.Properties["peer-uuid"])
             {

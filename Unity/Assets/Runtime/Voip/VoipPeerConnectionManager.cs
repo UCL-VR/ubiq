@@ -9,19 +9,88 @@ using Ubiq.Messaging;
 using Ubiq.Logging;
 using Ubiq.Avatars;
 using UnityEngine.Events;
+using SIPSorcery.Net;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Collections.Concurrent;
 
-namespace Ubiq.CsWebRtc
+namespace Ubiq.Voip
 {
     /// <summary>
     /// Manages the lifetime of WebRtc Peer Connection objects with respect to changes in the room
     /// </summary>
-    [NetworkComponentId(typeof(CsWebRtcPeerConnectionManager), 50)]
-    public class CsWebRtcPeerConnectionManager : MonoBehaviour, INetworkComponent
+    [NetworkComponentId(typeof(VoipPeerConnectionManager), 50)]
+    public class VoipPeerConnectionManager : MonoBehaviour, INetworkComponent
     {
-        private WebRtcUnityAudioSource audioSource;
+        // SipSorcery peer connections are slow to instantiate as cert
+        // generation seems to take a while.
+        // Bandaid solution is to keep some connections in memory ready to go
+        public class RTCPeerConnectionSource : IDisposable
+        {
+            // Debug - should come from server
+            private const string STUN_URL = "stun:stun.l.google.com:19302";
+            private const string TURN_URL = "turn:20.84.122.207";
+            private const string TURN_USER = "ubiqtestuser";
+            private const string TURN_PASS = "1rZ$aU9C^cdbstHb";
+
+            private ConcurrentBag<Task<RTCPeerConnection>> pcTasks;
+
+            public RTCPeerConnectionSource (int taskCount = 1)
+            {
+                pcTasks = new ConcurrentBag<Task<RTCPeerConnection>>();
+                for (int i = 0; i < taskCount; i++)
+                {
+                    pcTasks.Add(Task.Run(() => Create()));
+                }
+            }
+
+            public Task<RTCPeerConnection> Acquire ()
+            {
+                if (pcTasks.TryTake(out var pcTask))
+                {
+                    pcTasks.Add(Task.Run(() => Create()));
+                    return pcTask;
+                }
+
+                return Task.Run(() => Create());
+            }
+
+            private RTCPeerConnection Create()
+            {
+                return new RTCPeerConnection(new RTCConfiguration
+                {
+                    iceServers = new List<RTCIceServer>
+                    {
+                        new RTCIceServer { urls = STUN_URL },
+                        new RTCIceServer
+                        {
+                            urls = TURN_URL,
+                            username = TURN_USER,
+                            credential = TURN_PASS,
+                            credentialType = RTCIceCredentialType.password
+                        }
+                    }
+                });
+            }
+
+            public async void Dispose()
+            {
+                await Task.WhenAll(pcTasks).ConfigureAwait(false);
+
+                while (pcTasks.TryTake(out var pc))
+                {
+                    pc.Dispose();
+                }
+                pcTasks = null;
+            }
+        }
+
+        private VoipMicrophoneInput audioSource;
         private RoomClient client;
-        private Dictionary<string, CsWebRtcPeerConnection> peerUuidToConnection;
+        private Dictionary<string, VoipPeerConnection> peerUuidToConnection;
         private NetworkContext context;
+
+        private RTCPeerConnectionSource peerConnectionSource;
 
         /// <summary>
         /// Fires when a new (local) PeerConnection is created by an instance of this Component. This may be a new or replacement PeerConnection.
@@ -31,10 +100,10 @@ namespace Ubiq.CsWebRtc
         /// PeerInfo struct, with information about which peer the connection is intended to reach.
         /// </remarks>
         public OnPeerConnectionEvent OnPeerConnection = new OnPeerConnectionEvent();
-        public class OnPeerConnectionEvent : UnityEvent<CsWebRtcPeerConnection> {
-            private CsWebRtcPeerConnectionManager owner;
+        public class OnPeerConnectionEvent : UnityEvent<VoipPeerConnection> {
+            private VoipPeerConnectionManager owner;
 
-            public new void AddListener(UnityAction<CsWebRtcPeerConnection> call)
+            public new void AddListener(UnityAction<VoipPeerConnection> call)
             {
                 base.AddListener(call);
                 if (owner) {
@@ -45,7 +114,7 @@ namespace Ubiq.CsWebRtc
                 }
             }
 
-            public void SetOwner(CsWebRtcPeerConnectionManager owner)
+            public void SetOwner(VoipPeerConnectionManager owner)
             {
                 this.owner = owner;
                 foreach (var item in owner.peerUuidToConnection.Values)
@@ -59,8 +128,9 @@ namespace Ubiq.CsWebRtc
 
         private void Awake()
         {
+            peerConnectionSource = new RTCPeerConnectionSource();
             client = GetComponentInParent<RoomClient>();
-            peerUuidToConnection = new Dictionary<string, CsWebRtcPeerConnection>();
+            peerUuidToConnection = new Dictionary<string, VoipPeerConnection>();
             OnPeerConnection.SetOwner(this);
 
             audioSource = CreateAudioSource();
@@ -85,6 +155,12 @@ namespace Ubiq.CsWebRtc
             }
 
             peerUuidToConnection.Clear();
+        }
+
+        private void OnDestroy()
+        {
+            peerConnectionSource.Dispose();
+            peerConnectionSource = null;
         }
 
         // It is the responsibility of the new peer (the one joining the room) to begin the process of creating a peer connection,
@@ -150,25 +226,25 @@ namespace Ubiq.CsWebRtc
             public string uuid;
         }
 
-        private WebRtcUnityAudioSource CreateAudioSource()
+        private VoipMicrophoneInput CreateAudioSource()
         {
             var audioSource = new GameObject("WebRTC Microphone Input")
-                .AddComponent<WebRtcUnityAudioSource>();
+                .AddComponent<VoipMicrophoneInput>();
 
             audioSource.transform.SetParent(transform);
             return audioSource;
         }
 
-        private CsWebRtcPeerConnection CreatePeerConnection(NetworkId objectid,
+        private VoipPeerConnection CreatePeerConnection(NetworkId objectid,
             string peerUuid, bool polite)
         {
             var name = objectid.ToString();
 
             var audioSink = new GameObject("WebRTC Audio Output + " + name)
-                .AddComponent<WebRtcUnityAudioSink>();
+                .AddComponent<VoipAudioSourceOutput>();
 
             var pc = new GameObject("WebRTC Peer Connection " + name)
-                .AddComponent<CsWebRtcPeerConnection>();
+                .AddComponent<VoipPeerConnection>();
 
             pc.transform.SetParent(transform);
 
@@ -176,7 +252,7 @@ namespace Ubiq.CsWebRtc
             // but for now, make it a child to avoid cluttering scene graph
             audioSink.transform.SetParent(pc.transform);
 
-            pc.Setup(objectid,peerUuid,polite,audioSource,audioSink);
+            pc.Setup(objectid,peerUuid,polite,audioSource,audioSink,peerConnectionSource.Acquire());
 
             peerUuidToConnection.Add(peerUuid, pc);
             OnPeerConnection.Invoke(pc);
@@ -205,7 +281,6 @@ namespace Ubiq.CsWebRtc
         //         audioSource.CloseAudio();
         //     }
         // }
-
         public void Send(NetworkId sharedId, Message m)
         {
             context.SendJson(sharedId, m);

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using SIPSorcery.Media;
 using SIPSorceryMedia.Abstractions;
 using UnityEngine;
 
@@ -9,7 +8,7 @@ using UnityEngine;
 using UnityEngine.Android;
 #endif
 
-namespace Ubiq.CsWebRtc
+namespace Ubiq.Voip
 {
     // Uses the Unity Microphone API to provide audio to any number of peer connections
     // TODO Need to work out how best to "switch off" the mic when no-one else
@@ -17,7 +16,7 @@ namespace Ubiq.CsWebRtc
     // samples without encoding/sending. At the moment, mic is never switched
     // off. To complicate matters, C# event thread safety is an issue.
     // TODO What happens when the audio device is changed while listening?
-    public class WebRtcUnityAudioSource : MonoBehaviour, IAudioSource
+    public class VoipMicrophoneInput : MonoBehaviour, IAudioSource
     {
         // IAudioSource implementation starts
         // Thread safe and can be called before Awake() and after OnDestroy()

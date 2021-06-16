@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using SIPSorceryMedia.Abstractions;
 using UnityEngine;
 
-namespace Ubiq.CsWebRtc
+namespace Ubiq.Voip
 {
-    public class WebRtcUnityAudioSink : MonoBehaviour, IAudioSink
+    public class VoipAudioSourceOutput : MonoBehaviour, IAudioSink
     {
         // IAudioSink implementation starts
         // Thread safe and can be called before Awake() and after OnDestroy()
@@ -187,7 +187,6 @@ namespace Ubiq.CsWebRtc
                     {
                         deltaTimeSamples += maxTimeSamples;
                     }
-                    Debug.Log("dts: " + deltaTimeSamples + " ts: " + timeSamples + " ats: " + absTimeSamples);
                     absTimeSamples += deltaTimeSamples;
                     lastTimeSamples = timeSamples;
                 }

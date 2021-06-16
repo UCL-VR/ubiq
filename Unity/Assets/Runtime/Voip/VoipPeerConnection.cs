@@ -20,14 +20,15 @@ using UnityEngine.Events;
 using SIPSorcery.Net;
 using SIPSorceryMedia.Abstractions;
 using Ubiq.Messaging;
+using System.Threading;
 
-namespace Ubiq.CsWebRtc
+namespace Ubiq.Voip
 {
-    [NetworkComponentId(typeof(CsWebRtcPeerConnection), 78)]
-    public class CsWebRtcPeerConnection : MonoBehaviour, INetworkComponent, INetworkObject {
+    [NetworkComponentId(typeof(VoipPeerConnection), 78)]
+    public class VoipPeerConnection : MonoBehaviour, INetworkComponent, INetworkObject {
 
-        public WebRtcUnityAudioSource audioSource { get; private set; }
-        public WebRtcUnityAudioSink audioSink { get; private set; }
+        public VoipMicrophoneInput audioSource { get; private set; }
+        public VoipAudioSourceOutput audioSink { get; private set; }
         public NetworkId Id { get; private set; }
         public string PeerUuid { get; private set; }
 
@@ -43,7 +44,7 @@ namespace Ubiq.CsWebRtc
         private NetworkContext context;
         private ConcurrentQueue<Action> mainThreadActions = new ConcurrentQueue<Action>();
         private Queue<Message> messageQueue = new Queue<Message>();
-        private Task setupTask;
+        private Task<RTCPeerConnection> setupTask;
 
         // SipSorcery Peer Connection
         private RTCPeerConnection rtcPeerConnection;
@@ -60,7 +61,8 @@ namespace Ubiq.CsWebRtc
         }
 
         public void Setup (NetworkId objectId, string peerUuid,
-            bool polite, WebRtcUnityAudioSource source, WebRtcUnityAudioSink sink)
+            bool polite, VoipMicrophoneInput source, VoipAudioSourceOutput sink,
+            Task<RTCPeerConnection> peerConnectionTask)
         {
             if (setupTask != null)
             {
@@ -83,56 +85,28 @@ namespace Ubiq.CsWebRtc
             this.audioSink = sink;
             this.context = NetworkScene.Register(this);
 
-            this.setupTask = Task.Run(() => DoSetup(polite));
+            this.setupTask = Task.Run(() => DoSetup(polite,peerConnectionTask));
         }
 
         private async void Teardown ()
         {
             if (setupTask != null)
             {
-                await setupTask;
-                rtcPeerConnection.Dispose();
+                await setupTask.ConfigureAwait(false);
+                setupTask.Result.Dispose();
             }
         }
 
-        private async Task DoSetup(bool polite)
+        private async Task<RTCPeerConnection> DoSetup(bool polite, Task<RTCPeerConnection> pcTask)
         {
-            var pc = await CreatePeerConnection(audioSource,audioSink,mainThreadActions);
-            if (!polite)
-            {
-                var offer = pc.createOffer();
-                await pc.setLocalDescription(offer);
-                mainThreadActions.Enqueue(() => Send("Offer",offer.toJSON()));
-            }
-
-            rtcPeerConnection = pc;
-        }
-
-        private Task<RTCPeerConnection> CreatePeerConnection(
-            IAudioSource audioSource, IAudioSink audioSink,
-            ConcurrentQueue<Action> mainThreadActions )
-        {
-            var pc = new RTCPeerConnection(new RTCConfiguration
-            {
-                iceServers = new List<RTCIceServer>
-                {
-                    new RTCIceServer { urls = STUN_URL },
-                    new RTCIceServer
-                    {
-                        urls = TURN_URL,
-                        username = TURN_USER,
-                        credential = TURN_PASS,
-                        credentialType = RTCIceCredentialType.password
-                    }
-                }
-            });
+            var pc = await pcTask.ConfigureAwait(false);
 
             pc.addTrack(new MediaStreamTrack(
                 audioSource.GetAudioSourceFormats(),
                 MediaStreamStatusEnum.SendRecv));
             pc.OnAudioFormatsNegotiated += (formats) =>
                 audioSource.SetAudioSourceFormat(formats[0]);
-            // audioSink.SetAudioSinkFormat(formats[0]);
+                // audioSink.SetAudioSinkFormat(formats[0]);
 
             audioSource.OnAudioSourceEncodedSample += pc.SendAudio;
 
@@ -154,6 +128,7 @@ namespace Ubiq.CsWebRtc
                     // audioSource.OnAudioSourceEncodedSample -= pc.SendAudio;
                 }
             };
+
             pc.onicecandidate += (iceCandidate) =>
             {
                 if (pc.signalingState == RTCSignalingState.have_remote_offer ||
@@ -162,6 +137,7 @@ namespace Ubiq.CsWebRtc
                     mainThreadActions.Enqueue(() => Send("IceCandidate",iceCandidate.toJSON()));
                 }
             };
+
             pc.OnRtpPacketReceived += (IPEndPoint rep, SDPMediaTypesEnum media, RTPPacket rtpPkt) =>
             {
                 //logger.LogDebug($"RTP {media} pkt received, SSRC {rtpPkt.Header.SyncSource}.");
@@ -185,7 +161,14 @@ namespace Ubiq.CsWebRtc
                 Debug.Log($"ICE connection state change to {state}.");
             });
 
-            return Task.FromResult(pc);
+            if (!polite)
+            {
+                var offer = pc.createOffer();
+                await pc.setLocalDescription(offer).ConfigureAwait(false);
+                mainThreadActions.Enqueue(() => Send("Offer",offer.toJSON()));
+            }
+
+            return pc;
         }
 
         private void Update()
@@ -198,6 +181,7 @@ namespace Ubiq.CsWebRtc
             // If RtcPeerConnection is initialised, process buffered messages
             if (setupTask.IsCompleted)
             {
+                rtcPeerConnection = setupTask.Result;
                 while (messageQueue.Count > 0)
                 {
                     DoProcessMessage(messageQueue.Dequeue());
@@ -217,7 +201,7 @@ namespace Ubiq.CsWebRtc
             var message = data.FromJson<Message>();
 
             // Buffer messages until the RtcPeerConnection is initialised
-            if (setupTask == null || !setupTask.IsCompleted)
+            if (rtcPeerConnection == null)
             {
                 messageQueue.Enqueue(message);
             }

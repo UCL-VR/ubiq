@@ -4,7 +4,7 @@ using System.Linq;
 using SIPSorceryMedia.Abstractions;
 using SIPSorcery.Media;
 
-namespace Ubiq.CsWebRtc
+namespace Ubiq.Voip
 {
     public class G722AudioDecoder
     {
