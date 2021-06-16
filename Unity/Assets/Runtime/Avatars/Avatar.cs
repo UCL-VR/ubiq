@@ -6,10 +6,11 @@ using Ubiq.Messaging;
 using UnityEngine.Events;
 using Ubiq.Rooms;
 using Ubiq.Dictionaries;
+using Ubiq.Spawning;
 
 namespace Ubiq.Avatars
 {
-    public class Avatar : MonoBehaviour, INetworkObject
+    public class Avatar : MonoBehaviour, INetworkObject, ISpawnable
     {
         public string uuid;
 
@@ -33,6 +34,7 @@ namespace Ubiq.Avatars
             {
                 OnUpdated = new AvatarEvent();
             }
+
         }
 
         /// <summary>
@@ -52,6 +54,12 @@ namespace Ubiq.Avatars
             {
                 OnUpdated.Invoke(this);
             }
+        }
+        // when avatars are spawned (e.g. for replaying purposes) local should be set to false
+        public void OnSpawned(bool local)
+        {
+            // technically, it would be local too, but we don't want user-controlled replay avatars
+            this.local = false; 
         }
     }
 }
