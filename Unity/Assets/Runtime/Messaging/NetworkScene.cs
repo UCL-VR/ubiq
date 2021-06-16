@@ -31,8 +31,7 @@ namespace Ubiq.Messaging
                 message.objectid = networkObject.Id;
                 message.componentid = componentId;
             }
-            Record(networkObject, message); // only if recording == true
-            scene.Send(message.buffer);
+            scene.Send(message);
         }
 
         public void Send(NetworkId objectid, ushort componentid, ReferenceCountedSceneGraphMessage message)
@@ -40,8 +39,7 @@ namespace Ubiq.Messaging
             message.objectid = objectid;
             message.componentid = componentid;
 
-            Record(networkObject, message);
-            scene.Send(message.buffer);
+            scene.Send(message);
 
         }
 
@@ -50,8 +48,7 @@ namespace Ubiq.Messaging
             var msg = ReferenceCountedSceneGraphMessage.Rent(message);
             msg.componentid = componentid;
             msg.objectid = objectid;
-            Record(networkObject, msg);
-            scene.Send(msg.buffer);
+            scene.Send(msg);
         }
 
         public void Send(string message)
@@ -68,15 +65,29 @@ namespace Ubiq.Messaging
         {
             SendJson(networkObject.Id, message);
         }
+    }
+    /// <summary>
+    /// Classes implementing this interface are meant to collect to be sent and received network messages (like the RecorderReplayer class does)
+    /// </summary>
+    public interface IMessageRecorder
+    {
+        /// <summary>
+        /// Collects and processes a message which is either either sent or recieved by networkObject.
+        /// </summary>
+        /// <param name="networkObject"></param>
+        /// <param name="message"></param>
+        void RecordMessage(INetworkObject networkObject, ReferenceCountedSceneGraphMessage message);
 
-        public void Record(INetworkObject obj, ReferenceCountedSceneGraphMessage message)
-        {
-            // probably not that ideal but at least I can distinguish between messages sent from avatar's component and other components
-            if (scene.recorderReplayer != null && scene.recorderReplayer.recording && obj is Ubiq.Avatars.Avatar)
-            {
-                scene.recorderReplayer.Record(obj, message);
-            }
-        }
+        /// <summary>
+        /// Increments the frame number of the recorder.
+        /// Should be called after all messages in one frame are processed (e.g. when Update() is finished)
+        /// </summary>
+        void NextFrame();
+        /// <summary>
+        /// Returns if the MessageRecorder is currently recording.
+        /// </summary>
+        /// <returns></returns>
+        bool IsRecording();
     }
 
     /// <summary>
@@ -91,7 +102,9 @@ namespace Ubiq.Messaging
 
         private EventLogger events;
 
-        public RecorderReplayer recorderReplayer = null;
+        public IMessageRecorder recorderReplayer = null;
+
+
 
         public T GetNetworkComponent<T>() where T : class
         {
@@ -151,7 +164,7 @@ namespace Ubiq.Messaging
             events.Log("Awake", Id, SystemInfo.deviceName, SystemInfo.deviceModel, SystemInfo.deviceUniqueIdentifier);
 
             // Try getting a RecorderReplayer if script is attached to the NetworkScene
-            if(TryGetComponent(out RecorderReplayer recRep))
+            if(TryGetComponent(out IMessageRecorder recRep))
             {
                 recorderReplayer = recRep;
             }
@@ -314,9 +327,9 @@ namespace Ubiq.Messaging
             actions.Clear();
 
             // increment frame number before 
-            if (recorderReplayer != null && recorderReplayer.recording)
+            if (recorderReplayer != null && recorderReplayer.IsRecording())
             {
-                recorderReplayer.UpdateFrameNr(); // increments frame number when recording!
+                recorderReplayer.NextFrame(); // increments frame number when recording!
             }
 
             ReceiveConnectionMessages();
@@ -349,9 +362,9 @@ namespace Ubiq.Messaging
                                     matching.Add(item.Value);
 
                                     // record just avatars for now
-                                    if (recorderReplayer != null && recorderReplayer.recording && item.Key is Ubiq.Avatars.Avatar)
+                                    if (recorderReplayer != null && recorderReplayer.IsRecording() && item.Key is Ubiq.Avatars.Avatar)
                                     {
-                                        recorderReplayer.Record(item.Key, sgbmessage);
+                                        recorderReplayer.RecordMessage(item.Key, sgbmessage);
                                      
                                     }
                                 }
@@ -413,14 +426,26 @@ namespace Ubiq.Messaging
             }
         }
 
-        public void Send(ReferenceCountedMessage m)
+        public void Send(ReferenceCountedSceneGraphMessage m)
         {
             Profiler.BeginSample("Send");
 
             foreach (var c in connections)
             {
                 m.Acquire();
-                c.Send(m);
+
+                if (recorderReplayer != null && recorderReplayer.IsRecording())
+                {
+                    foreach (var item in objectProperties)
+                    {
+                        // can be removed later if other objects are recorded too
+                        if (item.Key is Ubiq.Avatars.Avatar && item.Key.Id == m.objectid) // with second equality I make sure to exclude "Ping" mesages?
+                        { 
+                            recorderReplayer.RecordMessage(item.Key, m);
+                        }
+                    }
+                }
+                c.Send(m.buffer);
             }
             m.Release(); // m should have been acquired once on creation.
 
