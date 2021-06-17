@@ -1,17 +1,12 @@
-using JetBrains.Annotations;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using UnityEngine;
 using Ubiq.Rooms;
 using Ubiq.Messaging;
 using Ubiq.Logging;
-using Ubiq.Avatars;
 using UnityEngine.Events;
 using SIPSorcery.Net;
 using System.Threading.Tasks;
-using System.Threading;
 using System.Collections.Concurrent;
 
 namespace Ubiq.Voip
@@ -228,7 +223,7 @@ namespace Ubiq.Voip
 
         private VoipMicrophoneInput CreateAudioSource()
         {
-            var audioSource = new GameObject("WebRTC Microphone Input")
+            var audioSource = new GameObject("Voip Microphone Input")
                 .AddComponent<VoipMicrophoneInput>();
 
             audioSource.transform.SetParent(transform);
@@ -238,12 +233,10 @@ namespace Ubiq.Voip
         private VoipPeerConnection CreatePeerConnection(NetworkId objectid,
             string peerUuid, bool polite)
         {
-            var name = objectid.ToString();
-
-            var audioSink = new GameObject("WebRTC Audio Output + " + name)
+            var audioSink = new GameObject("Voip Audio Output + " + peerUuid)
                 .AddComponent<VoipAudioSourceOutput>();
 
-            var pc = new GameObject("WebRTC Peer Connection " + name)
+            var pc = new GameObject("Voip Peer Connection " + peerUuid)
                 .AddComponent<VoipPeerConnection>();
 
             pc.transform.SetParent(transform);
@@ -260,27 +253,6 @@ namespace Ubiq.Voip
             return pc;
         }
 
-        // private void OnPeerConnectionStateChanged (SIPSorcery.Net.RTCPeerConnectionState _)
-        // {
-        //     var useAudioSource = false;
-        //     foreach (var connection in peerUuidToConnection.Values)
-        //     {
-        //         if (connection.peerConnectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)
-        //         {
-        //             useAudioSource = true;
-        //             break;
-        //         }
-        //     }
-
-        //     if (useAudioSource)
-        //     {
-        //         audioSource.StartAudio();
-        //     }
-        //     else
-        //     {
-        //         audioSource.CloseAudio();
-        //     }
-        // }
         public void Send(NetworkId sharedId, Message m)
         {
             context.SendJson(sharedId, m);

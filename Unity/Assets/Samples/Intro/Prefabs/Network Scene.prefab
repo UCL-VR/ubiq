@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7068762446051028576}
   - component: {fileID: 3130174346742382869}
   m_Layer: 0
-  m_Name: Audio Channel Manager
+  m_Name: Voip Manager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

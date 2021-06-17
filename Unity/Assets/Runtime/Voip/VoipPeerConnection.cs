@@ -1,15 +1,3 @@
-// // using Pixiv.Cricket;
-// // using Pixiv.Webrtc;
-// using System;
-// using System.Collections;
-// using System.Collections.Concurrent;
-// using System.Collections.Generic;
-// using Ubiq.Logging;
-// using Ubiq.Messaging;
-// using UnityEngine;
-// using UnityEngine.Events;
-
-
 using System;
 using System.Net;
 using System.Threading.Tasks;
@@ -18,9 +6,7 @@ using System.Collections.Concurrent;
 using UnityEngine;
 using UnityEngine.Events;
 using SIPSorcery.Net;
-using SIPSorceryMedia.Abstractions;
 using Ubiq.Messaging;
-using System.Threading;
 
 namespace Ubiq.Voip
 {
@@ -49,12 +35,6 @@ namespace Ubiq.Voip
 
         // SipSorcery Peer Connection
         private RTCPeerConnection rtcPeerConnection;
-
-        // Debug
-        private const string STUN_URL = "stun:stun.l.google.com:19302";
-        private const string TURN_URL = "turn:20.84.122.207";
-        private const string TURN_USER = "ubiqtestuser";
-        private const string TURN_PASS = "1rZ$aU9C^cdbstHb";
 
         private void OnDestroy()
         {
@@ -141,7 +121,6 @@ namespace Ubiq.Voip
 
             pc.OnRtpPacketReceived += (IPEndPoint rep, SDPMediaTypesEnum media, RTPPacket rtpPkt) =>
             {
-                //logger.LogDebug($"RTP {media} pkt received, SSRC {rtpPkt.Header.SyncSource}.");
                 if (media == SDPMediaTypesEnum.audio)
                 {
                     audioSink.GotAudioRtp(rep, rtpPkt.Header.SyncSource, rtpPkt.Header.SequenceNumber, rtpPkt.Header.Timestamp, rtpPkt.Header.PayloadType, rtpPkt.Header.MarkerBit == 1, rtpPkt.Payload);
@@ -236,7 +215,6 @@ namespace Ubiq.Voip
                                 rtcPeerConnection.setLocalDescription(answerSdp);
 
                                 Debug.Log($"Sending SDP answer");
-                                //logger.LogDebug(answerSdp.sdp);
 
                                 Send("Offer", answerSdp.toJSON());
                             }
@@ -244,8 +222,6 @@ namespace Ubiq.Voip
                     }
                     break;
                 case "IceCandidate":
-                    // var candidate = JsonUtility.FromJson<RTCIceCandidateInit>(message.args);
-                    //
                     if (RTCIceCandidateInit.TryParse(message.args,out RTCIceCandidateInit candidate))
                     {
                         Debug.Log($"Got remote Ice Candidate, uri {candidate.candidate}");

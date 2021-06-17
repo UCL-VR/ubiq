@@ -13,7 +13,7 @@ namespace Ubiq.Voip
     {
         // IAudioSink implementation starts
         // Thread safe and can be called before Awake() and after OnDestroy()
-        public event SourceErrorDelegate OnAudioSinkError;
+        public event SourceErrorDelegate OnAudioSinkError = delegate {};
         public List<AudioFormat> GetAudioSinkFormats() => audioFormatManager?.GetSourceFormats();
         public void SetAudioSinkFormat(AudioFormat audioFormat) => audioFormatManager?.SetSelectedFormat(audioFormat);
         public void RestrictFormats(Func<AudioFormat, bool> filter) => audioFormatManager?.RestrictFormats(filter);
@@ -150,8 +150,6 @@ namespace Ubiq.Voip
                     // When decoded: 1 byte -> 2 pcm
                     var bufferPosEnd = bufferPos + rtp.payload.Length*2;
 
-                    Debug.Log("buffpos: " + bufferPos + " timeSamples: " + absTimeSamples);
-
                     if (bufferPos < absTimeSamples ||
                         bufferPosEnd > absTimeSamples + audioClip.samples)
                     {
@@ -200,9 +198,6 @@ namespace Ubiq.Voip
 
         public float gain = 1.0f;
 
-        // debug
-        public event Action<float> OnVolumeChange;
-
         private G722AudioDecoder audioDecoder = new G722AudioDecoder();
         private MediaFormatManager<AudioFormat> audioFormatManager = new MediaFormatManager<AudioFormat>(
             new List<AudioFormat>
@@ -222,7 +217,6 @@ namespace Ubiq.Voip
 
         public AudioSource unityAudioSource { get; private set; }
 
-        private int advancedSamples = -1;
         private RtpBufferer rtpBufferer;
 
         private void Awake()
@@ -252,13 +246,11 @@ namespace Ubiq.Voip
             }
 
             rtps = null;
-            // microphoneListener.End();
         }
 
         private void Update()
         {
-            // Debug.Log("u: " + unityAudioSource.timeSamples + " a: " + advancedSamples + " m: " + advancedSamples % unityAudioSource.clip.samples);
-            // Run queued tasks synchronously
+            // Run queued tasks in main thread
             while (true)
             {
                 var task = null as Task;
