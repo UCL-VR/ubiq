@@ -32,8 +32,9 @@ namespace Ubiq.Voip
         public NetworkId Id { get; private set; }
         public string PeerUuid { get; private set; }
 
-        public RTCIceConnectionState iceConnectionState { get; private set; }
-        public RTCPeerConnectionState peerConnectionState { get; private set; }
+        public bool isSetup => setupTask != null && setupTask.IsCompleted;
+        public RTCIceConnectionState iceConnectionState { get; private set; } = RTCIceConnectionState.@new;
+        public RTCPeerConnectionState peerConnectionState { get; private set; } = RTCPeerConnectionState.@new;
 
         [Serializable] public class IceConnectionStateEvent : UnityEvent<RTCIceConnectionState> { }
         [Serializable] public class PeerConnectionStateEvent : UnityEvent<RTCPeerConnectionState> { }
@@ -66,7 +67,7 @@ namespace Ubiq.Voip
         {
             if (setupTask != null)
             {
-                // Already setup
+                // Already setup or setup in progress
                 return;
             }
 
