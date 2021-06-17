@@ -8,7 +8,7 @@ namespace Ubiq.Samples
 {
     public class Firework : MonoBehaviour, IUseable, INetworkObject, INetworkComponent, IFirework, ISpawnable
     {
-        private NetworkContext conext;
+        private NetworkContext context;
 
         private Hand attached;
         private Rigidbody body;
@@ -40,7 +40,7 @@ namespace Ubiq.Samples
 
         private void Start()
         {
-            conext = NetworkScene.Register(this);
+            context = NetworkScene.Register(this);
         }
 
         public void Attach(Hand hand)
@@ -68,7 +68,7 @@ namespace Ubiq.Samples
             }
             if(owner)
             {
-                conext.SendJson(new Message(transform, fired));
+                context.SendJson(new Message(transform, fired));
             }
             if(owner && fired)
             {
