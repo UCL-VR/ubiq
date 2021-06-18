@@ -235,6 +235,11 @@ PrefabInstance:
       propertyPath: m_RootOrder
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 4284983250339020777, guid: 33cb6d2a29abed346b39b957a9e24d34,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -302
+      objectReference: {fileID: 0}
     - target: {fileID: 4387748794111788625, guid: 33cb6d2a29abed346b39b957a9e24d34,
         type: 3}
       propertyPath: m_RootOrder
@@ -260,10 +265,20 @@ PrefabInstance:
       propertyPath: m_Name
       value: UI Cursor
       objectReference: {fileID: 0}
+    - target: {fileID: 6737062618820472429, guid: 33cb6d2a29abed346b39b957a9e24d34,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8302622939483233509, guid: 33cb6d2a29abed346b39b957a9e24d34,
         type: 3}
       propertyPath: m_Enabled
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8746878059289770639, guid: 33cb6d2a29abed346b39b957a9e24d34,
+        type: 3}
+      propertyPath: m_FontData.m_Alignment
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 33cb6d2a29abed346b39b957a9e24d34, type: 3}
@@ -1336,6 +1351,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7068762446378101730, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
+        type: 3}
+      propertyPath: servers.Array.data[0].send_to_ip
+      value: 127.0.0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7068762446378101730, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
+        type: 3}
+      propertyPath: servers.Array.data[0].send_to_port
+      value: 8002
       objectReference: {fileID: 0}
     - target: {fileID: 7068762446378101732, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
         type: 3}

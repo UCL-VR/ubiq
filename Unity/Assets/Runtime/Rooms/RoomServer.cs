@@ -24,11 +24,11 @@ namespace Ubiq.Rooms
 
         private List<Action> actions;
 
-        public RoomsResponseArgs AvailableRooms
+        public RoomsResponse AvailableRooms
         {
             get
             {
-                RoomsResponseArgs args = new RoomsResponseArgs();
+                RoomsResponse args = new RoomsResponse();
                 args.rooms = new List<RoomInfo>();
                 args.rooms.Add(room.GetRoomArgs());
                 args.version = "0.0.4";
@@ -64,7 +64,7 @@ namespace Ubiq.Rooms
                 client.room = this;
 
                 // send confirmation to the client
-                client.SendAccepted(new AcceptedArgs()
+                client.SendAccepted(new SetRoom()
                 {
                     room = GetRoomArgs(),
                     peers = peers,
@@ -122,7 +122,7 @@ namespace Ubiq.Rooms
                 connection.Send(m.buffer);
             }
 
-            public void SendAccepted(AcceptedArgs args)
+            public void SendAccepted(SetRoom args)
             {
                 Send("Accepted", args);
             }
@@ -137,7 +137,7 @@ namespace Ubiq.Rooms
                 Send("UpdatePeer", args);
             }
 
-            public void SendRooms(RoomsResponseArgs args)
+            public void SendRooms(RoomsResponse args)
             {
                 Send("Rooms", args);
             }
@@ -191,7 +191,7 @@ namespace Ubiq.Rooms
                             switch (container.type)
                             {
                                 case "Join":
-                                    var joinArgs = JsonUtility.FromJson<JoinArgs>(container.args);
+                                    var joinArgs = JsonUtility.FromJson<JoinRequest>(container.args);
                                     client.peer = joinArgs.peer;
                                     room.Join(client);
                                     break;

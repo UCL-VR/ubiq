@@ -214,7 +214,7 @@ namespace Ubiq.Rooms
     }
 
     [Serializable]
-    public struct JoinArgs
+    public struct JoinRequest
     {
         public string joincode;
         public string name;
@@ -226,19 +226,25 @@ namespace Ubiq.Rooms
     public struct RejectedArgs
     {
         public string reason;
-        public JoinArgs requestArgs;
+        public JoinRequest requestArgs;
+    }
+
+    [Serializable]
+    public struct LeaveRequest
+    {
+        public PeerInfo peer;
     }
 
     /// <summary>
-    /// Joined Args represents the state of the room at the moment this peer joined
+    /// The room and peers members contain the state of the room when the join occured on the server
     /// </summary>
     [Serializable]
-    public class AcceptedArgs
+    public class SetRoom
     {
         public RoomInfo room;
         public List<PeerInfo> peers;
 
-        public AcceptedArgs()
+        public SetRoom()
         {
             room = new RoomInfo();
             peers = new List<PeerInfo>();
@@ -246,12 +252,12 @@ namespace Ubiq.Rooms
     }
 
     [Serializable]
-    public class RoomsRequestArgs
+    public class RoomsRequest
     {
     }
 
     [Serializable]
-    public class RoomsResponseArgs
+    public class RoomsResponse
     {
         public string version;
         public List<RoomInfo> rooms;
@@ -268,5 +274,16 @@ namespace Ubiq.Rooms
         {
             return $"{room}:{uuid}";
         }
+    }
+
+    [Serializable]
+    public struct PingResponse
+    {
+        public string sessionId; 
+    }
+
+    public struct PingRequest
+    {
+        public NetworkId id;
     }
 }
