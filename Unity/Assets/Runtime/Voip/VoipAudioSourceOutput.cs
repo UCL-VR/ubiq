@@ -73,22 +73,25 @@ namespace Ubiq.Voip
         private class RtpBufferer
         {
             public G722AudioDecoder decoder { get; private set; }
+            public int latencySamples { get; private set; }
+            public int syncSamples { get; private set; }
             public float gain;
 
-            private int latencySamples;
             private int absTimeSamples = -1;
             private int lastTimeSamples;
-            private int droppedRtps = RESYNC_AFTER_DROPPED_RTP_NUM;
+            private int missedRtps = RESYNC_AFTER_RTP_MISS_NUM;
             private long bufferOffset = -1;
 
             private System.Diagnostics.Stopwatch stopwatch;
             private List<AudioRtp> rtps = new List<AudioRtp>();
 
-            private const int RESYNC_AFTER_DROPPED_RTP_NUM = 50;
+            private const int RESYNC_AFTER_RTP_MISS_NUM = 50;
 
-            public RtpBufferer (int latencySamples, float gain = 1.0f)
+            public RtpBufferer (int latencySamples, int syncSamples,
+                float gain = 1.0f)
             {
                 this.latencySamples = latencySamples;
+                this.syncSamples = syncSamples;
                 this.gain = gain;
 
                 decoder = new G722AudioDecoder();
@@ -99,7 +102,7 @@ namespace Ubiq.Voip
 
             public void Commit (int currentTimeSamples, AudioClip audioClip)
             {
-                UpdateTimeSamples(currentTimeSamples, audioClip.samples);
+                Advance(currentTimeSamples, audioClip);
 
                 if (rtps.Count == 0)
                 {
@@ -109,7 +112,7 @@ namespace Ubiq.Voip
                 // First scan through to check sync
                 for (int i = 0; i < rtps.Count; i++)
                 {
-                    if (droppedRtps >= RESYNC_AFTER_DROPPED_RTP_NUM)
+                    if (missedRtps >= RESYNC_AFTER_RTP_MISS_NUM)
                     {
                         break;
                     }
@@ -119,24 +122,26 @@ namespace Ubiq.Voip
                     // When decoded: 1 byte -> 2 pcm
                     var bufferPosEnd = bufferPos + rtp.payload.Length*2;
 
+                    // If this rtp falls outside the in-sync range, note it down
+                    // Might still be played if it falls in the buffer range
                     if (bufferPos < absTimeSamples ||
-                        bufferPosEnd > absTimeSamples + audioClip.samples)
+                        bufferPosEnd > absTimeSamples + syncSamples)
                     {
-                        droppedRtps++;
+                        missedRtps++;
                     }
                     else
                     {
-                        droppedRtps = 0;
+                        missedRtps = 0;
                     }
                 }
 
                 // Dropped a large number of consecutive packets
                 // We're probably out of sync - try resync with latest rtp
-                if (droppedRtps >= RESYNC_AFTER_DROPPED_RTP_NUM)
+                if (missedRtps >= RESYNC_AFTER_RTP_MISS_NUM)
                 {
                     var mostRecentRtp = rtps[rtps.Count-1];
                     bufferOffset = latencySamples + absTimeSamples - mostRecentRtp.timestamp;
-                    droppedRtps = 0;
+                    missedRtps = 0;
 
                     rtps.Clear();
                     rtps.Add(mostRecentRtp);
@@ -150,6 +155,7 @@ namespace Ubiq.Voip
                     // When decoded: 1 byte -> 2 pcm
                     var bufferPosEnd = bufferPos + rtp.payload.Length*2;
 
+                    // If this rtp falls outside the total buffer range, discard
                     if (bufferPos < absTimeSamples ||
                         bufferPosEnd > absTimeSamples + audioClip.samples)
                     {
@@ -172,19 +178,32 @@ namespace Ubiq.Voip
                 rtps.Clear();
             }
 
-            private void UpdateTimeSamples (int timeSamples, int maxTimeSamples)
+            // Step internal time trackers forward and zero out just-read samples
+            private void Advance (int timeSamples, AudioClip audioClip)
             {
                 if (absTimeSamples < 0)
                 {
-                    absTimeSamples = lastTimeSamples = timeSamples;
+                    absTimeSamples = timeSamples;
+                    lastTimeSamples = timeSamples;
                 }
                 else
                 {
                     var deltaTimeSamples = timeSamples - lastTimeSamples;
                     if (deltaTimeSamples < 0)
                     {
-                        deltaTimeSamples += maxTimeSamples;
+                        deltaTimeSamples += audioClip.samples;
                     }
+
+                    // Zero out so we don't repeat audio on connection drop
+                    // Note audio will still repeat if frames do not keep up
+                    // TODO pool buffers to avoid runtime GC
+                    if (deltaTimeSamples > 0)
+                    {
+                        var floatPcms = new float[deltaTimeSamples];
+                        audioClip.SetData(floatPcms,lastTimeSamples);
+                    }
+
+                    // Update time trackers
                     absTimeSamples += deltaTimeSamples;
                     lastTimeSamples = timeSamples;
                 }
@@ -212,8 +231,9 @@ namespace Ubiq.Voip
         private readonly object taskLock = new object();
 
         private const int SAMPLE_RATE = 16000;
-        private const int BUFFER_SAMPLES = SAMPLE_RATE * 1;
+        private const int BUFFER_SAMPLES = SAMPLE_RATE * 2;
         private const int LATENCY_SAMPLES = SAMPLE_RATE / 5;
+        private const int SYNC_SAMPLES = SAMPLE_RATE * 1;
 
         public AudioSource unityAudioSource { get; private set; }
 
@@ -232,7 +252,7 @@ namespace Ubiq.Voip
             unityAudioSource.ignoreListenerPause = true;
             unityAudioSource.Play();
 
-            rtpBufferer = new RtpBufferer(LATENCY_SAMPLES);
+            rtpBufferer = new RtpBufferer(LATENCY_SAMPLES,SYNC_SAMPLES);
         }
 
         private void OnDestroy()

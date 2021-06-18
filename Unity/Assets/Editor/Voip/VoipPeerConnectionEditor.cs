@@ -7,12 +7,6 @@ namespace Ubiq.Voip
     {
         public override void OnInspectorGUI()
         {
-            serializedObject.Update();
-
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("volume"));
-
-            serializedObject.ApplyModifiedProperties();
-
             var pc = target as VoipPeerConnection;
 
             if (pc.isSetup)
