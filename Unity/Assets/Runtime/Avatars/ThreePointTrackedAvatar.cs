@@ -30,7 +30,7 @@ namespace Ubiq.Avatars
             public PositionRotation head;
         }
 
-        private void Awake ()
+        private void Start()
         {
             avatar = GetComponent<Avatar>();
             context = NetworkScene.Register(this);
@@ -110,7 +110,6 @@ namespace Ubiq.Avatars
             MemoryMarshal.Cast<byte, State>(
                 new ReadOnlySpan<byte>(message.bytes, message.start, message.length))
                 .CopyTo(new Span<State>(state));
-
             OnRecv();
         }
 
