@@ -1,31 +1,29 @@
-
-const { RoomServer } = require("./rooms");
 const { WrappedWebSocketServer, WrappedTcpServer } = require("./connections")
-const { Cli } = require("./cli");
+const { RoomServer } = require("./rooms");
 const { IceServerProvider } = require("./ice");
-const { ConfValidator } = require("./conf");
+const nconf = require('nconf');
 
-var conf = Cli.parse();
-
-var validator = new ConfValidator(conf);
-if (!validator.result.valid) {
-    console.log(validator.result.errors);
-    return;
-}
+// nconf loads the configuration hierarchically; config.json contains defaults
+// that are stored with the branch. Additional configuration files - where 
+// present - add or override parameters, such as pre-shared secrets, that should 
+// not be in source control.
+nconf.file('config', 'conf/config.json');
+nconf.file('ice', 'conf/ice.json');
 
 roomServer = new RoomServer();
-roomServer.addServer(new WrappedTcpServer(conf.port));
-roomServer.addServer(new WrappedWebSocketServer(conf.webSocketPort));
+roomServer.addServer(new WrappedTcpServer(nconf.get('roomserver:ports:tcp')));
+roomServer.addServer(new WrappedWebSocketServer(nconf.get('roomserver:ports:ws')));
 
 iceServerProvider = new IceServerProvider(roomServer);
-for (const iceServer of conf.iceServers){
-    iceServerProvider.addIceServer(
-        iceServer.uri,
-        iceServer.secret,
-        iceServer.timeoutSeconds,
-        iceServer.refreshSeconds,
-        iceServer.username,
-        iceServer.password);
+var iceServers = nconf.get('iceservers');
+if (iceServers){
+    for (const iceServer of iceServers){
+        iceServerProvider.addIceServer(
+            iceServer.uri,
+            iceServer.secret,
+            iceServer.timeoutSeconds,
+            iceServer.refreshSeconds,
+            iceServer.username,
+            iceServer.password);
+    }
 }
-
-sandbox = new SandboxServer(conf.sandboxPort);
