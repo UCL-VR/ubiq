@@ -34,13 +34,10 @@ namespace Ubiq.Samples
         private Vector3 footPosition;
         private Quaternion torsoFacing;
 
-        private RenderToggle renderToggle;
-
         private void Awake()
         {
             avatar = GetComponent<Avatars.Avatar>();
             trackedAvatar = GetComponent<ThreePointTrackedAvatar>();
-            renderToggle = GetComponent<RenderToggle>();
         }
 
         private void OnEnable()
@@ -111,43 +108,14 @@ namespace Ubiq.Samples
         {
             if (avatar.local)
             {
-                if(renderToggle.rendering)
-                {
-                    headRenderer.enabled = false;
-                    torsoRenderer.enabled = true;
-                    leftHandRenderer.enabled = true;
-                    rightHandRenderer.enabled = true;
-                }
-                else
-                {
-                    headRenderer.enabled = false;
-                    torsoRenderer.enabled = false;
-                    leftHandRenderer.enabled = false;
-                    rightHandRenderer.enabled = false;
-                }
-
-                //renderToggle.Send();
+                headRenderer.enabled = false;
+                torsoRenderer.enabled = true;
             }
             else
             {
-                if (renderToggle.rendering)
-                {
-                    headRenderer.enabled = true;
-                    torsoRenderer.enabled = true;
-                    leftHandRenderer.enabled = true;
-                    rightHandRenderer.enabled = true;
-
-                }
-                else
-                {
-                    headRenderer.enabled = false;
-                    torsoRenderer.enabled = false;
-                    leftHandRenderer.enabled = false;
-                    rightHandRenderer.enabled = false;
-                }
+                headRenderer.enabled = true;
+                torsoRenderer.enabled = true;
             }
-            //renderToggle.Send();
-
         }
 
         private void UpdateTorso()
