@@ -3,6 +3,7 @@ using System;
 using Ubiq.Rooms;
 using Ubiq.Messaging;
 using Ubiq.Dictionaries;
+using Ubiq.Voip;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -47,6 +48,7 @@ namespace Ubiq.Avatars
             avatars = new Dictionary<NetworkId, Avatar>();
             peers = new Dictionary<NetworkId, PeerInfo>();
             localAvatarArgs = new AvatarArgs();
+
         }
 
         private void Start()
@@ -78,7 +80,7 @@ namespace Ubiq.Avatars
 
         private void UpdateAvatar(AvatarArgs args, bool local)
         {
-            // if we have an existing instance, but it is the wrong model, destory it so we can start again
+            // if we have an existing instance, but it is the wrong model, destroy it so we can start again
 
             if (avatars.ContainsKey(args.objectId))
             {

@@ -6,8 +6,17 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Samples/Introduction/Hello World.unity
+    path: Assets/Samples/Intro/Hello World.unity
     guid: 2de505d34345ab340bdde30d419b24eb
+  - enabled: 0
+    path: Assets/Samples/Minimal/Audio/Audio Test.unity
+    guid: d38a73245c63ec34f9f4ee34d50b2aa2
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
+  - enabled: 0
+    path: Assets/Samples/Intro/Scenes/Apartment.unity
+    guid: 64bff52f73c71a844825016cf8111b18
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 94853b5e64b20ad4ea201d84aa95b8d9,
       type: 2}
