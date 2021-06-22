@@ -42,6 +42,12 @@ namespace Ubiq.Rooms
         public static float HeartbeatTimeout = 5f;
         public static float HeartbeatInterval = 1f;
 
+        /// <summary>
+        /// The Session Id identifies a persistent connection to a RoomServer. If the Session Id returned by the Room Server changes,
+        /// it indicates that the RoomClient/RoomServer have become desynchronised and the client must rejoin.
+        /// </summary>
+        public string SessionId { get; private set; }
+
         public class TimeoutNotification : Notification
         {
             private RoomClient client;
@@ -55,7 +61,7 @@ namespace Ubiq.Rooms
             {
                 get
                 {
-                    return $"No Connection ({ client.heartbeatReceived } seconds ago)";
+                    return $"No Connection ({ client.heartbeatReceived.ToString("0") } seconds ago)";
                 }
             }
         }
@@ -259,11 +265,11 @@ namespace Ubiq.Rooms
             var container = JsonUtility.FromJson<Message>(message.ToString());
             switch (container.type)
             {
-                case "Accepted":
+                case "SetRoom":
                     {
                         OnLeftRoom.Invoke(Room.GetRoomInfo());
                         
-                        var args = JsonUtility.FromJson<AcceptedArgs>(container.args);
+                        var args = JsonUtility.FromJson<SetRoom>(container.args);
                         (Room as IRoomInterfaceFriend).Update(args.room);
 
                         var newPeerGuids = args.peers.Select(x => x.UUID);
@@ -326,7 +332,7 @@ namespace Ubiq.Rooms
                     break;
                 case "Rooms":
                     {
-                        var available = JsonUtility.FromJson<RoomsResponseArgs>(container.args);
+                        var available = JsonUtility.FromJson<RoomsResponse>(container.args);
                         if (roomClientVersion != available.version)
                         {
                             Debug.LogError($"Your version {roomClientVersion} of Ubiq doesn't match the server version {available.version}.");
@@ -349,6 +355,8 @@ namespace Ubiq.Rooms
                     {
                         pingReceived = Time.realtimeSinceStartup;
                         PlayerNotifications.Delete(ref notification);
+                        var response = JsonUtility.FromJson<PingResponse>(container.args);
+                        OnPingResponse(response);
                     }
                     break;
             }
@@ -364,7 +372,7 @@ namespace Ubiq.Rooms
         /// </summary>
         public void JoinNew(string name, bool publish)
         {
-            SendToServer("Join", new JoinArgs()
+            SendToServer("Join", new JoinRequest()
             {
                 joincode = "", // Empty joincode means request new room
                 name = name,
@@ -379,7 +387,7 @@ namespace Ubiq.Rooms
         /// </summary>
         public void Join(string joincode)
         {
-            SendToServer("Join", new JoinArgs()
+            SendToServer("Join", new JoinRequest()
             {
                 joincode = joincode,
                 peer = Me.GetPeerInfo()
@@ -395,9 +403,18 @@ namespace Ubiq.Rooms
         /// </remarks>
         public void Leave()
         {
-            SendToServer("Leave", null);
+            SendToServer("Leave", new LeaveRequest()
+            {
+                peer = Me.GetPeerInfo()
+            });
         }
 
+        /// <summary>
+        /// Creates a new connection on the Network Scene
+        /// </summary>
+        /// <remarks>
+        /// RoomClient is one of a few components able to create new connections. Usually it will be user code that makes such connections.
+        /// </remarks>
         public void Connect(ConnectionDefinition connection)
         {
             context.scene.AddConnection(Connections.Resolve(connection));
@@ -428,7 +445,7 @@ namespace Ubiq.Rooms
 
         public void DiscoverRooms()
         {
-            SendToServer("RequestRooms", new RoomsRequestArgs());
+            SendToServer("RequestRooms", new RoomsRequest());
         }
 
         /// <summary>
@@ -481,7 +498,17 @@ namespace Ubiq.Rooms
         public void Ping()
         {
             pingSent = Time.realtimeSinceStartup;
-            SendToServer("Ping", null);
+            SendToServer("Ping", new PingRequest() { id = context.networkObject.Id });
+        }
+
+        private void OnPingResponse(PingResponse ping)
+        {
+            if(SessionId != ping.sessionId && SessionId != null)
+            {
+                Leave(); // The RoomClient has re-established connectivity with the RoomServer, but under a different state. So, leave the room and let the user code re-establish any state.
+            }
+
+            SessionId = ping.sessionId;
         }
     }
 }

@@ -1,3 +1,4 @@
+const { performance, PerformanceObserver } = require('perf_hooks');
 
 //https://stackoverflow.com/questions/105034/how-to-create-guid-uuid
 

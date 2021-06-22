@@ -1,9 +1,18 @@
 const { exception } = require('console');
-const { WriteStream } = require('fs');
-const { off } = require('process');
-const { TextEncoder, TextDecoder } = require('util');
+const { TextDecoder } = require('util');
+const { Schema } = require('./schema');
 
 const MESSAGE_HEADER_SIZE = 10;
+
+Schema.add({
+    id: '/ubiq.messaging.networkid',
+    type: "object",
+    properties: {
+        a: {type: "integer"},
+        b: {type: "integer"}
+    },
+    required: ["a","b"]
+});
 
 class NetworkId{
     constructor(data){

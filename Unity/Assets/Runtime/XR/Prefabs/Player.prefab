@@ -176,34 +176,7 @@ MonoBehaviour:
   cameraContainer: {fileID: 1206544753847649309}
   cameraRubberBand:
     serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0.0008125305
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 0.6165136
-      value: 0.99384636
-      inSlope: -0.0019379868
-      outSlope: -0.0019379868
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.0951188
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
+    m_Curve: []
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
@@ -227,10 +200,10 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  movementSpeed: 2
-  rotationSpeed: 180
-  maxHeadPitch: 40
-  minHeadPitch: -40
+  movementSpeed: 2.5
+  rotationSpeed: 360
+  maxHeadPitch: 45
+  minHeadPitch: -45
 --- !u!114 &3914411122208059719
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -607,8 +580,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -9.000006, y: 0}
-  m_SizeDelta: {x: 160, y: 0}
+  m_AnchoredPosition: {x: 36.7, y: 0}
+  m_SizeDelta: {x: 521.2, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5289635817579823057
 CanvasRenderer:

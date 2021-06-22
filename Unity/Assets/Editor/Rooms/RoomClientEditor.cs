@@ -81,6 +81,11 @@ namespace Ubiq.Rooms
                 }
             }
 
+            if(Application.isPlaying)
+            {
+                GUILayout.Label($"Session Id { component.SessionId }");
+            }
+
             if(GUILayout.Button("Create Room")) // creates a room with a random id and joins it
             {
                 component.JoinNew($"Editor Room {IdGenerator.GenerateUnique().ToString()}", true); // publish true because we probably need other Editor inspectors to see it
