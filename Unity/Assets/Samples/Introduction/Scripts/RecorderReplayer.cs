@@ -1,13 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.IO;
 using UnityEngine;
 using Ubiq.Avatars;
 using Ubiq.Messaging;
-using System.IO;
-using System.Threading.Tasks;
+using Ubiq.Networking;
 using Avatar = Ubiq.Avatars.Avatar;
 using Ubiq.Spawning;
-using Ubiq.Samples;
+using Ubiq.Logging.Utf8Json;
 
 public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent, IMessageRecorder
 {
@@ -21,6 +22,7 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
     private string path;
 
     // Recording
+    private FileStream recStream;
     private string recordFile;
     private string recordFileIDs; // save the objectIDs of the recorded avatars
     private string recordedData;  // format of recorded data: (time), frame, object ID, component ID, sgbmessage
@@ -29,11 +31,11 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
     private int frameNr = 0;
     private int previousFrame = 0;
     private bool initFile = false;
-    private Messages messages = null;
+    private MessagesPerFrame messages = null;
 
     // Replaying
     public string replayFile;
-    private List<ReferenceCountedSceneGraphMessage>[] replayedMessages;
+    private ReferenceCountedSceneGraphMessage[] replayedMessages;
     private int[] replayedFrames;
     private RecordingInfo recInfo;
     private int currentReplayFrame = 0; 
@@ -44,6 +46,7 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
     private Dictionary<NetworkId, NetworkId> oldNewObjectids;
     private bool loadingStarted = false; // set to true once loading recorded data starts
     private bool loaded = false; // set to true once all recorded data is loaded
+    private int msgIndex = 0; // for replaying from file where every msg is in separate line to get correct index for messages in next frame
 
     private class ReplayedObjectProperties
     {
@@ -54,48 +57,102 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
     }
     // recorded messages per frame
     [System.Serializable]
-    public class RecordedMessage
+    public class SingleMessage
     {
+        public int frame;
+        [SerializeField]
         public NetworkId objectid;
         public ushort componentid;
-        public string message;
-
-        public RecordedMessage(NetworkId objectid, ushort componentid, string message)
+        public byte[] message;
+        public SingleMessage(int frame, NetworkId objectid, ushort componentid, byte[] message)
         {
+            this.frame = frame;
             this.objectid = objectid;
             this.componentid = componentid;
             this.message = message;
         }
     }
+    
     [System.Serializable]
     public class RecordingInfo
     {
         public int recLinesNr;
+        public int frames;
         public int avatarNr;
         public List<NetworkId> objectids;
         public List<string> textures;
 
-        public RecordingInfo (int recLinesNr, int avatarNr, List<NetworkId> objectids, List<string> textures)
+        public RecordingInfo(int recLinesNr, int frames, int avatarNr, List<NetworkId> objectids, List<string> textures)
         {
             this.recLinesNr = recLinesNr;
+            this.frames = frames;
             this.avatarNr = avatarNr;
             this.objectids = objectids;
             this.textures = textures;
         }
     }
+ 
+    public class Message
+    {
+        public ReferenceCountedSceneGraphMessage message;
+        public byte[] bytes;
+        private int length;
+        private byte[] blength;
 
-    [System.Serializable]
-    public class Messages
+        public Message(ReferenceCountedSceneGraphMessage message)
+        {
+            this.message = message;
+            length = message.bytes.Length;
+
+            blength = System.BitConverter.GetBytes(length);
+            if (System.BitConverter.IsLittleEndian)
+            {
+                System.Array.Reverse(blength);
+            }
+
+            bytes = ToBytes();
+        }
+
+        public byte[] ToBytes() // message to bytes inlcuding length of message as bytes at the beginning
+        {
+            byte[] bytes = new byte[4 + length];
+            
+            blength.CopyTo(bytes, 0);
+            message.bytes.CopyTo(bytes, 4);
+            return bytes;
+        }
+    }
+
+    public class MessagesPerFrame
     {
         public float frameTime;
-        public int frameNr;
-        [SerializeField]
-        public List<RecordedMessage> messages = new List<RecordedMessage>();
 
-        public Messages(float frameTime, int frameNr)
+        public int frameNr;
+        public int lengthMessages;
+        public List<Message> messages = new List<Message>();
+
+        public MessagesPerFrame(int frameNr)
         {
-            this.frameTime = frameTime;
             this.frameNr = frameNr;
+            frameTime = Time.unscaledTime;
+        }
+        public void AddToList(Message m)
+        {
+            messages.Add(m);
+            lengthMessages += m.bytes.Length;
+        }
+        public byte[] ToBytes()
+        {
+            byte[] msgsPerFrame = new byte[lengthMessages];
+            var i = 0;
+            //var i = 4;
+            //System.BitConverter.GetBytes(frameNr).CopyTo(msgsPerFrame, 0);
+            foreach (var msg in messages)
+            {
+                msg.bytes.CopyTo(msgsPerFrame, i);
+                i += msg.bytes.Length;
+            }
+            return msgsPerFrame;
         }
     }
 
@@ -120,6 +177,8 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
 
             recordedObjectids = new Dictionary<NetworkId, string>();
 
+            //recStream = File.Open(recordFile, FileMode.OpenOrCreate);
+
             initFile = true;
         }
 
@@ -127,28 +186,35 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
         if (obj is Avatar) // check it here too in case we later record other things than avatars as well
         {
             // save all messages that are happening in one frame in same line
-            if (frameNr == 0 || previousFrame != frameNr)
-            {
-                if (messages != null)
-                {
-                    File.AppendAllText(recordFile, JsonUtility.ToJson(messages) + "\n");
-                    //File.AppendAllText(recordFile, recordedData + "\n", System.Text.Encoding.UTF8);
-                    lineNr += 1;
-                    //recordedMessages = null;
-                }
-                //recordedData = Time.unscaledTime + "," + frameNr;
-                messages = new Messages(Time.unscaledTime, frameNr);
+            //if (frameNr == 0 || previousFrame != frameNr)
+            //{
+            //    if (messages != null)
+            //    {
+            //        //var bytesPerFrame = messages.ToBytes();
+            //        //recStream.Write(bytesPerFrame, 0, bytesPerFrame.Length);
+            //        //File.AppendAllText(recordFile, JsonUtility.ToJson(message) + "\n");
+            //        //File.AppendAllText(recordFile, recordedData + "\n", System.Text.Encoding.UTF8);
+            //        //lineNr += 1;
+            //        //recordedMessages = null;
+            //    }
+            //    //recordedData = Time.unscaledTime + "," + frameNr;
+            //    //messages = new MessagesPerFrame(frameNr);
 
-                previousFrame++;
-            }
+            //    //previousFrame++;
+            //}
 
             //Avatar avatar = obj as Avatar;
             uid = (obj as Avatar).Properties["texture-uid"]; // get texture of avatar so we can later replay a look-alike avatar
 
             //recordedData = Time.unscaledTime + "," + frameNr + "," + message.ToString().Replace("\n", "\\n").Replace("\r", "\\r") + "\n";
             //recordedData = recordedData + "," + message.ToString().Replace("\n", "\\n").Replace("\r", "\\r");
-
-            messages.messages.Add(new RecordedMessage(message.objectid, message.componentid, message.ToString()));
+            //System.Array.Copy(message.bytes, message.start, bmsg, 0, message.length);
+            //messages.messages.Add(new RecordedMessage(message.objectid.ToString(), message.componentid, message.ToString()));
+            string recMsg = JsonUtility.ToJson(new SingleMessage(frameNr, message.objectid, message.componentid, message.bytes));
+            File.AppendAllText(recordFile, recMsg + "\n");
+            Debug.Log(message.objectid.ToString() + " " + frameNr);
+            lineNr += 1;
+            //messages.AddToList(new Message(message));
 
             if (!recordedObjectids.ContainsKey(message.objectid))
             {
@@ -168,17 +234,29 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
     private void ReplayMessagesPerFrame()
     {
         Debug.Log("Replay messages...");
-        foreach (var message in replayedMessages[currentReplayFrame])
-        {
-            // send and replay remotely
-            //scene.Send(message);
+        //for (int i = 0; i < replayedMessages.Length; i++)
+        //foreach (var message in replayedMessages[currentReplayFrame])
+        
+        int msgsPerFrame = replayedFrames[currentReplayFrame];
 
+        for (int i = 0; i < msgsPerFrame; i++)
+        {
+            ReferenceCountedSceneGraphMessage message = replayedMessages[msgIndex + i];
+            ReplayedObjectProperties props = replayedObjects[message.objectid];
+            INetworkComponent component = props.components[message.componentid];
+                
+            // send and replay remotely
+            scene.Send(message);
+            
             // replay locally
-            INetworkComponent component = replayedObjects[message.objectid].components[message.componentid];
-            component.ProcessMessage(message);
+            //component.ProcessMessage(message);
 
         }
+        msgIndex = msgIndex + msgsPerFrame; 
+
+
         currentReplayFrame++;
+        Debug.Log(currentReplayFrame + " " + msgIndex);
     }
 
     private void CreateRecordedAvatars()
@@ -188,15 +266,16 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
             // if different avatar types are used for different clients change this!
             GameObject prefab = spawner.catalogue.prefabs[3]; // Spawnable Floating BodyA Avatar
             //prefab.GetComponent<RenderToggle>();
-            Avatar avatar = spawner.SpawnPersistent(prefab).GetComponent<Avatar>(); // spawns invisible avatar
+            GameObject go = spawner.SpawnPersistent(prefab); // this game object has network context etc. (not the prefab)
+            Avatar avatar = go.GetComponent<Avatar>(); // spawns invisible avatar
             Debug.Log("CreateRecordedAvatars() " + avatar.Id);
             
             oldNewObjectids.Add(objectid, avatar.Id);
 
             ReplayedObjectProperties props = new ReplayedObjectProperties();
-            props.gameObject = prefab;
+            props.gameObject = go;
             props.id = avatar.Id;
-            INetworkComponent[] components = prefab.GetComponents<INetworkComponent>();
+            INetworkComponent[] components = go.GetComponents<INetworkComponent>();
             foreach (var comp in components)
             {
                 props.components.Add(NetworkScene.GetComponentId(comp), comp);
@@ -284,25 +363,78 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
     private async Task<bool> LoadMessages(string filepath)
     {
         using (StreamReader reader = File.OpenText(filepath))
+        //using (FileStream stream = File.Open(filepath, FileMode.Open))
         {
             string msg;
             int i = 0;
-            replayedFrames = new int[recInfo.recLinesNr];
-            replayedMessages = new List<ReferenceCountedSceneGraphMessage>[recInfo.recLinesNr];
+            replayedFrames = new int[recInfo.frames];
+            replayedMessages = new ReferenceCountedSceneGraphMessage[recInfo.recLinesNr];
             while ((msg = await reader.ReadLineAsync()) != null)
+            //var streamLength = stream.Length;
+            //var currentPos = stream.Position;
+            //while (currentPos < streamLength)
             {
-                Messages msgs = JsonUtility.FromJson<Messages>(msg);
-                replayedFrames[i] = msgs.frameNr;
-                replayedMessages[i] = new List<ReferenceCountedSceneGraphMessage>();
-                for (int j = 0; j < msgs.messages.Count; j++)
-                {
-                    RecordedMessage recMsg = msgs.messages[j];
-                    var sgbmsg = ReferenceCountedSceneGraphMessage.Rent(recMsg.message);
-                    sgbmsg.objectid = oldNewObjectids[recMsg.objectid]; // replace old with new objectid!!!
-                    sgbmsg.componentid = recMsg.componentid;
-                    replayedMessages[i].Add(sgbmsg);
-                }
+                //var bLengthAllMsgs = new byte[4];
+                //await stream.ReadAsync(bLengthAllMsgs, 0, 4);// read length
+                //System.Array.Reverse(bLengthAllMsgs);
+                //var lengthAllMsgs = System.BitConverter.ToInt32(bLengthAllMsgs, 0);
+                //var bAllMsgs = new byte[System.BitConverter.ToInt32(bLengthAllMsgs, 0)];
+                //await stream.ReadAsync(bAllMsgs, 0, bAllMsgs.Length);
+
+                SingleMessage singleMsg = JsonUtility.FromJson<SingleMessage>(msg);
+                //Debug.Log(singleMsg.frame + " " + replayedFrames.Length);
+                var idx = singleMsg.frame;
+                var pre = replayedFrames[idx - 1];
+                replayedFrames[idx-1] = pre + 1; // because frameNr starts at 1
+                ReferenceCountedMessage buffer = new ReferenceCountedMessage(singleMsg.message);
+                ReferenceCountedSceneGraphMessage rcsgm = new ReferenceCountedSceneGraphMessage(buffer);
+                rcsgm.objectid = oldNewObjectids[singleMsg.objectid];
+                //rcsgm.componentid = singleMsg.componentid; // dont need that because component should always stay the same
+                replayedMessages[i] = rcsgm;
+
                 i++;
+
+                //SingleMessage test = new SingleMessage(singleMsg.frame, rcsgm.objectid, rcsgm.componentid, rcsgm.data.ToArray());
+                //File.AppendAllText("C:/Users/klara/PhD/Projects/ubiq/Unity/Assets/Local/Recordings/fromjson.txt", JsonUtility.ToJson(test) + "\n");
+                //int j = 0;
+                //while (j < bAllMsgs.Length)
+                //{
+                //    byte[] length = new byte[4];
+                //    System.Array.Copy(bAllMsgs, j, length, 0, 4); // length of next message;
+                //    //System.Array.Reverse(length);
+                //    var l = System.BitConverter.ToInt32(length, 0);
+                //    j = j + 4;
+                //    byte[] message = new byte[l-10];
+                //    byte[] objectid = new byte[8];
+                //    byte[] componentid = new byte[2];
+
+                //    for(int k = 0; k < 8; k++ )
+                //    {
+                //        objectid[k] = bAllMsgs[j + k];
+                //    }
+                //    j = j + 8;
+                //    for (int k = 0; k < 2; k++)
+                //    {
+                //        componentid[k] = bAllMsgs[j + k];
+                //    }
+                //    j = j + 2;
+                //    for (int k = 0; k < l-10; k++)
+                //    {
+                //        message[k] = bAllMsgs[j + k];
+                //    }
+
+                //    j = j + l-10;
+
+                //    //Message recMsg = msgs.messages[j];
+                //    ReferenceCountedMessage rcm = new ReferenceCountedMessage(message);
+                //    var rcsgm = new ReferenceCountedSceneGraphMessage(rcm);
+                //    NetworkId oid = new NetworkId(objectid, 0); 
+                //    rcsgm.objectid = oldNewObjectids[oid]; // replace old with new objectid!!!
+                //    System.Array.Reverse(componentid);
+                //    ushort cid = System.BitConverter.ToUInt16(componentid, 0);
+                //    rcsgm.componentid = cid;
+                //    replayedMessages[i].Add(rcsgm);
+                //}
             }
         }
         return true;
@@ -313,7 +445,7 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
     public void NextFrame()
     {
         previousFrame = frameNr;
-        frameNr += 1;
+        frameNr++;
     }
 
     // Get all the recordable components from the scene (avatars, objects too later)
@@ -352,8 +484,9 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
         {
             if (recordedObjectids != null && recordFileIDs != null) // save objectids and texture uids once recording is done
             {
+                //recStream.Dispose();
                 
-                File.WriteAllText(recordFileIDs, JsonUtility.ToJson(new RecordingInfo(lineNr, recordedObjectids.Count,
+                File.WriteAllText(recordFileIDs, JsonUtility.ToJson(new RecordingInfo(lineNr, frameNr, recordedObjectids.Count,
                     new List<NetworkId>(recordedObjectids.Keys), new List<string>(recordedObjectids.Values))));
 
                 //using (StreamWriter file = new StreamWriter(recordFileIDs))
@@ -400,9 +533,11 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
             if (loaded)
             {
                 ReplayMessagesPerFrame();
-                if(currentReplayFrame == recInfo.recLinesNr)
+                //if(currentReplayFrame == recInfo.recLinesNr)
+                if (currentReplayFrame == recInfo.frames-1)
                 {
                     currentReplayFrame = 0;
+                    msgIndex = 0;
                 }
             }
 
