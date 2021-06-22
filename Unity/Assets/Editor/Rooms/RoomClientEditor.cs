@@ -98,7 +98,7 @@ namespace Ubiq.Rooms
 
             if (GUILayout.Button("Refresh"))
             {
-                component.DiscoverRooms();
+                component.GetRooms();
             }
 
             GUI.enabled = false;

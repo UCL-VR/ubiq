@@ -6,7 +6,6 @@ namespace Ubiq.Samples
 {
     public class BrowsePanelController : MonoBehaviour
     {
-        public float roomListRefreshInterval = 2.0f;
         public MainMenu mainMenu;
         public BrowseMenuControl joinedControl;
         public Transform controlsRoot;
@@ -14,7 +13,6 @@ namespace Ubiq.Samples
         public GameObject noRoomsMessagePanel;
         public GameObject controlPrefab;
 
-        private float lastDiscoverTime;
         private List<BrowseMenuControl> controls = new List<BrowseMenuControl>();
         private List<RoomInfo> lastRoomArgs;
 
@@ -44,7 +42,7 @@ namespace Ubiq.Samples
             UpdateAvailableRooms();
 
             // Immediately ask for a refresh - maybe room we left is now empty
-            mainMenu.roomClient.DiscoverRooms();
+            mainMenu.roomClient.GetRooms();
         }
 
         private void RoomClient_OnRoomsAvailable(List<RoomInfo> rooms)
@@ -100,11 +98,7 @@ namespace Ubiq.Samples
 
         private void Update()
         {
-            if(Mathf.Abs(lastDiscoverTime - Time.time) > roomListRefreshInterval)
-            {
-                lastDiscoverTime = Time.time;
-                mainMenu.roomClient.DiscoverRooms();
-            }
+            mainMenu.roomClient.GetRooms();
         }
     }
 }

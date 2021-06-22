@@ -29,6 +29,8 @@ namespace Ubiq.Rooms
 
         public List<RoomInfo> Available;
 
+        public float MaxGetRoomsRefreshRate = 2f;
+
         /// <summary>
         /// A list of default servers to connect to on start-up
         /// </summary>
@@ -41,6 +43,7 @@ namespace Ubiq.Rooms
         private float heartbeatSent => Time.realtimeSinceStartup - pingSent;
         public static float HeartbeatTimeout = 5f;
         public static float HeartbeatInterval = 1f;
+        private float lastGetRoomsTime;
 
         /// <summary>
         /// The Session Id identifies a persistent connection to a RoomServer. If the Session Id returned by the Room Server changes,
@@ -443,9 +446,17 @@ namespace Ubiq.Rooms
             }
         }
 
-        public void DiscoverRooms()
+        /// <summary>
+        /// Updates the Available list with the rooms currently running on the RoomServer.
+        /// This method is limited to MaxGetRoomsRefreshRate Hz, which can be set on this instance.
+        /// </summary>
+        public void GetRooms()
         {
-            SendToServer("RequestRooms", new RoomsRequest());
+            if (Math.Abs(Time.realtimeSinceStartup - lastGetRoomsTime) > (1f / MaxGetRoomsRefreshRate))
+            {
+                SendToServer("RequestRooms", new RoomsRequest());
+                lastGetRoomsTime = Time.realtimeSinceStartup;
+            }
         }
 
         /// <summary>
