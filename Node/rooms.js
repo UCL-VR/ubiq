@@ -1,6 +1,7 @@
-const { Message, NetworkId } = require('./messaging');
-const { randString } = require('./joincode');
-const { Validator } = require('jsonschema');
+const { Message, NetworkId } = require("./messaging");
+const { randString } = require("./joincode");
+const { uuid } = require("./uuid");
+const { Schema } = require("./schema");
 const { EventEmitter } = require('events');
 
 const VERSION_STRING = "0.0.4";
@@ -134,37 +135,106 @@ class RoomServer extends EventEmitter{
     }
 }
 
-// When peers are not in a room, their room member is set to an instance of EmptyRoom, which contains
-// callbacks and basic information to signal that they are not members of any room.
-class EmptyRoom{
-    constructor(){
-        this.uuid = null;
-    }
+// Beware that while jsonschema can resolve forward declared references, initialisation is order dependent, and "alias" schemas must be defined after
+// their concrete counterpart.
 
-    removePeer(peer){}
+Schema.add({
+    id: "/ubiq.rooms.servermessage",
+    type: "object",
+    properties: {
+        type: {"type": "string"},
+        args: {"type": "string"}
+    },
+    required: ["type","args"]
+});
 
-    updatePeer(peer){}
+Schema.add({
+    id: "/ubiq.rooms.joinargs",
+    type: "object",
+    properties: {
+        joincode: {type: "string"},
+        name: {type: "string"},
+        publish: {type: "boolean"},
+        peer: {$ref: "/ubiq.rooms.peerinfo"},
+    },
+    required: ["joincode","peer"]
+});
 
-    processMessage(peer, message){}
+Schema.add({
+    id: "/ubiq.rooms.leaverequestargs",
+    type: "object",
+    properties: {
+        peer: {$ref: "/ubiq.rooms.peerinfo"},
+    },
+    required: ["peer"]
+});
 
-    getPeersArgs(){}
+Schema.add({
+    id: "/ubiq.rooms.peerinfo",
+    type: "object",
+    properties: {
+        uuid: {type: "string"},
+        networkId: {$ref: "/ubiq.messaging.networkid"},
+        properties: {type: "object"}
+    },
+    required: ["uuid","networkId","properties"]
+});
 
-    updateRoom(roomargs){
-        this.roomargs = roomargs;
-    }
+Schema.add({
+    id: "/ubiq.rooms.roominfo",
+    type: "object",
+    properties: {
+        uuid: {type: "string"},
+        joincode: {type: "string"},
+        publish: {type: "boolean"},
+        name: {type: "string"},
+        properties: {type: "object"}
+    },
+    required: ["uuid","joincode","publish","name","properties"]
+});
 
-    getRoomArgs(){
-        return {
-            uuid: "",
-            joincode: "",
-            publish: false,
-            name: "",
-            properties: []
-        }
-    }
-}
+Schema.add({
+    id: "/ubiq.rooms.ping",
+    type: "object",
+    properties: {
+        id: { $ref: "/ubiq.messaging.networkid"}
+    } 
+});
 
-// The RoomPeer class manages a WebSocketConnection to a RoomClient. This class
+Schema.add({
+    id: "/ubiq.rooms.requestroomargs",
+    type: "object",
+    properties: {
+    } 
+});
+
+Schema.add({
+    id: "/ubiq.rooms.setblobargs",
+    type: "object",
+    properties: {
+        "room": {type: "string"}, //room uuid
+        "uuid": {type: "string"}, //blob uuid
+        "blob": {type: "string"}  //blob contents
+    },
+    required: ["room","uuid","blob"]
+});
+
+Schema.add({
+    id: "/ubiq.rooms.getblobargs",
+    $ref: "/ubiq.rooms.setblobargs"
+});
+
+Schema.add({
+    id: "/ubiq.rooms.updateroomargs",
+    $ref: "/ubiq.rooms.roominfo"
+});
+
+Schema.add({
+    id: "/ubiq.rooms.updatepeerargs",
+    $ref: "/ubiq.rooms.peerinfo"
+});
+
+// The RoomPeer class manages a Connection to a RoomClient. This class
 // interacts with the connection, formatting and parsing messages and calling the
 // appropriate methods on RoomServer and others.
 class RoomPeer{
@@ -177,90 +247,7 @@ class RoomPeer{
         this.properties = [];
         this.connection.onMessage.push(this.onMessage.bind(this));
         this.connection.onClose.push(this.onClose.bind(this));
-
-        this.validator = new Validator();
-        this.validator.addSchema({
-            "id": "/NetworkID",
-            "type": "object",
-            "properties": {
-                "a": {"type": "integer"},
-                "b": {"type": "integer"}
-            },
-            "required": ["a","b"]
-        },'/NetworkID');
-        this.validator.addSchema({
-            "id": "/PeerInfo",
-            "type": "object",
-            "properties": {
-                "uuid": {"type": "string"},
-                "networkId": {"$ref": "/NetworkID"},
-                "properties": {"type": "object"}
-            },
-            "required": ["uuid","networkId","properties"]
-        },'/PeerInfo');
-        this.validator.addSchema({
-            "id": "/RoomInfo",
-            "type": "object",
-            "properties": {
-                "uuid": {"type": "string"},
-                "joincode": {"type": "string"},
-                "publish": {"type": "boolean"},
-                "name": {"type": "string"},
-                "properties": {"type": "object"}
-            },
-            "required": ["uuid","joincode","publish","name","properties"]
-        },'/RoomInfo');
-        this.joinArgsSchema = {
-            "id": "/JoinArgs",
-            "type": "object",
-            "properties": {
-                "joincode": {"type": "string"},
-                "name": {"type": "string"},
-                "publish": {"type": "boolean"},
-                "peer": {"$ref": "/PeerInfo"},
-            },
-            "required": ["joincode","peer"]
-        };
-        this.updatePeerArgsSchema = {
-            "id": "/UpdatePeerArgs",
-            "$ref": "/PeerInfo"
-        };
-        this.updateRoomArgsSchema = {
-            "id": "/UpdateRoomArgs",
-            "$ref": "/RoomInfo"
-        };
-        this.requestRoomsArgsSchema = {
-            "id": "/RequestRoomsArgs"
-        };
-        this.setBlobArgsSchema = {
-            "id": "/SetBlobArgs",
-            "type": "object",
-            "properties": {
-                "room": {"type": "string"}, //room uuid
-                "uuid": {"type": "string"}, //blob uuid
-                "blob": {"type": "string"}  //blob contents
-            },
-            "required": ["room","uuid","blob"]
-        };
-        this.getBlobArgsSchema = {
-            "id": "/GetBlobArgs",
-            "type": "object",
-            "properties": {
-                "room": {"type": "string"}, //room uuid
-                "uuid": {"type": "string"}, //blob uuid
-                "blob": {"type": "string"}  //blob contents
-            },
-            "required": ["room","uuid","blob"]
-        };
-        this.serverMessageSchema = {
-            "id": "/ServerMessage",
-            "type": "object",
-            "properties": {
-                "type": {"type": "string"},
-                "args": {"type": "string"}
-            },
-            "required": ["type","args"]
-        };
+        this.sessionId = uuid();
     }
 
     onMessage(message){
@@ -272,10 +259,7 @@ class RoomPeer{
                 return;
             }
 
-            var result = this.validator.validate(message.object,this.serverMessageSchema);
-            if (!result.valid) {
-                console.log(result.instance);
-                console.log(result.errors);
+            if(!Schema.validate(message.object,"/ubiq.rooms.servermessage",this.onValidationFailure)){
                 return;
             }
 
@@ -292,82 +276,65 @@ class RoomPeer{
 
             switch(message.type){
                 case "Join":
-                    var argsResult = this.validator.validate(message.args,this.joinArgsSchema);
-                    if (argsResult.valid) {
-                        // a join message always includes an update about the peer properties
-                        this.setPeerArgs(message.args.peer);
+                    if (Schema.validate(message.args, "/ubiq.rooms.joinargs", this.onValidationFailure)) {
+                        this.setPeerArgs(message.args.peer);    // a join message always includes an update of the peer properties
                         this.server.join(this, message.args);
-                    } else {
-                        console.log(result.instance);
-                        console.log(argsResult.instance);
-                        console.log(argsResult.errors);
                     }
                     break;
                 case "Leave":
-                    this.server.leave(this);
+                    if (Schema.validate(message.args, "/ubiq.rooms.leaverequestargs", this.onValidationFailure)) {
+                        this.setPeerArgs(message.args.peer);
+                        if(this.room.uuid != null){
+                            this.server.leave(this);
+                        }else{
+                            this.setRoom(new EmptyRoom());
+                        }
+                    }
                     break;
                 case "UpdatePeer":
-                    var argsResult = this.validator.validate(message.args,this.updatePeerArgsSchema);
-                    if (argsResult.valid) {
+                    if (Schema.validate(message.args, "/ubiq.rooms.updatepeerargs", this.onValidationFailure)) {
                         this.setPeerArgs(message.args);
                         this.room.updatePeer(this);
-                    } else {
-                        console.log(result.instance);
-                        console.log(argsResult.instance);
-                        console.log(argsResult.errors);
                     }
                     break;
                 case "UpdateRoom":
-                    var argsResult = this.validator.validate(message.args,this.updateRoomArgsSchema);
-                    if (argsResult.valid) {
+                    if (Schema.validate(message.args, "/ubiq.rooms.updateroomargs", this.onValidationFailure)) {
                         this.room.updateRoom(message.args);
-                    } else {
-                        console.log(result.instance);
-                        console.log(argsResult.instance);
-                        console.log(argsResult.errors);
                     }
                     break;
                 case "RequestRooms":
-                    var argsResult = this.validator.validate(message.args,this.requestRoomsArgsSchema);
-                    if (argsResult.valid) {
+                    if (Schema.validate(message.args, "/ubiq.rooms.requestroomargs", this.onValidationFailure)) {
                         this.sendRooms({
                             rooms: this.server.getRoomArgs({publishable:true}),
                             version: this.server.version
                         });
-                    } else {
-                        console.log(result.instance);
-                        console.log(argsResult.instance);
-                        console.log(argsResult.errors);
                     }
                     break;
                 case "SetBlob":
-                    var argsResult = this.validator.validate(message.args,this.setBlobArgsSchema);
-                    if (argsResult.valid) {
+                    if (Schema.validate(message.args, "/ubiq.rooms.setblobargs", this.onValidationFailure)) {
                         this.server.setBlob(message.args);
-                    } else {
-                        console.log(result.instance);
-                        console.log(argsResult.instance);
-                        console.log(argsResult.errors);
                     }
                     break;
                 case "GetBlob":
-                    var argsResult = this.validator.validate(message.args,this.getBlobArgsSchema);
-                    if (argsResult.valid) {
+                    if (Schema.validate(message.args, "/ubiq.rooms.getblobargs", this.onValidationFailure)) {
                         this.server.getBlob(message.args);
                         this.sendBlob(message.args);
-                    } else {
-                        console.log(result.instance);
-                        console.log(argsResult.instance);
-                        console.log(argsResult.errors);
                     }
                     break;
                 case "Ping":
-                    this.sendPing();
+                    if(Schema.validate(message.args,"/ubiq.rooms.ping",this.onValidationFailure)){
+                        this.sendPing(message.args.id);
+                    }
                     break;
             };
         }else{
             this.room.processMessage(this, message);
         }
+    }
+
+    onValidationFailure(error){
+        console.log(error.json);
+        console.log(error.validation.message);
     }
 
     setPeerArgs(peer){
@@ -384,13 +351,19 @@ class RoomPeer{
         }
     }
 
+    getPingArgs(){
+        return {
+            sessionId: this.sessionId
+        }
+    }
+
     onClose(){
         this.room.removePeer(this);
     }
 
     setRoom(room){
         this.room = room;
-        this.sendAccepted();
+        this.sendSetRoom();
     }
 
     sendRejected(joinArgs,reason){
@@ -409,13 +382,13 @@ class RoomPeer{
         );
     }
 
-    sendAccepted(){
+    sendSetRoom(){
         this.send(
             Message.Create(
                 this.objectId,
                 1,
                 {
-                    type: "Accepted",
+                    type: "SetRoom",
                     args: JSON.stringify({
                         room: this.room.getRoomArgs(),
                         peers: this.room.getPeersArgs()
@@ -490,14 +463,14 @@ class RoomPeer{
         )
     }
 
-    sendPing(){
+    sendPing(networkid){
         this.send(
             Message.Create(
-                this.objectId,
+                networkid,
                 1,
                 {
                     type: "Ping",
-                    args: null
+                    args: JSON.stringify(this.getPingArgs())
                 }
             )
         )
@@ -505,6 +478,36 @@ class RoomPeer{
 
     send(message){
         this.connection.send(message);
+    }
+}
+
+// When peers are not in a room, their room member is set to an instance of EmptyRoom, which contains
+// callbacks and basic information to signal that they are not members of any room.
+class EmptyRoom{
+    constructor(){
+        this.uuid = null;
+    }
+
+    removePeer(peer){}
+
+    updatePeer(peer){}
+
+    processMessage(peer, message){}
+
+    getPeersArgs(){}
+
+    updateRoom(roomargs){
+        this.roomargs = roomargs;
+    }
+
+    getRoomArgs(){
+        return {
+            uuid: "",
+            joincode: "",
+            publish: false,
+            name: "",
+            properties: []
+        }
     }
 }
 
