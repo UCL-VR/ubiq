@@ -34,6 +34,32 @@ Calls to an `EventLogger` are expected to be placed throughout the system persis
 
 The most common types of event logger are the `ContextEventLogger`, which is designed to work with Components that have a `NetworkContext`, and the `UserEventLogger`, designed for logging measurements in user experiments.
 
+
+```
+public class VoipPeerConnectionManager : MonoBehaviour, INetworkComponent
+{
+	private EventLogger logger;
+
+	private void Start()
+	{
+		context = NetworkScene.Register(this);
+		logger = new ContextEventLogger(context);
+	}
+	
+	public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+	{
+		var msg = JsonUtility.FromJson<Message>(message.ToString());
+		switch (msg.type)
+		{
+			case "RequestPeerConnection":
+				logger.Log("CreatePeerConnectionForRequest", msg.objectid);
+				break;
+		}
+	}
+}
+```
+The snippet above demonstrates the creation and use of a `ContextEventLogger`. The `VoipPeerConnectionManager` declares the `logger` and initialises it with a `ContextEventLogger` once a context has been created. The `Log` method can then be called to log the receipt of a specific message.
+
 `EventLogger` instances attach to a single `LogManager`. Event logger constructors find the closest `LogManager` automatically.
 
 `EventLogger` methods can be safely called from outside the Unity main thread. They should not be called from outside CLR threads however.
@@ -54,7 +80,7 @@ All Ubiq events are of the type `Application`. The distinction between `Applicat
 
 ## LogManager
 
-When a `LogManager` is placed in a scene, it will recieve events from nearby event loggers. By default the `LogManager` will cache events up to a limit (50 Mb worth), dropping older events as new ones are receieved. `LogManager` can also be set to store an infinite number of events, which may be desirable for experiments if the limit may be reached before a `LogCollector` is created, though there are no bounds on how much memory it may consume in this mode, up to and including triggering out of memory exceptions for the whole application.
+When a `LogManager` is placed in a scene, it will recieve events from nearby event loggers. By default the `LogManager` will cache events up to a limit (50 Mb worth), dropping older events as new ones are receieved. `LogManager` can also be set to store an infinite number of events, which may be desirable for experiments if the limit may be reached before a `LogCollector` is created. There are no bounds on how much memory it may consume in this mode however, up to and including triggering out of memory exceptions for the whole application.
 
 When instructed, the `LogManager` will forward these events and any new ones to a `LogCollector`, the Component that actually writes the logs to an endpoint such as the disk, or database.
 

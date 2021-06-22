@@ -36,6 +36,7 @@ namespace Ubiq.XR
 
                 singleton = gameObject;
                 DontDestroyOnLoad(gameObject);
+                Extensions.MonoBehaviourExtensions.DontDestroyOnLoadGameObjects.Add(gameObject);
             }
 
             handControllers = GetComponentsInChildren<HandController>();
