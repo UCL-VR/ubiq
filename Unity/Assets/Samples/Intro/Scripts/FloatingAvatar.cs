@@ -111,26 +111,26 @@ namespace Ubiq.Samples
         {
             if (avatar.local)
             {
-                if(renderToggle.rendering)
+                //if(renderToggle != null && renderToggle.rendering)
                 {
                     headRenderer.enabled = false;
                     torsoRenderer.enabled = true;
                     leftHandRenderer.enabled = true;
                     rightHandRenderer.enabled = true;
                 }
-                else
-                {
-                    headRenderer.enabled = false;
-                    torsoRenderer.enabled = false;
-                    leftHandRenderer.enabled = false;
-                    rightHandRenderer.enabled = false;
-                }
+                //else
+                //{
+                //    headRenderer.enabled = false;
+                //    torsoRenderer.enabled = false;
+                //    leftHandRenderer.enabled = false;
+                //    rightHandRenderer.enabled = false;
+                //}
 
                 //renderToggle.Send();
             }
             else
             {
-                if (renderToggle.rendering)
+                //if (renderToggle != null && renderToggle.rendering)
                 {
                     headRenderer.enabled = true;
                     torsoRenderer.enabled = true;
@@ -138,13 +138,13 @@ namespace Ubiq.Samples
                     rightHandRenderer.enabled = true;
 
                 }
-                else
-                {
-                    headRenderer.enabled = false;
-                    torsoRenderer.enabled = false;
-                    leftHandRenderer.enabled = false;
-                    rightHandRenderer.enabled = false;
-                }
+                //else
+                //{
+                //    headRenderer.enabled = false;
+                //    torsoRenderer.enabled = false;
+                //    leftHandRenderer.enabled = false;
+                //    rightHandRenderer.enabled = false;
+                //}
             }
             //renderToggle.Send();
 
