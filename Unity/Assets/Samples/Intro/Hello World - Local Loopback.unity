@@ -1272,7 +1272,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   connection:
     listen_on_ip: localhost
-    listen_on_port: 8004
+    listen_on_port: 8002
     send_to_ip: 
     send_to_port: 
     type: 1

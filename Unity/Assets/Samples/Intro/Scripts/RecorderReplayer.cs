@@ -31,7 +31,6 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
     private int frameNr = 0;
     private int previousFrame = 0;
     private bool initFile = false;
-    private MessagesPerFrame messages = null;
 
     // Replaying
     public string replayFile;
@@ -241,6 +240,7 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
 
         for (int i = 0; i < msgsPerFrame; i++)
         {
+            Debug.Log("msgindex: " + (msgIndex + i));
             ReferenceCountedSceneGraphMessage message = replayedMessages[msgIndex + i];
             ReplayedObjectProperties props = replayedObjects[message.objectid];
             INetworkComponent component = props.components[message.componentid];
@@ -249,14 +249,14 @@ public class RecorderReplayer : MonoBehaviour, INetworkObject, INetworkComponent
             scene.Send(message);
             
             // replay locally
-            //component.ProcessMessage(message);
+            component.ProcessMessage(message);
 
         }
         msgIndex = msgIndex + msgsPerFrame; 
 
 
         currentReplayFrame++;
-        Debug.Log(currentReplayFrame + " " + msgIndex);
+        //Debug.Log(currentReplayFrame + " " + msgIndex);
     }
 
     private void CreateRecordedAvatars()

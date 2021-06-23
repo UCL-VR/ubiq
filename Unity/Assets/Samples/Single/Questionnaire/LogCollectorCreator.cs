@@ -10,7 +10,7 @@ public class LogCollectorCreator : MonoBehaviour
     {
         if(Application.isEditor)
         {
-            gameObject. AddComponent<LogCollector>();
+            gameObject.AddComponent<LogCollector>();
         }
     }
 
