@@ -386,8 +386,7 @@ namespace Ubiq.Messaging
 
                                 try
                                 {
-
-                                    Profiler.BeginSample("Component Message Processing " + component.ToString());
+                                   // Profiler.BeginSample("Component Message Processing " + component.ToString());
                                     component.ProcessMessage(sgbmessage);
                                 }
                                 catch (MissingReferenceException e)
@@ -403,10 +402,10 @@ namespace Ubiq.Messaging
 
                                     throw e;
                                 }
-                                finally
-                                {
-                                    Profiler.EndSample();
-                                }
+                                // finally
+                                // {
+                                //     Profiler.EndSample();
+                                // }
                             }
                         }
                         catch (Exception e)
