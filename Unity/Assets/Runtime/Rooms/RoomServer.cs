@@ -64,7 +64,7 @@ namespace Ubiq.Rooms
                 client.room = this;
 
                 // send confirmation to the client
-                client.SendAccepted(new SetRoom()
+                client.SendSetRoom(new SetRoom()
                 {
                     room = GetRoomArgs(),
                     peers = peers,
@@ -122,9 +122,9 @@ namespace Ubiq.Rooms
                 connection.Send(m.buffer);
             }
 
-            public void SendAccepted(SetRoom args)
+            public void SendSetRoom(SetRoom args)
             {
-                Send("Accepted", args);
+                Send("SetRoom", args);
             }
 
             public void SendRoom(RoomInfo args)
@@ -140,6 +140,11 @@ namespace Ubiq.Rooms
             public void SendRooms(RoomsResponse args)
             {
                 Send("Rooms", args);
+            }
+
+            public void SendPing(PingResponse args)
+            {
+                Send("Ping", args);
             }
         }
 
@@ -207,6 +212,9 @@ namespace Ubiq.Rooms
                                     break;
                                 case "RequestRooms":
                                     client.SendRooms(AvailableRooms);
+                                    break;
+                                case "Ping":
+                                    client.SendPing(new PingResponse() { sessionId = "sampleroom" });
                                     break;
                                 case "":
 
