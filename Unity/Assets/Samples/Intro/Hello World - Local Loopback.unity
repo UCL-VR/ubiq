@@ -121,6 +121,30 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &3960433 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7068762446378101732, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
+    type: 3}
+  m_PrefabInstance: {fileID: 999818504}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3960436
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3960433}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93bc060ade1db334ab107b82e04db914, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scene: {fileID: 1286262429}
+  replayFile: rec2021-06-24_15-06-05
+  recordFile: 
+  path: 
+  recording: 0
+  replaying: 0
 --- !u!1001 &50851917
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1234,7 +1258,7 @@ MonoBehaviour:
     type: 3}
   m_PrefabInstance: {fileID: 999818504}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 3960433}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fddd4936b870f084aa3cf82b0e18125f, type: 3}
@@ -1974,22 +1998,6 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 7068762447081937015}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &7068762447081937018
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7068762447081937017}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 93bc060ade1db334ab107b82e04db914, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  recording: 0
-  replaying: 0
-  scene: {fileID: 7068762447081937019}
-  replayFile: rec2021-06-22_14-38-28
 --- !u!114 &7068762447081937019 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7068762446378101731, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
@@ -2002,6 +2010,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fddd4936b870f084aa3cf82b0e18125f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &7068762447081937020
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7068762447081937017}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93bc060ade1db334ab107b82e04db914, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scene: {fileID: 7068762447081937019}
+  replayFile: rec2021-06-24_14-57-30
+  recordFile: 
+  path: 
+  recording: 0
+  replaying: 0
 --- !u!1001 &7290265296070105307
 PrefabInstance:
   m_ObjectHideFlags: 0

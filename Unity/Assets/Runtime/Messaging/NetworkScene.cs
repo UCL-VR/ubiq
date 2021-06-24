@@ -102,7 +102,7 @@ namespace Ubiq.Messaging
 
         private EventLogger events;
 
-        public IMessageRecorder recorderReplayer = null;
+        public IMessageRecorder recorder = null;
 
 
 
@@ -167,7 +167,7 @@ namespace Ubiq.Messaging
             // Try getting a RecorderReplayer if script is attached to the NetworkScene
             if(TryGetComponent(out IMessageRecorder recRep))
             {
-                recorderReplayer = recRep;
+                recorder = recRep;
             }
         }
 
@@ -328,9 +328,10 @@ namespace Ubiq.Messaging
             actions.Clear();
 
             // increment frame number before 
-            if (recorderReplayer != null && recorderReplayer.IsRecording())
+            // it is possible that already at frame 0 a local Send() is recorded before the frame is incremented, is it?
+            if (recorder != null && recorder.IsRecording())
             {
-                recorderReplayer.NextFrame(); // increments frame number when recording!
+                recorder.NextFrame(); // increments frame number when recording!
             }
 
             ReceiveConnectionMessages();
@@ -363,9 +364,10 @@ namespace Ubiq.Messaging
                                     matching.Add(item.Value);
 
                                     // record just avatars for now
-                                    if (recorderReplayer != null && recorderReplayer.IsRecording() && item.Key is Ubiq.Avatars.Avatar)
+                                    if (recorder != null && recorder.IsRecording() && item.Key is Ubiq.Avatars.Avatar)
                                     {
-                                        recorderReplayer.RecordMessage(item.Key, sgbmessage);
+                                        //Debug.Log("Rcv");
+                                        recorder.RecordMessage(item.Key, sgbmessage);
                                      
                                     }
                                 }
@@ -434,14 +436,15 @@ namespace Ubiq.Messaging
             {
                 m.Acquire();
 
-                if (recorderReplayer != null && recorderReplayer.IsRecording())
+                if (recorder != null && recorder.IsRecording())
                 {
                     foreach (var item in objectProperties)
                     {
                         // can be removed later if other objects are recorded too
                         if (item.Key is Ubiq.Avatars.Avatar && item.Key.Id == m.objectid) // with second equality I make sure to exclude "Ping" mesages?
-                        { 
-                            recorderReplayer.RecordMessage(item.Key, m);
+                        {
+                            //Debug.Log("Send");
+                            recorder.RecordMessage(item.Key, m);
                         }
                     }
                 }
