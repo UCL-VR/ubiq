@@ -112,6 +112,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Available: []
+  MaxGetRoomsRefreshRate: 2
   servers:
   - listen_on_ip: 
     listen_on_port: 
@@ -232,8 +233,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Avatars: {fileID: 11400000, guid: 7ae31e03aeffdcb4799c68ce5e3742fb, type: 2}
-  localPrefabUuid: Floating BodyA Avatar
-  LocalAvatar: {fileID: 0}
+  LocalPrefabUuid: Floating BodyA Avatar
 --- !u!1 &9015508115495883622
 GameObject:
   m_ObjectHideFlags: 0

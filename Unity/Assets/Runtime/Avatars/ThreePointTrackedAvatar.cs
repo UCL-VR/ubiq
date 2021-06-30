@@ -39,7 +39,7 @@ namespace Ubiq.Avatars
 
         private void Update ()
         {
-            if(avatar.local)
+            if(avatar.IsLocal)
             {
                 // Update state from hints
                 state[0].head = GetHintNode (AvatarHints.Node.Head);

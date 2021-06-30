@@ -4,7 +4,6 @@ using Ubiq.Messaging;
 using Ubiq.Extensions;
 using Ubiq.Voip;
 using UnityEngine;
-using Ubiq.Rooms;
 using UnityEngine.UI;
 
 namespace Ubiq.Samples
@@ -38,7 +37,7 @@ namespace Ubiq.Samples
             try
             {
                 // The NetworkScene is usually found in Start, so no objects will contain direct references to it. Find the manager by searching the graph instead.
-                var peerConnectionManager = avatar.AvatarManager.RoomClient.GetClosestComponent<VoipPeerConnectionManager>();
+                var peerConnectionManager = VoipPeerConnectionManager.Find(this);
                 if (peerConnectionManager)
                 {
                     peerConnectionManager.OnPeerConnection.AddListener(OnPeerConnection);
@@ -52,7 +51,7 @@ namespace Ubiq.Samples
 
         void OnPeerConnection(VoipPeerConnection connection)
         {
-            if(avatar.Properties["peer-uuid"] == connection.PeerUuid)
+            if(avatar.Peer.UUID == connection.PeerUuid)
             {
                 connection.onIceConnectionStateChanged.AddListener(OnStateChange);
             }

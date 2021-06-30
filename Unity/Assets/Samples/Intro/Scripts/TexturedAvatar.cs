@@ -6,6 +6,7 @@ using Ubiq.Avatars;
 using UnityEngine.Events;
 using UnityEngine;
 using Avatar = Ubiq.Avatars.Avatar;
+using Ubiq.Rooms;
 
 namespace Ubiq.Samples
 {
@@ -21,64 +22,67 @@ namespace Ubiq.Samples
         public TextureEvent OnTextureChanged;
 
         private Avatar avatar;
+        private string uuid;
 
-        private string uid;
-        private Texture2D texture; // Cache for GetTexture. Do not do anything else with this; use uid.
+        private Texture2D cached; // Cache for GetTexture. Do not do anything else with this; use the uuid.
 
         private void Awake()
         {
             avatar = GetComponent<Avatar>();
-            avatar.OnUpdated.AddListener(OnAvatarUpdated);
+            avatar.OnPeerUpdated.AddListener(OnPeerUpdated);
         }
 
         private void Start()
         {
-            if(avatar.local)
+            if (avatar.IsLocal)
             {
                 var hasSavedSettings = false;
-                if(SaveTextureSetting)
+                if (SaveTextureSetting)
                 {
                     hasSavedSettings = LoadSettings();
                 }
-                if(RandomTextureOnSpawn && !hasSavedSettings)
+                if (!hasSavedSettings && RandomTextureOnSpawn)
                 {
                     SetTexture(Textures.Get(UnityEngine.Random.Range(0, Textures.Count)));
                 }
             }
         }
 
-        void OnAvatarUpdated(Avatar avatar)
+        void OnPeerUpdated(PeerInfo peer)
         {
-            var uid = avatar.Properties["texture-uid"];
-            if(uid != null)
-            {
-                SetTexture(uid);
-            }
+            SetTexture(peer["ubiq.avatar.texture.uuid"]);
         }
 
+        /// <summary>
+        /// Try to set the Texture by reference to a Texture in the Catalogue. If the Texture is not in the 
+        /// catalogue then this method has no effect, as Texture2Ds cannot be streamed yet.
+        /// </summary>
         public void SetTexture(Texture2D texture)
         {
-            var uid = Textures.Get(texture);
-            if (uid != null)
-            {
-                SetTexture(uid);
-            }
+            SetTexture(Textures.Get(texture));
         }
 
-        public void SetTexture(string uid)
+        public void SetTexture(string uuid)
         {
-            var texture = Textures.Get(uid);
-
-            if (this.uid != uid)
+            if(String.IsNullOrWhiteSpace(uuid))
             {
+                return;
+            }
+
+            if (this.uuid != uuid)
+            {
+                var texture = Textures.Get(uuid);
+                this.uuid = uuid;
+                this.cached = texture;
+
                 OnTextureChanged.Invoke(texture);
 
-                this.uid = uid;
-                this.texture = texture;
+                if(avatar.IsLocal)
+                {
+                    avatar.Peer["ubiq.avatar.texture.uuid"] = this.uuid;
+                }                
 
-                avatar.Properties["texture-uid"] = this.uid;
-
-                if (avatar.local && SaveTextureSetting)
+                if (avatar.IsLocal && SaveTextureSetting)
                 {
                     SaveSettings();
                 }
@@ -87,36 +91,24 @@ namespace Ubiq.Samples
 
         private void SaveSettings()
         {
-            PlayerPrefs.SetString("inbuilt-texturedavatar-uid", uid);
+            PlayerPrefs.SetString("ubiq.avatar.texture.uuid", uuid);
         }
 
         private bool LoadSettings()
         {
-            var uid = PlayerPrefs.GetString("inbuilt-texturedavatar-uid", "");
-            if (uid != "")
-            {
-                SetTexture(uid);
-                return true;
-            }
-            return false;
+            var uuid = PlayerPrefs.GetString("ubiq.avatar.texture.uuid", "");
+            SetTexture(uuid);
+            return !String.IsNullOrWhiteSpace(uuid);
         }
 
         public void ClearSettings()
         {
-            PlayerPrefs.DeleteKey("inbuilt-texturedavatar-uid");
-        }
-
-        private void OnDestroy()
-        {
-            if (avatar != null && avatar.OnUpdated != null)
-            {
-                avatar.OnUpdated.RemoveListener(OnAvatarUpdated);
-            }
+            PlayerPrefs.DeleteKey("ubiq.avatar.texture.uuid");
         }
 
         public Texture2D GetTexture()
         {
-            return texture;
+            return cached;
         }
     }
 }

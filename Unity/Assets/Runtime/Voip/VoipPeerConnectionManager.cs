@@ -257,5 +257,20 @@ namespace Ubiq.Voip
         {
             context.SendJson(sharedId, m);
         }
+
+        /// <summary>
+        /// Find the VoipConnectionManager for forest the Component is a member of. May return null if there is no Voip manager for the scene.
+        /// </summary>
+        public static VoipPeerConnectionManager Find(MonoBehaviour Component)
+        {
+            try
+            {
+                return NetworkScene.FindNetworkScene(Component).GetComponentInChildren<VoipPeerConnectionManager>();
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }

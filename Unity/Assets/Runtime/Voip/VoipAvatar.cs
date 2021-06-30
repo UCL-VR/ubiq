@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Ubiq.Voip;
+using Ubiq.Messaging;
 
 namespace Ubiq.Avatars
 {
-    [RequireComponent(typeof(Avatars.Avatar))]
+    [RequireComponent(typeof(Avatar))]
     public class VoipAvatar : MonoBehaviour
     {
         public Transform audioSourcePosition;
 
-        private Avatars.Avatar avatar;
+        private Avatar avatar;
         private Transform sinkTransform;
 
         private void Awake()
@@ -20,17 +21,16 @@ namespace Ubiq.Avatars
 
         private void Start()
         {
-            var peerConnectionManager = avatar.AvatarManager.RoomClient.
-                GetComponentInChildren<VoipPeerConnectionManager>();
-            if (peerConnectionManager)
+            var manager = NetworkScene.FindNetworkScene(this).GetComponentInChildren<VoipPeerConnectionManager>();
+            if (manager)
             {
-                peerConnectionManager.OnPeerConnection.AddListener(OnPeerConnection);
+                manager.OnPeerConnection.AddListener(OnPeerConnection);
             }
         }
 
         private void OnPeerConnection(VoipPeerConnection peerConnection)
         {
-            if (peerConnection.PeerUuid == avatar.Properties["peer-uuid"])
+            if (peerConnection.PeerUuid == avatar.Peer.UUID)
             {
                 var sink = peerConnection.audioSink;
                 sink.unityAudioSource.spatialBlend = 1.0f;

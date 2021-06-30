@@ -13,7 +13,7 @@ namespace Ubiq.Avatars
         {
             foreach (var item in prefabs)
             {
-                if (item.GetComponent<Avatar>().uuid == uuid)
+                if (item.GetComponent<Avatar>().PrefabUuid == uuid)
                 {
                     return item;
                 }
