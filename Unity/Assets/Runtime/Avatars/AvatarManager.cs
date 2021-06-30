@@ -118,6 +118,8 @@ namespace Ubiq.Avatars
             {
                 RoomClient.Me["ubiq.avatar.prefab"] = LocalPrefabUuid;
             }
+
+            OnPeerUpdated(RoomClient.Me.GetPeerInfo());
         }
 
         /// <summary>
