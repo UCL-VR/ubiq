@@ -191,12 +191,12 @@ namespace Ubiq.Messaging
 
         public bool Equals(NetworkId other)
         {
-            return a == other.a;
+            return a == other.a && b == other.b;
         }
 
         public bool Equals(NetworkId x, NetworkId y)
         {
-            return x.a == y.a;
+            return x.a == y.a && x.b == y.b;
         }
 
         public override int GetHashCode()

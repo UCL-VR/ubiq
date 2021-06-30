@@ -17,7 +17,7 @@ namespace Ubiq.Avatars
     [NetworkComponentId(typeof(AvatarManager), 2)]
     public class AvatarManager : MonoBehaviour
     {
-        public AvatarCatalogue Avatars;
+        public AvatarCatalogue AvatarCatalogue;
         public string LocalPrefabUuid;
 
         /// <summary>
@@ -34,6 +34,14 @@ namespace Ubiq.Avatars
         private Dictionary<string, Avatar> playerAvatars;
 
         public RoomClient RoomClient { get; private set; }
+
+        public IEnumerable<Avatar> Avatars
+        {
+            get
+            {
+                return playerAvatars.Values;
+            }
+        }      
 
         public class AvatarEvent : UnityEvent<Avatar>
         {
@@ -167,7 +175,7 @@ namespace Ubiq.Avatars
 
             if (!playerAvatars.ContainsKey(peer.UUID))
             {
-                var prefab = Avatars.GetPrefab(prefabUuid);
+                var prefab = AvatarCatalogue.GetPrefab(prefabUuid);
                 var created = Instantiate(prefab, transform).GetComponentInChildren<Avatar>();
                 created.Id = id;
                 
@@ -236,6 +244,21 @@ namespace Ubiq.Avatars
             {
                 Destroy(playerAvatars[peer.UUID].gameObject);
                 playerAvatars.Remove(peer.UUID);
+            }
+        }
+
+        /// <summary>
+        /// Find the AvatarManager for forest the Component is a member of. May return null if there is no AvatarManager for the scene.
+        /// </summary>
+        public static AvatarManager Find(MonoBehaviour Component)
+        {
+            try
+            {
+                return NetworkScene.FindNetworkScene(Component).GetComponentInChildren<AvatarManager>();
+            }
+            catch
+            {
+                return null;
             }
         }
     }
