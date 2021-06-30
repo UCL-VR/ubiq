@@ -35,6 +35,23 @@ namespace Ubiq.Avatars
 
         public RoomClient RoomClient { get; private set; }
 
+        public class AvatarEvent : UnityEvent<Avatar>
+        {
+        }
+
+        /// <summary>
+        /// Emitted after an Avatar is created for the first time.
+        /// </summary>
+        /// <remarks>
+        /// This event may be emitted multiple times per peer, if the prefab changes and a Avatar/GameObject needs to be created.
+        /// </remarks>
+        public AvatarEvent OnAvatarCreated;
+
+        /// <summary>
+        /// Emitted just before an Avatar is destroyed
+        /// </summary>
+        public AvatarEvent OnAvatarDestroyed;
+
         /// <summary>
         /// Wraps a PeerInfo object in a persistent PeerInterface
         /// </summary>
@@ -75,6 +92,15 @@ namespace Ubiq.Avatars
         {
             RoomClient = GetComponentInParent<RoomClient>();
             playerAvatars = new Dictionary<string, Avatar>();
+
+            if(OnAvatarCreated == null)
+            {
+                OnAvatarCreated = new AvatarEvent();
+            }
+            if(OnAvatarDestroyed == null)
+            {
+                OnAvatarDestroyed = new AvatarEvent();
+            }
         }
 
         private void Start()
@@ -117,6 +143,7 @@ namespace Ubiq.Avatars
                 var existing = playerAvatars[peer.UUID];
                 if (existing.PrefabUuid != prefabUuid)
                 {
+                    OnAvatarDestroyed.Invoke(existing);
                     Destroy(existing.gameObject);
                     playerAvatars.Remove(peer.UUID);
                 }
@@ -162,6 +189,8 @@ namespace Ubiq.Avatars
                     }
                     LocalAvatar = created;
                 }
+
+                OnAvatarCreated.Invoke(created);
             }
 
             // Update the avatar instance
