@@ -9,6 +9,10 @@ using Ubiq.Logging;
 
 namespace Ubiq.Spawning
 {
+    public interface IUnspawnable
+    {
+        void Unspawn(bool remove);
+    }
     public interface ISpawnable
     {
         NetworkId Id { set; }
@@ -32,6 +36,7 @@ namespace Ubiq.Spawning
         {
             public int catalogueIndex;
             public NetworkId networkId;
+            public bool remove;
         }
 
         private void Reset()
@@ -91,7 +96,19 @@ namespace Ubiq.Spawning
         public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
             var msg = message.FromJson<Message>();
-            Instantiate(msg.catalogueIndex, msg.networkId, false);
+            if (msg.remove)
+            {
+                Debug.Log("ProcessMessage: remove");
+                var key = $"SpawnedObject-{ msg.networkId }";
+                roomClient.Room[key] = null;
+                Destroy(spawned[msg.networkId]);
+                spawned.Remove(msg.networkId);
+            }
+            else
+            {
+                Debug.Log("ProcessMessage");
+                Instantiate(msg.catalogueIndex, msg.networkId, false);
+            }
         }
 
         public GameObject SpawnPersistent(GameObject gameObject)
@@ -105,6 +122,16 @@ namespace Ubiq.Spawning
             return spawned;
         }
 
+        public void UnspawnPersistent(NetworkId networkId)
+        {
+            context.SendJson(new Message() { networkId = networkId, remove = true });
+            var key = $"SpawnedObject-{ networkId }";
+            roomClient.Room[key] = null;
+            Destroy(spawned[networkId]);
+            spawned.Remove(networkId);
+            Debug.Log("UnspawnPersistent");
+        }
+
         private void OnRoom(RoomInfo room)
         {
             foreach (var item in room.Properties)
@@ -113,8 +140,17 @@ namespace Ubiq.Spawning
                 {
                     Debug.Log(item.Key);
                     var msg = JsonUtility.FromJson<Message>(item.Value);
-                    if(!spawned.ContainsKey(msg.networkId))
+                    //if (msg.remove)
+                    //{
+                    //    Debug.Log("OnRoom Remove");
+                    //    Destroy(spawned[msg.networkId]);
+                    //    spawned.Remove(msg.networkId);
+                    //    var key = $"SpawnedObject-{ msg.networkId }";
+                    //    roomClient.Room[key] = null;
+                    //}
+                    if (!spawned.ContainsKey(msg.networkId))
                     {
+                        Debug.Log("OnRoom");
                         Instantiate(msg.catalogueIndex, msg.networkId, false);
                     }
                 }
