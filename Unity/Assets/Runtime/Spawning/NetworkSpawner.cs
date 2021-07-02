@@ -100,7 +100,7 @@ namespace Ubiq.Spawning
             {
                 Debug.Log("ProcessMessage: remove");
                 var key = $"SpawnedObject-{ msg.networkId }";
-                roomClient.Room[key] = null;
+                roomClient.Room[key] = JsonUtility.ToJson(new Message() {networkId = msg.networkId, remove = true});
                 Destroy(spawned[msg.networkId]);
                 spawned.Remove(msg.networkId);
             }
@@ -126,7 +126,7 @@ namespace Ubiq.Spawning
         {
             context.SendJson(new Message() { networkId = networkId, remove = true });
             var key = $"SpawnedObject-{ networkId }";
-            roomClient.Room[key] = null;
+            roomClient.Room[key] = JsonUtility.ToJson(new Message() { networkId = networkId, remove = true });
             Destroy(spawned[networkId]);
             spawned.Remove(networkId);
             Debug.Log("UnspawnPersistent");
@@ -140,18 +140,17 @@ namespace Ubiq.Spawning
                 {
                     Debug.Log(item.Key);
                     var msg = JsonUtility.FromJson<Message>(item.Value);
-                    //if (msg.remove)
-                    //{
-                    //    Debug.Log("OnRoom Remove");
-                    //    Destroy(spawned[msg.networkId]);
-                    //    spawned.Remove(msg.networkId);
-                    //    var key = $"SpawnedObject-{ msg.networkId }";
-                    //    roomClient.Room[key] = null;
-                    //}
+                    
                     if (!spawned.ContainsKey(msg.networkId))
                     {
                         Debug.Log("OnRoom");
-                        Instantiate(msg.catalogueIndex, msg.networkId, false);
+                        if (!msg.remove)
+                        {
+                            Instantiate(msg.catalogueIndex, msg.networkId, false);
+                        }
+                        else
+                        {
+                        }
                     }
                 }
             }

@@ -1552,6 +1552,60 @@ PrefabInstance:
     - {fileID: 8345822118089951830, guid: 2fb578800afc87244b5ba3a0fbbd11c0, type: 3}
     - {fileID: 7068762446051028590, guid: 2fb578800afc87244b5ba3a0fbbd11c0, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 2fb578800afc87244b5ba3a0fbbd11c0, type: 3}
+--- !u!1 &7068762447081937016 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7068762446378101732, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
+    type: 3}
+  m_PrefabInstance: {fileID: 7068762447081937015}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7068762447081937017 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7068762446378101731, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
+    type: 3}
+  m_PrefabInstance: {fileID: 7068762447081937015}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7068762447081937016}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fddd4936b870f084aa3cf82b0e18125f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &7068762447081937018
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7068762447081937016}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93bc060ade1db334ab107b82e04db914, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scene: {fileID: 7068762447081937017}
+  replayFile: rec2021-07-02_15-02-15
+  recordFile: 
+  path: 
+  recording: 0
+  replaying: 0
+  play: 1
+  sliderFrame: 0
+  stopTime: 0
+  replayingStartTime: 0
+  loop: 1
+  currentReplayFrame: 0
+  reverse: 0
+  replayer:
+    recInfo:
+      listLengths: 
+      frames: 0
+      avatarNr: 0
+      objectids: []
+      textures: []
+      frameTimes: []
+      pckgSizePerFrame: 
+      idxFrameStart: 
+  cleanedUp: 1
 --- !u!1001 &7290265296070105307
 PrefabInstance:
   m_ObjectHideFlags: 0

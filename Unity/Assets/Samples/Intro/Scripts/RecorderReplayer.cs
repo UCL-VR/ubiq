@@ -206,9 +206,8 @@ public class Recorder
                     var idx = idxFrameStart[idxFrameStart.Count - 1] + bMessages.Length;
                     idxFrameStart.Add(idx);
                     frameTimes.Add(Time.unscaledTime - recordingStartTime);
-                    Debug.Log("Pack size: " + bMessages.Length); // length includes 4 byte of size
-                    //test++;
-                    //Debug.Log(test);
+                    //Debug.Log("Pack size: " + bMessages.Length); // length includes 4 byte of size
+ 
                 }
                 messages = new MessagePack();
                 previousFrame++;
@@ -313,24 +312,18 @@ public class Replayer
         {
             if (loaded) // meaning recInfo
             {
-                Debug.Log("loaded");
+                //Debug.Log("loaded");
                 var t = Time.unscaledTime - (recRep.replayingStartTime - recRep.stopTime);
-                Debug.Log("unscaled " + Time.unscaledTime + " start " + recRep.replayingStartTime + " stop " + recRep.stopTime);
-                Debug.Log("times " + recInfo.frameTimes[recRep.currentReplayFrame] + " " + t);
+                //Debug.Log("unscaled " + Time.unscaledTime + " start " + recRep.replayingStartTime + " stop " + recRep.stopTime);
+                //Debug.Log("times " + recInfo.frameTimes[recRep.currentReplayFrame] + " " + t);
                 //t1++;
                 if (recInfo.frameTimes[recRep.currentReplayFrame] <= t)
                 {
                     //t2++;
                     ReplayFromFile();
-                    recRep.currentReplayFrame++;
-                    if (recRep.currentReplayFrame == recInfo.frames)
-                    {
-                        recRep.currentReplayFrame = 0;
-                        streamFromFile.Position = 0;
-                        recRep.replayingStartTime = Time.unscaledTime;
-                        recRep.stopTime = 0.0f;
-                    }
-                    recRep.sliderFrame = recRep.currentReplayFrame;
+
+                    // depending on settings either forwards or backwards
+                    UpdateFrame();
 
                 }
             }
@@ -338,24 +331,38 @@ public class Replayer
         }
         else // !play 
         {
-            Debug.Log("!play");
+            //Debug.Log("!play");
             recRep.currentReplayFrame = recRep.sliderFrame;
             recRep.stopTime = recInfo.frameTimes[recRep.currentReplayFrame];
             ReplayFromFile();
         }
-   
-        //else
-        //{
-        //if (loaded)
-        //{
-        //    ReplayMessagesPerFrame();
-        //    if (currentReplayFrame == recInfo.frames - 1)
-        //    {
-        //        currentReplayFrame = 0;
-        //        msgIndex = 0;
-        //    }
-        //}
-        //  }
+    }
+
+    private void UpdateFrame()
+    {
+        if(!recRep.reverse)
+        {
+            recRep.currentReplayFrame++;
+            if (recRep.currentReplayFrame == recInfo.frames)
+            {
+                recRep.currentReplayFrame = 0;
+                streamFromFile.Position = 0;
+                recRep.replayingStartTime = Time.unscaledTime;
+                recRep.stopTime = 0.0f;
+            }
+        }
+        else
+        {
+            recRep.currentReplayFrame--;
+            if (recRep.currentReplayFrame == 0)
+            {
+                recRep.currentReplayFrame = 0;
+                streamFromFile.Position = recInfo.idxFrameStart[recInfo.frames-1];
+                recRep.replayingStartTime = Time.unscaledTime;
+                recRep.stopTime = 0.0f;
+            }
+        }
+        recRep.sliderFrame = recRep.currentReplayFrame;
 
     }
 
@@ -411,17 +418,7 @@ public class Replayer
         filepath = recRep.path + "/" + replayFile + ".dat";
         if (File.Exists(filepath))
         {
-            //if (recRep.replayFromFile) // initialize Stream reader 
-            //{
             opened = OpenStream(filepath);
-
-            //}
-            //else // load whole dataset as usual
-            //{
-                //Debug.Log("Load recording...");
-                //loaded = await LoadMessages(filepath);
-                //Debug.Log("Recording loaded!");
-            //}   
         }
         else
         {
@@ -610,6 +607,7 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
     [HideInInspector] public float replayingStartTime = 0.0f;
     [HideInInspector] public bool loop = true;
     [HideInInspector] public int currentReplayFrame = 0;
+    [HideInInspector] public bool reverse = false;
 
 
     private Recorder recorder;
@@ -658,7 +656,7 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
        else
         {
             recordingAvailable = true;
-            //cleanedUp = false;
+            cleanedUp = false;
         }
         // load file
         // create avatars (avatar manager to get exact avatars) on other clients
@@ -702,13 +700,10 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
         return recording;
     }
 }
-
+# if UNITY_EDITOR
 [CustomEditor(typeof(RecorderReplayer))]
 public class RecorderReplayerEditor : Editor
 {
-    private bool cleanedUp = false;
-    private bool stopIsSet = false;
-    private bool startIsSet = false;
 
     public override void OnInspectorGUI()
     {
@@ -740,4 +735,5 @@ public class RecorderReplayerEditor : Editor
         }
     }
 }
+# endif
 

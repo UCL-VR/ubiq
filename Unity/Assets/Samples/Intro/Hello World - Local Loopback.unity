@@ -145,6 +145,13 @@ MonoBehaviour:
   path: 
   recording: 0
   replaying: 0
+  play: 1
+  sliderFrame: 0
+  stopTime: 0
+  replayingStartTime: 0.8511451
+  loop: 1
+  currentReplayFrame: 0
+  reverse: 0
   replayer:
     recInfo:
       listLengths: 
@@ -155,6 +162,7 @@ MonoBehaviour:
       frameTimes: []
       pckgSizePerFrame: 
       idxFrameStart: 
+  cleanedUp: 0
 --- !u!1001 &50851917
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2038,6 +2046,13 @@ MonoBehaviour:
   path: 
   recording: 0
   replaying: 0
+  play: 1
+  sliderFrame: 0
+  stopTime: 0
+  replayingStartTime: 0
+  loop: 1
+  currentReplayFrame: 0
+  reverse: 0
   replayer:
     recInfo:
       listLengths: 
@@ -2048,6 +2063,7 @@ MonoBehaviour:
       frameTimes: []
       pckgSizePerFrame: 
       idxFrameStart: 
+  cleanedUp: 1
 --- !u!1001 &7290265296070105307
 PrefabInstance:
   m_ObjectHideFlags: 0
