@@ -308,21 +308,20 @@ public class Replayer
         if (!loadingStarted)
         {
             LoadRecording(replayFile);
-            Debug.Log("Ready to replay: " + loaded);
         }
 
         if (recRep.play)
         {
-            Debug.Log("Replay() play");
             if (loaded) // meaning recInfo
             {
                 Debug.Log("loaded");
-                var t = Time.unscaledTime - recRep.replayingStartTime - recRep.stopTime;
+                var t = Time.unscaledTime - (recRep.replayingStartTime - recRep.stopTime);
+                Debug.Log("unscaled " + Time.unscaledTime + " start " + recRep.replayingStartTime + " stop " + recRep.stopTime);
+                Debug.Log("times " + recInfo.frameTimes[currentReplayFrame] + " " + t);
                 //t1++;
                 if (recInfo.frameTimes[currentReplayFrame] <= t)
                 {
                     //t2++;
-                    Debug.Log("times " + recInfo.frameTimes[currentReplayFrame] + " " + t);
                     currentReplayFrame = recRep.sliderFrame;
                     ReplayFromFile();
                     currentReplayFrame++;
@@ -338,6 +337,11 @@ public class Replayer
                 }
             }
             //Debug.Log(t1 + " " + t2);
+        }
+        else // !play 
+        {
+            Debug.Log("!play");
+            recRep.stopTime = recInfo.frameTimes[currentReplayFrame];
         }
    
         //else
@@ -543,6 +547,7 @@ public class Replayer
         loadingStarted = false;
         loaded = false;
         currentReplayFrame = 0;
+        recRep.sliderFrame = 0;
         //recInfo = null;
 
         if (replayedObjects.Count > 0)
@@ -602,6 +607,7 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
     [HideInInspector] public int sliderFrame = 0;
     [HideInInspector] public float stopTime = 0.0f;
     [HideInInspector] public float replayingStartTime = 0.0f;
+    [HideInInspector] public bool loop = true;
 
     private Recorder recorder;
     [HideInInspector] public Replayer replayer;
@@ -656,10 +662,7 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
         // send messages over network
         if (replaying)
         {
-            if (play)
-            {
-                replayer.Replay(replayFile);
-            }
+            replayer.Replay(replayFile);
         }
         else
         {
@@ -716,20 +719,20 @@ public class RecorderReplayerEditor : Editor
         t.replaying = EditorGUILayout.Toggle("Replaying", t.replaying);
         if (t.replaying)
         {
-            t.play = true;
+            //t.play = true;
             t.cleanedUp = false;
-            //if (GUILayout.Button(t.play == true ? "Stop" : "Play"))
-            //{
-            //    if(!t.play)
-            //    {
-            //        t.stopTime = Time.unscaledTime;
-            //    }
-            //    else
-            //    {
-            //        t.replayingStartTime = Time.unscaledTime;
-            //    }
-            //    t.play = !t.play;
-            //}
+            if (GUILayout.Button(t.play == true ? "Stop" : "Play"))
+            {
+                if (!t.play)
+                {
+                    t.replayingStartTime = Time.unscaledTime;
+                }
+                else
+                {
+                    //t.stopTime = Time.unscaledTime - t.replayingStartTime;
+                }
+                t.play = !t.play;
+            }
 
             t.sliderFrame = EditorGUILayout.IntSlider(t.sliderFrame, 0, t.replayer.recInfo.frames);
         }
