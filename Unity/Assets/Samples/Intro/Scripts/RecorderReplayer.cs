@@ -268,7 +268,6 @@ public class Replayer
     private ReferenceCountedSceneGraphMessage[][] replayedMessages;
     private int[] replayedFrames;
     public RecordingInfo recInfo = null;
-    private int currentReplayFrame = 0;
     // later for the recording of other objects consider not only saving the networkid but additional info such as class
     // maybe save info in Dictionary list and save objectid (key) and values (list: class, (if avatar what avatar type + texture info)
     private Dictionary<NetworkId, string> replayedObjectids; // avatar IDs and texture
@@ -317,22 +316,21 @@ public class Replayer
                 Debug.Log("loaded");
                 var t = Time.unscaledTime - (recRep.replayingStartTime - recRep.stopTime);
                 Debug.Log("unscaled " + Time.unscaledTime + " start " + recRep.replayingStartTime + " stop " + recRep.stopTime);
-                Debug.Log("times " + recInfo.frameTimes[currentReplayFrame] + " " + t);
+                Debug.Log("times " + recInfo.frameTimes[recRep.currentReplayFrame] + " " + t);
                 //t1++;
-                if (recInfo.frameTimes[currentReplayFrame] <= t)
+                if (recInfo.frameTimes[recRep.currentReplayFrame] <= t)
                 {
                     //t2++;
-                    currentReplayFrame = recRep.sliderFrame;
                     ReplayFromFile();
-                    currentReplayFrame++;
-                    if (currentReplayFrame == recInfo.frames)
+                    recRep.currentReplayFrame++;
+                    if (recRep.currentReplayFrame == recInfo.frames)
                     {
-                        currentReplayFrame = 0;
+                        recRep.currentReplayFrame = 0;
                         streamFromFile.Position = 0;
                         recRep.replayingStartTime = Time.unscaledTime;
                         recRep.stopTime = 0.0f;
                     }
-                    recRep.sliderFrame = currentReplayFrame;
+                    recRep.sliderFrame = recRep.currentReplayFrame;
 
                 }
             }
@@ -341,7 +339,9 @@ public class Replayer
         else // !play 
         {
             Debug.Log("!play");
-            recRep.stopTime = recInfo.frameTimes[currentReplayFrame];
+            recRep.currentReplayFrame = recRep.sliderFrame;
+            recRep.stopTime = recInfo.frameTimes[recRep.currentReplayFrame];
+            ReplayFromFile();
         }
    
         //else
@@ -490,10 +490,11 @@ public class Replayer
         return rcsgm;
     }
 
+    
     private void ReplayFromFile()
     {
-        var pckgSize = recInfo.pckgSizePerFrame[currentReplayFrame];
-        streamFromFile.Position = recInfo.idxFrameStart[currentReplayFrame];
+        var pckgSize = recInfo.pckgSizePerFrame[recRep.currentReplayFrame];
+        streamFromFile.Position = recInfo.idxFrameStart[recRep.currentReplayFrame];
         byte[] msgPack = new byte[pckgSize];
 
         var numberBytes = streamFromFile.Read(msgPack, 0, pckgSize);
@@ -523,7 +524,7 @@ public class Replayer
     {
         Debug.Log("Replay messages...");
 
-        foreach (var message in replayedMessages[currentReplayFrame])
+        foreach (var message in replayedMessages[recRep.currentReplayFrame])
         {
             ReplayedObjectProperties props = replayedObjects[message.objectid];
             INetworkComponent component = props.components[message.componentid];
@@ -536,7 +537,7 @@ public class Replayer
 
         }
         //msgIndex = msgIndex + msgsPerFrame;
-        currentReplayFrame++;
+        recRep.currentReplayFrame++;
         //Debug.Log(currentReplayFrame + " " + msgIndex);
 
     }
@@ -546,7 +547,7 @@ public class Replayer
         Debug.Log("Cleanup");
         loadingStarted = false;
         loaded = false;
-        currentReplayFrame = 0;
+        recRep.currentReplayFrame = 0;
         recRep.sliderFrame = 0;
         //recInfo = null;
 
@@ -608,6 +609,8 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
     [HideInInspector] public float stopTime = 0.0f;
     [HideInInspector] public float replayingStartTime = 0.0f;
     [HideInInspector] public bool loop = true;
+    [HideInInspector] public int currentReplayFrame = 0;
+
 
     private Recorder recorder;
     [HideInInspector] public Replayer replayer;
@@ -727,14 +730,13 @@ public class RecorderReplayerEditor : Editor
                 {
                     t.replayingStartTime = Time.unscaledTime;
                 }
-                else
-                {
-                    //t.stopTime = Time.unscaledTime - t.replayingStartTime;
-                }
                 t.play = !t.play;
             }
+            if (!t.play)
+            {
+                t.sliderFrame = EditorGUILayout.IntSlider(t.sliderFrame, 0, t.replayer.recInfo.frames);
+            }
 
-            t.sliderFrame = EditorGUILayout.IntSlider(t.sliderFrame, 0, t.replayer.recInfo.frames);
         }
     }
 }
