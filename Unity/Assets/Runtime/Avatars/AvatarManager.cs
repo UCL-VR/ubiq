@@ -43,7 +43,11 @@ namespace Ubiq.Avatars
             }
         }      
 
-        public class AvatarEvent : UnityEvent<Avatar>
+        public class AvatarDestroyEvent : UnityEvent<Avatar>
+        {
+        }
+
+        public class AvatarCreatedEvent : ListEvent<Avatar>
         {
         }
 
@@ -53,12 +57,12 @@ namespace Ubiq.Avatars
         /// <remarks>
         /// This event may be emitted multiple times per peer, if the prefab changes and a Avatar/GameObject needs to be created.
         /// </remarks>
-        public AvatarEvent OnAvatarCreated;
+        public AvatarCreatedEvent OnAvatarCreated;
 
         /// <summary>
         /// Emitted just before an Avatar is destroyed
         /// </summary>
-        public AvatarEvent OnAvatarDestroyed;
+        public AvatarDestroyEvent OnAvatarDestroyed;
 
         /// <summary>
         /// Wraps a PeerInfo object in a persistent PeerInterface
@@ -103,11 +107,13 @@ namespace Ubiq.Avatars
 
             if(OnAvatarCreated == null)
             {
-                OnAvatarCreated = new AvatarEvent();
+                OnAvatarCreated = new AvatarCreatedEvent();
             }
+            OnAvatarCreated.SetList(playerAvatars.Values);
+
             if(OnAvatarDestroyed == null)
             {
-                OnAvatarDestroyed = new AvatarEvent();
+                OnAvatarDestroyed = new AvatarDestroyEvent();
             }
         }
 
