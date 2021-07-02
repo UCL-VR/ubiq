@@ -115,7 +115,7 @@ namespace Ubiq.Spawning
         {
             var i = ResolveIndex(gameObject);
             var networkId = NetworkScene.GenerateUniqueId();
-            Debug.Log("SpawnPersistent() " + networkId.ToString());
+            //Debug.Log("SpawnPersistent() " + networkId.ToString());
             var key = $"SpawnedObject-{ networkId }";
             var spawned = Instantiate(i, networkId, true);
             roomClient.Room[key] = JsonUtility.ToJson(new Message() { catalogueIndex = i, networkId = networkId });

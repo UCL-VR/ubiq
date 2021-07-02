@@ -145,6 +145,16 @@ MonoBehaviour:
   path: 
   recording: 0
   replaying: 0
+  replayer:
+    recInfo:
+      listLengths: 
+      frames: 0
+      avatarNr: 0
+      objectids: []
+      textures: []
+      frameTimes: []
+      pckgSizePerFrame: 
+      idxFrameStart: 
 --- !u!1001 &50851917
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2028,6 +2038,16 @@ MonoBehaviour:
   path: 
   recording: 0
   replaying: 0
+  replayer:
+    recInfo:
+      listLengths: 
+      frames: 0
+      avatarNr: 0
+      objectids: []
+      textures: []
+      frameTimes: []
+      pckgSizePerFrame: 
+      idxFrameStart: 
 --- !u!1001 &7290265296070105307
 PrefabInstance:
   m_ObjectHideFlags: 0

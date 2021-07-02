@@ -267,7 +267,7 @@ public class Replayer
 
     private ReferenceCountedSceneGraphMessage[][] replayedMessages;
     private int[] replayedFrames;
-    private RecordingInfo recInfo;
+    public RecordingInfo recInfo = null;
     private int currentReplayFrame = 0;
     // later for the recording of other objects consider not only saving the networkid but additional info such as class
     // maybe save info in Dictionary list and save objectid (key) and values (list: class, (if avatar what avatar type + texture info)
@@ -275,12 +275,14 @@ public class Replayer
     private Dictionary<NetworkId, ReplayedObjectProperties> replayedObjects; // new objectids! 
     private Dictionary<NetworkId, NetworkId> oldNewObjectids;
     private bool loadingStarted = false; // set to true once loading recorded data starts
+    private bool loaded = false;
     //private bool loaded = false; // set to true once all recorded data is loaded
     //private int msgIndex = 0; // for replaying from file where every msg is in separate line to get correct index for messages in next frame
     private FileStream streamFromFile;
-    private float replayingStartTime = 0.0f;
     private int t1 = 0;
     private int t2 = 0;
+    private bool created = false;
+    private bool opened = false;
 
 
     public Replayer(RecorderReplayer recRep)
@@ -301,32 +303,43 @@ public class Replayer
         public Dictionary<int, INetworkComponent> components = new Dictionary<int, INetworkComponent>();
 
     }
-
     public void Replay(string replayFile)
     {
         if (!loadingStarted)
         {
             LoadRecording(replayFile);
+            Debug.Log("Ready to replay: " + loaded);
         }
-        if (recInfo != null)
+
+        if (recRep.play)
         {
-            //t1++;
-            if (recInfo.frameTimes[currentReplayFrame] <= (Time.unscaledTime - replayingStartTime))
+            Debug.Log("Replay() play");
+            if (loaded) // meaning recInfo
             {
-                //t2++;
-                //Debug.Log("times " + recInfo.frameTimes[currentReplayFrame] + " " + (Time.unscaledTime - replayingStartTime));
-                ReplayFromFile();
-                currentReplayFrame++;
-                if (currentReplayFrame == recInfo.frames)
+                Debug.Log("loaded");
+                var t = Time.unscaledTime - recRep.replayingStartTime - recRep.stopTime;
+                //t1++;
+                if (recInfo.frameTimes[currentReplayFrame] <= t)
                 {
-                    currentReplayFrame = 0;
-                    streamFromFile.Position = 0;
-                    replayingStartTime = Time.unscaledTime;
+                    //t2++;
+                    Debug.Log("times " + recInfo.frameTimes[currentReplayFrame] + " " + t);
+                    currentReplayFrame = recRep.sliderFrame;
+                    ReplayFromFile();
+                    currentReplayFrame++;
+                    if (currentReplayFrame == recInfo.frames)
+                    {
+                        currentReplayFrame = 0;
+                        streamFromFile.Position = 0;
+                        recRep.replayingStartTime = Time.unscaledTime;
+                        recRep.stopTime = 0.0f;
+                    }
+                    recRep.sliderFrame = currentReplayFrame;
+
                 }
             }
             //Debug.Log(t1 + " " + t2);
-
         }
+   
         //else
         //{
         //if (loaded)
@@ -342,7 +355,7 @@ public class Replayer
 
     }
 
-    private void CreateRecordedAvatars()
+    private bool CreateRecordedAvatars()
     {
         foreach (var objectid in recInfo.objectids)
         {
@@ -368,6 +381,7 @@ public class Replayer
             replayedObjects.Add(avatar.Id, props);
 
         }
+        return true;
     }
 
     public async void LoadRecording(string replayFile)
@@ -380,14 +394,13 @@ public class Replayer
             Debug.Log("Load info...");
             recInfo = await LoadRecInfo(filepath);
             Debug.Log(recInfo.frames + " " + recInfo.frameTimes.Count + " " + recInfo.pckgSizePerFrame.Count);
-
             Debug.Log("Info loaded!");
 
-            CreateRecordedAvatars();
+            created = CreateRecordedAvatars();
         }
         else
         {
-            Debug.Log("Invalid replay file ID plath!");
+            Debug.Log("Invalid replay file ID path!");
         }
 
         //filepath = recRep.path + "/" + replayFile + ".txt";
@@ -396,8 +409,7 @@ public class Replayer
         {
             //if (recRep.replayFromFile) // initialize Stream reader 
             //{
-            streamFromFile = File.Open(filepath, FileMode.Open); // dispose once replaying is done
-            replayingStartTime = Time.unscaledTime;
+            opened = OpenStream(filepath);
 
             //}
             //else // load whole dataset as usual
@@ -411,7 +423,13 @@ public class Replayer
         {
             Debug.Log("Invalid replay file plath!");
         }
-
+        loaded = created && opened;
+    }
+    private bool OpenStream(string filepath)
+    {
+        streamFromFile = File.Open(filepath, FileMode.Open); // dispose once replaying is done
+        recRep.replayingStartTime = Time.unscaledTime;
+        return true;
     }
 
     private async Task<RecordingInfo> LoadRecInfo(string filepath)
@@ -523,9 +541,9 @@ public class Replayer
     {
         Debug.Log("Cleanup");
         loadingStarted = false;
+        loaded = false;
         currentReplayFrame = 0;
-        replayingStartTime = 0.0f;
-        recInfo = null;
+        //recInfo = null;
 
         if (replayedObjects.Count > 0)
         {
@@ -580,15 +598,16 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
     [HideInInspector] public string recordFile = null;
     [HideInInspector] public string path;
     [HideInInspector] public bool recording, replaying;
-    private bool play = false;
-    
+    [HideInInspector] public bool play = true;
+    [HideInInspector] public int sliderFrame = 0;
+    [HideInInspector] public float stopTime = 0.0f;
+    [HideInInspector] public float replayingStartTime = 0.0f;
+
     private Recorder recorder;
-    private Replayer replayer;
+    [HideInInspector] public Replayer replayer;
     private bool recordingAvailable = false;
+    [HideInInspector] public bool cleanedUp = true;
 
-    private AvatarManager avatarManager;
-
-    
     // Start is called before the first frame update
     void Start()
     {        
@@ -603,9 +622,7 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
         recorder = new Recorder(this);
         replayer = new Replayer(this);
 
-        avatarManager = scene.GetComponent<AvatarManager>();
     }
-
     // Update is called once per frame
     void Update()
     {
@@ -620,6 +637,9 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
                 {
                     replaying = false;
                     replayer.Cleanup();
+                    replayingStartTime = 0.0f;
+                    stopTime = 0.0f;
+                    cleanedUp = true;
                 }
 
                 SetReplayFile();
@@ -629,21 +649,29 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
        else
         {
             recordingAvailable = true;
+            //cleanedUp = false;
         }
         // load file
         // create avatars (avatar manager to get exact avatars) on other clients
         // send messages over network
         if (replaying)
         {
-            replayer.Replay(replayFile);
+            if (play)
+            {
+                replayer.Replay(replayFile);
+            }
         }
         else
         {
-            replayer.Cleanup();
+            if (!cleanedUp)
+            {
+                replayer.Cleanup();
+                replayingStartTime = 0.0f;
+                stopTime = 0.0f;
+                cleanedUp = true;
+            }
         }
-
     }
-
     public void SetReplayFile()
     {
         // sets the previously recorded file as replay file
@@ -672,28 +700,39 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
 [CustomEditor(typeof(RecorderReplayer))]
 public class RecorderReplayerEditor : Editor
 {
+    private bool cleanedUp = false;
+    private bool stopIsSet = false;
+    private bool startIsSet = false;
+
     public override void OnInspectorGUI()
     {
         var t = (RecorderReplayer)target;
         DrawDefaultInspector();
 
-
         if (GUILayout.Button(t.recording == true ? "Stop Recording" : "Record"))
         {
             t.recording = !t.recording;
         }
-        if (GUILayout.Button(t.replaying == true ? "Stop Replaying" : "Replay"))
+        t.replaying = EditorGUILayout.Toggle("Replaying", t.replaying);
+        if (t.replaying)
         {
-            t.replaying = !t.replaying;
-            //if (t.replaying)
+            t.play = true;
+            t.cleanedUp = false;
+            //if (GUILayout.Button(t.play == true ? "Stop" : "Play"))
             //{
-            //   if (GUILayout.Button(t.play == true ? "Play" : "Pause"))
+            //    if(!t.play)
             //    {
-            //        t.play = !t.play;
+            //        t.stopTime = Time.unscaledTime;
             //    }
+            //    else
+            //    {
+            //        t.replayingStartTime = Time.unscaledTime;
+            //    }
+            //    t.play = !t.play;
             //}
+
+            t.sliderFrame = EditorGUILayout.IntSlider(t.sliderFrame, 0, t.replayer.recInfo.frames);
         }
-       
     }
 }
 
