@@ -1595,6 +1595,7 @@ MonoBehaviour:
   loop: 1
   currentReplayFrame: 0
   reverse: 0
+  leftRoom: 0
   replayer:
     recInfo:
       listLengths: 
@@ -1605,7 +1606,7 @@ MonoBehaviour:
       frameTimes: []
       pckgSizePerFrame: 
       idxFrameStart: 
-  cleanedUp: 1
+  cleanedUp: 0
 --- !u!1001 &7290265296070105307
 PrefabInstance:
   m_ObjectHideFlags: 0

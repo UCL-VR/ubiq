@@ -26,7 +26,6 @@ namespace Ubiq.Spawning
         public RoomClient roomClient;
         public PrefabCatalogue catalogue;
 
-
         private NetworkContext context;
         private Dictionary<NetworkId, GameObject> spawned;
         private EventLogger events;
@@ -37,6 +36,7 @@ namespace Ubiq.Spawning
             public int catalogueIndex;
             public NetworkId networkId;
             public bool remove;
+            public bool recording;
         }
 
         private void Reset()
@@ -72,6 +72,7 @@ namespace Ubiq.Spawning
             context = NetworkScene.Register(this);
             events = new ContextEventLogger(context);
             roomClient.OnRoom.AddListener(OnRoom);
+            roomClient.OnLeftRoom.AddListener(OnLeftRoom);
         }
 
         private GameObject Instantiate(int i, NetworkId networkId, bool local)
@@ -111,6 +112,17 @@ namespace Ubiq.Spawning
             }
         }
 
+        public GameObject SpawnPersistentRecording(GameObject gameObject)
+        {
+            var i = ResolveIndex(gameObject);
+            var networkId = NetworkScene.GenerateUniqueId();
+            //Debug.Log("SpawnPersistentRecording() " + networkId.ToString());
+            var key = $"SpawnedObject-{ networkId }";
+            var spawned = Instantiate(i, networkId, true);
+            roomClient.Room[key] = JsonUtility.ToJson(new Message() { catalogueIndex = i, networkId = networkId, recording = true});
+            return spawned;
+        }
+
         public GameObject SpawnPersistent(GameObject gameObject)
         {
             var i = ResolveIndex(gameObject);
@@ -126,7 +138,7 @@ namespace Ubiq.Spawning
         {
             context.SendJson(new Message() { networkId = networkId, remove = true });
             var key = $"SpawnedObject-{ networkId }";
-            roomClient.Room[key] = JsonUtility.ToJson(new Message() { networkId = networkId, remove = true });
+            roomClient.Room[key] = JsonUtility.ToJson(new Message() { networkId = networkId, remove = true, recording = true});
             Destroy(spawned[networkId]);
             spawned.Remove(networkId);
             Debug.Log("UnspawnPersistent");
@@ -138,7 +150,7 @@ namespace Ubiq.Spawning
             {
                 if(item.Key.StartsWith("SpawnedObject"))
                 {
-                    Debug.Log(item.Key);
+                    Debug.Log("OnRoom " + item.Key);
                     var msg = JsonUtility.FromJson<Message>(item.Value);
                     
                     if (!spawned.ContainsKey(msg.networkId))
@@ -150,8 +162,31 @@ namespace Ubiq.Spawning
                         }
                         else
                         {
+                            roomClient.Room[item.Key] = null;
                         }
                     }
+                }
+            }
+        }
+
+        private void OnLeftRoom(RoomInfo room)
+        {
+            Debug.Log("OnLeftRoom");
+            foreach (var item in room.Properties)
+            {
+                if (item.Key.StartsWith("SpawnedObject"))
+                {
+                    Debug.Log("OnLeftRoom: " + item.Key);
+                    var msg = JsonUtility.FromJson<Message>(item.Value);
+
+                    if (!msg.recording) // locally replayed objects were already removed, so dont't do it again
+                    {
+                        Debug.Log("Remove object: " + msg.networkId);
+                        Destroy(spawned[msg.networkId]);
+                        spawned.Remove(msg.networkId);
+                    }
+                    var key = $"SpawnedObject-{ msg.networkId }";
+                    roomClient.Room[key] = null;
                 }
             }
         }
