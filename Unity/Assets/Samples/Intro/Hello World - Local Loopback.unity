@@ -140,7 +140,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scene: {fileID: 1286262429}
-  replayFile: rec2021-07-01_18-15-01
+  replayFile: rec2021-07-02_15-02-15
   recordFile: 
   path: 
   recording: 0
@@ -152,6 +152,7 @@ MonoBehaviour:
   loop: 1
   currentReplayFrame: 0
   reverse: 0
+  leftRoom: 0
   replayer:
     recInfo:
       listLengths: 
@@ -2053,6 +2054,7 @@ MonoBehaviour:
   loop: 1
   currentReplayFrame: 0
   reverse: 0
+  leftRoom: 0
   replayer:
     recInfo:
       listLengths: 

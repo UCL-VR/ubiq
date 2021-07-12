@@ -1,9 +1,9 @@
 {
     "m_SelectedDeviceId": "1WMHH8104T0462",
     "m_SelectedPackage": {
-        "deviceId": "",
-        "name": "",
-        "processId": 0,
+        "deviceId": "1WMHH8104T0462",
+        "name": "com.ucl.ubiq",
+        "processId": 7750,
         "exited": false
     },
     "m_SelectedPriority": 0,
@@ -18,6 +18,18 @@
             "deviceId": "1WMHH8104T0462",
             "name": "com.oculus.xrstreamingclient",
             "processId": 5227,
+            "exited": false
+        },
+        {
+            "deviceId": "1WMHH8104T0462",
+            "name": "com.ucl.ubiq",
+            "processId": 7100,
+            "exited": false
+        },
+        {
+            "deviceId": "1WMHH8104T0462",
+            "name": "com.ucl.ubiq",
+            "processId": 7750,
             "exited": false
         }
     ],

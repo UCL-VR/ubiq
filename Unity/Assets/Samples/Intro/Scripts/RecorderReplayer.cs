@@ -296,6 +296,7 @@ public class Replayer
     private class ReplayedObjectProperties
     {
         public GameObject gameObject;
+        public Transform[] childTrafos;
         public NetworkId id;
         public Dictionary<int, INetworkComponent> components = new Dictionary<int, INetworkComponent>();
 
@@ -414,17 +415,21 @@ public class Replayer
     {
         foreach (var objectid in recInfo.objectids)
         {
+            ReplayedObjectProperties props = new ReplayedObjectProperties();
+            
             // if different avatar types are used for different clients change this!
             GameObject prefab = spawner.catalogue.prefabs[3]; // Spawnable Floating BodyA Avatar
                                                               //prefab.GetComponent<RenderToggle>();
             GameObject go = spawner.SpawnPersistentRecording(prefab); // this game object has network context etc. (not the prefab)
+            props.gameObject = go;
+            props.childTrafos = go.GetComponentsInChildren<Transform>();
+            LayerGameObject(props, 8); 
+
             Avatar avatar = go.GetComponent<Avatar>(); // spawns invisible avatar
             Debug.Log("CreateRecordedAvatars() " + avatar.Id);
 
             oldNewObjectids.Add(objectid, avatar.Id);
 
-            ReplayedObjectProperties props = new ReplayedObjectProperties();
-            props.gameObject = go;
             props.id = avatar.Id;
             INetworkComponent[] components = go.GetComponents<INetworkComponent>();
             foreach (var comp in components)
@@ -437,6 +442,15 @@ public class Replayer
 
         }
         return true;
+    }
+
+    private void LayerGameObject(ReplayedObjectProperties props, int layer)
+    {
+        props.gameObject.layer = layer;
+        foreach (Transform child in props.childTrafos)
+        {
+            child.gameObject.layer = layer;
+        }
     }
 
     public async void LoadRecording(string replayFile)
