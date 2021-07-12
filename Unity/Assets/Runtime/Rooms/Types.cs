@@ -4,6 +4,7 @@ using System.Linq;
 using Ubiq.Dictionaries;
 using Ubiq.Messaging;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Ubiq.Rooms
 {
@@ -57,11 +58,12 @@ namespace Ubiq.Rooms
     }
 
     /// <summary>
-    /// The PeerInterface class provides encapsulation of the PeerInfo data transfer object, similar to the RoomInterface above.
+    /// The PeerInterface class encapsulates the PeerInfo data transfer object. It provides a single reference
+    /// that is safe to store and pass around, and prevents unsafe writes.
     /// </summary>
     public abstract class PeerInterface
     {
-        public string UUID { get; private set; }
+        public virtual string UUID { get; private set; }
 
         public PeerInterface(String uuid)
         {
@@ -72,13 +74,13 @@ namespace Ubiq.Rooms
         protected SerializableDictionary properties;
         protected NetworkId networkId;
 
-        public string this[string key]
+        public virtual string this[string key]
         {
             get => properties[key];
             set => properties[key] = value;
         }
 
-        public PeerInfo GetPeerInfo()
+        public virtual PeerInfo GetPeerInfo()
         {
             return new PeerInfo(UUID, networkId, properties);
         }
@@ -212,6 +214,14 @@ namespace Ubiq.Rooms
             this.properties = properties;
         }
     }
+
+    public class PeerEvent : UnityEvent<PeerInfo> 
+    {
+    };
+
+    public class RoomEvent : UnityEvent<RoomInfo> 
+    {
+    };
 
     [Serializable]
     public struct JoinRequest

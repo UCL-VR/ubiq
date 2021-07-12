@@ -146,6 +146,14 @@ namespace Ubiq.Messaging
 
         public NetworkId(string id)
         {
+            a = 0;
+            b = 0;
+
+            if (id == null)
+            {
+                return;
+            }
+
             ulong numeric;
             id = id.Replace("-", "");
             if (ulong.TryParse(id, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.CurrentCulture, out numeric))
@@ -160,8 +168,7 @@ namespace Ubiq.Messaging
                 b = (uint)(numeric & 0xffffffffL);
                 return;
             }
-            a = 0;
-            b = 0;
+
             Debug.LogException(new ArgumentException($"Invalid Network Id Format {id}"));
         }
 
@@ -184,12 +191,12 @@ namespace Ubiq.Messaging
 
         public bool Equals(NetworkId other)
         {
-            return a == other.a;
+            return a == other.a && b == other.b;
         }
 
         public bool Equals(NetworkId x, NetworkId y)
         {
-            return x.a == y.a;
+            return x.a == y.a && x.b == y.b;
         }
 
         public override int GetHashCode()
@@ -205,6 +212,14 @@ namespace Ubiq.Messaging
         public int GetHashCode(NetworkId obj)
         {
             return obj.a.GetHashCode();
+        }
+
+        public bool Valid
+        {
+            get
+            {
+                return b != 0;
+            }
         }
 
         public static bool operator ==(NetworkId a, NetworkId b)

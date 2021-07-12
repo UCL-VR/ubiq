@@ -25,8 +25,8 @@ namespace Ubiq.Voip
         [Serializable] public class IceConnectionStateEvent : UnityEvent<RTCIceConnectionState> { }
         [Serializable] public class PeerConnectionStateEvent : UnityEvent<RTCPeerConnectionState> { }
 
-        public IceConnectionStateEvent onIceConnectionStateChanged;
-        public PeerConnectionStateEvent onPeerConnectionStateChanged;
+        public IceConnectionStateEvent OnIceConnectionStateChanged;
+        public PeerConnectionStateEvent OnPeerConnectionStateChanged;
 
         private NetworkContext context;
         private ConcurrentQueue<Action> mainThreadActions = new ConcurrentQueue<Action>();
@@ -51,13 +51,13 @@ namespace Ubiq.Voip
                 return;
             }
 
-            if (onIceConnectionStateChanged == null)
+            if (OnIceConnectionStateChanged == null)
             {
-                onIceConnectionStateChanged = new IceConnectionStateEvent();
+                OnIceConnectionStateChanged = new IceConnectionStateEvent();
             }
-            if (onPeerConnectionStateChanged == null)
+            if (OnPeerConnectionStateChanged == null)
             {
-                onPeerConnectionStateChanged = new PeerConnectionStateEvent();
+                OnPeerConnectionStateChanged = new PeerConnectionStateEvent();
             }
 
             this.Id = objectId;
@@ -96,7 +96,7 @@ namespace Ubiq.Voip
                 mainThreadActions.Enqueue(() =>
                 {
                     peerConnectionState = state;
-                    onPeerConnectionStateChanged.Invoke(state);
+                    OnPeerConnectionStateChanged.Invoke(state);
                     Debug.Log($"Peer connection state change to {state}.");
                 });
 
@@ -137,7 +137,7 @@ namespace Ubiq.Voip
             pc.oniceconnectionstatechange += (state) => mainThreadActions.Enqueue(() =>
             {
                 iceConnectionState = state;
-                onIceConnectionStateChanged.Invoke(state);
+                OnIceConnectionStateChanged.Invoke(state);
                 Debug.Log($"ICE connection state change to {state}.");
             });
 

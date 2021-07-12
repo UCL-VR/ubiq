@@ -109,7 +109,7 @@ namespace Ubiq.Samples
 
         private void UpdateVisibility()
         {
-            if (avatar.local)
+            if (avatar.IsLocal)
             {
                 //if(renderToggle != null && renderToggle.rendering)
                 {

@@ -134,8 +134,6 @@ namespace Ubiq.Rooms
         public PeerInterface Me { get; private set; }
 
         public class RejectedEvent : UnityEvent<RejectedArgs> { };
-        public class PeerEvent : UnityEvent<PeerInfo> { };
-        public class RoomEvent : UnityEvent<RoomInfo> { };
         public class RoomsAvailableEvent : UnityEvent<List<RoomInfo>> { };
 
         /// <summary>

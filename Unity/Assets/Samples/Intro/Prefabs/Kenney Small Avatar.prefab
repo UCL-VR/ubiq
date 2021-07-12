@@ -506,14 +506,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 269e60485d684c446b0efc69970416ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  uuid: Kenney Small Avatar
+  PrefabUuid: Kenney Small Avatar
   OnUpdated:
     m_PersistentCalls:
       m_Calls: []
-  Properties:
-    keys: []
-    values: []
-  local: 0
 --- !u!114 &1401822210384803133
 MonoBehaviour:
   m_ObjectHideFlags: 0
