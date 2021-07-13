@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEditor;
 using Ubiq.Messaging;
 using Ubiq.Networking;
+using Ubiq.Avatars;
 using Avatar = Ubiq.Avatars.Avatar;
 using Ubiq.Spawning;
 using Ubiq.Rooms;
@@ -129,7 +130,6 @@ public class Recorder
     // Recording
     private RecorderReplayer recRep;
 
-    private FileStream recStream;
     private BinaryWriter binaryWriter;
     private string recordFileIDs; // save the objectIDs of the recorded avatars
     private Dictionary<NetworkId, string> recordedObjectids;
@@ -138,6 +138,7 @@ public class Recorder
     private List<int> idxFrameStart; // start of a specific frame in the recorded data
     private int frameNr = 0;
     private int previousFrame = 0;
+    private int avatarsAtStart = 0;
     private bool initFile = false;
     private MessagePack messages = null;
 
@@ -177,12 +178,22 @@ public class Recorder
             recRep.recordFile = recRep.recordFile + ".dat";
             recordedObjectids = new Dictionary<NetworkId, string>();
 
+            idxFrameStart.Add(0); // first frame in byte data has idx 0
+
+            avatarsAtStart = recRep.aManager.Avatars.Count();
+            // also consider avatars that are currently visible from a potential previous recording!
+            foreach (var props in recRep.replayer.replayedObjects.Values)
+            {
+                if (props.hider.GetCurrentLayer() == 0) // default visibility layer 
+                {
+                    avatarsAtStart += 1;
+                }    
+            }
             //recStream = File.Open(recordFile, FileMode.OpenOrCreate);
             binaryWriter = new BinaryWriter(File.Open(recRep.recordFile, FileMode.OpenOrCreate)); // dispose when recording is finished
             
             // start recoding time
             recordingStartTime = Time.unscaledTime;
-            idxFrameStart.Add(0); // first frame in byte data has idx 0
 
             initFile = true;
 
@@ -191,11 +202,11 @@ public class Recorder
         string uid;
         if (obj is Avatar) // check it here too in case we later record other things than avatars as well
         {
+            //Debug.Log("Framenr: " + frameNr);
             // that does not work for already replayed avatars because they do not have properties
-            uid = (obj as Avatar).Properties["texture-uid"]; // get texture of avatar so we can later replay a look-alike avatar
+            uid = (obj as Avatar).PrefabUuid; // get texture of avatar so we can later replay a look-alike avatar
             if (frameNr == 0 || previousFrame != frameNr) // went on to next frame so generate new message pack
             {
-
                 if (messages != null)
                 {
                     byte[] bMessages = messages.GetBytes();
@@ -205,7 +216,6 @@ public class Recorder
                     idxFrameStart.Add(idx);
                     frameTimes.Add(Time.unscaledTime - recordingStartTime);
                     //Debug.Log("Pack size: " + bMessages.Length); // length includes 4 byte of size
- 
                 }
                 messages = new MessagePack();
                 previousFrame++;
@@ -235,15 +245,16 @@ public class Recorder
 
             Debug.Log("FrameNr, pckgsize, idxFrameStart" + frameNr + " " + pckgSizePerFrame.Count + " " + idxFrameStart.Count);
            
-            File.WriteAllText(recordFileIDs, JsonUtility.ToJson(new RecordingInfo(frameNr-1, recordedObjectids.Count,
+            File.WriteAllText(recordFileIDs, JsonUtility.ToJson(new RecordingInfo(frameNr-1, avatarsAtStart, recordedObjectids.Count,
                 new List<NetworkId>(recordedObjectids.Keys), new List<string>(recordedObjectids.Values), frameTimes, pckgSizePerFrame, idxFrameStart)));
 
-            recordedObjectids = null;
+            recordedObjectids.Clear();
             recordFileIDs = null;
             pckgSizePerFrame.Clear();
             idxFrameStart.Clear();
             frameTimes.Clear();
             recordingStartTime = 0.0f;
+            messages = null;
 
             initFile = false;
             frameNr = 0;
@@ -268,19 +279,16 @@ public class Replayer
     // later for the recording of other objects consider not only saving the networkid but additional info such as class
     // maybe save info in Dictionary list and save objectid (key) and values (list: class, (if avatar what avatar type + texture info)
     private Dictionary<NetworkId, string> replayedObjectids; // avatar IDs and texture
-    private Dictionary<NetworkId, ReplayedObjectProperties> replayedObjects; // new objectids! 
+    public Dictionary<NetworkId, ReplayedObjectProperties> replayedObjects; // new objectids! 
     private Dictionary<NetworkId, NetworkId> oldNewObjectids;
     private bool loadingStarted = false; // set to true once loading recorded data starts
     private bool loaded = false;
     //private bool loaded = false; // set to true once all recorded data is loaded
     //private int msgIndex = 0; // for replaying from file where every msg is in separate line to get correct index for messages in next frame
     private FileStream streamFromFile;
-    private int t1 = 0;
-    private int t2 = 0;
-    private float test = 0.0f;
     private bool created = false;
     private bool opened = false;
-    private float vTime = 0.0f; // virtual time of recording
+    private bool showAvatarsFromStart = false;
  
     public Replayer(RecorderReplayer recRep)
     {
@@ -289,14 +297,13 @@ public class Replayer
         replayedObjectids = new Dictionary<NetworkId, string>();
         replayedObjects = new Dictionary<NetworkId, ReplayedObjectProperties>();
         oldNewObjectids = new Dictionary<NetworkId, NetworkId>();
-        spawner = NetworkSpawner.FindNetworkSpawner(recRep.scene);
-
+        spawner = recRep.spawner;
     }
 
-    private class ReplayedObjectProperties
+    public class ReplayedObjectProperties
     {
         public GameObject gameObject;
-        public Transform[] childTrafos;
+        public ObjectHider hider;
         public NetworkId id;
         public Dictionary<int, INetworkComponent> components = new Dictionary<int, INetworkComponent>();
 
@@ -313,6 +320,16 @@ public class Replayer
                 
             if (loaded) // meaning recInfo
             {
+                if (!showAvatarsFromStart)
+                {
+                    Debug.Log("Show avatars from start");
+                    for (var i = 0; i < recInfo.avatarsAtStart; i++)
+                    {
+                        replayedObjects.Values.ElementAt(i).hider.Show();
+                    }
+                    showAvatarsFromStart = true;
+                }
+                
                 //t1++;
                 //test += Time.deltaTime;
                 //Debug.Log(test);
@@ -355,7 +372,7 @@ public class Replayer
 
                     }
                     ReplayFromFile();
-                    Debug.Log("times " + recInfo.frameTimes[recRep.currentReplayFrame] + " " + t + " " + recRep.currentReplayFrame + " " + below);
+                    //Debug.Log("times " + recInfo.frameTimes[recRep.currentReplayFrame] + " " + t + " " + recRep.currentReplayFrame + " " + below);
 
                     // depending on settings either forwards or backwards
                     UpdateFrame();
@@ -374,12 +391,9 @@ public class Replayer
             //Debug.Log("!play");
             recRep.currentReplayFrame = recRep.sliderFrame;
             recRep.stopTime = recInfo.frameTimes[recRep.currentReplayFrame];
+           
             ReplayFromFile();
         }
-    }
-    private void UpdateVirtualTime()
-    {
-        vTime += recInfo.frameTimes[recRep.currentReplayFrame];
     }
 
     private void UpdateFrame()
@@ -421,15 +435,15 @@ public class Replayer
             GameObject prefab = spawner.catalogue.prefabs[3]; // Spawnable Floating BodyA Avatar
                                                               //prefab.GetComponent<RenderToggle>();
             GameObject go = spawner.SpawnPersistentRecording(prefab); // this game object has network context etc. (not the prefab)
-            props.gameObject = go;
-            props.childTrafos = go.GetComponentsInChildren<Transform>();
-            LayerGameObject(props, 8); 
 
             Avatar avatar = go.GetComponent<Avatar>(); // spawns invisible avatar
+            props.hider = go.GetComponent<ObjectHider>();
+            props.hider.Hide();
             Debug.Log("CreateRecordedAvatars() " + avatar.Id);
 
             oldNewObjectids.Add(objectid, avatar.Id);
 
+            props.gameObject = go;
             props.id = avatar.Id;
             INetworkComponent[] components = go.GetComponents<INetworkComponent>();
             foreach (var comp in components)
@@ -442,15 +456,6 @@ public class Replayer
 
         }
         return true;
-    }
-
-    private void LayerGameObject(ReplayedObjectProperties props, int layer)
-    {
-        props.gameObject.layer = layer;
-        foreach (Transform child in props.childTrafos)
-        {
-            child.gameObject.layer = layer;
-        }
     }
 
     public async void LoadRecording(string replayFile)
@@ -542,20 +547,38 @@ public class Replayer
         ReferenceCountedMessage rcm = new ReferenceCountedMessage(msg);
         ReferenceCountedSceneGraphMessage rcsgm = new ReferenceCountedSceneGraphMessage(rcm);
         NetworkId id = new NetworkId(msg, 0);
-        rcsgm.objectid = oldNewObjectids[id];
+        try
+        {
+            rcsgm.objectid = oldNewObjectids[id];
+        }
+        catch (Exception e)
+        {
+            if (e.Source != null)
+                Debug.Log("Network id: " + id + ", Exception source: " + e.Source);
+            foreach(var i in oldNewObjectids)
+            {
+                Debug.Log("old: " + i.Key + " new: " + i.Value);
+            }
+            throw;
+        }    
         return rcsgm;
     }
 
     
     private void ReplayFromFile()
     {
+        if (!recRep.play)
+        {
+            HideAll();
+        }
+
         var pckgSize = recInfo.pckgSizePerFrame[recRep.currentReplayFrame];
         streamFromFile.Position = recInfo.idxFrameStart[recRep.currentReplayFrame];
         byte[] msgPack = new byte[pckgSize];
 
         var numberBytes = streamFromFile.Read(msgPack, 0, pckgSize);
 
-        int i = 4;
+        int i = 4; // first 4 bytes are length of package
         while (i < numberBytes)
         {
             int lengthMsg = BitConverter.ToInt32(msgPack, i);
@@ -567,12 +590,25 @@ public class Replayer
             ReplayedObjectProperties props = replayedObjects[rcsgm.objectid];
             INetworkComponent component = props.components[rcsgm.componentid];
 
+            if (!recRep.play)
+            {
+                props.hider.Show();
+            }
+
             // send and replay remotely
             recRep.scene.Send(rcsgm);
             // replay locally
             component.ProcessMessage(rcsgm);
 
             i += lengthMsg;
+        }
+    }
+
+    private void HideAll()
+    {
+        foreach (ReplayedObjectProperties props in replayedObjects.Values)
+        {
+            props.hider.Hide();
         }
     }
 
@@ -595,14 +631,19 @@ public class Replayer
         //msgIndex = msgIndex + msgsPerFrame;
         recRep.currentReplayFrame++;
         //Debug.Log(currentReplayFrame + " " + msgIndex);
-
     }
 
     public void Cleanup()
     {
-        Debug.Log("Cleanup");
+        Debug.Log("Cleanup " + Time.unscaledTime);
+        foreach (var i in oldNewObjectids)
+        {
+            Debug.Log("Cleanup ids old: " + i.Key + " new: " + i.Value);
+        }
+
         loadingStarted = false;
         loaded = false;
+        showAvatarsFromStart = false;
         recRep.currentReplayFrame = 0;
         recRep.sliderFrame = 0;
 
@@ -620,19 +661,15 @@ public class Replayer
         
         if (streamFromFile != null)
             streamFromFile.Close();
-        // remove avatars
-
     }
-
 }
-
-
 
 [System.Serializable]
 public class RecordingInfo
 {
     public int[] listLengths;
     public int frames;
+    public int avatarsAtStart;
     public int avatarNr;
     public List<NetworkId> objectids;
     public List<string> textures;
@@ -640,10 +677,11 @@ public class RecordingInfo
     public List<int> pckgSizePerFrame;
     public List<int> idxFrameStart;
 
-    public RecordingInfo(int frames, int avatarNr, List<NetworkId> objectids, List<string> textures, List<float> frameTimes, List<int> pckgSizePerFrame, List<int> idxFrameStart)
+    public RecordingInfo(int frames, int avatarsAtStart, int avatarNr, List<NetworkId> objectids, List<string> textures, List<float> frameTimes, List<int> pckgSizePerFrame, List<int> idxFrameStart)
     {
         listLengths = new int[3] { frameTimes.Count, pckgSizePerFrame.Count, idxFrameStart.Count };
         this.frames = frames;
+        this.avatarsAtStart = avatarsAtStart;
         this.avatarNr = avatarNr;
         this.objectids = objectids;
         this.textures = textures;
@@ -656,7 +694,8 @@ public class RecordingInfo
 public class RecorderReplayer : MonoBehaviour, IMessageRecorder
 {
     public NetworkScene scene;
-
+    [HideInInspector] public AvatarManager aManager;
+    [HideInInspector] public NetworkSpawner spawner;
 
     public string replayFile;
     [HideInInspector] public string recordFile = null;
@@ -680,7 +719,7 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
     // Start is called before the first frame update
     void Start()
     {
-        Application.targetFrameRate = 35;
+        //Application.targetFrameRate = 60;
         //Time.captureFramerate = 400;
         path = Application.dataPath + "/Local/Recordings";
 
@@ -688,6 +727,8 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
         {
             Directory.CreateDirectory(path);
         }
+        aManager = scene.GetComponentInChildren<AvatarManager>();
+        spawner = NetworkSpawner.FindNetworkSpawner(scene);
 
         // create Recorder and Replayer
         recorder = new Recorder(this);
@@ -738,7 +779,7 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
        else
         {
             recordingAvailable = true;
-            cleanedUp = false;
+            //cleanedUp = false;
         }
         // load file
         // create avatars (avatar manager to get exact avatars) on other clients
@@ -746,6 +787,7 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
         if (replaying)
         {
             replayer.Replay(replayFile);
+            cleanedUp = false;
         }
         else
         {

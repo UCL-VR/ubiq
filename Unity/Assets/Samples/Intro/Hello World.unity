@@ -1588,7 +1588,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scene: {fileID: 7068762447081937017}
-  replayFile: rec2021-07-02_15-02-15
+  aManager: {fileID: 0}
+  spawner: {fileID: 0}
+  replayFile: rec2021-07-13_21-43-43
   recordFile: 
   path: 
   recording: 0
@@ -1605,6 +1607,7 @@ MonoBehaviour:
     recInfo:
       listLengths: 
       frames: 0
+      avatarsAtStart: 0
       avatarNr: 0
       objectids: []
       textures: []

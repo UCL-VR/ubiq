@@ -1,11 +1,17 @@
 ﻿using System.Collections.Generic;
 using System;
+using System.Linq;
 using Ubiq.Rooms;
 using Ubiq.Messaging;
 using Ubiq.Dictionaries;
 using Ubiq.Voip;
 using UnityEngine;
 using UnityEngine.Events;
+
+public interface ILayer
+{
+    void SetObjectLayer(int layer);
+}
 
 namespace Ubiq.Avatars
 {
@@ -19,6 +25,8 @@ namespace Ubiq.Avatars
     {
         public AvatarCatalogue AvatarCatalogue;
         public string LocalPrefabUuid;
+
+        private NetworkScene scene;
 
         /// <summary>
         /// The current avatar loaded for the local player. Be aware that this reference may change at any time
@@ -115,6 +123,8 @@ namespace Ubiq.Avatars
             {
                 OnAvatarDestroyed = new AvatarDestroyEvent();
             }
+
+            scene = NetworkScene.FindNetworkScene(this);
         }
 
         private void Start()
@@ -229,6 +239,18 @@ namespace Ubiq.Avatars
             }
 
             avatar.OnPeerUpdated.Invoke(avatar.Peer.GetPeerInfo());
+
+            IfRecordingSetLayer(avatar, 0); // default (need this to generate a message that can be replayed later)
+
+        }
+
+        private void IfRecordingSetLayer(Avatar avatar, int layer)
+        {
+            if (scene.recorder != null && scene.recorder.IsRecording())
+            {
+                ILayer layerer = avatar.gameObject.GetComponentsInChildren<MonoBehaviour>().Where(mb => mb is ILayer).FirstOrDefault() as ILayer;
+                layerer.SetObjectLayer(layer); 
+            }
         }
 
         private void OnJoinedRoom(RoomInfo room)
@@ -248,6 +270,8 @@ namespace Ubiq.Avatars
         {
             if (playerAvatars.ContainsKey(peer.UUID))
             {
+                IfRecordingSetLayer(playerAvatars[peer.UUID], 8); // generate "hide" message for replay
+
                 Destroy(playerAvatars[peer.UUID].gameObject);
                 playerAvatars.Remove(peer.UUID);
             }

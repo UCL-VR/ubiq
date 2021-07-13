@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6305583007509887283}
   - component: {fileID: 2075108968}
   - component: {fileID: 4298616475857224935}
+  - component: {fileID: 8674237516240558695}
   m_Layer: 0
   m_Name: Floating BodyA Avatar
   m_TagString: Untagged
@@ -49,9 +50,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PrefabUuid: Floating BodyA Avatar
-  OnUpdated:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!114 &2075108969
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -183,6 +181,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   audioSourcePosition: {fileID: 6003368457278044233}
+--- !u!114 &8674237516240558695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3172939939781028348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79dea49f19acd784fa6b8351a8c1836b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &4654974605327383787
 PrefabInstance:
   m_ObjectHideFlags: 0
