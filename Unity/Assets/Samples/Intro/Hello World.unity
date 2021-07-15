@@ -1590,10 +1590,10 @@ MonoBehaviour:
   scene: {fileID: 7068762447081937017}
   aManager: {fileID: 0}
   spawner: {fileID: 0}
-  replayFile: rec2021-07-13_21-43-43
+  replayFile: rec2021-07-14_17-30-50
   recordFile: 
   path: 
-  recording: 0
+  recording: 1
   replaying: 0
   play: 1
   sliderFrame: 0

@@ -11,6 +11,7 @@ using Ubiq.Avatars;
 using Avatar = Ubiq.Avatars.Avatar;
 using Ubiq.Spawning;
 using Ubiq.Rooms;
+using Ubiq.Samples;
 
 public class MessagePack
 {
@@ -141,7 +142,7 @@ public class Recorder
     private int avatarsAtStart = 0;
     private bool initFile = false;
     private MessagePack messages = null;
-
+   
     private List<float> frameTimes = new List<float>(); 
     private float recordingStartTime = 0.0f;
 
@@ -203,8 +204,7 @@ public class Recorder
         if (obj is Avatar) // check it here too in case we later record other things than avatars as well
         {
             //Debug.Log("Framenr: " + frameNr);
-            // that does not work for already replayed avatars because they do not have properties
-            uid = (obj as Avatar).PrefabUuid; // get texture of avatar so we can later replay a look-alike avatar
+            uid = (obj as Avatar).gameObject.GetComponent<TexturedAvatar>().GetTextureUuid(); // get texture of avatar so we can later replay a look-alike avatar
             if (frameNr == 0 || previousFrame != frameNr) // went on to next frame so generate new message pack
             {
                 if (messages != null)
@@ -342,42 +342,42 @@ public class Replayer
                 //Debug.Log("before times " + recInfo.frameTimes[recRep.currentReplayFrame] + " " + t);
                 var replayTime = recInfo.frameTimes[recRep.currentReplayFrame];
                 //var lb = t - 0.01f;
-                var below = false;
-                if (replayTime < t) // catch up
-                {
-                    //t2++;
-                    below = true;
-                    UpdateFrame();
-                    for (var i = recRep.currentReplayFrame; i < recInfo.frames; i++)
-                    {
-                        replayTime = recInfo.frameTimes[i];
-                     
-                        if(replayTime >= t)
-                        {
-                            if (i > 0)
-                            {
-                                var prev = recInfo.frameTimes[i - 1];
-                                if (Math.Abs(replayTime - t) < Math.Abs(prev - t))
-                                {
-                                    recRep.currentReplayFrame = i;
-                                }
-                                else
-                                {
-                                    replayTime = prev;
-                                    recRep.currentReplayFrame = i - 1;
-                                }
-                            }
-                            break;
-                        }
 
-                    }
+                //if (replayTime < t) // catch up
+                //{
+                //    //t2++;
+                //    below = true;
+                //    UpdateFrame();
+                //    for (var i = recRep.currentReplayFrame; i < recInfo.frames; i++)
+                //    {
+                //        replayTime = recInfo.frameTimes[i];
+                     
+                //        if(replayTime >= t)
+                //        {
+                //            if (i > 0)
+                //            {
+                //                var prev = recInfo.frameTimes[i - 1];
+                //                if (Math.Abs(replayTime - t) < Math.Abs(prev - t))
+                //                {
+                //                    recRep.currentReplayFrame = i;
+                //                }
+                //                else
+                //                {
+                //                    replayTime = prev;
+                //                    recRep.currentReplayFrame = i - 1;
+                //                }
+                //            }
+                //            break;
+                //        }
+
+                //    }
                     ReplayFromFile();
                     //Debug.Log("times " + recInfo.frameTimes[recRep.currentReplayFrame] + " " + t + " " + recRep.currentReplayFrame + " " + below);
 
                     // depending on settings either forwards or backwards
                     UpdateFrame();
                     
-                }
+                //}
                 //t = currentTime - (recRep.replayingStartTime - recRep.stopTime);
                 //lb = t - 0.01f;
                 //if (replayTime <= t)
@@ -427,15 +427,17 @@ public class Replayer
 
     private bool CreateRecordedAvatars()
     {
-        foreach (var objectid in recInfo.objectids)
+        for (var i = 0; i < recInfo.objectids.Count; i++)
         {
+            var objectid = recInfo.objectids[i];
+            var uuid = recInfo.textures[i];
             ReplayedObjectProperties props = new ReplayedObjectProperties();
             
             // if different avatar types are used for different clients change this!
             GameObject prefab = spawner.catalogue.prefabs[3]; // Spawnable Floating BodyA Avatar
                                                               //prefab.GetComponent<RenderToggle>();
             GameObject go = spawner.SpawnPersistentRecording(prefab); // this game object has network context etc. (not the prefab)
-
+            go.GetComponent<TexturedAvatar>().SetTexture(uuid);
             Avatar avatar = go.GetComponent<Avatar>(); // spawns invisible avatar
             props.hider = go.GetComponent<ObjectHider>();
             props.hider.Hide();
@@ -670,7 +672,7 @@ public class RecordingInfo
     public int[] listLengths;
     public int frames;
     public int avatarsAtStart;
-    public int avatarNr;
+    public int avatarNr; 
     public List<NetworkId> objectids;
     public List<string> textures;
     public List<float> frameTimes;

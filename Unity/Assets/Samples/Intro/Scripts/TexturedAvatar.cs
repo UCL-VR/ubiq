@@ -53,6 +53,11 @@ namespace Ubiq.Samples
             SetTexture(peer["ubiq.avatar.texture.uuid"]);
         }
 
+        public string GetTextureUuid()
+        {
+            return uuid;
+        }
+
         /// <summary>
         /// Try to set the Texture by reference to a Texture in the Catalogue. If the Texture is not in the 
         /// catalogue then this method has no effect, as Texture2Ds cannot be streamed yet.
