@@ -441,6 +441,7 @@ public class Replayer
             Avatar avatar = go.GetComponent<Avatar>(); // spawns invisible avatar
             props.hider = go.GetComponent<ObjectHider>();
             props.hider.Hide();
+            go.GetComponent<Outliner>().SetOutline(true); // show outline for recorded avatars
             Debug.Log("CreateRecordedAvatars() " + avatar.Id);
 
             oldNewObjectids.Add(objectid, avatar.Id);
