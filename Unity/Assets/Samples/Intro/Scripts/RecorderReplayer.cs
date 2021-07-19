@@ -750,6 +750,9 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
         if (replaying)
         {
             replaying = false;
+            cleanedUp = true; // dont clean up because this will be done by the NetworkSpawner anyways
+            replayingStartTime = 0.0f;
+            stopTime = 0.0f;
             Debug.Log("Left room, replaying stopped!");
         }
         if (recording)
