@@ -6,6 +6,7 @@ using UnityEngine;
 using Ubiq.Messaging;
 using Ubiq.Rooms;
 using Ubiq.Logging;
+using Ubiq.Samples;
 
 namespace Ubiq.Spawning
 {
@@ -37,6 +38,7 @@ namespace Ubiq.Spawning
             public NetworkId networkId;
             public bool remove;
             public bool recording;
+            public string uuid;
         }
 
         private void Reset()
@@ -86,6 +88,15 @@ namespace Ubiq.Spawning
             return go;
         }
 
+        private GameObject InstantiateRecording(int i, NetworkId networkId, bool local, string uuid)
+        {
+            Debug.Log("Instantiate Recording");
+            GameObject go = Instantiate(i, networkId, local);
+            go.GetComponent<TexturedAvatar>().SetTexture(uuid);
+            go.GetComponent<ObjectHider>().SetLayer(8); // hide
+            return go;
+        }
+
         public GameObject Spawn(GameObject gameObject)
         {
             var i = ResolveIndex(gameObject);
@@ -99,27 +110,33 @@ namespace Ubiq.Spawning
             var msg = message.FromJson<Message>();
             if (msg.remove)
             {
-                Debug.Log("ProcessMessage: remove");
+                Debug.Log("NetworkSpawner ProcessMessage: remove");
                 var key = $"SpawnedObject-{ msg.networkId }";
                 roomClient.Room[key] = JsonUtility.ToJson(new Message() {networkId = msg.networkId, remove = true});
                 Destroy(spawned[msg.networkId]);
                 spawned.Remove(msg.networkId);
             }
+            else if (msg.recording)
+            {
+                Debug.Log("NetworkSpawner ProcessMessage (recording)");
+                InstantiateRecording(msg.catalogueIndex, msg.networkId, false, msg.uuid);
+
+            }
             else
             {
-                Debug.Log("ProcessMessage");
+                Debug.Log("NetworkSpawner normal ProcessMessage");
                 Instantiate(msg.catalogueIndex, msg.networkId, false);
             }
         }
 
-        public GameObject SpawnPersistentRecording(GameObject gameObject)
+        public GameObject SpawnPersistentRecording(GameObject gameObject, string uuid)
         {
             var i = ResolveIndex(gameObject);
             var networkId = NetworkScene.GenerateUniqueId();
             //Debug.Log("SpawnPersistentRecording() " + networkId.ToString());
             var key = $"SpawnedObject-{ networkId }";
-            var spawned = Instantiate(i, networkId, true);
-            roomClient.Room[key] = JsonUtility.ToJson(new Message() { catalogueIndex = i, networkId = networkId, recording = true});
+            var spawned = InstantiateRecording(i, networkId, true, uuid);
+            roomClient.Room[key] = JsonUtility.ToJson(new Message() { catalogueIndex = i, networkId = networkId, recording = true, uuid = uuid});
             return spawned;
         }
 
@@ -136,7 +153,7 @@ namespace Ubiq.Spawning
 
         public void UnspawnPersistent(NetworkId networkId)
         {
-            context.SendJson(new Message() { networkId = networkId, remove = true });
+            context.SendJson(new Message() { networkId = networkId, remove = true, recording = true });
             var key = $"SpawnedObject-{ networkId }";
             roomClient.Room[key] = JsonUtility.ToJson(new Message() { networkId = networkId, remove = true, recording = true});
             Destroy(spawned[networkId]);
@@ -158,7 +175,14 @@ namespace Ubiq.Spawning
                         Debug.Log("OnRoom");
                         if (!msg.remove)
                         {
-                            Instantiate(msg.catalogueIndex, msg.networkId, false);
+                            if (msg.recording)
+                            {
+                                InstantiateRecording(msg.catalogueIndex, msg.networkId, false, msg.uuid);
+                            }
+                            else
+                            {
+                                Instantiate(msg.catalogueIndex, msg.networkId, false);
+                            }
                         }
                         else
                         {

@@ -10,7 +10,7 @@ using UnityEngine.Events;
 
 public interface ILayer
 {
-    void SetObjectLayer(int layer);
+    void SetNetworkedObjectLayer(int layer);
 }
 
 namespace Ubiq.Avatars
@@ -249,7 +249,7 @@ namespace Ubiq.Avatars
             if (scene.recorder != null && scene.recorder.IsRecording())
             {
                 ILayer layerer = avatar.gameObject.GetComponentsInChildren<MonoBehaviour>().Where(mb => mb is ILayer).FirstOrDefault() as ILayer;
-                layerer.SetObjectLayer(layer); 
+                layerer.SetNetworkedObjectLayer(layer); 
             }
         }
 

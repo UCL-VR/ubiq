@@ -203,7 +203,7 @@ public class Recorder
         string uid;
         if (obj is Avatar) // check it here too in case we later record other things than avatars as well
         {
-            //Debug.Log("Framenr: " + frameNr);
+            Debug.Log("Framenr: " + frameNr);
             uid = (obj as Avatar).gameObject.GetComponent<TexturedAvatar>().GetTextureUuid(); // get texture of avatar so we can later replay a look-alike avatar
             if (frameNr == 0 || previousFrame != frameNr) // went on to next frame so generate new message pack
             {
@@ -325,11 +325,12 @@ public class Replayer
                     Debug.Log("Show avatars from start");
                     for (var i = 0; i < recInfo.avatarsAtStart; i++)
                     {
-                        replayedObjects.Values.ElementAt(i).hider.Show();
+                        replayedObjects.Values.ElementAt(i).hider.NetworkedShow();
+                        replayedObjects.Values.ElementAt(i).gameObject.GetComponent<Outliner>().NetworkedSetOutline(true);
                     }
                     showAvatarsFromStart = true;
                 }
-                
+
                 //t1++;
                 //test += Time.deltaTime;
                 //Debug.Log(test);
@@ -388,11 +389,14 @@ public class Replayer
         }
         else // !play 
         {
-            //Debug.Log("!play");
-            recRep.currentReplayFrame = recRep.sliderFrame;
-            recRep.stopTime = recInfo.frameTimes[recRep.currentReplayFrame];
+            if (loaded)
+            {
+                //Debug.Log("!play");
+                recRep.currentReplayFrame = recRep.sliderFrame;
+                recRep.stopTime = recInfo.frameTimes[recRep.currentReplayFrame];
            
-            ReplayFromFile();
+                ReplayFromFile();
+            }
         }
     }
 
@@ -436,12 +440,12 @@ public class Replayer
             // if different avatar types are used for different clients change this!
             GameObject prefab = spawner.catalogue.prefabs[3]; // Spawnable Floating BodyA Avatar
                                                               //prefab.GetComponent<RenderToggle>();
-            GameObject go = spawner.SpawnPersistentRecording(prefab); // this game object has network context etc. (not the prefab)
-            go.GetComponent<TexturedAvatar>().SetTexture(uuid);
+            GameObject go = spawner.SpawnPersistentRecording(prefab, uuid); // this game object has network context etc. (not the prefab)
+            //go.GetComponent<TexturedAvatar>().SetTexture(uuid); too early, set it in NetworkSpawner (probably is not set remotely yet and therefore never changes texture for other peers
             Avatar avatar = go.GetComponent<Avatar>(); // spawns invisible avatar
             props.hider = go.GetComponent<ObjectHider>();
-            props.hider.Hide();
-            go.GetComponent<Outliner>().SetOutline(true); // show outline for recorded avatars
+            //props.hider.Hide(); // too early
+            //go.GetComponent<Outliner>().SetOutline(true); // show outline for recorded avatars DO IT IN NETWORK SPAWNER
             Debug.Log("CreateRecordedAvatars() " + avatar.Id);
 
             oldNewObjectids.Add(objectid, avatar.Id);
@@ -471,9 +475,8 @@ public class Replayer
             Debug.Log("Load info...");
             recInfo = await LoadRecInfo(filepath);
             Debug.Log(recInfo.frames + " " + recInfo.frameTimes.Count + " " + recInfo.pckgSizePerFrame.Count);
-            Debug.Log("Info loaded!");
-
             created = CreateRecordedAvatars();
+            Debug.Log("Info loaded!");
         }
         else
         {
@@ -570,10 +573,10 @@ public class Replayer
     
     private void ReplayFromFile()
     {
-        if (!recRep.play)
-        {
-            HideAll();
-        }
+        //if (!recRep.play)
+        //{
+        //    HideAll();
+        //}
 
         var pckgSize = recInfo.pckgSizePerFrame[recRep.currentReplayFrame];
         streamFromFile.Position = recInfo.idxFrameStart[recRep.currentReplayFrame];
@@ -593,10 +596,10 @@ public class Replayer
             ReplayedObjectProperties props = replayedObjects[rcsgm.objectid];
             INetworkComponent component = props.components[rcsgm.componentid];
 
-            if (!recRep.play)
-            {
-                props.hider.Show();
-            }
+            //if (!recRep.play)
+            //{
+            //    props.hider.Show();
+            //}
 
             // send and replay remotely
             recRep.scene.Send(rcsgm);
@@ -611,7 +614,7 @@ public class Replayer
     {
         foreach (ReplayedObjectProperties props in replayedObjects.Values)
         {
-            props.hider.Hide();
+            props.hider.NetworkedHide();
         }
     }
 
