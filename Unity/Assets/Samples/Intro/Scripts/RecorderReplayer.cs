@@ -326,7 +326,6 @@ public class Replayer
                     for (var i = 0; i < recInfo.avatarsAtStart; i++)
                     {
                         replayedObjects.Values.ElementAt(i).hider.NetworkedShow();
-                        replayedObjects.Values.ElementAt(i).gameObject.GetComponent<Outliner>().NetworkedSetOutline(true);
                     }
                     showAvatarsFromStart = true;
                 }
@@ -439,13 +438,9 @@ public class Replayer
             
             // if different avatar types are used for different clients change this!
             GameObject prefab = spawner.catalogue.prefabs[3]; // Spawnable Floating BodyA Avatar
-                                                              //prefab.GetComponent<RenderToggle>();
-            GameObject go = spawner.SpawnPersistentRecording(prefab, uuid); // this game object has network context etc. (not the prefab)
-            //go.GetComponent<TexturedAvatar>().SetTexture(uuid); too early, set it in NetworkSpawner (probably is not set remotely yet and therefore never changes texture for other peers
+            GameObject go = spawner.SpawnPersistentReplay(prefab, uuid); // this game object has network context etc. (not the prefab)
             Avatar avatar = go.GetComponent<Avatar>(); // spawns invisible avatar
             props.hider = go.GetComponent<ObjectHider>();
-            //props.hider.Hide(); // too early
-            //go.GetComponent<Outliner>().SetOutline(true); // show outline for recorded avatars DO IT IN NETWORK SPAWNER
             Debug.Log("CreateRecordedAvatars() " + avatar.Id);
 
             oldNewObjectids.Add(objectid, avatar.Id);

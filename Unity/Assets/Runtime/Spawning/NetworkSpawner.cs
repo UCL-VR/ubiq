@@ -38,6 +38,7 @@ namespace Ubiq.Spawning
             public NetworkId networkId;
             public bool remove;
             public bool recording;
+            public bool visible;
             public string uuid;
         }
 
@@ -88,12 +89,20 @@ namespace Ubiq.Spawning
             return go;
         }
 
-        private GameObject InstantiateRecording(int i, NetworkId networkId, bool local, string uuid)
+        private GameObject InstantiateReplay(int i, NetworkId networkId, bool local, bool visible, string uuid)
         {
             Debug.Log("Instantiate Recording");
             GameObject go = Instantiate(i, networkId, local);
             go.GetComponent<TexturedAvatar>().SetTexture(uuid);
-            go.GetComponent<ObjectHider>().SetLayer(8); // hide
+            go.GetComponent<Outliner>().SetOutline(true);
+            if (visible)
+            {
+                go.GetComponent<ObjectHider>().SetLayer(0); // show (default)
+            }
+            else
+            {
+                go.GetComponent<ObjectHider>().SetLayer(8); // hide
+            }
             return go;
         }
 
@@ -119,7 +128,7 @@ namespace Ubiq.Spawning
             else if (msg.recording)
             {
                 Debug.Log("NetworkSpawner ProcessMessage (recording)");
-                InstantiateRecording(msg.catalogueIndex, msg.networkId, false, msg.uuid);
+                InstantiateReplay(msg.catalogueIndex, msg.networkId, false, msg.visible, msg.uuid);
 
             }
             else
@@ -129,14 +138,15 @@ namespace Ubiq.Spawning
             }
         }
 
-        public GameObject SpawnPersistentRecording(GameObject gameObject, string uuid)
+        // called when all the objects are created for replay
+        public GameObject SpawnPersistentReplay(GameObject gameObject, string uuid)
         {
             var i = ResolveIndex(gameObject);
             var networkId = NetworkScene.GenerateUniqueId();
             //Debug.Log("SpawnPersistentRecording() " + networkId.ToString());
             var key = $"SpawnedObject-{ networkId }";
-            var spawned = InstantiateRecording(i, networkId, true, uuid);
-            roomClient.Room[key] = JsonUtility.ToJson(new Message() { catalogueIndex = i, networkId = networkId, recording = true, uuid = uuid});
+            var spawned = InstantiateReplay(i, networkId, true, false, uuid);
+            roomClient.Room[key] = JsonUtility.ToJson(new Message() { catalogueIndex = i, networkId = networkId, recording = true, visible = false, uuid = uuid});
             return spawned;
         }
 
@@ -161,6 +171,54 @@ namespace Ubiq.Spawning
             Debug.Log("UnspawnPersistent");
         }
 
+        public void UpdateProperties(NetworkId networkId, string type, object arg)
+        {
+            Message msg;
+            var key = $"SpawnedObject-{ networkId }";
+            string prop = roomClient.Room[key];
+            if (prop == null || prop == "")
+            {
+                Debug.Log("Object requested for Update is not in Room properties");
+                return;
+            }
+            else
+            {
+                msg = JsonUtility.FromJson<Message>(prop);
+            }
+
+            switch(type)
+            {
+                case "UpdateVisibility":
+                    {
+                        roomClient.Room[key] = JsonUtility.ToJson(new Message()
+                        {
+                            catalogueIndex = msg.catalogueIndex,
+                            networkId = msg.networkId,
+                            recording = msg.recording,
+                            remove = msg.remove,
+                            visible = (bool)arg,
+                            uuid = msg.uuid
+                        });
+                        Debug.Log("UpdateVisibility of " + networkId + " to " + arg);
+                        break;
+                    }
+                case "UpdateTexture":
+                    {
+                        roomClient.Room[key] = JsonUtility.ToJson(new Message()
+                        {
+                            catalogueIndex = msg.catalogueIndex,
+                            networkId = msg.networkId,
+                            recording = msg.recording,
+                            remove = msg.remove,
+                            visible = msg.visible,
+                            uuid = (string)arg
+                        });
+                        Debug.Log("UpdateTexture of " + networkId + " to " + arg);
+                        break;
+                    }
+            }
+        }
+
         private void OnRoom(RoomInfo room)
         {
             foreach (var item in room.Properties)
@@ -177,7 +235,7 @@ namespace Ubiq.Spawning
                         {
                             if (msg.recording)
                             {
-                                InstantiateRecording(msg.catalogueIndex, msg.networkId, false, msg.uuid);
+                                InstantiateReplay(msg.catalogueIndex, msg.networkId, false, msg.visible, msg.uuid);
                             }
                             else
                             {
@@ -188,6 +246,9 @@ namespace Ubiq.Spawning
                         {
                             roomClient.Room[item.Key] = null;
                         }
+                    }
+                    else // update info
+                    {
                     }
                 }
             }
@@ -203,7 +264,7 @@ namespace Ubiq.Spawning
                     Debug.Log("OnLeftRoom: " + item.Key);
                     var msg = JsonUtility.FromJson<Message>(item.Value);
 
-                    if (!msg.recording) // locally replayed objects were already removed, so dont't do it again
+                    if (msg.recording)
                     {
                         Debug.Log("Remove object: " + msg.networkId);
                         Destroy(spawned[msg.networkId]);

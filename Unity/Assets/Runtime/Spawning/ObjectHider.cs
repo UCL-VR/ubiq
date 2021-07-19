@@ -4,7 +4,8 @@ using UnityEngine;
 using Ubiq.Networking;
 using Ubiq.Messaging;
 using Ubiq.Rooms;
-
+using Ubiq.Spawning;
+using Avatar = Ubiq.Avatars.Avatar;
 /// <summary>
 /// Puts the current object on a different layer and hides it.
 /// Hide layer: 8;
@@ -16,7 +17,8 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
     private int defaultLayer = 0; // default
     private int currentLayer;
     private Transform[] childTransforms;
-    private RoomEvent OnObjectChangeLayer;
+    private Avatar avatar;
+    private NetworkSpawner spawner;
 
     public struct Message
     {
@@ -43,6 +45,17 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
         Debug.Log("ObjectHider Awake()");
         context = NetworkScene.Register(this);
         childTransforms = GetComponentsInChildren<Transform>();
+    }
+
+    void Start()
+    {
+        if (context == null)
+        {
+            context = NetworkScene.Register(this);
+        }
+
+        avatar = GetComponent<Avatar>();
+        spawner = NetworkSpawner.FindNetworkSpawner(context.scene);
     }
 
     public void SetLayer(int layer) // not networked
@@ -72,6 +85,9 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
 
     public void SetNetworkedObjectLayer(int layer)
     {
+        // for actual peer avatars this method won't do anything because the peer avatars are in the AvatarManager and not in the NetworkSpawner
+        spawner.UpdateProperties(avatar.Id, "UpdateVisibility", layer);
+
         if (layer == defaultLayer)
         {
             NetworkedShow();

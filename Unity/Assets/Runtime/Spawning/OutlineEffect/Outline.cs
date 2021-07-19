@@ -26,57 +26,56 @@ using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace cakeslice
+
+[RequireComponent(typeof(Renderer))]
+/* [ExecuteInEditMode] */
+public class Outline : MonoBehaviour
 {
-	[RequireComponent(typeof(Renderer))]
-	/* [ExecuteInEditMode] */
-	public class Outline : MonoBehaviour
-	{
-		public Renderer Renderer { get; private set; }
-		public SpriteRenderer SpriteRenderer { get; private set; }
-		public SkinnedMeshRenderer SkinnedMeshRenderer { get; private set; }
-		public MeshFilter MeshFilter { get; private set; }
+    public Renderer Renderer { get; private set; }
+    public SpriteRenderer SpriteRenderer { get; private set; }
+    public SkinnedMeshRenderer SkinnedMeshRenderer { get; private set; }
+    public MeshFilter MeshFilter { get; private set; }
 
-		public int color;
-		private bool eraseRenderer = true;
+    public int color;
+    private bool eraseRenderer = true;
 
-		public bool Erase()
+    public bool Erase()
+    {
+        return eraseRenderer;
+    }
+    public void SetErase(bool erase)
+    {
+        eraseRenderer = erase;
+    }
+
+    private void Awake()
+    {
+        Renderer = GetComponent<Renderer>();
+        SkinnedMeshRenderer = GetComponent<SkinnedMeshRenderer>();
+        SpriteRenderer = GetComponent<SpriteRenderer>();
+        MeshFilter = GetComponent<MeshFilter>();
+    }
+
+    void OnEnable()
+    {
+        OutlineEffect.Instance?.AddOutline(this);
+    }
+
+    void OnDisable()
+    {
+        OutlineEffect.Instance?.RemoveOutline(this);
+    }
+
+    private Material[] _SharedMaterials;
+    public Material[] SharedMaterials
+    {
+        get
         {
-			return eraseRenderer;
+            if (_SharedMaterials == null)
+                _SharedMaterials = Renderer.sharedMaterials;
+
+            return _SharedMaterials;
         }
-		public void SetErase(bool erase)
-        {
-			eraseRenderer = erase;
-        }
-
-		private void Awake()
-		{
-			Renderer = GetComponent<Renderer>();
-			SkinnedMeshRenderer = GetComponent<SkinnedMeshRenderer>();
-			SpriteRenderer = GetComponent<SpriteRenderer>();
-			MeshFilter = GetComponent<MeshFilter>();
-		}
-
-		void OnEnable()
-		{
-			OutlineEffect.Instance?.AddOutline(this);
-		}
-
-		void OnDisable()
-		{
-			OutlineEffect.Instance?.RemoveOutline(this);
-		}
-
-		private Material[] _SharedMaterials;
-		public Material[] SharedMaterials
-		{
-			get
-			{
-				if (_SharedMaterials == null)
-					_SharedMaterials = Renderer.sharedMaterials;
-
-				return _SharedMaterials;
-			}
-		}
-	}
+    }
 }
+

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Ubiq.Messaging;
-using cakeslice;
 // Attach to objects that should use an outline, e.g. recorded avatars
 public class Outliner : MonoBehaviour, INetworkComponent
 {
