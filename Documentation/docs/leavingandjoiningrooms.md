@@ -4,20 +4,16 @@ When a `RoomClient` starts it is automatically a member of an empty, unidentifie
 
 A `RoomClient` can create a new room or join an existing one at any time. Joining or leaving a room involes a *room change*. Changing the room is the same whether the client is going to or from an empty room, or between non-empty rooms.
 
-When the room changes `RoomClient` will emit a number of events in order:
+When the room changes `RoomClient` will emit a number of events, in order:
 
-1. `OnLeftRoom` with the old room
-2. `OnPeerRemoved` for any peers that are not in the new room
-3. `OnJoinedRoom` with the new room
-4. `OnRoom` with the new room
-5. `OnPeer` for all updated peers
+1. `OnPeerRemoved` for any peers that go out of scope
+2. `OnPeerAdded` for any peers that come into scope
+3. `OnPeerUpdated` for any peers that are in scope but whose properties have changed
+4. `OnJoinedRoom` with the new room
+5. `OnRoomUpdated` with the new room
 
-As usual, `OnPeer` and `OnRoom` may be called even if there is no change in the `PeerInfo` or `RoomInfo`.
+Whether a Peer is in *scope* means whether or not it is available to current Peer. If two Peers moved to another room at the same time, they would remain in scope because the Peers themselves remain in the same rooms, even though that room has changed. On the other hand, if a Peer joins a different Room, it will go out of scope, as it is no longer in the same room, even though it may still be connected to the server.
 
-## Synchronising Peers
+The purpose of rooms is to facilitate message exchanging between specific sets of peers. Most Components should use the Peer events to create, destroy and update objects. The Room events are typically used when code needs to control room membership, for example the UI panels for joining rooms.
 
-Two peers attempting to join a room at the same time could result in a race condition. This is resolved at the server: when a peer joins a room, it receives a list of all other peers already in the room. This list is always sent before the next peer joins.
-
-When `OnJoinedRoom` is emitted, `RoomClient::Peers` will contain the existing peers in the room exactly. This event can be used to distinguish then between 'old' or 'existing' and 'new' peers.
-
-For example, this is used by the audio chat manager to decide which peer will start the process of creating an audio channel, without those peers having to explicitly communicate, using only the rule that new peers must make the connection to existing ones.
+There is no such thing as leaving a room; underneath, leaving a Room means joining a new, empty Room.
