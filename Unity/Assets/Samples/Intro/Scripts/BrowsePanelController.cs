@@ -14,7 +14,7 @@ namespace Ubiq.Samples
         public GameObject controlPrefab;
 
         private List<BrowseMenuControl> controls = new List<BrowseMenuControl>();
-        private List<RoomInfo> lastRoomArgs;
+        private List<IRoom> lastRoomArgs;
 
         private void OnEnable()
         {
@@ -37,7 +37,7 @@ namespace Ubiq.Samples
             return go.GetComponent<BrowseMenuControl>();
         }
 
-        private void RoomClient_OnJoinedRoom(RoomInfo room)
+        private void RoomClient_OnJoinedRoom(IRoom room)
         {
             UpdateAvailableRooms();
 
@@ -45,7 +45,7 @@ namespace Ubiq.Samples
             mainMenu.roomClient.GetRooms();
         }
 
-        private void RoomClient_OnRoomsAvailable(List<RoomInfo> rooms)
+        private void RoomClient_OnRoomsAvailable(List<IRoom> rooms)
         {
             lastRoomArgs = rooms;
             UpdateAvailableRooms();

@@ -40,8 +40,7 @@ namespace Ubiq.Samples.Boids
                 boids.Add(myBoidsParams.sharedId, localBoids);
             }
 
-            client.OnJoinedRoom.AddListener(OnJoinedRoom);
-            client.OnPeer.AddListener(OnPeer);
+            client.OnPeerAdded.AddListener(OnPeer);
             client.Me["boids-params"] = JsonUtility.ToJson(myBoidsParams);
 
             MakeUpdateBoids(myBoidsParams, true);
@@ -80,15 +79,7 @@ namespace Ubiq.Samples.Boids
             flock.local = local;
         }
 
-        private void OnJoinedRoom(RoomInfo room)
-        {
-            foreach (var item in client.Peers)
-            {
-                OnPeer(item);
-            }
-        }
-
-        private void OnPeer(PeerInfo peer)
+        private void OnPeer(IPeer peer)
         {
             if (peer.UUID == client.Me.UUID)
             {

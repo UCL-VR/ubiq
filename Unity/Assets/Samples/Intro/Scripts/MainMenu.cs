@@ -110,7 +110,7 @@ namespace Ubiq.Samples
             gameObject.SetActive(true);
         }
 
-        private void RoomClient_OnJoinedRoom(RoomInfo room)
+        private void RoomClient_OnJoinedRoom(IRoom room)
         {
             if (roomClient != null &&
                 roomClient.Room != null &&

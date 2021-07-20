@@ -52,7 +52,6 @@ namespace Ubiq.Logging
             if(context != null)
             {
                 context.Send(LogManager.Id, LogManager.ComponentId, LogManagerMessage.Rent("StartTransmitting"));
-               
             }
             Collecting = true;
         }
@@ -133,7 +132,7 @@ namespace Ubiq.Logging
                 var roomClient = context.scene.GetComponentInChildren<Rooms.RoomClient>();
                 if(roomClient)
                 {
-                    roomClient.OnPeer.AddListener(Peer =>
+                    roomClient.OnPeerAdded.AddListener(Peer =>
                     {
                         if (Collecting)
                         {

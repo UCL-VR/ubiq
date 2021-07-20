@@ -14,7 +14,7 @@ namespace Ubiq.Samples
         public RoomsMenuInfoPanel infoPanel;
 
         private List<RoomsMenuControl> controls;
-        private List<RoomInfo> lastRoomArgs;
+        private List<IRoom> lastRoomArgs;
 
         private void Awake()
         {
@@ -33,7 +33,7 @@ namespace Ubiq.Samples
             return go.GetComponent<RoomsMenuControl>();
         }
 
-        private void OnJoinedRoom(RoomInfo room)
+        private void OnJoinedRoom(IRoom room)
         {
             UpdateAvailableRooms();
 
@@ -41,7 +41,7 @@ namespace Ubiq.Samples
             roomClient.GetRooms();
         }
 
-        private void OnRoomsAvailable(List<RoomInfo> rooms)
+        private void OnRoomsAvailable(List<IRoom> rooms)
         {
             lastRoomArgs = rooms;
             UpdateAvailableRooms();
@@ -64,7 +64,7 @@ namespace Ubiq.Samples
                 if (joinedControl != null)
                 {
                     joinedControl.gameObject.SetActive(true);
-                    joinedControl.Bind(roomClient.Room.GetRoomInfo(), roomClient);
+                    joinedControl.Bind(roomClient.Room, roomClient);
                 }
             }
 
@@ -99,7 +99,7 @@ namespace Ubiq.Samples
 
         public void Join(RoomsMenuControl control)
         {
-            roomClient.Join(control.room.Joincode);
+            roomClient.Join(control.room.JoinCode);
         }
 
         public void Select(RoomsMenuControl control)

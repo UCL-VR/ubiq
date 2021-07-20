@@ -22,7 +22,7 @@ namespace Ubiq.Samples
             mainMenu.roomClient.OnJoinedRoom.RemoveListener(RoomClient_OnJoinedRoom);
         }
 
-        private void RoomClient_OnJoinedRoom(RoomInfo room)
+        private void RoomClient_OnJoinedRoom(IRoom room)
         {
             mainPanel.SwitchPanelToDefault();
         }

@@ -66,7 +66,7 @@ namespace Ubiq.Samples
         {
             context = NetworkScene.Register(this);
             events = new ContextEventLogger(context);
-            roomClient.OnRoom.AddListener(OnRoom);
+            roomClient.OnRoomUpdated.AddListener(OnRoomUpdated);
         }
 
         private GameObject Instantiate(int i, NetworkId networkId, bool local)
@@ -104,9 +104,9 @@ namespace Ubiq.Samples
             return spawned;
         }
 
-        private void OnRoom(RoomInfo room)
+        private void OnRoomUpdated(IRoom room)
         {
-            foreach (var item in room.Properties)
+            foreach (var item in room)
             {
                 if(item.Key.StartsWith("SpawnedObject"))
                 {

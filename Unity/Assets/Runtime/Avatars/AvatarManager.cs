@@ -64,42 +64,6 @@ namespace Ubiq.Avatars
         /// </summary>
         public AvatarDestroyEvent OnAvatarDestroyed;
 
-        /// <summary>
-        /// Wraps a PeerInfo object in a persistent PeerInterface
-        /// </summary>
-        public class PeerInterfaceWrapper : PeerInterface
-        {
-            PeerInfo info;
-
-            public PeerInterfaceWrapper(PeerInfo info):base(info.UUID)
-            {
-                UpdatePeerInfo(info);
-            }
-
-            public void UpdatePeerInfo(PeerInfo info)
-            {
-                this.info = info;
-            }
-
-            public override string this[string key]
-            {
-                get
-                {
-                    return info[key];
-                }
-                set
-                {
-                    Debug.LogError($"Trying to set key {key} on read-only remote peer");
-                }
-            }
-
-            public override PeerInfo GetPeerInfo()
-            {
-                return info;
-            }
-        }
-
-
         private void Awake()
         {
             RoomClient = GetComponentInParent<RoomClient>();
@@ -121,9 +85,9 @@ namespace Ubiq.Avatars
         {
             localAvatarId = NetworkScene.GenerateUniqueId(); 
 
-            RoomClient.OnPeer.AddListener(OnPeerUpdated);
+            RoomClient.OnPeerAdded.AddListener(UpdateAvatar);
+            RoomClient.OnPeerUpdated.AddListener(UpdateAvatar);
             RoomClient.OnPeerRemoved.AddListener(OnPeerRemoved);
-            RoomClient.OnJoinedRoom.AddListener(OnJoinedRoom);
 
             RoomClient.Me["ubiq.avatar.networkid"] = localAvatarId.ToString();
 
@@ -133,7 +97,7 @@ namespace Ubiq.Avatars
                 RoomClient.Me["ubiq.avatar.prefab"] = LocalPrefabUuid;
             }
 
-            OnPeerUpdated(RoomClient.Me.GetPeerInfo());
+            UpdateAvatar(RoomClient.Me);
         }
 
         /// <summary>
@@ -144,7 +108,7 @@ namespace Ubiq.Avatars
             RoomClient.Me["ubiq.avatar.prefab"] = prefab.GetComponent<Avatar>().PrefabUuid;
         }
 
-        private void UpdateAvatar(PeerInfo peer)
+        private void UpdateAvatar(IPeer peer)
         {
             // Gather some basic parameters about the avatar & peer we are updating
 
@@ -184,15 +148,7 @@ namespace Ubiq.Avatars
                 var prefab = AvatarCatalogue.GetPrefab(prefabUuid);
                 var created = Instantiate(prefab, transform).GetComponentInChildren<Avatar>();
                 created.Id = id;
-                
-                if(local)
-                {
-                    created.SetPeer(RoomClient.Me);
-                }
-                else
-                {
-                    created.SetPeer(new PeerInterfaceWrapper(peer));
-                }
+                created.SetPeer(peer);
 
                 playerAvatars.Add(peer.UUID, created);
 
@@ -223,28 +179,15 @@ namespace Ubiq.Avatars
                 avatar.gameObject.name = "Remote Avatar #" + avatar.Id.ToString();
             }
 
-            if(avatar.Peer is PeerInterfaceWrapper)
-            {
-                (avatar.Peer as PeerInterfaceWrapper).UpdatePeerInfo(peer);
-            }
-
-            avatar.OnPeerUpdated.Invoke(avatar.Peer.GetPeerInfo());
+            avatar.OnPeerUpdated.Invoke(peer);
         }
 
-        private void OnJoinedRoom(RoomInfo room)
-        {
-            foreach (var item in RoomClient.Peers)
-            {
-                OnPeerUpdated(item);
-            }
-        }
-
-        private void OnPeerUpdated(PeerInfo peer)
+        private void OnPeer(IPeer peer)
         {
             UpdateAvatar(peer);
         }
 
-        private void OnPeerRemoved(PeerInfo peer)
+        private void OnPeerRemoved(IPeer peer)
         {
             if (playerAvatars.ContainsKey(peer.UUID))
             {

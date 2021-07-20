@@ -16,12 +16,12 @@ namespace Ubiq.Samples
         public RawImage ScenePreview;
 
         [System.Serializable]
-        public class BindEvent : UnityEvent<RoomClient,RoomInfo> { };
+        public class BindEvent : UnityEvent<RoomClient, IRoom> { };
         public BindEvent OnBind;
 
         private string existing;
 
-        public void Bind(RoomClient client, RoomInfo roomInfo)
+        public void Bind(RoomClient client, IRoom roomInfo)
         {
             Name.text = roomInfo.Name;
             SceneName.text = roomInfo["scene-name"];
