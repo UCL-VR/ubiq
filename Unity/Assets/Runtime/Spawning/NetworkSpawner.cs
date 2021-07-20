@@ -166,9 +166,9 @@ namespace Ubiq.Spawning
         {
             context.SendJson(new Message() { networkId = networkId, remove = true, recording = true });
             var key = $"SpawnedObject-{ networkId }";
-            roomClient.Room[key] = JsonUtility.ToJson(new Message() { networkId = networkId, remove = true, recording = true});
             Destroy(spawned[networkId]);
             spawned.Remove(networkId);
+            roomClient.Room[key] = JsonUtility.ToJson(new Message() { networkId = networkId, remove = true, recording = true});
             Debug.Log("UnspawnPersistent");
         }
 
@@ -226,25 +226,29 @@ namespace Ubiq.Spawning
             {
                 if(item.Key.StartsWith("SpawnedObject"))
                 {
-                    Debug.Log("OnRoom " + item.Key);
                     var msg = JsonUtility.FromJson<Message>(item.Value);
                     
                     if (!spawned.ContainsKey(msg.networkId))
                     {
-                        Debug.Log("OnRoom");
+                        
                         if (!msg.remove)
                         {
                             if (msg.recording)
                             {
+                                Debug.Log("OnRoom InstantiateReplay" + item.Key);
                                 InstantiateReplay(msg.catalogueIndex, msg.networkId, false, msg.visible, msg.uuid);
                             }
                             else
                             {
+                                Debug.Log("OnRoom Instantiate" + item.Key);
                                 Instantiate(msg.catalogueIndex, msg.networkId, false);
                             }
                         }
                         else
                         {
+                            Debug.Log("OnRoom Remove" + item.Key);
+                            Destroy(spawned[msg.networkId]);
+                            spawned.Remove(msg.networkId);
                             roomClient.Room[item.Key] = null;
                         }
                     }
@@ -265,14 +269,13 @@ namespace Ubiq.Spawning
                     Debug.Log("OnLeftRoom: " + item.Key);
                     var msg = JsonUtility.FromJson<Message>(item.Value);
 
-                    if (msg.recording)
-                    {
-                        Debug.Log("Remove object: " + msg.networkId);
-                        Destroy(spawned[msg.networkId]);
-                        spawned.Remove(msg.networkId);
-                    }
-                    var key = $"SpawnedObject-{ msg.networkId }";
-                    roomClient.Room[key] = null;
+                    // if (msg.recording)
+                    Debug.Log("Remove object: " + msg.networkId);
+                    Destroy(spawned[msg.networkId]);
+                    spawned.Remove(msg.networkId);
+                    //var key = $"SpawnedObject-{ msg.networkId }";
+                    //roomClient.Room[key] = null;
+                    
                 }
             }
         }
