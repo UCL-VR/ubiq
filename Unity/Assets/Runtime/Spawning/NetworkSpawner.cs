@@ -91,10 +91,11 @@ namespace Ubiq.Spawning
 
         private GameObject InstantiateReplay(int i, NetworkId networkId, bool local, bool visible, string uuid)
         {
-            Debug.Log("Instantiate Recording");
+            Debug.Log("Instantiate Replay");
             GameObject go = Instantiate(i, networkId, local);
             go.GetComponent<TexturedAvatar>().SetTexture(uuid);
             go.GetComponent<Outliner>().SetOutline(true);
+            Debug.Log("visible is " + visible);
             if (visible)
             {
                 go.GetComponent<ObjectHider>().SetLayer(0); // show (default)
@@ -173,6 +174,7 @@ namespace Ubiq.Spawning
 
         public void UpdateProperties(NetworkId networkId, string type, object arg)
         {
+            Debug.Log("Update properties for " + networkId.ToString());
             Message msg;
             var key = $"SpawnedObject-{ networkId }";
             string prop = roomClient.Room[key];
@@ -185,7 +187,6 @@ namespace Ubiq.Spawning
             {
                 msg = JsonUtility.FromJson<Message>(prop);
             }
-
             switch(type)
             {
                 case "UpdateVisibility":

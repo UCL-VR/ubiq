@@ -85,15 +85,16 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
 
     public void SetNetworkedObjectLayer(int layer)
     {
-        // for actual peer avatars this method won't do anything because the peer avatars are in the AvatarManager and not in the NetworkSpawner
-        spawner.UpdateProperties(avatar.Id, "UpdateVisibility", layer);
 
         if (layer == defaultLayer)
         {
+            // for actual peer avatars this method won't do anything because the peer avatars are in the AvatarManager and not in the NetworkSpawner
+            spawner.UpdateProperties(avatar.Id, "UpdateVisibility", true);
             NetworkedShow();
         }
         else if (layer == hideLayer)
         {
+            spawner.UpdateProperties(avatar.Id, "UpdateVisibility", false);
             NetworkedHide();
         }
         else

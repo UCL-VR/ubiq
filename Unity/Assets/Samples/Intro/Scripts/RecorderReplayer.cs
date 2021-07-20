@@ -325,7 +325,7 @@ public class Replayer
                     Debug.Log("Show avatars from start");
                     for (var i = 0; i < recInfo.avatarsAtStart; i++)
                     {
-                        replayedObjects.Values.ElementAt(i).hider.NetworkedShow();
+                        replayedObjects.Values.ElementAt(i).hider.SetNetworkedObjectLayer(0); // show (default layer)
                     }
                     showAvatarsFromStart = true;
                 }
