@@ -463,7 +463,7 @@ namespace Ubiq.Rooms
                 publish = publish,
                 peer = me.GetPeerInfo()
             });
-            (Me as PeerInterfaceFriend).NeedsUpdate(); // This will clear the updated needed flag
+            me.NeedsUpdate(); // This will clear the updated needed flag
         }
 
         /// <summary>
@@ -476,7 +476,7 @@ namespace Ubiq.Rooms
                 joincode = joincode,
                 peer = me.GetPeerInfo()
             });
-            (Me as PeerInterfaceFriend).NeedsUpdate();
+            me.NeedsUpdate();
         }
 
         /// <summary>
