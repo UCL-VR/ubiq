@@ -122,7 +122,8 @@ namespace Ubiq.Spawning
             {
                 Debug.Log("NetworkSpawner ProcessMessage: remove");
                 var key = $"SpawnedObject-{ msg.networkId }";
-                roomClient.Room[key] = JsonUtility.ToJson(new Message() {networkId = msg.networkId, remove = true});
+                // might already be removed
+                roomClient.Room[key] = null;// JsonUtility.ToJson(new Message() {networkId = msg.networkId, remove = true});
                 Destroy(spawned[msg.networkId]);
                 spawned.Remove(msg.networkId);
             }
@@ -164,12 +165,20 @@ namespace Ubiq.Spawning
 
         public void UnspawnPersistent(NetworkId networkId)
         {
+            foreach (var item in roomClient.Room.Properties)
+            {
+                Debug.Log(item.Value);
+            }
             context.SendJson(new Message() { networkId = networkId, remove = true, recording = true });
             var key = $"SpawnedObject-{ networkId }";
-            Destroy(spawned[networkId]);
-            spawned.Remove(networkId);
-            roomClient.Room[key] = JsonUtility.ToJson(new Message() { networkId = networkId, remove = true, recording = true});
-            Debug.Log("UnspawnPersistent");
+            // if OnLeftRoom is called too the objects are destroyed there and not here
+            if (spawned.ContainsKey(networkId))
+            {
+                Destroy(spawned[networkId]);
+                spawned.Remove(networkId);
+            }
+            roomClient.Room[key] = null; //JsonUtility.ToJson(new Message() { networkId = networkId, remove = true, recording = true});
+            Debug.Log("UnspawnPersistent " + networkId.ToString());
         }
 
         public void UpdateProperties(NetworkId networkId, string type, object arg)
@@ -224,6 +233,10 @@ namespace Ubiq.Spawning
         {
             foreach (var item in room.Properties)
             {
+                Debug.Log(item.Value);
+            }
+            foreach (var item in room.Properties)
+            {
                 if(item.Key.StartsWith("SpawnedObject"))
                 {
                     var msg = JsonUtility.FromJson<Message>(item.Value);
@@ -244,7 +257,7 @@ namespace Ubiq.Spawning
                                 Instantiate(msg.catalogueIndex, msg.networkId, false);
                             }
                         }
-                        else
+                        else // not sure if that ever happens
                         {
                             Debug.Log("OnRoom Remove from room properties" + item.Key);
                             roomClient.Room[item.Key] = null;

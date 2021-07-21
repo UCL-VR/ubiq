@@ -741,8 +741,8 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
 
     private void OnLeftRoom(RoomInfo room)
     {
-        cleanedUp = true;
-        replayer.Cleanup(false);
+        cleanedUp = true; 
+        replayer.Cleanup(true);
         
         leftRoom = true;
         if (replaying)
