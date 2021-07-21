@@ -380,7 +380,9 @@ namespace Ubiq.Rooms
                 publish = publish,
                 peer = Me.GetPeerInfo()
             });
+            Me["owner_recording"] = "1";
             (Me as IPeerInterfaceFriend).NeedsUpdate(); // This will clear the updated needed flag
+
         }
 
         /// <summary>
@@ -404,6 +406,7 @@ namespace Ubiq.Rooms
         /// </remarks>
         public void Leave()
         {
+            Me["owner_recording"] = null;
             SendToServer("Leave", new LeaveRequest()
             {
                 peer = Me.GetPeerInfo()

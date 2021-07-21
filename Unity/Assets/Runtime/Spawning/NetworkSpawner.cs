@@ -178,7 +178,7 @@ namespace Ubiq.Spawning
                 spawned.Remove(networkId);
             }
             roomClient.Room[key] = null; //JsonUtility.ToJson(new Message() { networkId = networkId, remove = true, recording = true});
-            Debug.Log("UnspawnPersistent " + networkId.ToString());
+            Debug.Log("UnspawnPersistent " + networkId.ToString() + "  " + roomClient.Room[key]);
         }
 
         public void UpdateProperties(NetworkId networkId, string type, object arg)
@@ -233,7 +233,7 @@ namespace Ubiq.Spawning
         {
             foreach (var item in room.Properties)
             {
-                Debug.Log(item.Value);
+                Debug.Log(Time.unscaledTime + " On room " + item.Value);
             }
             foreach (var item in room.Properties)
             {

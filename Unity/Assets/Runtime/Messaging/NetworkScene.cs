@@ -136,6 +136,8 @@ namespace Ubiq.Messaging
 
         private void Awake()
         {
+            Application.targetFrameRate = 30;
+
             if (transform.parent == null)
             {
                 if (rootNetworkScene == null)
