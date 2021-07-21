@@ -772,10 +772,10 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
                 if (replaying)
                 {
                     replaying = false;
-                    replayer.Cleanup(false);
+                    cleanedUp = true;
+                    replayer.Cleanup(true);
                     replayingStartTime = 0.0f;
                     stopTime = 0.0f;
-                    cleanedUp = true;
                 }
 
                 SetReplayFile();
@@ -799,10 +799,10 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
         {
             if (!cleanedUp)
             {
-                replayer.Cleanup(false);
+                cleanedUp = true;
+                replayer.Cleanup(true);
                 replayingStartTime = 0.0f;
                 stopTime = 0.0f;
-                cleanedUp = true;
             }
         }
     }
