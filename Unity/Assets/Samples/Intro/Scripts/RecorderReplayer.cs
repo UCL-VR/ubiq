@@ -634,8 +634,9 @@ public class Replayer
         //Debug.Log(currentReplayFrame + " " + msgIndex);
     }
 
-    public void Cleanup()
+    public void Cleanup(bool unspawn)
     {
+        
         Debug.Log("Cleanup " + Time.unscaledTime);
         foreach (var i in oldNewObjectids)
         {
@@ -647,16 +648,15 @@ public class Replayer
         showAvatarsFromStart = false;
         recRep.currentReplayFrame = 0;
         recRep.sliderFrame = 0;
-
-        if (replayedObjects.Count > 0)
+        // only unspawn while in room, NOT when leaving the room as it will be unspawned by the OnLeftRoom event anyways.
+        if (unspawn && replayedObjects.Count > 0)
         {
             foreach (var ids in replayedObjects.Keys)
             {
                 spawner.UnspawnPersistent(ids);
             }
-            replayedObjects.Clear();
         }
-
+        replayedObjects.Clear();
         oldNewObjectids.Clear();
         recInfo = null;
         
@@ -741,11 +741,13 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
 
     private void OnLeftRoom(RoomInfo room)
     {
+        cleanedUp = true;
+        replayer.Cleanup(false);
+        
         leftRoom = true;
         if (replaying)
         {
             replaying = false;
-            //cleanedUp = true; // dont clean up because this will be done by the NetworkSpawner anyways
             replayingStartTime = 0.0f;
             stopTime = 0.0f;
             Debug.Log("Left room, replaying stopped!");
@@ -770,7 +772,7 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
                 if (replaying)
                 {
                     replaying = false;
-                    replayer.Cleanup();
+                    replayer.Cleanup(false);
                     replayingStartTime = 0.0f;
                     stopTime = 0.0f;
                     cleanedUp = true;
@@ -797,7 +799,7 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
         {
             if (!cleanedUp)
             {
-                replayer.Cleanup();
+                replayer.Cleanup(false);
                 replayingStartTime = 0.0f;
                 stopTime = 0.0f;
                 cleanedUp = true;
@@ -845,8 +847,7 @@ public class RecorderReplayerEditor : Editor
         t.replaying = EditorGUILayout.Toggle("Replaying", t.replaying);
         if (t.replaying)
         {
-            //t.play = true;
-            t.cleanedUp = false;
+            //t.cleanedUp = false;
             if (GUILayout.Button(t.play == true ? "Stop" : "Play"))
             {
                 if (!t.play)

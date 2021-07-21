@@ -246,14 +246,9 @@ namespace Ubiq.Spawning
                         }
                         else
                         {
-                            Debug.Log("OnRoom Remove" + item.Key);
-                            Destroy(spawned[msg.networkId]);
-                            spawned.Remove(msg.networkId);
+                            Debug.Log("OnRoom Remove from room properties" + item.Key);
                             roomClient.Room[item.Key] = null;
                         }
-                    }
-                    else // update info
-                    {
                     }
                 }
             }
@@ -269,13 +264,18 @@ namespace Ubiq.Spawning
                     Debug.Log("OnLeftRoom: " + item.Key);
                     var msg = JsonUtility.FromJson<Message>(item.Value);
 
-                    // if (msg.recording)
-                    Debug.Log("Remove object: " + msg.networkId);
-                    Destroy(spawned[msg.networkId]);
-                    spawned.Remove(msg.networkId);
-                    //var key = $"SpawnedObject-{ msg.networkId }";
-                    //roomClient.Room[key] = null;
-                    
+                    if (spawned.ContainsKey(msg.networkId))
+                    {
+                        Debug.Log("Remove object: " + msg.networkId);
+                        Destroy(spawned[msg.networkId]);
+                        spawned.Remove(msg.networkId);
+
+                    }
+                    if (msg.remove)
+                    {
+                        var key = $"SpawnedObject-{ msg.networkId }";
+                        roomClient.Room[key] = null;
+                    }                    
                 }
             }
         }
