@@ -74,8 +74,25 @@ namespace Ubiq.Spawning
         {
             context = NetworkScene.Register(this);
             events = new ContextEventLogger(context);
+            roomClient.OnRoomUpdated.AddListener(OnRoomUpdated);
             roomClient.OnRoom.AddListener(OnRoom);
             roomClient.OnLeftRoom.AddListener(OnLeftRoom);
+        }
+
+        private void OnRoomUpdated(IRoom room)
+        {
+            foreach (var item in room)
+            {
+                if (item.Key.StartsWith("SpawnedObject"))
+                {
+                    Debug.Log(item.Key);
+                    var msg = JsonUtility.FromJson<Message>(item.Value);
+                    if (!spawned.ContainsKey(msg.networkId))
+                    {
+                        Instantiate(msg.catalogueIndex, msg.networkId, false);
+                    }
+                }
+            }
         }
 
         private GameObject Instantiate(int i, NetworkId networkId, bool local)

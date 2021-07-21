@@ -5,6 +5,7 @@ using Ubiq.Networking;
 using Ubiq.Messaging;
 using Ubiq.Dictionaries;
 using System.Linq;
+using Ubiq.Rooms.Messages;
 
 namespace Ubiq.Rooms
 {
@@ -51,7 +52,7 @@ namespace Ubiq.Rooms
 
             public void Join(Client client)
             {
-                if(peers.Any(p => p.UUID == client.peer.UUID)) // already joined
+                if(peers.Any(p => p.uuid == client.peer.uuid)) // already joined
                 {
                     SendRoomUpdate();
                     return; 
@@ -85,7 +86,7 @@ namespace Ubiq.Rooms
             {
                 this.uuid = args.UUID;
                 this.name = args.Name;
-                this.properties = new SerializableDictionary(args.Properties);
+                this.properties = new SerializableDictionary(args);
                 SendRoomUpdate();
             }
 
@@ -112,7 +113,7 @@ namespace Ubiq.Rooms
             public void Send(string type, object argument)
             {
                 var msg = ReferenceCountedSceneGraphMessage.Rent(JsonUtility.ToJson(new Message(type, argument)));
-                msg.objectid = peer.NetworkObjectId;
+                msg.objectid = peer.networkId;
                 msg.componentid = NetworkScene.GetComponentId<RoomClient>();
                 Send(msg);
             }

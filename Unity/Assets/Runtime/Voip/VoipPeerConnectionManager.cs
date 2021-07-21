@@ -119,19 +119,7 @@ namespace Ubiq.Voip
             context = NetworkScene.Register(this);
             logger = new ContextEventLogger(context);
             client.OnJoinedRoom.AddListener(OnJoinedRoom);
-            client.OnLeftRoom.AddListener(OnLeftRoom);
             client.OnPeerRemoved.AddListener(OnPeerRemoved);
-        }
-
-        // Cleanup all peers
-        private void OnLeftRoom(RoomInfo room)
-        {
-            foreach(var pc in peerUuidToConnection.Values) {
-                Destroy(pc.audioSource.gameObject);
-                Destroy(pc.gameObject);
-            }
-
-            peerUuidToConnection.Clear();
         }
 
         private void OnDestroy()
@@ -143,7 +131,7 @@ namespace Ubiq.Voip
         // It is the responsibility of the new peer (the one joining the room) to begin the process of creating a peer connection,
         // and existing peers to accept that connection.
         // This is because we need to know that the remote peer is established, before beginning the exchange of messages.
-        private void OnJoinedRoom(RoomInfo room)
+        private void OnJoinedRoom(IRoom room)
         {
             foreach (var peer in client.Peers)
             {
@@ -172,7 +160,7 @@ namespace Ubiq.Voip
             }
         }
 
-        private void OnPeerRemoved(PeerInfo peer)
+        private void OnPeerRemoved(IPeer peer)
         {
             if (peerUuidToConnection.TryGetValue(peer.UUID, out var connection))
             {

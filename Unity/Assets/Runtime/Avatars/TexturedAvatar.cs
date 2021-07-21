@@ -62,7 +62,7 @@ namespace Ubiq.Samples
             }
         }
 
-        void OnPeerUpdated(PeerInfo peer)
+        void OnPeerUpdated(IPeer peer)
         {
             SetTexture(peer["ubiq.avatar.texture.uuid"]);
         }

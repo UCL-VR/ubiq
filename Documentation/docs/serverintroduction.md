@@ -1,16 +1,16 @@
 # Servers and Rooms
 
-As described in the Getting Started Guide, the server is a central service that clients can use to rendezvous over the internet. Rooms contain sets of users who can exchange messages.
+Ubiq provides a Rooms system and a server. These work together to provide a fixed endpoint that allows users to rendezvous over the internet, where service discovery is impossible.
 
-A public server at a fixed location is necessary to allow users to rendezvous over the internet, where service discovery is impossible.
+The Rooms system - the RoomClient and RoomServer - provide the concepts of Rooms and Peers. A Peer is a remote player. A Room is a place that multiple Peers can join. The example Server implements a RoomServer that allows Peers to find and join Rooms, and facilitates message exchange between the Rooms members.
 
 ## Rooms and Messaging
 
 The purpose of rooms is to control which users exchange messages with which.
 
-At the messaging layer, Ubiq blindly transmits messages across a Connection and expects the network to deliver them to matching objects. The connection made by the RoomClient to the Server is the same one used to deliver messages between networked objects. When the server receives a message, it forwards it to all other peers in the room.
+At the messaging layer, Ubiq transmits messages across a Connection and expects the network to deliver them to matching objects. The connection made by the RoomClient to the Server is the same one used to deliver messages between networked objects. When the server receives a message, it forwards it to all other peers in the room.
 
-After connecting to the server, a client begins in an empty room, and so its messages will not be forwarded to anyone.
+After connecting to the server, a client begins in an empty room. Its messages will not be forwarded to anyone.
 
 The RoomClient can join an existing room by exchanging messages with the RoomServer. The RoomServer is a 'virtual' networked object that exists on the server and listens for messages addressed to a particular Object/Component Id.
 

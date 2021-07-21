@@ -28,10 +28,10 @@ namespace Ubiq.Samples
             }
         }
 
-        private void BrowseRoomControl_OnBind(RoomClient roomClient, RoomInfo roomInfo)
+        private void BrowseRoomControl_OnBind(RoomClient roomClient, IRoom roomInfo)
         {
             this.roomClient = roomClient;
-            this.joincode = roomInfo.Joincode;
+            this.joincode = roomInfo.JoinCode;
         }
 
         // Expected to be called by a UI element

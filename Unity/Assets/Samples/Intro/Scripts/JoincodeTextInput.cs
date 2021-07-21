@@ -28,7 +28,7 @@ namespace Ubiq.Samples
             textInputArea.color = defaultTextInputAreaColor;
         }
 
-        private void RoomClient_OnJoinRejected(RejectedArgs args)
+        private void RoomClient_OnJoinRejected(Rejection args)
         {
             textEntry.SetText(failMessage,textEntry.defaultTextColor,true);
             textInputArea.color = failTextInputAreaColor;

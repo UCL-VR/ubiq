@@ -44,7 +44,7 @@ namespace Ubiq.Avatars
         /// <remarks>
         /// Peer is set externally (using SetPeer()). This must be done as soon as the Avatar is created.
         /// </remarks>
-        public PeerInterface Peer { get; private set; }
+        public IPeer Peer { get; private set; }
 
         /// <summary>
         /// Emitted when the properties of the Peer this Avatar belongs to are updated.
@@ -54,11 +54,21 @@ namespace Ubiq.Avatars
         /// <summary>
         /// A dummy PeerInterface for local properties.
         /// </summary>
-        public class AvatarPeerInterface : PeerInterface
+        public class AvatarPeerInterface : IPeer
         {
-            public AvatarPeerInterface():base(null)
+            public AvatarPeerInterface()
             {
             }
+
+            public string this[string key] 
+            { 
+                get => null; 
+                set => throw new NotImplementedException(); 
+            }
+
+            public string UUID => null;
+
+            public NetworkId NetworkObjectId => throw new NotImplementedException();
         }
 
         private void Awake()
@@ -71,10 +81,9 @@ namespace Ubiq.Avatars
 
         }
 
-        public void SetPeer(PeerInterface peerInterface)
+        public void SetPeer(IPeer peerInterface)
         {
             Peer = peerInterface;
-
             if (hasStarted)
             {
                 Debug.LogError("Setting the Avatar Peer after Start() is not supported.");

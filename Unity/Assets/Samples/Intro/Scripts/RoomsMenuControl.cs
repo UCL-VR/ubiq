@@ -16,8 +16,8 @@ namespace Ubiq.Samples
         public Button SelfButton;
         public Button JoinButton;
 
-        [HideInInspector]
-        public RoomInfo room;
+        [NonSerialized]
+        public IRoom room;
 
         private string existing;
 
@@ -33,7 +33,7 @@ namespace Ubiq.Samples
             }
         }
 
-        public void Bind(RoomInfo args, RoomClient client)
+        public void Bind(IRoom args, RoomClient client)
         {
             Name.text = args.Name;
             SceneName.text = args["scene-name"];

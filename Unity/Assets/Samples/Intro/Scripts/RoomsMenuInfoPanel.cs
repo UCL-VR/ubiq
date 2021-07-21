@@ -17,7 +17,7 @@ namespace Ubiq.Samples
 
         private string existing;
 
-        public void Bind(RoomInfo args, RoomClient client)
+        public void Bind(IRoom args, RoomClient client)
         {
             Name.text = args.Name;
             Scene.text = args["scene-name"];
