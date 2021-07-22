@@ -464,6 +464,7 @@ namespace Ubiq.Rooms
         /// </summary>
         public void JoinNew(string name, bool publish)
         {
+            me["creator"] = "1";
             SendToServer("Join", new JoinRequest()
             {
                 joincode = "", // Empty joincode means request new room
@@ -471,7 +472,6 @@ namespace Ubiq.Rooms
                 publish = publish,
                 peer = me.GetPeerInfo()
             });
-            me["creator"] = "1";
             me.NeedsUpdate(); // This will clear the updated needed flag
         }
 
@@ -480,12 +480,12 @@ namespace Ubiq.Rooms
         /// </summary>
         public void Join(string joincode)
         {
+            me["creator"] = "0"; // not the creator of this room
             SendToServer("Join", new JoinRequest()
             {
                 joincode = joincode,
                 peer = me.GetPeerInfo()
             });
-            me["creator"] = "0"; // not the creator of this room
             me.NeedsUpdate();
         }
 

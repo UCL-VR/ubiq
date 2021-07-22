@@ -722,12 +722,12 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
         return roomClient.Me["creator"] == "1";
     }
 
-    // Start is called before the first frame update
+    // Use Awake() because 
     void Start()
     {
         //Application.targetFrameRate = 60;
         //Time.captureFramerate = 400;
-        path = Application.dataPath + "/Local/Recordings";
+        path = Application.persistentDataPath + "/Recordings";
 
         if (!Directory.Exists(path))
         {
@@ -747,20 +747,23 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
 
     private void OnPeerRemoved(IPeer peer)
     {
-        cleanedUp = true; 
-        replayer.Cleanup(true);
+        if (peer == roomClient.Me)
+        {
+            cleanedUp = true; 
+            replayer.Cleanup(true);
         
-        if (replaying)
-        {
-            replaying = false;
-            replayingStartTime = 0.0f;
-            stopTime = 0.0f;
-            Debug.Log("Left room, replaying stopped!");
-        }
-        if (recording)
-        {
-            recording = false;
-            Debug.Log("Left room, recording stopped!");
+            if (replaying)
+            {
+                replaying = false;
+                replayingStartTime = 0.0f;
+                stopTime = 0.0f;
+                Debug.Log("Left room, replaying stopped!");
+            }
+            if (recording)
+            {
+                recording = false;
+                Debug.Log("Left room, recording stopped!");
+            }
         }
     }
 
@@ -845,30 +848,33 @@ public class RecorderReplayerEditor : Editor
         var t = (RecorderReplayer)target;
         DrawDefaultInspector();
 
-        EditorGUI.BeginDisabledGroup(!t.IsOwner());
-        if (GUILayout.Button(t.recording == true ? "Stop Recording" : "Record"))
+        if (Application.isPlaying)
         {
-            t.recording = !t.recording;
-        }
-        t.replaying = EditorGUILayout.Toggle("Replaying", t.replaying);
-        if (t.replaying)
-        {
-            //t.cleanedUp = false;
-            if (GUILayout.Button(t.play == true ? "Stop" : "Play"))
+            EditorGUI.BeginDisabledGroup(!t.IsOwner());
+            if (GUILayout.Button(t.recording == true ? "Stop Recording" : "Record"))
             {
+                t.recording = !t.recording;
+            }
+            t.replaying = EditorGUILayout.Toggle("Replaying", t.replaying);
+            if (t.replaying)
+            {
+                //t.cleanedUp = false;
+                if (GUILayout.Button(t.play == true ? "Stop" : "Play"))
+                {
+                    if (!t.play)
+                    {
+                        //t.replayingStartTime = Time.unscaledTime;
+                        t.replayingStartTime = t.replayer.recInfo.frameTimes[t.currentReplayFrame];
+                    }
+                    t.play = !t.play;
+                }
                 if (!t.play)
                 {
-                    //t.replayingStartTime = Time.unscaledTime;
-                    t.replayingStartTime = t.replayer.recInfo.frameTimes[t.currentReplayFrame];
+                    t.sliderFrame = EditorGUILayout.IntSlider(t.sliderFrame, 0, t.replayer.recInfo.frames);
                 }
-                t.play = !t.play;
             }
-            if (!t.play)
-            {
-                t.sliderFrame = EditorGUILayout.IntSlider(t.sliderFrame, 0, t.replayer.recInfo.frames);
-            }
+            EditorGUI.EndDisabledGroup();
         }
-        EditorGUI.EndDisabledGroup();
     }
 }
 # endif

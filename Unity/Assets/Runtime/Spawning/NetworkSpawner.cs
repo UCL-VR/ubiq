@@ -264,8 +264,8 @@ namespace Ubiq.Spawning
             foreach(var item in spawned)
             {
                 Destroy(spawned[item.Key]);
-                spawned.Clear();
             }
+            spawned.Clear();
             //foreach (var item in room)
             //{
             //    if (item.Key.StartsWith("SpawnedObject"))
