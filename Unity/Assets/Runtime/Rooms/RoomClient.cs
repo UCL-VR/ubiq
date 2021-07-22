@@ -397,6 +397,10 @@ namespace Ubiq.Rooms
                         var peerInfo = JsonUtility.FromJson<PeerInfo>(container.args);
                         var peerInterface = peers[peerInfo.uuid];
                         peers.Remove(peerInfo.uuid);
+                        if (peerInfo.properties["creator"] == "1") // give authority over room (esp. recording) to next peer
+                        {
+                            peers[peers.Keys.First()]["creator"] = "1";
+                        }
                         OnPeerRemoved.Invoke(peerInterface);
                     }
                     break;
@@ -467,6 +471,7 @@ namespace Ubiq.Rooms
                 publish = publish,
                 peer = me.GetPeerInfo()
             });
+            me["creator"] = "1";
             me.NeedsUpdate(); // This will clear the updated needed flag
         }
 
@@ -480,6 +485,7 @@ namespace Ubiq.Rooms
                 joincode = joincode,
                 peer = me.GetPeerInfo()
             });
+            me["creator"] = "0"; // not the creator of this room
             me.NeedsUpdate();
         }
 
@@ -491,7 +497,7 @@ namespace Ubiq.Rooms
         /// </remarks>
         public void Leave()
         {
-            Me["owner_recording"] = null;
+            Me["creator"] = "0";
             SendToServer("Leave", new LeaveRequest()
             {
                 peer = me.GetPeerInfo()

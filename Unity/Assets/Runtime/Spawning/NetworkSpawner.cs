@@ -123,7 +123,7 @@ namespace Ubiq.Spawning
                 Debug.Log("NetworkSpawner ProcessMessage: remove");
                 var key = $"SpawnedObject-{ msg.networkId }";
                 // might already be removed
-                roomClient.Room[key] = null;// JsonUtility.ToJson(new Message() {networkId = msg.networkId, remove = true});
+                roomClient.Room[key] = JsonUtility.ToJson(new Message() {networkId = msg.networkId, remove = true});
                 Destroy(spawned[msg.networkId]);
                 spawned.Remove(msg.networkId);
             }
@@ -169,7 +169,7 @@ namespace Ubiq.Spawning
             //{
             //    Debug.Log(Time.unscaledTime + " " + item.Value);
             //}
-            context.SendJson(new Message() { networkId = networkId, remove = true, recording = true });
+            context.SendJson(new Message() { networkId = networkId, remove = true});
             var key = $"SpawnedObject-{ networkId }";
             // if OnLeftRoom is called too the objects are destroyed there and not here
             if (spawned.ContainsKey(networkId))
@@ -177,7 +177,7 @@ namespace Ubiq.Spawning
                 Destroy(spawned[networkId]);
                 spawned.Remove(networkId);
             }
-            roomClient.Room[key] = null;// JsonUtility.ToJson(new Message() { networkId = networkId, remove = true, recording = true});
+            roomClient.Room[key] = JsonUtility.ToJson(new Message() {networkId = networkId, remove = true});
             //Debug.Log("UnspawnPersistent " + networkId.ToString() + "  " + roomClient.Room[key]);
         }
 
@@ -228,13 +228,9 @@ namespace Ubiq.Spawning
                     }
             }
         }
-
+        // Gets called after OnJoinedRoom
         private void OnRoomUpdated(IRoom room)
         {
-            foreach (var item in room)
-            {
-                //Debug.Log(Time.unscaledTime + " OnRoomUpdated " + item.Value);
-            }
             foreach (var item in room)
             {
                 if(item.Key.StartsWith("SpawnedObject"))
@@ -257,39 +253,35 @@ namespace Ubiq.Spawning
                                 Instantiate(msg.catalogueIndex, msg.networkId, false);
                             }
                         }
-                        else // not sure if that ever happens
-                        {
-                            Debug.Log("OnRoom Remove from room properties" + item.Key);
-                            roomClient.Room[item.Key] = null;
-                        }
                     }
                 }
             }
         }
-
+        // Gets called before OnRoomUpdated
         private void OnJoinedRoom(IRoom room)
         {
-            foreach (var item in room)
+            // Remove potential objects from previous room
+            foreach(var item in spawned)
             {
-                if (item.Key.StartsWith("SpawnedObject"))
-                {
-                    Debug.Log("OnJoinedRoom: " + item.Key);
-                    var msg = JsonUtility.FromJson<Message>(item.Value);
-
-                    if (spawned.ContainsKey(msg.networkId))
-                    {
-                        Debug.Log("Remove object: " + msg.networkId);
-                        Destroy(spawned[msg.networkId]);
-                        spawned.Remove(msg.networkId);
-
-                    }
-                    if (msg.remove)
-                    {
-                        var key = $"SpawnedObject-{ msg.networkId }";
-                        roomClient.Room[key] = null;
-                    }                    
-                }
+                Destroy(spawned[item.Key]);
+                spawned.Clear();
             }
+            //foreach (var item in room)
+            //{
+            //    if (item.Key.StartsWith("SpawnedObject"))
+            //    {
+            //        Debug.Log("OnJoinedRoom: " + item.Key);
+            //        var msg = JsonUtility.FromJson<Message>(item.Value);
+
+            //        if (spawned.ContainsKey(msg.networkId))
+            //        {
+            //            Debug.Log("Remove object: " + msg.networkId);
+            //            Destroy(spawned[msg.networkId]);
+            //            spawned.Remove(msg.networkId);
+
+            //        }              
+            //    }
+            //}
         }
 
         private int ResolveIndex(GameObject gameObject)

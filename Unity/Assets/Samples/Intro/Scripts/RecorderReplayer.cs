@@ -717,6 +717,11 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
     private bool recordingAvailable = false;
     [HideInInspector] public bool cleanedUp = true;  
 
+    public bool IsOwner()
+    {
+        return roomClient.Me["creator"] == "1";
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -735,16 +740,16 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
         recorder = new Recorder(this);
         replayer = new Replayer(this);
         roomClient = GetComponent<RoomClient>();
-        roomClient.OnJoinedRoom.AddListener(OnJoinedRoom);
+        roomClient.OnPeerRemoved.AddListener(OnPeerRemoved);
+        roomClient.Me["creator"] = "1"; // so recording is also enabled when not being in a room at startup
 
     }
 
-    private void OnJoinedRoom(IRoom room)
+    private void OnPeerRemoved(IPeer peer)
     {
         cleanedUp = true; 
         replayer.Cleanup(true);
         
-        leftRoom = true;
         if (replaying)
         {
             replaying = false;
@@ -840,6 +845,7 @@ public class RecorderReplayerEditor : Editor
         var t = (RecorderReplayer)target;
         DrawDefaultInspector();
 
+        EditorGUI.BeginDisabledGroup(!t.IsOwner());
         if (GUILayout.Button(t.recording == true ? "Stop Recording" : "Record"))
         {
             t.recording = !t.recording;
@@ -861,8 +867,8 @@ public class RecorderReplayerEditor : Editor
             {
                 t.sliderFrame = EditorGUILayout.IntSlider(t.sliderFrame, 0, t.replayer.recInfo.frames);
             }
-
         }
+        EditorGUI.EndDisabledGroup();
     }
 }
 # endif
