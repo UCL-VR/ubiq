@@ -378,6 +378,10 @@ namespace Ubiq.Rooms
                         var args = JsonUtility.FromJson<RoomInfo>(container.args);
                         if (room.Update(args))
                         {
+                            foreach(var item in room)
+                            {
+                                Debug.Log(Time.unscaledTime + "From Server" + item.Value);
+                            }
                             OnRoomUpdated.Invoke(room);
                         }
                     }
@@ -514,6 +518,11 @@ namespace Ubiq.Rooms
 
             if (room.NeedsUpdate())
             {
+                foreach (var item in room)
+                {
+                    Debug.Log(Time.unscaledTime + " To Server " + item.Value);
+
+                }
                 SendToServer("UpdateRoom", room.GetRoomInfo());
             }
 

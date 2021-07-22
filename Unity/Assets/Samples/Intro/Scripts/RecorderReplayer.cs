@@ -735,11 +735,11 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
         recorder = new Recorder(this);
         replayer = new Replayer(this);
         roomClient = GetComponent<RoomClient>();
-        roomClient.OnLeftRoom.AddListener(OnLeftRoom);
+        roomClient.OnJoinedRoom.AddListener(OnJoinedRoom);
 
     }
 
-    private void OnLeftRoom(RoomInfo room)
+    private void OnJoinedRoom(IRoom room)
     {
         cleanedUp = true; 
         replayer.Cleanup(true);
