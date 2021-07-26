@@ -8,6 +8,8 @@ using UnityEngine.Events;
 using SIPSorcery.Net;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using SIPSorceryMedia.Abstractions;
+using Ubiq.Extensions;
 
 namespace Ubiq.Voip
 {
@@ -80,7 +82,7 @@ namespace Ubiq.Voip
             }
         }
 
-        private VoipMicrophoneInput audioSource;
+        private IAudioSource audioSource;
         private RoomClient client;
         private Dictionary<string, VoipPeerConnection> peerUuidToConnection;
         private NetworkContext context;
@@ -110,7 +112,11 @@ namespace Ubiq.Voip
             peerUuidToConnection = new Dictionary<string, VoipPeerConnection>();
             OnPeerConnection.SetList(peerUuidToConnection.Values);
 
-            audioSource = CreateAudioSource();
+            audioSource = this.GetInterface<IAudioSource>();
+            if(audioSource == null)
+            {
+                audioSource = CreateAudioSource();
+            }
             audioSource.StartAudio();
         }
 
@@ -164,8 +170,6 @@ namespace Ubiq.Voip
         {
             if (peerUuidToConnection.TryGetValue(peer.UUID, out var connection))
             {
-                // Audiosinks are created per connection
-                Destroy(connection.audioSink.gameObject);
                 Destroy(connection.gameObject);
                 peerUuidToConnection.Remove(peer.UUID);
             }
@@ -203,13 +207,13 @@ namespace Ubiq.Voip
         private VoipPeerConnection CreatePeerConnection(NetworkId objectid,
             string peerUuid, bool polite)
         {
-            var audioSink = new GameObject("Voip Audio Output + " + peerUuid)
-                .AddComponent<VoipAudioSourceOutput>();
-
             var pc = new GameObject("Voip Peer Connection " + peerUuid)
                 .AddComponent<VoipPeerConnection>();
 
             pc.transform.SetParent(transform);
+
+            var audioSink = new GameObject("Voip Audio Output + " + peerUuid)
+                .AddComponent<VoipAudioSourceOutput>();
 
             // The audiosink can be made 3d and moved around by event listeners
             // but for now, make it a child to avoid cluttering scene graph

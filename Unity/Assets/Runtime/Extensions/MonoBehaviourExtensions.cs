@@ -66,7 +66,7 @@ namespace Ubiq.Extensions
             do
             {
                 var behaviours = component.GetComponentsInChildren<MonoBehaviour>();
-                foreach(var behaviour in behaviours)
+                foreach (var behaviour in behaviours)
                 {
                     if (behaviour is T)
                     {
@@ -113,6 +113,29 @@ namespace Ubiq.Extensions
                 }
             }
 
+            return null;
+        }
+
+        public static IEnumerable<T> GetInterfaces<T>(this Component component) where T : class
+        {
+            foreach (var item in component.GetComponents<MonoBehaviour>())
+            {
+                if (item is T)
+                {
+                    yield return item as T;
+                }
+            }
+        }
+
+        public static T GetInterface<T>(this MonoBehaviour component) where T : class
+        {
+            foreach (var item in component.GetComponents<MonoBehaviour>())
+            {
+                if (item is T)
+                {
+                    return item as T;
+                }
+            }
             return null;
         }
     }

@@ -7,14 +7,15 @@ using UnityEngine;
 using UnityEngine.Events;
 using SIPSorcery.Net;
 using Ubiq.Messaging;
+using SIPSorceryMedia.Abstractions;
 
 namespace Ubiq.Voip
 {
     [NetworkComponentId(typeof(VoipPeerConnection), 78)]
     public class VoipPeerConnection : MonoBehaviour, INetworkComponent, INetworkObject {
 
-        public VoipMicrophoneInput audioSource { get; private set; }
-        public VoipAudioSourceOutput audioSink { get; private set; }
+        public IAudioSource audioSource { get; private set; }
+        public IAudioSink audioSink { get; private set; }
         public NetworkId Id { get; private set; }
         public string PeerUuid { get; private set; }
 
@@ -42,7 +43,7 @@ namespace Ubiq.Voip
         }
 
         public void Setup (NetworkId objectId, string peerUuid,
-            bool polite, VoipMicrophoneInput source, VoipAudioSourceOutput sink,
+            bool polite, IAudioSource source, VoipAudioSourceOutput sink,
             Task<RTCPeerConnection> peerConnectionTask)
         {
             if (setupTask != null)
