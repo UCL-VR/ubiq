@@ -4,6 +4,7 @@ using System.IO;
 using UnityEngine;
 using Ubiq.Messaging;
 using UnityEngine.UI;
+using Ubiq.Rooms;
 using Slider = UnityEngine.UI.Slider;
 using Image = UnityEngine.UI.Image;
 using Button = UnityEngine.UI.Button;
@@ -15,10 +16,11 @@ public class RecorderReplayerMenu : MonoBehaviour
     public Sprite playSprite;
     public Sprite pauseSprite;
     public GameObject buttonPrefab;
+    public GameObject recordBtn;
+    public GameObject replayBtn;
 
+    private IPeer me;
     private RecorderReplayer recRep;
-    private bool recording;
-    private bool replaying;
     private GameObject sliderPanel;
     private Slider slider;
     private Text sliderText;
@@ -26,7 +28,6 @@ public class RecorderReplayerMenu : MonoBehaviour
     private Text fileText;
     private DirectoryInfo dir;
     private Image replayImage;
-    private GameObject selectReplayBtn;
 
     private List<string> recordings;
     private List<string> newRecordings;
@@ -36,6 +37,25 @@ public class RecorderReplayerMenu : MonoBehaviour
     private bool needsUpdate = true;
     private bool resetReplayImage = false; // in case we loaded an invalid file path
 
+
+    public void OnPeerUpdated(IPeer peer)
+    {
+        if (peer.UUID == me.UUID)
+        {
+            if (peer["creator"] == "1")
+            {
+                recordBtn.SetActive(true);
+                replayBtn.SetActive(true);
+                filePanel.SetActive(true);
+            }
+            else
+            {
+                recordBtn.SetActive(false);
+                replayBtn.SetActive(false);
+                filePanel.SetActive(false);
+            }
+        } 
+    }
     // Start is called before the first frame update
     void Start()
     {
@@ -52,6 +72,8 @@ public class RecorderReplayerMenu : MonoBehaviour
         recordings = new List<string>();
         newRecordings = new List<string>();
         recRep = scene.GetComponent<RecorderReplayer>();
+        me = scene.GetComponent<RoomClient>().Me;
+
         //fileText.text = "Replay: " + recRep.replayFile;
         fileText.text = "Replay: " + "none";
 

@@ -3180,10 +3180,10 @@ RectTransform:
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 97.5, y: 82.5}
-  m_SizeDelta: {x: 195, y: 165}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0, y: 0}
 --- !u!114 &8938038426703263563
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9997,7 +9997,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4599351365042071233}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.000000048428774}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 3516650694331125991}
@@ -12792,6 +12792,17 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 5514386085745003191}
+        m_MethodName: TogglePanel
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 1445074825648956907}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &5514386085110381571
 GameObject:
   m_ObjectHideFlags: 0
@@ -14119,6 +14130,17 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 5514386085745003191}
+        m_MethodName: TogglePanel
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 1445074825648956907}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &5514386085504384477
 GameObject:
   m_ObjectHideFlags: 0
@@ -14912,6 +14934,17 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 5514386085745003191}
+        m_MethodName: TogglePanel
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 1445074825648956907}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &5514386085718450629
 GameObject:
   m_ObjectHideFlags: 0
@@ -15175,6 +15208,8 @@ MonoBehaviour:
   pauseSprite: {fileID: 21300000, guid: d012331dd557ca844be763ac198fe201, type: 3}
   buttonPrefab: {fileID: 1752529188308124622, guid: afcbe8e7cc2715046a439afe25091deb,
     type: 3}
+  recordBtn: {fileID: 0}
+  replayBtn: {fileID: 0}
 --- !u!1 &5514386085761098617
 GameObject:
   m_ObjectHideFlags: 0
@@ -15306,6 +15341,17 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 5514386085745003191}
+        m_MethodName: TogglePanel
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 1445074825648956907}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &5514386085779688547
 GameObject:
   m_ObjectHideFlags: 0
@@ -15431,6 +15477,17 @@ MonoBehaviour:
         m_Mode: 2
         m_Arguments:
           m_ObjectArgument: {fileID: 5514386084949254083}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 5514386085745003191}
+        m_MethodName: TogglePanel
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 1445074825648956907}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
@@ -16037,6 +16094,17 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 5514386085745003191}
+        m_MethodName: TogglePanel
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 1445074825648956907}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
@@ -25760,7 +25828,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 178.52, y: 19.2}
+  m_SizeDelta: {x: 178.52, y: 19.73}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &8538435079697482375
 MonoBehaviour:

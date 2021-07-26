@@ -340,11 +340,21 @@ namespace Ubiq.Rooms
                         var newPeerUuids = args.peers.Select(x => x.uuid);
                         var peersToRemove = peers.Keys.Except(newPeerUuids);
 
+                        var creatorLeft = false;
                         foreach (var uuid in peersToRemove)
                         {
                             var peer = peers[uuid];
+                            if (peer["creator"] == "1")
+                            {
+                                creatorLeft = true;
+                            }
                             peers.Remove(uuid);
                             OnPeerRemoved.Invoke(peer);
+                        }
+                        if (creatorLeft)// reassign recorder authority
+                        {
+                            Debug.Log("Assign recording authority to next peer");
+                            peers[peers.Keys.First()]["creator"] = "1";
                         }
 
                         foreach (var item in args.peers)
@@ -399,6 +409,7 @@ namespace Ubiq.Rooms
                         peers.Remove(peerInfo.uuid);
                         if (peerInfo.properties["creator"] == "1") // give authority over room (esp. recording) to next peer
                         {
+                            Debug.Log("Assign new recorder authority");
                             peers[peers.Keys.First()]["creator"] = "1";
                         }
                         OnPeerRemoved.Invoke(peerInterface);
@@ -497,7 +508,6 @@ namespace Ubiq.Rooms
         /// </remarks>
         public void Leave()
         {
-            Me["creator"] = "0";
             SendToServer("Leave", new LeaveRequest()
             {
                 peer = me.GetPeerInfo()
