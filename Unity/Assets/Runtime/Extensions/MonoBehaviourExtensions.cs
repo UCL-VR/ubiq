@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -53,6 +54,61 @@ namespace Ubiq.Extensions
                     if (behaviour)
                     {
                         return behaviour;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public static T GetClosestPredicate<T>(this Component component, Func<T, bool> predicate) where T : class
+        {
+            do
+            {
+                var behaviours = component.GetComponentsInChildren<MonoBehaviour>();
+                foreach(var behaviour in behaviours)
+                {
+                    if (behaviour is T)
+                    {
+                        if (predicate(behaviour as T))
+                        {
+                            return behaviour as T;
+                        }
+                    }
+                }
+                component = component.transform.parent;
+            } while (component != null);
+
+            foreach (var root in DontDestroyOnLoadGameObjects)
+            {
+                var behaviours = root.GetComponentsInChildren<MonoBehaviour>();
+                foreach (var behaviour in behaviours)
+                {
+                    if (behaviour is T)
+                    {
+                        if (predicate(behaviour as T))
+                        {
+                            return behaviour as T;
+                        }
+                    }
+                }
+            }
+
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var scene = SceneManager.GetSceneAt(i);
+                foreach (var root in scene.GetRootGameObjects())
+                {
+                    var behaviours = root.GetComponentsInChildren<MonoBehaviour>();
+                    foreach (var behaviour in behaviours)
+                    {
+                        if (behaviour is T)
+                        {
+                            if (predicate(behaviour as T))
+                            {
+                                return behaviour as T;
+                            }
+                        }
                     }
                 }
             }

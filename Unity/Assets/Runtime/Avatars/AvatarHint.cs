@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Ubiq.Extensions;
 using UnityEngine;
 
 namespace Ubiq.Avatars
@@ -41,7 +42,8 @@ namespace Ubiq.Avatars
 
     public interface IAvatarHintProvider
     {
-        PositionRotation Provide ();
+        AvatarHints.Node Node { get; }
+        PositionRotation Provide();
     }
 
     // Provides static access to body part positions and input to guide avatar
@@ -49,6 +51,8 @@ namespace Ubiq.Avatars
     public class AvatarHint : MonoBehaviour, IAvatarHintProvider
     {
         public AvatarHints.Node node;
+
+        public AvatarHints.Node Node { get => node; }
 
         void OnEnable ()
         {
@@ -68,13 +72,24 @@ namespace Ubiq.Avatars
 
     public static class AvatarHints
     {
-        public enum Node
+        public enum Node : int
         {
-            Head,
-            LeftHand,
-            RightHand,
-            LeftWrist,
-            RightWrist
+            Head = 0,
+            LeftHand = 1,
+            RightHand = 2,
+            LeftWrist = 3,
+            RightWrist = 4
+        }
+
+        /// <summary>
+        /// Returns the closest hint provider in a branch
+        /// </summary>
+        public static IAvatarHintProvider Find(AvatarHints.Node node, MonoBehaviour avatar)
+        {
+            return avatar.GetClosestPredicate<IAvatarHintProvider>(hp =>
+            {
+                return hp.Node == node;
+            });
         }
 
         private static Dictionary<Node,IAvatarHintProvider> providers;

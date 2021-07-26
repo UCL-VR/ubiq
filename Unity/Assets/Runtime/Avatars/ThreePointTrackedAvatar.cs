@@ -22,6 +22,10 @@ namespace Ubiq.Avatars
         private State[] state = new State[1];
         private Avatar avatar;
 
+        private IAvatarHintProvider head;
+        private IAvatarHintProvider leftHand;
+        private IAvatarHintProvider rightHand;
+
         [Serializable]
         private struct State
         {
@@ -37,14 +41,39 @@ namespace Ubiq.Avatars
             networkSceneRoot = context.scene.transform;
         }
 
+        private void Start()
+        {
+            if (avatar.IsLocal)
+            {
+                InitialiseHints();
+            }
+        }
+
+        public void InitialiseHints()
+        {
+            head = AvatarHints.Find(AvatarHints.Node.Head, this);
+            leftHand = AvatarHints.Find(AvatarHints.Node.LeftHand, this);
+            rightHand = AvatarHints.Find(AvatarHints.Node.RightHand, this);
+        }
+
         private void Update ()
         {
             if(avatar.IsLocal)
             {
                 // Update state from hints
-                state[0].head = GetHintNode (AvatarHints.Node.Head);
-                state[0].leftHand = GetHintNode(AvatarHints.Node.LeftHand);
-                state[0].rightHand = GetHintNode(AvatarHints.Node.RightHand);
+
+                if (head != null)
+                {
+                    state[0].head = InverseTransformPosRot(head.Provide(), networkSceneRoot);
+                }
+                if (leftHand != null)
+                {
+                    state[0].leftHand = InverseTransformPosRot(leftHand.Provide(), networkSceneRoot);
+                }
+                if (rightHand != null)
+                {
+                    state[0].rightHand = InverseTransformPosRot(rightHand.Provide(), networkSceneRoot);
+                }
 
                 // Send it through network
                 Send();
