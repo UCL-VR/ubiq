@@ -33,16 +33,10 @@ namespace Ubiq.Samples
                 currentPanel = defaultPanel;
             }
 
-            if (panel.activeSelf)
-            {
-                panel.SetActive(false);
-            }
-            else
-            {
-                panel.SetActive(true);
-            }
+            panel.SetActive(!panel.activeSelf);
+
         }
-        
+
         public void SwitchPanel (GameObject newPanel)
         {
             if (!currentPanel)

@@ -173,10 +173,9 @@ public class Recorder
     {
         if (!initFile)
         {
-            recRep.recordFile = recRep.path + "/rec" + System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-            recordFileIDs = recRep.recordFile + "IDs.txt";
-            //recRep.recordFile = recRep.recordFile + ".txt";
-            recRep.recordFile = recRep.recordFile + ".dat";
+            var dateTime = System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+            recRep.recordFile = recRep.path + "/rec" + dateTime + ".dat";
+            recordFileIDs = recRep.path + "/IDsrec" + dateTime + ".txt";
             recordedObjectids = new Dictionary<NetworkId, string>();
 
             idxFrameStart.Add(0); // first frame in byte data has idx 0
@@ -464,7 +463,7 @@ public class Replayer
     {
         loadingStarted = true;
 
-        string filepath = recRep.path + "/" + replayFile + "IDs.txt";
+        string filepath = recRep.path + "/IDs" + replayFile + ".txt";
         if (File.Exists(filepath))
         {
             Debug.Log("Load info...");
@@ -476,9 +475,11 @@ public class Replayer
         else
         {
             Debug.Log("Invalid replay file ID path!");
+            recRep.replaying = false;
+            loadingStarted = false;
+            
         }
 
-        //filepath = recRep.path + "/" + replayFile + ".txt";
         filepath = recRep.path + "/" + replayFile + ".dat";
         if (File.Exists(filepath))
         {
@@ -487,6 +488,8 @@ public class Replayer
         else
         {
             Debug.Log("Invalid replay file plath!");
+            recRep.replaying = false;
+            loadingStarted = false;
         }
         loaded = created && opened;
     }
@@ -646,6 +649,7 @@ public class Replayer
         loadingStarted = false;
         loaded = false;
         showAvatarsFromStart = false;
+        recRep.play = true;
         recRep.currentReplayFrame = 0;
         recRep.sliderFrame = 0;
         // only unspawn while in room, NOT when leaving the room as it will be unspawned by the OnLeftRoom event anyways.
@@ -714,7 +718,7 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
     private RoomClient roomClient;
     private Recorder recorder;
     [HideInInspector] public Replayer replayer;
-    private bool recordingAvailable = false;
+    [HideInInspector] public bool recordingAvailable = false;
     [HideInInspector] public bool cleanedUp = true;  
 
     public bool IsOwner()
@@ -723,7 +727,7 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
     }
 
     // Use Awake() because 
-    void Start()
+    void Awake()
     {
         //Application.targetFrameRate = 60;
         //Time.captureFramerate = 400;
@@ -817,8 +821,9 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
     public void SetReplayFile()
     {
         // sets the previously recorded file as replay file
-        replayFile = recordFile.Substring(recordFile.IndexOf("rec"));
-        replayFile = replayFile.Remove(replayFile.LastIndexOf(".")); // remove the ".txt", or ".dat"
+        replayFile = Path.GetFileNameWithoutExtension(recordFile); 
+        //recordFile.Substring(recordFile.IndexOf("rec"));
+        //replayFile = replayFile.Remove(replayFile.LastIndexOf(".")); // remove the ".txt", or ".dat"
         Debug.Log("Set replay file to " + replayFile);
         recordFile = null;
     }
