@@ -9,7 +9,7 @@ namespace Ubiq.Dictionaries
     /// An observable string dictionary that can be serialised to Json by the in-built Unity serialisation.
     /// </summary>
     [Serializable]
-    public class SerializableDictionary
+    public class SerializableDictionary : IEnumerable<KeyValuePair<string,string>>
     {
         [SerializeField]
         private List<string> keys = new List<string>();
@@ -110,6 +110,19 @@ namespace Ubiq.Dictionaries
             return Update(other.Enumerator);
         }
 
+        public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+        {
+            for (int i = 0; i < keys.Count; i++)
+            {
+                yield return new KeyValuePair<string, string>(keys[i], values[i]);
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
         public IEnumerable<KeyValuePair<string, string>> Enumerator
         {
             get
@@ -120,6 +133,8 @@ namespace Ubiq.Dictionaries
                 }
             }
         }
+
+
     }
 
 }

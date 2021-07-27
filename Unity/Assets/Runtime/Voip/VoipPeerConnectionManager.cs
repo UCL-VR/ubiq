@@ -87,37 +87,19 @@ namespace Ubiq.Voip
 
         private RTCPeerConnectionSource peerConnectionSource;
 
+        public class OnPeerConnectionEvent : ListEvent<VoipPeerConnection>
+        {
+        }
+
         /// <summary>
         /// Fires when a new (local) PeerConnection is created by an instance of this Component. This may be a new or replacement PeerConnection.
+        /// When a new listener is added it is automatically fired for any existing connections that may have been created before it was joined.
         /// </summary>
         /// <remarks>
         /// WebRtcPeerConnection manager is designed to create connections based on the Peers in a RoomClient's Room, so the event includes a
         /// PeerInfo struct, with information about which peer the connection is intended to reach.
         /// </remarks>
         public OnPeerConnectionEvent OnPeerConnection = new OnPeerConnectionEvent();
-        public class OnPeerConnectionEvent : UnityEvent<VoipPeerConnection> {
-            private VoipPeerConnectionManager owner;
-
-            public new void AddListener(UnityAction<VoipPeerConnection> call)
-            {
-                base.AddListener(call);
-                if (owner) {
-                    foreach (var item in owner.peerUuidToConnection.Values)
-                    {
-                        call(item);
-                    }
-                }
-            }
-
-            public void SetOwner(VoipPeerConnectionManager owner)
-            {
-                this.owner = owner;
-                foreach (var item in owner.peerUuidToConnection.Values)
-                {
-                    Invoke(item);
-                }
-            }
-        }
 
         private EventLogger logger;
 
@@ -126,7 +108,7 @@ namespace Ubiq.Voip
             peerConnectionSource = new RTCPeerConnectionSource();
             client = GetComponentInParent<RoomClient>();
             peerUuidToConnection = new Dictionary<string, VoipPeerConnection>();
-            OnPeerConnection.SetOwner(this);
+            OnPeerConnection.SetList(peerUuidToConnection.Values);
 
             audioSource = CreateAudioSource();
             audioSource.StartAudio();
@@ -137,19 +119,7 @@ namespace Ubiq.Voip
             context = NetworkScene.Register(this);
             logger = new ContextEventLogger(context);
             client.OnJoinedRoom.AddListener(OnJoinedRoom);
-            client.OnLeftRoom.AddListener(OnLeftRoom);
             client.OnPeerRemoved.AddListener(OnPeerRemoved);
-        }
-
-        // Cleanup all peers
-        private void OnLeftRoom(RoomInfo room)
-        {
-            foreach(var pc in peerUuidToConnection.Values) {
-                Destroy(pc.audioSource.gameObject);
-                Destroy(pc.gameObject);
-            }
-
-            peerUuidToConnection.Clear();
         }
 
         private void OnDestroy()
@@ -161,7 +131,7 @@ namespace Ubiq.Voip
         // It is the responsibility of the new peer (the one joining the room) to begin the process of creating a peer connection,
         // and existing peers to accept that connection.
         // This is because we need to know that the remote peer is established, before beginning the exchange of messages.
-        private void OnJoinedRoom(RoomInfo room)
+        private void OnJoinedRoom(IRoom room)
         {
             foreach (var peer in client.Peers)
             {
@@ -190,7 +160,7 @@ namespace Ubiq.Voip
             }
         }
 
-        private void OnPeerRemoved(PeerInfo peer)
+        private void OnPeerRemoved(IPeer peer)
         {
             if (peerUuidToConnection.TryGetValue(peer.UUID, out var connection))
             {
@@ -256,6 +226,54 @@ namespace Ubiq.Voip
         public void Send(NetworkId sharedId, Message m)
         {
             context.SendJson(sharedId, m);
+        }
+
+        /// <summary>
+        /// Gets the PeerConnection for a remote peer with the given UUID. This method will invoke then as
+        /// many times as a new VoipPeerConnection is created, which may be more than once if the connection
+        /// is re-established. It may also never invoke if a connection is never created.
+        /// </summary>
+        /// <param name="PeerUUID"></param>
+        /// <returns></returns>
+        public void GetPeerConnectionAsync(string peerUUID, Action<VoipPeerConnection> then)
+        {
+            OnPeerConnection.AddListener((pc) =>
+            {
+                if (pc.PeerUuid == peerUUID)
+                {
+                    then.Invoke(pc);
+                }
+            }, true);
+        }
+
+        /// <summary>
+        /// Gets the PeerConnection for a remote peer with the given UUID on the closest VoipPeerConnectionManager to
+        /// component. This method will invoke then as many times as a new VoipPeerConnection is created, which may be 
+        /// more than once if the connection is re-established. It may also never invoke if a connection is never created, 
+        /// or there is no VoipPeerConnectionManger in the scene.
+        /// </summary>
+        public static void GetPeerConnectionAsync(MonoBehaviour component, string peerUUID, Action<VoipPeerConnection> then)
+        {
+            var manager = Find(component);
+            if(manager)
+            {
+                manager.GetPeerConnectionAsync(peerUUID, then);
+            }
+        }
+
+        /// <summary>
+        /// Find the VoipConnectionManager for forest the Component is a member of. May return null if there is no Voip manager for the scene.
+        /// </summary>
+        public static VoipPeerConnectionManager Find(MonoBehaviour Component)
+        {
+            try
+            {
+                return NetworkScene.FindNetworkScene(Component).GetComponentInChildren<VoipPeerConnectionManager>();
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

@@ -18,6 +18,8 @@ namespace Ubiq.Logging
 
             GUI.enabled = component.NetworkEnabled;
 
+            EditorGUILayout.LabelField("Collecting", component.Collecting.ToString());
+
             if (GUILayout.Button("Start Collection"))
             {
                 component.StartCollection();

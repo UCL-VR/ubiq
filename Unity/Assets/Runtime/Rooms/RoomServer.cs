@@ -5,6 +5,7 @@ using Ubiq.Networking;
 using Ubiq.Messaging;
 using Ubiq.Dictionaries;
 using System.Linq;
+using Ubiq.Rooms.Messages;
 
 namespace Ubiq.Rooms
 {
@@ -51,7 +52,7 @@ namespace Ubiq.Rooms
 
             public void Join(Client client)
             {
-                if(peers.Any(p => p.UUID == client.peer.UUID)) // already joined
+                if(peers.Any(p => p.uuid == client.peer.uuid)) // already joined
                 {
                     SendRoomUpdate();
                     return; 
@@ -64,7 +65,7 @@ namespace Ubiq.Rooms
                 client.room = this;
 
                 // send confirmation to the client
-                client.SendAccepted(new SetRoom()
+                client.SendSetRoom(new SetRoom()
                 {
                     room = GetRoomArgs(),
                     peers = peers,
@@ -85,7 +86,7 @@ namespace Ubiq.Rooms
             {
                 this.uuid = args.UUID;
                 this.name = args.Name;
-                this.properties = new SerializableDictionary(args.Properties);
+                this.properties = new SerializableDictionary(args);
                 SendRoomUpdate();
             }
 
@@ -112,7 +113,7 @@ namespace Ubiq.Rooms
             public void Send(string type, object argument)
             {
                 var msg = ReferenceCountedSceneGraphMessage.Rent(JsonUtility.ToJson(new Message(type, argument)));
-                msg.objectid = peer.NetworkObjectId;
+                msg.objectid = peer.networkId;
                 msg.componentid = NetworkScene.GetComponentId<RoomClient>();
                 Send(msg);
             }
@@ -122,9 +123,9 @@ namespace Ubiq.Rooms
                 connection.Send(m.buffer);
             }
 
-            public void SendAccepted(SetRoom args)
+            public void SendSetRoom(SetRoom args)
             {
-                Send("Accepted", args);
+                Send("SetRoom", args);
             }
 
             public void SendRoom(RoomInfo args)
@@ -140,6 +141,11 @@ namespace Ubiq.Rooms
             public void SendRooms(RoomsResponse args)
             {
                 Send("Rooms", args);
+            }
+
+            public void SendPing(PingResponse args)
+            {
+                Send("Ping", args);
             }
         }
 
@@ -207,6 +213,9 @@ namespace Ubiq.Rooms
                                     break;
                                 case "RequestRooms":
                                     client.SendRooms(AvailableRooms);
+                                    break;
+                                case "Ping":
+                                    client.SendPing(new PingResponse() { sessionId = "sampleroom" });
                                     break;
                                 case "":
 

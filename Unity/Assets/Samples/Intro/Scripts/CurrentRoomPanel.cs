@@ -43,7 +43,7 @@ namespace Ubiq.Samples
             background.color = backgroundDefaultColor;
         }
 
-        private void RoomClient_OnJoinedRoom(RoomInfo room)
+        private void RoomClient_OnJoinedRoom(IRoom room)
         {
             UpdateControl(true);
         }

@@ -31,6 +31,8 @@ namespace Ubiq.Logging
         private IOutputStream[] outputStreams;
         private NetworkContext context;
 
+        public bool Collecting { get; private set; }
+
         /// <summary>
         /// The LogCollector can operate entirely locally. If this is True it means the Collector has network connectivity and messages will be exchanged with remote LogManagers.
         /// </summary>
@@ -51,6 +53,7 @@ namespace Ubiq.Logging
             {
                 context.Send(LogManager.Id, LogManager.ComponentId, LogManagerMessage.Rent("StartTransmitting"));
             }
+            Collecting = true;
         }
 
         /// <summary>
@@ -62,6 +65,7 @@ namespace Ubiq.Logging
             {
                 context.Send(LogManager.Id, LogManager.ComponentId, LogManagerMessage.Rent("StopTransmitting"));
             }
+            Collecting = false;
         }
 
         public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
@@ -102,6 +106,8 @@ namespace Ubiq.Logging
             outputStreams = new IOutputStream[3];
             outputStreams[(byte)EventType.Application] = new JsonFileOutputStream("Application");
             outputStreams[(byte)EventType.User] = new JsonFileOutputStream("User");
+
+            Collecting = false;
         }
 
         // Start is called before the first frame update
@@ -115,6 +121,25 @@ namespace Ubiq.Logging
             catch(NullReferenceException)
             {
                 // The LogCollector does not have to be in a NetworkScene to have some functionality
+            }
+
+            // This snippet listens for new peers so the start transmitting message can be re-transmitted if necessary,
+            // ensuring all new peers in the room transmit immediately and relieve the user of having to worry about 
+            // peer lifetimes once they start collection.
+
+            if(context != null)
+            {
+                var roomClient = context.scene.GetComponentInChildren<Rooms.RoomClient>();
+                if(roomClient)
+                {
+                    roomClient.OnPeerAdded.AddListener(Peer =>
+                    {
+                        if (Collecting)
+                        {
+                            StartCollection();
+                        }
+                    });
+                }
             }
         }
 

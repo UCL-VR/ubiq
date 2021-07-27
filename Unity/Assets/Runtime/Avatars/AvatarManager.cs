@@ -10,61 +10,94 @@ using UnityEngine.Events;
 namespace Ubiq.Avatars
 {
     /// <summary>
-    /// Manages the Avatars for a RoomClient
+    /// The AvatarManager creates and maintains Avatars for the local player and remote peers.
+    /// AvatarManager operates using the RoomClient to create Avatar instances for all remote peers, though
+    /// Avatars may be created outside of AvatarManager and maintained another way.
     /// </summary>
     [NetworkComponentId(typeof(AvatarManager), 2)]
     public class AvatarManager : MonoBehaviour
     {
-        public AvatarCatalogue Avatars;
-        public string localPrefabUuid;
+        public AvatarCatalogue AvatarCatalogue;
+        public string LocalPrefabUuid;
 
-        private RoomClient client;
-        private Dictionary<NetworkId, Avatar> avatars;
-        private Dictionary<NetworkId, PeerInfo> peers;
+        /// <summary>
+        /// The current avatar loaded for the local player. Be aware that this reference may change at any time
+        /// if the underlying Prefab changes. Use the CreateLocalAvatar method to change the model (prefab).
+        /// </summary>
+        public Avatar LocalAvatar { get; private set; }
 
-        public RoomClient RoomClient => client;
+        /// <summary>
+        /// The Id for the NetworkObject representing this players avatar in the peer group.
+        /// </summary>
+        private NetworkId localAvatarId;
 
-        [SerializeField, HideInInspector]
-        public Avatar LocalAvatar;
+        private Dictionary<string, Avatar> playerAvatars;
 
-        private class AvatarArgs
+        public RoomClient RoomClient { get; private set; }
+
+        public IEnumerable<Avatar> Avatars
         {
-            public NetworkId objectId;
-            public string prefabUuid;
-            public SerializableDictionary properties;
-
-            public AvatarArgs()
+            get
             {
-                properties = new SerializableDictionary();
+                return playerAvatars.Values;
             }
+        }      
+
+        public class AvatarDestroyEvent : UnityEvent<Avatar>
+        {
         }
 
-        private AvatarArgs localAvatarArgs;
+        public class AvatarCreatedEvent : ListEvent<Avatar>
+        {
+        }
 
+        /// <summary>
+        /// Emitted after an Avatar is created for the first time.
+        /// </summary>
+        /// <remarks>
+        /// This event may be emitted multiple times per peer, if the prefab changes and a Avatar/GameObject needs to be created.
+        /// </remarks>
+        public AvatarCreatedEvent OnAvatarCreated;
+
+        /// <summary>
+        /// Emitted just before an Avatar is destroyed
+        /// </summary>
+        public AvatarDestroyEvent OnAvatarDestroyed;
 
         private void Awake()
         {
-            client = GetComponentInParent<RoomClient>();
-            avatars = new Dictionary<NetworkId, Avatar>();
-            peers = new Dictionary<NetworkId, PeerInfo>();
-            localAvatarArgs = new AvatarArgs();
+            RoomClient = GetComponentInParent<RoomClient>();
+            playerAvatars = new Dictionary<string, Avatar>();
 
+            if(OnAvatarCreated == null)
+            {
+                OnAvatarCreated = new AvatarCreatedEvent();
+            }
+            OnAvatarCreated.SetList(playerAvatars.Values);
+
+            if(OnAvatarDestroyed == null)
+            {
+                OnAvatarDestroyed = new AvatarDestroyEvent();
+            }
         }
 
         private void Start()
         {
-            client.OnPeer.AddListener(OnPeer);
-            client.OnPeerRemoved.AddListener(OnPeerRemoved);
-            client.OnJoinedRoom.AddListener(OnJoinedRoom);
+            localAvatarId = NetworkScene.GenerateUniqueId(); 
 
-            localAvatarArgs.objectId = NetworkScene.GenerateUniqueId();
-            localAvatarArgs.prefabUuid = localPrefabUuid;
+            RoomClient.OnPeerAdded.AddListener(UpdateAvatar);
+            RoomClient.OnPeerUpdated.AddListener(UpdateAvatar);
+            RoomClient.OnPeerRemoved.AddListener(OnPeerRemoved);
 
-            if (localAvatarArgs.prefabUuid.Length > 0)
+            RoomClient.Me["ubiq.avatar.networkid"] = localAvatarId.ToString();
+
+            // The default prefab for the player has been defined; create the avatar with this prefab
+            if (LocalPrefabUuid.Length > 0)
             {
-                UpdateAvatar(localAvatarArgs, true);
-                UpdatePeer(LocalAvatar);
+                RoomClient.Me["ubiq.avatar.prefab"] = LocalPrefabUuid;
             }
+
+            UpdateAvatar(RoomClient.Me);
         }
 
         /// <summary>
@@ -72,53 +105,71 @@ namespace Ubiq.Avatars
         /// </summary>
         public void CreateLocalAvatar(GameObject prefab)
         {
-            localAvatarArgs.prefabUuid = prefab.GetComponent<Avatar>().uuid;
-            localPrefabUuid = localAvatarArgs.prefabUuid;
-            UpdateAvatar(localAvatarArgs, true);
-            UpdatePeer(avatars[localAvatarArgs.objectId]);
+            RoomClient.Me["ubiq.avatar.prefab"] = prefab.GetComponent<Avatar>().PrefabUuid;
         }
 
-        private void UpdateAvatar(AvatarArgs args, bool local)
+        private void UpdateAvatar(IPeer peer)
         {
-            // if we have an existing instance, but it is the wrong model, destroy it so we can start again
+            // Gather some basic parameters about the avatar & peer we are updating
 
-            if (avatars.ContainsKey(args.objectId))
+            var local = peer.UUID == RoomClient.Me.UUID;
+            var prefabUuid = peer["ubiq.avatar.prefab"];
+            var id = new NetworkId(peer["ubiq.avatar.networkid"]);
+
+            // If we have an existing instance, but it is the wrong prefab, destroy it so we can start again
+
+            if (playerAvatars.ContainsKey(peer.UUID))
             {
-                var existing = avatars[args.objectId];
-                if (existing.uuid != args.prefabUuid)
+                var existing = playerAvatars[peer.UUID];
+                if (existing.PrefabUuid != prefabUuid)
                 {
+                    OnAvatarDestroyed.Invoke(existing);
                     Destroy(existing.gameObject);
-                    avatars.Remove(args.objectId);
+                    playerAvatars.Remove(peer.UUID);
                 }
             }
 
-            // create an instance of the correct prefab for this avatar
+            // Avatars require a valid id and a prefab. If either of these are missing, it means the remote player does not want an avatar.
 
-            if (!avatars.ContainsKey(args.objectId))
+            if (!id.Valid)
             {
-                var prefab = Avatars.GetPrefab(args.prefabUuid);
+                return; 
+            }
+
+            if (String.IsNullOrWhiteSpace(prefabUuid))
+            {
+                return;
+            }
+
+            // Create an instance of the correct prefab for this avatar
+
+            if (!playerAvatars.ContainsKey(peer.UUID))
+            {
+                var prefab = AvatarCatalogue.GetPrefab(prefabUuid);
                 var created = Instantiate(prefab, transform).GetComponentInChildren<Avatar>();
-                created.AvatarManager = this;
-                created.Id = args.objectId;
-                avatars.Add(created.Id, created);
-                created.OnUpdated.AddListener(UpdatePeer);
+                created.Id = id;
+                created.SetPeer(peer);
+
+                playerAvatars.Add(peer.UUID, created);
 
                 if (local)
                 {
-                    if (LocalAvatar != null)
+                    if (LocalAvatar != null) // If we are changing the Avatar the LocalAvatar will not be destroyed until next frame so we can still get its transform.
                     {
                         created.transform.localPosition = LocalAvatar.transform.localPosition;
                         created.transform.localRotation = LocalAvatar.transform.localRotation;
                     }
                     LocalAvatar = created;
                 }
+
+                OnAvatarCreated.Invoke(created);
             }
 
-            // update the avatar instance
+            // Update the avatar instance
 
-            var avatar = avatars[args.objectId];
+            var avatar = playerAvatars[peer.UUID];
 
-            avatar.local = local;
+            avatar.IsLocal = local;
             if (local)
             {
                 avatar.gameObject.name = "My Avatar #" + avatar.Id.ToString();
@@ -128,77 +179,35 @@ namespace Ubiq.Avatars
                 avatar.gameObject.name = "Remote Avatar #" + avatar.Id.ToString();
             }
 
-            avatar.Merge(args.properties);
+            avatar.OnPeerUpdated.Invoke(peer);
         }
 
-        private AvatarArgs GetAvatarArgs(Avatar avatar)
+        private void OnPeer(IPeer peer)
         {
-            AvatarArgs args;
-            if(avatar == LocalAvatar)
-            {
-                args = localAvatarArgs;
-            }
-            else
-            {
-                args = new AvatarArgs();
-            }
-            args.properties = avatar.Properties;
-            args.objectId = avatar.Id;
-            args.prefabUuid = avatar.uuid;
-            localPrefabUuid = args.prefabUuid;
-            return args;
+            UpdateAvatar(peer);
         }
 
-        private void UpdatePeer(Avatar avatar)
+        private void OnPeerRemoved(IPeer peer)
         {
-            if (avatar.local)
+            if (playerAvatars.ContainsKey(peer.UUID))
             {
-                client.Me["avatar-params"] = JsonUtility.ToJson(GetAvatarArgs(avatar));
+                Destroy(playerAvatars[peer.UUID].gameObject);
+                playerAvatars.Remove(peer.UUID);
             }
         }
 
-        private void OnJoinedRoom(RoomInfo room)
+        /// <summary>
+        /// Find the AvatarManager for forest the Component is a member of. May return null if there is no AvatarManager for the scene.
+        /// </summary>
+        public static AvatarManager Find(MonoBehaviour Component)
         {
-            foreach (var item in client.Peers)
+            try
             {
-                OnPeer(item);
+                return NetworkScene.FindNetworkScene(Component).GetComponentInChildren<AvatarManager>();
             }
-        }
-
-        private void OnPeer(PeerInfo peer)
-        {
-            var parms = peer["avatar-params"];
-            if (parms != null)
+            catch
             {
-                var args = JsonUtility.FromJson<AvatarArgs>(parms);
-                args.properties["peer-uuid"] = peer.UUID; // If the Avatar is being generated for a peer, add that to the arguments to be stored with the avatar.
-                if (peer.UUID == client.Me.UUID)
-                {
-                    UpdateAvatar(args, true);
-                }
-                else
-                {
-                    UpdateAvatar(args, false);
-                }
-                peers[args.objectId] = peer;
-            }
-        }
-
-        private void OnPeerRemoved(PeerInfo peer)
-        {
-            var parms = peer["avatar-params"];
-            if (parms != null)
-            {
-                var args = JsonUtility.FromJson<AvatarArgs>(parms);
-                if(avatars.ContainsKey(args.objectId))
-                {
-                    Destroy(avatars[args.objectId].gameObject);
-                    avatars.Remove(args.objectId);
-                }
-                if (peers.ContainsKey(args.objectId))
-                {
-                    peers.Remove(args.objectId);
-                }
+                return null;
             }
         }
     }

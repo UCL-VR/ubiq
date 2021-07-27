@@ -19,6 +19,8 @@ nav:
         - Logging:
             - Introduction: eventlogging.md
             - Analysis: eventloganalysis.md
+            - Examples:
+                - Questionnaire: eventloggingexperimentquestionnaire.md
             - Serialisation and Memory: eventlogserialisation.md
         - Messaging:
             - Introduction: messaging.md

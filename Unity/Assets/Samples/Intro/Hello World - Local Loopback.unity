@@ -1272,7 +1272,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   connection:
     listen_on_ip: localhost
-    listen_on_port: 8004
+    listen_on_port: 8002
     send_to_ip: 
     send_to_port: 
     type: 1
@@ -1331,8 +1331,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73070efaa1016fc47a3b4023d9a33be2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  readme: This sample demonstrates the features of the CVE and can also act as a
-    launcher.
+  readme: 'The Local Loopback Sample shows how to use Forests to run two peers in
+    one Unity process for debugging and development.
+
+
+    Each Forest has its own
+    NetworkScene. There is only one Player Prefab, as only one VR Rig can control
+    a Unity scene at one time.
+
+
+    Forest 1 - the one offset in space - will not
+    create an Avatar. When both scenes have joined the room, the player will control
+    the Avatar in Forest 2, and see their remote representation in Forest 1.'
 --- !u!4 &1504244797
 Transform:
   m_ObjectHideFlags: 0
@@ -1799,6 +1809,11 @@ PrefabInstance:
       value: 'Spawn
 
 '
+      objectReference: {fileID: 0}
+    - target: {fileID: 6824257153444348250, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
+        type: 3}
+      propertyPath: LocalPrefabUuid
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 6824257153444348250, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
         type: 3}

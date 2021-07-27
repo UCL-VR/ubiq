@@ -37,7 +37,7 @@ namespace Ubiq.Avatars
         // Update is called once per frame
         void Update()
         {
-            if(avatar.local)
+            if(avatar.IsLocal)
             {
                 Send();
             }

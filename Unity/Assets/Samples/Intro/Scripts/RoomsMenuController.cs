@@ -7,16 +7,14 @@ namespace Ubiq.Samples
 {
     public class RoomsMenuController : MonoBehaviour
     {
-        public float roomListRefreshInterval = 2.0f;
         public RoomClient roomClient;
         public RoomsMenuControl joinedControl;
         public Transform controlsContainer;
         public GameObject controlPrefab;
         public RoomsMenuInfoPanel infoPanel;
 
-        private float lastDiscoverTime;
         private List<RoomsMenuControl> controls;
-        private List<RoomInfo> lastRoomArgs;
+        private List<IRoom> lastRoomArgs;
 
         private void Awake()
         {
@@ -35,15 +33,15 @@ namespace Ubiq.Samples
             return go.GetComponent<RoomsMenuControl>();
         }
 
-        private void OnJoinedRoom(RoomInfo room)
+        private void OnJoinedRoom(IRoom room)
         {
             UpdateAvailableRooms();
 
             // Immediately ask for a refresh - maybe room we left is now empty
-            roomClient.DiscoverRooms();
+            roomClient.GetRooms();
         }
 
-        private void OnRoomsAvailable(List<RoomInfo> rooms)
+        private void OnRoomsAvailable(List<IRoom> rooms)
         {
             lastRoomArgs = rooms;
             UpdateAvailableRooms();
@@ -66,7 +64,7 @@ namespace Ubiq.Samples
                 if (joinedControl != null)
                 {
                     joinedControl.gameObject.SetActive(true);
-                    joinedControl.Bind(roomClient.Room.GetRoomInfo(), roomClient);
+                    joinedControl.Bind(roomClient.Room, roomClient);
                 }
             }
 
@@ -101,7 +99,7 @@ namespace Ubiq.Samples
 
         public void Join(RoomsMenuControl control)
         {
-            roomClient.Join(control.room.Joincode);
+            roomClient.Join(control.room.JoinCode);
         }
 
         public void Select(RoomsMenuControl control)
@@ -111,11 +109,7 @@ namespace Ubiq.Samples
 
         private void Update()
         {
-            if(Mathf.Abs(lastDiscoverTime - Time.time) > roomListRefreshInterval)
-            {
-                lastDiscoverTime = Time.time;
-                roomClient.DiscoverRooms();
-            }
+            roomClient.GetRooms();
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using Ubiq.Messaging;
 using Ubiq.Rooms;
+using Ubiq.Logging;
 
 namespace Ubiq.Samples
 {
@@ -21,8 +22,10 @@ namespace Ubiq.Samples
         public RoomClient roomClient;
         public PrefabCatalogue catalogue;
 
+
         private NetworkContext context;
         private Dictionary<NetworkId, GameObject> spawned;
+        private EventLogger events;
 
         [Serializable]
         public struct Message // public to avoid warning 0649
@@ -62,7 +65,8 @@ namespace Ubiq.Samples
         void Start()
         {
             context = NetworkScene.Register(this);
-            roomClient.OnRoom.AddListener(OnRoom);
+            events = new ContextEventLogger(context);
+            roomClient.OnRoomUpdated.AddListener(OnRoomUpdated);
         }
 
         private GameObject Instantiate(int i, NetworkId networkId, bool local)
@@ -72,6 +76,7 @@ namespace Ubiq.Samples
             spawnable.Id = networkId;
             spawnable.OnSpawned(local);
             spawned[networkId] = go;
+            events.Log("SpawnObject", i, networkId, local);
             return go;
         }
 
@@ -99,9 +104,9 @@ namespace Ubiq.Samples
             return spawned;
         }
 
-        private void OnRoom(RoomInfo room)
+        private void OnRoomUpdated(IRoom room)
         {
-            foreach (var item in room.Properties)
+            foreach (var item in room)
             {
                 if(item.Key.StartsWith("SpawnedObject"))
                 {

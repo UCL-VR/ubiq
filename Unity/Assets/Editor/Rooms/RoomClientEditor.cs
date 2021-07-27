@@ -72,12 +72,15 @@ namespace Ubiq.Rooms
 
             EditorGUILayout.EndFoldoutHeaderGroup();
 
-            if (component.Available.Count > 0)
+            if (component.Available != null)
             {
-                var room = component.Available.First();
-                if(GUILayout.Button($"Join Room {room.Name}"))
+                if (component.Available.Count > 0)
                 {
-                    component.Join(room.Joincode);
+                    var room = component.Available.First();
+                    if (GUILayout.Button($"Join Room {room.Name}"))
+                    {
+                        component.Join(room.JoinCode);
+                    }
                 }
             }
 
@@ -98,7 +101,7 @@ namespace Ubiq.Rooms
 
             if (GUILayout.Button("Refresh"))
             {
-                component.DiscoverRooms();
+                component.GetRooms();
             }
 
             GUI.enabled = false;

@@ -18,11 +18,11 @@ namespace Ubiq.Samples
 
         private void Start()
         {
-            client.OnRoom.AddListener(OnRoom);
+            client.OnRoomUpdated.AddListener(OnRoomUpdated);
             client.OnJoinedRoom.AddListener(OnJoinedRoom);
         }
 
-        private void OnJoinedRoom(RoomInfo room)
+        private void OnJoinedRoom(IRoom room)
         {
             var name = room["scene-name"];
             if(name == null)
@@ -31,9 +31,9 @@ namespace Ubiq.Samples
             }
         }
 
-        private void OnRoom(RoomInfo room)
+        private void OnRoomUpdated(IRoom room)
         {
-            var name = client.Room["scene-name"];
+            var name = room["scene-name"];
             if (name != null)
             {
                 LoadSceneAsync(name);
