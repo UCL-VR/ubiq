@@ -305,7 +305,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a78da3f00f3328541b4526c0b0b5ec5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lineThickness: 1.25
+  lineThickness: 1
   lineIntensity: 0.5
   fillAmount: 0
   lineColor0: {r: 1, g: 0.9499881, b: 0, a: 1}
@@ -317,10 +317,10 @@ MonoBehaviour:
   useFillColor: 0
   cornerOutlines: 0
   addLinesBetweenColors: 0
-  scaleWithScreenSize: 1
+  scaleWithScreenSize: 0
   alphaCutoff: 0.5
   flipY: 0
-  sourceCamera: {fileID: 0}
+  sourceCamera: {fileID: 737898846}
   autoEnableOutlines: 0
   outlineCamera: {fileID: 0}
   outlineShaderMaterial: {fileID: 0}

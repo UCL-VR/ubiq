@@ -398,6 +398,7 @@ namespace Ubiq.Rooms
                     break;
                 case "UpdatePeer":
                     {
+                        Debug.Log("UpdatePeer");
                         var peerInfo = JsonUtility.FromJson<PeerInfo>(container.args);
                         UpdatePeer(peerInfo);
                     }
@@ -475,7 +476,7 @@ namespace Ubiq.Rooms
         /// </summary>
         public void JoinNew(string name, bool publish)
         {
-            me["creator"] = "1";
+            me["creator"] = "0";
             SendToServer("Join", new JoinRequest()
             {
                 joincode = "", // Empty joincode means request new room
@@ -484,6 +485,8 @@ namespace Ubiq.Rooms
                 peer = me.GetPeerInfo()
             });
             me.NeedsUpdate(); // This will clear the updated needed flag
+            me["creator"] = "0";
+
         }
 
         /// <summary>

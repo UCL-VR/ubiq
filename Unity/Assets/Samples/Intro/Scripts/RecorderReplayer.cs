@@ -743,10 +743,13 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
         // create Recorder and Replayer
         recorder = new Recorder(this);
         replayer = new Replayer(this);
+    }
+
+    void Start ()
+    {
         roomClient = GetComponent<RoomClient>();
         roomClient.OnPeerRemoved.AddListener(OnPeerRemoved);
         roomClient.Me["creator"] = "1"; // so recording is also enabled when not being in a room at startup
-
     }
 
     private void OnPeerRemoved(IPeer peer)

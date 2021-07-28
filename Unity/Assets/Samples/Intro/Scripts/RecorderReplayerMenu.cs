@@ -40,6 +40,7 @@ public class RecorderReplayerMenu : MonoBehaviour
 
     public void OnPeerUpdated(IPeer peer)
     {
+        Debug.Log("Menu: OnPeerUpdated");
         if (peer.UUID == me.UUID)
         {
             if (peer["creator"] == "1")
@@ -108,11 +109,15 @@ public class RecorderReplayerMenu : MonoBehaviour
         Debug.Log("Show replay files");
         if(!loaded)
         {
+            Debug.Log("Add all files");
             AddFiles(recordings, content);
             loaded = true;
+            needsUpdate = false;
+            newRecordings.Clear();
         }
-        if (needsUpdate)
+        else if (needsUpdate)
         {
+            Debug.Log("Add new!");
             AddFiles(newRecordings, content);
             needsUpdate = false;
             newRecordings.Clear();
@@ -146,6 +151,7 @@ public class RecorderReplayerMenu : MonoBehaviour
         {
             // add new recording to dropdown and set it as current replay file
             string rec = Path.GetFileNameWithoutExtension(recRep.recordFile);
+            Debug.Log(rec);
             recordings.Add(rec);
             newRecordings.Add(rec);
             needsUpdate = true;
