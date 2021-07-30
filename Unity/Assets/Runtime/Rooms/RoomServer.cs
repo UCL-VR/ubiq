@@ -17,21 +17,20 @@ namespace Ubiq.Rooms
     {
         private NetworkId objectId = new NetworkId(1);
 
-        private Room room;
         public ConnectionDefinition connection;
 
         private INetworkConnectionServer server;
         private List<Client> clients;
-
         private List<Action> actions;
+        private List<Room> rooms;
+        private System.Random random = new System.Random();
 
         public RoomsResponse AvailableRooms
         {
             get
             {
                 RoomsResponse args = new RoomsResponse();
-                args.rooms = new List<RoomInfo>();
-                args.rooms.Add(room.GetRoomArgs());
+                args.rooms = rooms.Select(room => room.GetRoomInfo()).ToList();
                 args.version = "0.0.4";
                 return args;
             }
@@ -41,13 +40,21 @@ namespace Ubiq.Rooms
         {
             public string uuid;
             public string name;
+            public string joinCode;
             public List<PeerInfo> peers = new List<PeerInfo>();
             public SerializableDictionary properties = new SerializableDictionary();
             public List<Client> clients = new List<Client>();
 
-            public RoomInfo GetRoomArgs()
+            public Room(string name)
             {
-                return new RoomInfo(name, uuid, "", false, properties);
+                this.name = name;
+                this.uuid = Guid.NewGuid().ToString();
+                this.joinCode = GenerateJoinCode();
+            }
+
+            public RoomInfo GetRoomInfo()
+            {
+                return new RoomInfo(name, uuid, joinCode, false, properties);
             }
 
             public void Join(Client client)
@@ -67,7 +74,7 @@ namespace Ubiq.Rooms
                 // send confirmation to the client
                 client.SendSetRoom(new SetRoom()
                 {
-                    room = GetRoomArgs(),
+                    room = GetRoomInfo(),
                     peers = peers,
                 });
 
@@ -82,7 +89,7 @@ namespace Ubiq.Rooms
                 }
             }
 
-            public void SetRoomArgs(RoomInfo args)
+            public void UpdateRoom(RoomInfo args)
             {
                 this.uuid = args.UUID;
                 this.name = args.Name;
@@ -94,7 +101,7 @@ namespace Ubiq.Rooms
             {
                 foreach (var item in clients)
                 {
-                    item.SendRoom(GetRoomArgs());
+                    item.SendRoom(GetRoomInfo());
                 }
             }
         }
@@ -151,13 +158,9 @@ namespace Ubiq.Rooms
 
         private void Awake()
         {
-            room = new Room();
-            room.uuid = Guid.NewGuid().ToString();
-            room.name = "Sample Room";
-
             clients = new List<Client>();
             actions = new List<Action>();
-
+            rooms = new List<Room>();
             server = new TCPServer(connection.listen_on_ip, connection.listen_on_port);
             server.OnConnection = OnConnection;
         }
@@ -170,6 +173,11 @@ namespace Ubiq.Rooms
         private void OnConnection(INetworkConnection connection)
         {
             clients.Add(new Client(connection)); // add new clients to the outstanding clients list. once negotiated, they will be moved to a room.
+        }
+
+        private Room FindRoom(string joinCode)
+        {
+            return rooms.Where(room => room.joinCode.ToLower() == joinCode.ToLower()).FirstOrDefault();
         }
 
         private void Update()
@@ -199,7 +207,17 @@ namespace Ubiq.Rooms
                                 case "Join":
                                     var joinArgs = JsonUtility.FromJson<JoinRequest>(container.args);
                                     client.peer = joinArgs.peer;
-                                    room.Join(client);
+                                    if(joinArgs.joincode == "")
+                                    {
+                                        var room = new Room(joinArgs.name);
+                                        rooms.Add(room);
+                                        room.Join(client);
+                                    }
+                                    else
+                                    {
+                                        var room = FindRoom(joinArgs.joincode);
+                                        room.Join(client);
+                                    }
                                     break;
                                 case "UpdatePeer":
                                     client.peer = JsonUtility.FromJson<PeerInfo>(container.args);
@@ -209,7 +227,7 @@ namespace Ubiq.Rooms
                                     }
                                     break;
                                 case "UpdateRoom":
-                                    room.SetRoomArgs(JsonUtility.FromJson<RoomInfo>(container.args));
+                                    client.room.UpdateRoom(JsonUtility.FromJson<RoomInfo>(container.args));
                                     break;
                                 case "RequestRooms":
                                     client.SendRooms(AvailableRooms);
@@ -253,6 +271,15 @@ namespace Ubiq.Rooms
             actions.Clear();
         }
 
+        private static string GenerateJoinCode()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var joinCode = "";
+            joinCode += chars[UnityEngine.Random.Range(0, chars.Length)];
+            joinCode += chars[UnityEngine.Random.Range(0, chars.Length)];
+            joinCode += chars[UnityEngine.Random.Range(0, chars.Length)];
+            return joinCode.ToLower();
+        }
 
     }
 }
