@@ -138,5 +138,20 @@ namespace Ubiq.Extensions
             }
             return null;
         }
+
+        public static IEnumerable<T> GetComponentsInScene<T>() where T : Component
+        {
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var scene = SceneManager.GetSceneAt(i);
+                foreach (var root in scene.GetRootGameObjects())
+                {
+                    foreach (var item in root.GetComponentsInChildren<T>())
+                    {
+                        yield return item;
+                    }
+                }
+            }
+        }
     }
 }
