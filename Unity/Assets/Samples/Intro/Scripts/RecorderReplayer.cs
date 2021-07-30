@@ -12,119 +12,7 @@ using Avatar = Ubiq.Avatars.Avatar;
 using Ubiq.Spawning;
 using Ubiq.Rooms;
 using Ubiq.Samples;
-
-public class MessagePack
-{
-    public List<byte[]> messages;
-
-    public void AddMessage(byte[] message)
-    {
-        messages.Add(message);
-    }
-    public MessagePack()
-    {
-        messages = new List<byte[]>();
-        messages.Add(new byte[4]); // save space for size?
-    }
-
-    public MessagePack(byte[] messagePack) // 4 byte at beginning for size
-    {
-        messages = new List<byte[]>();
-        messages.Add(new byte[] { messagePack[0], messagePack[1] , messagePack[2] , messagePack[3] }); 
-
-        int i = 4;
-        while (i < messagePack.Length) // error here!!!
-        {
-            int lengthMsg = BitConverter.ToInt32(messagePack, i);
-            i += 4;
-            byte[] msg = new byte[lengthMsg];
-            Buffer.BlockCopy(messagePack, i, msg, 0, lengthMsg);
-            messages.Add(msg);
-            i += lengthMsg;
-        }
-    }
-
-    public byte[] GetBytes()
-    {
-        byte[] toBytes = messages.SelectMany(a => a).ToArray();
-        byte[] l = BitConverter.GetBytes(toBytes.Length - 4); // only need length of package not length of package + 4 byte of length
-        toBytes[0] = l[0]; toBytes[1] = l[1]; toBytes[2] = l[2]; toBytes[3] = l[3];
-        //int t = BitConverter.ToInt32(messages[0], 0);
-        //if (BitConverter.IsLittleEndian)
-        //    Array.Reverse(messages[0]);
-        //t = BitConverter.ToInt32(messages[0], 0);
-        return toBytes;
-
-    }
-}
-
-public class SingleMessage3
-{
-    public byte[] message; // whole message including object and component ids
-    public SingleMessage3(byte[] message)
-    {
-        this.message = message;
-    }
-    public byte[] GetBytes()
-    {
-        byte[] bLength = BitConverter.GetBytes(message.Length);
-        //if (BitConverter.IsLittleEndian)
-        //    Array.Reverse(bLength);
-        byte[] toBytes = new byte[bLength.Length + message.Length];
-        Buffer.BlockCopy(bLength, 0, toBytes, 0, bLength.Length);
-        Buffer.BlockCopy(message, 0, toBytes, bLength.Length, message.Length);
-        return toBytes;
-    }
-    //public SingleMessage3(byte[] bytes) // length + message
-    //{
-    //    message = new byte[bytes.Length - 4]; // 4 bytes per int
-    //    Buffer.BlockCopy(bytes, 4, message, 0, message.Length);
-    //}
-}
-
-public class SingleMessage2
-{
-    public int frame; // 4 bytes
-    public byte[] message; // whole message including object and component ids
-    public SingleMessage2(int frame, byte[] message)
-    {
-        this.frame = frame;
-        this.message = message;
-    }
-    public byte[] GetBytes()
-    {
-        byte[] bFrame = BitConverter.GetBytes(frame);
-        if (BitConverter.IsLittleEndian)
-            Array.Reverse(bFrame);
-        byte[] toBytes = new byte[bFrame.Length + message.Length];
-        Buffer.BlockCopy(bFrame, 0, toBytes, 0, bFrame.Length);
-        Buffer.BlockCopy(message, 0, toBytes, bFrame.Length, message.Length);
-        return toBytes;
-    }
-    public SingleMessage2(byte[] bytes) // bytes does not contain length!(just frame and message)
-    {
-        message = new byte[bytes.Length - 4];
-        Buffer.BlockCopy(bytes, 4, message, 0, message.Length);
-        frame = BitConverter.ToInt32(bytes, 0);
-    }
-}
-
-[System.Serializable]
-public class SingleMessage
-{
-    public int frame;
-    [SerializeField]
-    public NetworkId objectid;
-    public ushort componentid;
-    public byte[] message;
-    public SingleMessage(int frame, NetworkId objectid, ushort componentid, byte[] message)
-    {
-        this.frame = frame;
-        this.objectid = objectid;
-        this.componentid = componentid;
-        this.message = message;
-    }
-}
+using RecorderReplayerTypes;
 
 public class Recorder
 {
@@ -202,7 +90,7 @@ public class Recorder
         string uid;
         if (obj is Avatar) // check it here too in case we later record other things than avatars as well
         {
-            Debug.Log("Framenr: " + frameNr);
+            //Debug.Log("Framenr: " + frameNr);
             uid = (obj as Avatar).gameObject.GetComponent<TexturedAvatar>().GetTextureUuid(); // get texture of avatar so we can later replay a look-alike avatar
             if (frameNr == 0 || previousFrame != frameNr) // went on to next frame so generate new message pack
             {
@@ -219,9 +107,16 @@ public class Recorder
                 messages = new MessagePack();
                 previousFrame++;
             }
-
-            SingleMessage3 recMsg = new SingleMessage3(message.bytes);
+            Debug.Log(message.ToString());
+    
+            SingleMessage recMsg = new SingleMessage(message.bytes);
             byte[] recBytes = recMsg.GetBytes();
+
+            if (recBytes.Length < 100)
+            {
+                Debug.Log(String.Join(" ", message.bytes));
+                Debug.Log(String.Join(" ", recBytes));
+            }
           
             messages.AddMessage(recBytes);
             //SingleMessage3 test = new SingleMessage3(recMsg.GetBytes());
@@ -299,14 +194,6 @@ public class Replayer
         spawner = recRep.spawner;
     }
 
-    public class ReplayedObjectProperties
-    {
-        public GameObject gameObject;
-        public ObjectHider hider;
-        public NetworkId id;
-        public Dictionary<int, INetworkComponent> components = new Dictionary<int, INetworkComponent>();
-
-    }
     public void Replay(string replayFile)
     {
         if (!loadingStarted)
@@ -400,29 +287,17 @@ public class Replayer
 
     private void UpdateFrame()
     {
-        //if(!recRep.reverse)
-        //{
-            recRep.currentReplayFrame++;
-            if (recRep.currentReplayFrame == recInfo.frames)
-            {
-                recRep.currentReplayFrame = 0;
-                streamFromFile.Position = 0;
-            //recRep.replayingStartTime = Time.unscaledTime;
+  
+        recRep.currentReplayFrame++;
+        if (recRep.currentReplayFrame == recInfo.frames)
+        {
+            recRep.currentReplayFrame = 0;
+            HideAll();
+            showAvatarsFromStart = false;
+            streamFromFile.Position = 0;
             recRep.replayingStartTime = 0.0f;
-                recRep.stopTime = 0.0f;
-            }
-        //}
-        //else
-        //{
-        //    recRep.currentReplayFrame--;
-        //    if (recRep.currentReplayFrame == 0)
-        //    {
-        //        recRep.currentReplayFrame = 0;
-        //        streamFromFile.Position = recInfo.idxFrameStart[recInfo.frames-1];
-        //        recRep.replayingStartTime = Time.unscaledTime;
-        //        recRep.stopTime = 0.0f;
-        //    }
-        //}
+            recRep.stopTime = 0.0f;
+        }
         recRep.sliderFrame = recRep.currentReplayFrame;
 
     }
@@ -590,9 +465,16 @@ public class Replayer
             byte[] msg = new byte[lengthMsg];
             Buffer.BlockCopy(msgPack, i, msg, 0, lengthMsg);
 
+            if(msg[23] != 0)
+            {
+                Debug.Log("Start debugging");
+            }
+
+
             ReferenceCountedSceneGraphMessage rcsgm = CreateRCSGM(msg);
             ReplayedObjectProperties props = replayedObjects[rcsgm.objectid];
             INetworkComponent component = props.components[rcsgm.componentid];
+            Debug.Log(rcsgm.ToString());
 
             //if (!recRep.play)
             //{
@@ -669,38 +551,13 @@ public class Replayer
     }
 }
 
-[System.Serializable]
-public class RecordingInfo
-{
-    public int[] listLengths;
-    public int frames;
-    public int avatarsAtStart;
-    public int avatarNr; 
-    public List<NetworkId> objectids;
-    public List<string> textures;
-    public List<float> frameTimes;
-    public List<int> pckgSizePerFrame;
-    public List<int> idxFrameStart;
-
-    public RecordingInfo(int frames, int avatarsAtStart, int avatarNr, List<NetworkId> objectids, List<string> textures, List<float> frameTimes, List<int> pckgSizePerFrame, List<int> idxFrameStart)
-    {
-        listLengths = new int[3] { frameTimes.Count, pckgSizePerFrame.Count, idxFrameStart.Count };
-        this.frames = frames;
-        this.avatarsAtStart = avatarsAtStart;
-        this.avatarNr = avatarNr;
-        this.objectids = objectids;
-        this.textures = textures;
-        this.frameTimes = frameTimes;
-        this.pckgSizePerFrame = pckgSizePerFrame;
-        this.idxFrameStart = idxFrameStart;
-    }
-}
-
-public class RecorderReplayer : MonoBehaviour, IMessageRecorder
+public class RecorderReplayer : MonoBehaviour, IMessageRecorder, INetworkComponent
 {
     public NetworkScene scene;
     [HideInInspector] public AvatarManager aManager;
     [HideInInspector] public NetworkSpawner spawner;
+    private bool Recording = false; // this variable indicates if a recording is taking place, this doesn't need to be the local recording!
+    private NetworkContext context;
 
     public string replayFile;
     [HideInInspector] public string recordFile = null;
@@ -719,7 +576,21 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
     private Recorder recorder;
     [HideInInspector] public Replayer replayer;
     [HideInInspector] public bool recordingAvailable = false;
-    [HideInInspector] public bool cleanedUp = true;  
+    [HideInInspector] public bool cleanedUp = true;
+
+    public struct Message
+    {
+        public bool recording;
+
+        public Message(bool recording) { this.recording = recording; }
+    }
+
+    public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+    {
+        Message msg = message.FromJson<Message>();
+        Recording = msg.recording;
+        Debug.Log("Yeahh is there a recording happening? " + Recording);
+    }
 
     public bool IsOwner()
     {
@@ -745,14 +616,45 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
         replayer = new Replayer(this);
     }
 
-    void Start ()
+    public struct RoomMessage
     {
-        roomClient = GetComponent<RoomClient>();
-        roomClient.OnPeerRemoved.AddListener(OnPeerRemoved);
-        roomClient.Me["creator"] = "1"; // so recording is also enabled when not being in a room at startup
+        public string peerUuid;
+        public bool isRecording;
     }
 
-    private void OnPeerRemoved(IPeer peer)
+    void Start ()
+    {
+        context = scene.RegisterComponent(this);
+        roomClient = GetComponent<RoomClient>();
+        roomClient.OnPeerRemoved.AddListener(OnPeerRemoved);
+        roomClient.OnRoomUpdated.AddListener(OnRoomUpdated);
+        roomClient.Me["creator"] = "1"; // so recording is also enabled when not being in a room at startup
+        roomClient.Room["Recorder"] = JsonUtility.ToJson(new RoomMessage() { peerUuid = roomClient.Me.UUID, isRecording = Recording });
+    }
+
+    public void OnRoomUpdated(IRoom room)
+    {
+        if(roomClient.Me["creator"] == "1")
+        {
+            Debug.Log("I record: " + Recording);
+            roomClient.Room["Recorder"] = JsonUtility.ToJson(new RoomMessage() { peerUuid = roomClient.Me.UUID, isRecording = Recording });
+        }
+        else
+        {
+            if (room["Recorder"] != null)
+            {
+                RoomMessage msg = JsonUtility.FromJson<RoomMessage>(room["Recorder"]);
+                Recording = msg.isRecording;
+                Debug.Log("Someone records: " + Recording);
+            }
+            else
+            {
+                Debug.Log("No recorder was added to the dictionary... this shouldn't be.");
+            }
+        }
+    }
+
+    public void OnPeerRemoved(IPeer peer)
     {
         if (peer == roomClient.Me)
         {
@@ -777,47 +679,63 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
     // Update is called once per frame
     void Update()
     {
-       if (!recording)
+       if (roomClient.Me["creator"] == "1") // don't bother if we are not room creators
         {
-            if (recordingAvailable)
+            if (!recording)
             {
-                recorder.SaveRecordingInfo();
-
-                // stop replaying once recording stops as is does not make sense to see the old replay since there is already a new one
-                if (replaying)
+                if (Recording)
                 {
-                    replaying = false;
+                    Recording = false;
+                    //context.SendJson(new Message(Recording));
+                    roomClient.Room["Recorder"] = JsonUtility.ToJson(new RoomMessage() { peerUuid = roomClient.Me.UUID, isRecording = Recording });
+                    Debug.Log("Tell everyone we STOPPED recording");
+                }
+
+                if (recordingAvailable)
+                {
+                    recorder.SaveRecordingInfo();
+
+                    // stop replaying once recording stops as is does not make sense to see the old replay since there is already a new one
+                    if (replaying)
+                    {
+                        replaying = false;
+                        cleanedUp = true;
+                        replayer.Cleanup(true);
+                        replayingStartTime = 0.0f;
+                        stopTime = 0.0f;
+                    }
+
+                    SetReplayFile();
+                    recordingAvailable = false; // avoid unnecessary savings of same info (is checked in methods too)
+                }
+            }
+           else
+            {
+                if (!Recording)
+                {
+                    Recording = true;
+                    //context.SendJson(new Message(Recording));
+                    roomClient.Room["Recorder"] = JsonUtility.ToJson(new RoomMessage() { peerUuid = roomClient.Me.UUID, isRecording = Recording });
+                    Debug.Log("Tell everyone we ARE recording");
+                }
+                recordingAvailable = true;
+                //cleanedUp = false;
+            }
+
+            if (replaying)
+            {
+                replayer.Replay(replayFile);
+                cleanedUp = false;
+            }
+            else
+            {
+                if (!cleanedUp)
+                {
                     cleanedUp = true;
                     replayer.Cleanup(true);
                     replayingStartTime = 0.0f;
                     stopTime = 0.0f;
                 }
-
-                SetReplayFile();
-                recordingAvailable = false; // avoid unnecessary savings of same info (is checked in methods too)
-            }
-        }
-       else
-        {
-            recordingAvailable = true;
-            //cleanedUp = false;
-        }
-        // load file
-        // create avatars (avatar manager to get exact avatars) on other clients
-        // send messages over network
-        if (replaying)
-        {
-            replayer.Replay(replayFile);
-            cleanedUp = false;
-        }
-        else
-        {
-            if (!cleanedUp)
-            {
-                cleanedUp = true;
-                replayer.Cleanup(true);
-                replayingStartTime = 0.0f;
-                stopTime = 0.0f;
             }
         }
     }
@@ -843,8 +761,9 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder
 
     public bool IsRecording()
     {
-        return recording;
+        return Recording;
     }
+
 }
 # if UNITY_EDITOR
 [CustomEditor(typeof(RecorderReplayer))]

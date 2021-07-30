@@ -23,8 +23,6 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
     public struct Message
     {
         public int layer;
-
-        public Message(int layer) { this.layer = layer; }
     }
 
     public int GetCurrentLayer()
@@ -71,7 +69,7 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
     public void NetworkedShow()
     {
         Debug.Log("Show (layer) " + defaultLayer);
-        context.SendJson(new Message(defaultLayer));
+        context.SendJson(new Message() { layer = defaultLayer });
         SetLayer(defaultLayer);
     }
 
@@ -79,7 +77,7 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
     public void NetworkedHide()
     {
         Debug.Log("Hide (layer) " + hideLayer);
-        context.SendJson(new Message(hideLayer));
+        context.SendJson(new Message() { layer = hideLayer });
         SetLayer(hideLayer);
     }
 
@@ -99,7 +97,15 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
         }
         else
         {
-            Debug.Log("Layer " + layer + " has no specified used here.");
+            Debug.Log("Layer " + layer + " has no specified use here.");
+        }
+    }
+
+    void Update()
+    {
+        if (avatar.IsLocal)
+        {
+            SetNetworkedObjectLayer(0);
         }
     }
 }

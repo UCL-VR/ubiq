@@ -88,6 +88,8 @@ namespace Ubiq.Messaging
         /// </summary>
         /// <returns></returns>
         bool IsRecording();
+
+        bool IsOwner();
     }
 
     /// <summary>
@@ -331,7 +333,7 @@ namespace Ubiq.Messaging
 
             // increment frame number before 
             // it is possible that already at frame 0 a local Send() is recorded before the frame is incremented, is it?
-            if (recorder != null && recorder.IsRecording())
+            if (recorder != null && recorder.IsOwner() && recorder.IsRecording())
             {
                 recorder.NextFrame(); // increments frame number when recording!
             }
@@ -366,7 +368,7 @@ namespace Ubiq.Messaging
                                     matching.Add(item.Value);
 
                                     // record just avatars for now
-                                    if (recorder != null && recorder.IsRecording() && item.Key is Ubiq.Avatars.Avatar)
+                                    if (recorder != null && recorder.IsOwner() && recorder.IsRecording() && item.Key is Ubiq.Avatars.Avatar)
                                     {
                                         //Debug.Log("Rcv");
                                         recorder.RecordMessage(item.Key, sgbmessage);
@@ -438,7 +440,7 @@ namespace Ubiq.Messaging
             {
                 m.Acquire();
 
-                if (recorder != null && recorder.IsRecording())
+                if (recorder != null && recorder.IsOwner() && recorder.IsRecording())
                 {
                     foreach (var item in objectProperties)
                     {
