@@ -23,6 +23,10 @@ namespace Ubiq.Rooms
     {
         public IRoom Room { get => room; }
         
+        /// <summary>
+        /// A reference to the Peer that represents this local player. Me will be the same reference through the life of the RoomClient.
+        /// It is valid after Awake() (can be used in Start()).
+        /// </summary>
         public IPeer Me { get => me; }
 
         /// <summary>
@@ -118,6 +122,7 @@ namespace Ubiq.Rooms
         private float lastGetRoomsTime;
         private PeerInterfaceFriend me;
         private RoomInterfaceFriend room;
+        private List<Action> actions;
         
         /// <summary>
         /// Contains the current Peers, indexed by UUID
@@ -306,6 +311,7 @@ namespace Ubiq.Rooms
             room = new RoomInterfaceFriend();
             peers = new Dictionary<string, PeerInterfaceFriend>();
             Available = new List<IRoom>();
+            actions = new List<Action>();
 
             OnJoinedRoom.AddListener((room) => Debug.Log("Joined Room " + room.Name));
             OnRoomsAvailable.AddListener((rooms) => Available = rooms);
@@ -456,14 +462,17 @@ namespace Ubiq.Rooms
         /// </summary>
         public void JoinNew(string name, bool publish)
         {
-            SendToServer("Join", new JoinRequest()
+            actions.Add(() =>
             {
-                joincode = "", // Empty joincode means request new room
-                name = name,
-                publish = publish,
-                peer = me.GetPeerInfo()
+                SendToServer("Join", new JoinRequest()
+                {
+                    joincode = "", // Empty joincode means request new room
+                    name = name,
+                    publish = publish,
+                    peer = me.GetPeerInfo()
+                });
+                me.NeedsUpdate(); // This will clear the updated needed flag
             });
-            me.NeedsUpdate(); // This will clear the updated needed flag
         }
 
         /// <summary>
@@ -471,12 +480,15 @@ namespace Ubiq.Rooms
         /// </summary>
         public void Join(string joincode)
         {
-            SendToServer("Join", new JoinRequest()
+            actions.Add(() =>
             {
-                joincode = joincode,
-                peer = me.GetPeerInfo()
+                SendToServer("Join", new JoinRequest()
+                {
+                    joincode = joincode,
+                    peer = me.GetPeerInfo()
+                });
+                me.NeedsUpdate();
             });
-            me.NeedsUpdate();
         }
 
         /// <summary>
@@ -487,9 +499,12 @@ namespace Ubiq.Rooms
         /// </remarks>
         public void Leave()
         {
-            SendToServer("Leave", new LeaveRequest()
+            actions.Add(() =>
             {
-                peer = me.GetPeerInfo()
+                SendToServer("Leave", new LeaveRequest()
+                {
+                    peer = me.GetPeerInfo()
+                });
             });
         }
 
@@ -506,6 +521,9 @@ namespace Ubiq.Rooms
 
         private void Update()
         {
+            actions.ForEach(a => a());
+            actions.Clear();
+
             if (me.NeedsUpdate())
             {
                 SendToServer("UpdatePeer", me.GetPeerInfo());
