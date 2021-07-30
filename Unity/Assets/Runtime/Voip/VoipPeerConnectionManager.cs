@@ -83,6 +83,7 @@ namespace Ubiq.Voip
         }
 
         private IAudioSource audioSource;
+        private IAudioSink audioSink;
         private RoomClient client;
         private Dictionary<string, VoipPeerConnection> peerUuidToConnection;
         private NetworkContext context;
@@ -118,6 +119,8 @@ namespace Ubiq.Voip
                 audioSource = CreateAudioSource();
             }
             audioSource.StartAudio();
+
+            audioSink = this.GetInterface<IAudioSink>();
         }
 
         private void Start()
@@ -212,14 +215,19 @@ namespace Ubiq.Voip
 
             pc.transform.SetParent(transform);
 
-            var audioSink = new GameObject("Voip Audio Output + " + peerUuid)
-                .AddComponent<VoipAudioSourceOutput>();
+            var pcSink = audioSink;
+            if (pcSink == null)
+            {
+                var audioSourceOutputGo = new GameObject("Voip Audio Output + " + peerUuid)
+                    .AddComponent<VoipAudioSourceOutput>();
 
-            // The audiosink can be made 3d and moved around by event listeners
-            // but for now, make it a child to avoid cluttering scene graph
-            audioSink.transform.SetParent(pc.transform);
+                // The audiosink can be made 3d and moved around by event listeners
+                // but for now, make it a child to avoid cluttering scene graph
+                audioSourceOutputGo.transform.SetParent(pc.transform);
+                pcSink = audioSourceOutputGo;
+            }
 
-            pc.Setup(objectid,peerUuid,polite,audioSource,audioSink,peerConnectionSource.Acquire());
+            pc.Setup(objectid,peerUuid,polite,audioSource,pcSink,peerConnectionSource.Acquire());
 
             peerUuidToConnection.Add(peerUuid, pc);
             OnPeerConnection.Invoke(pc);

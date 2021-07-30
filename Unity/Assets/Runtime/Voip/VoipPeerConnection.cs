@@ -43,7 +43,7 @@ namespace Ubiq.Voip
         }
 
         public void Setup (NetworkId objectId, string peerUuid,
-            bool polite, IAudioSource source, VoipAudioSourceOutput sink,
+            bool polite, IAudioSource source, IAudioSink sink,
             Task<RTCPeerConnection> peerConnectionTask)
         {
             if (setupTask != null)
@@ -98,7 +98,6 @@ namespace Ubiq.Voip
                 {
                     peerConnectionState = state;
                     OnPeerConnectionStateChanged.Invoke(state);
-                    Debug.Log($"Peer connection state change to {state}.");
                 });
 
                 if (state == RTCPeerConnectionState.connected)
@@ -128,18 +127,10 @@ namespace Ubiq.Voip
                 }
             };
 
-            // Diagnostics.
-            pc.OnReceiveReport += (re, media, rr) => mainThreadActions.Enqueue(
-                () => Debug.Log($"RTCP Receive for {media} from {re}\n{rr.GetDebugSummary()}"));
-            pc.OnSendReport += (media, sr) => mainThreadActions.Enqueue(
-                () => Debug.Log($"RTCP Send for {media}\n{sr.GetDebugSummary()}"));
-            pc.GetRtpChannel().OnStunMessageReceived += (msg, ep, isRelay) => mainThreadActions.Enqueue(
-                () => Debug.Log($"STUN {msg.Header.MessageType} received from {ep}."));
             pc.oniceconnectionstatechange += (state) => mainThreadActions.Enqueue(() =>
             {
                 iceConnectionState = state;
                 OnIceConnectionStateChanged.Invoke(state);
-                Debug.Log($"ICE connection state change to {state}.");
             });
 
             if (!polite)
@@ -200,12 +191,9 @@ namespace Ubiq.Voip
                     // var offer = JsonUtility.FromJson<RTCSessionDescriptionInit>(message.args);
                     if (RTCSessionDescriptionInit.TryParse(message.args,out RTCSessionDescriptionInit offer))
                     {
-                        Debug.Log($"Got remote SDP, type {offer.type}");
-
                         var result = rtcPeerConnection.setRemoteDescription(offer);
                         if (result != SetDescriptionResultEnum.OK)
                         {
-                            Debug.Log($"Failed to set remote description, {result}.");
                             rtcPeerConnection.Close("Failed to set remote description");
                         }
                         else
@@ -214,9 +202,6 @@ namespace Ubiq.Voip
                             {
                                 var answerSdp = rtcPeerConnection.createAnswer();
                                 rtcPeerConnection.setLocalDescription(answerSdp);
-
-                                Debug.Log($"Sending SDP answer");
-
                                 Send("Offer", answerSdp.toJSON());
                             }
                         }
@@ -225,7 +210,6 @@ namespace Ubiq.Voip
                 case "IceCandidate":
                     if (RTCIceCandidateInit.TryParse(message.args,out RTCIceCandidateInit candidate))
                     {
-                        Debug.Log($"Got remote Ice Candidate, uri {candidate.candidate}");
                         rtcPeerConnection.addIceCandidate(candidate);
                     }
                     break;

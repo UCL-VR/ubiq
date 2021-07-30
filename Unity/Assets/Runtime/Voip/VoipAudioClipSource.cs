@@ -40,7 +40,9 @@ namespace Ubiq.Voip
 
         public event EncodedSampleDelegate OnAudioSourceEncodedSample;
         public event RawAudioSampleDelegate OnAudioSourceRawSample;
+#pragma warning disable 67
         public event SourceErrorDelegate OnAudioSourceError;
+#pragma warning restore 67
 
         public Task CloseAudio()
         {
@@ -115,7 +117,7 @@ namespace Ubiq.Voip
                 time += Time.fixedDeltaTime;
 
                 var offset = Mathf.Repeat(time, Clip.length);
-                var offsetInSamples = (int)(offset * samplesPerSecond);
+                var offsetInSamples = (int)(offset * samplesPerSecond) % Clip.samples; // in case quantisation makes the above drift a tiny bit over
 
                 var numFloatSamples = (int)(samplesPerSecond * Time.fixedDeltaTime);
                 var floatSamples = new float[numFloatSamples];
