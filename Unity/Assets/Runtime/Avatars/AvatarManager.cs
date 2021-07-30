@@ -149,6 +149,7 @@ namespace Ubiq.Avatars
                 var created = Instantiate(prefab, transform).GetComponentInChildren<Avatar>();
                 created.Id = id;
                 created.SetPeer(peer);
+                created.IsLocal = local;
 
                 playerAvatars.Add(peer.UUID, created);
 
