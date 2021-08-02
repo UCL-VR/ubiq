@@ -131,6 +131,8 @@ namespace Ubiq.Avatars
             if (playerAvatars.ContainsKey(peer.UUID))
             {
                 var existing = playerAvatars[peer.UUID];
+                //IfRecordingSetLayer(existing, 0);
+
                 if (existing.PrefabUuid != prefabUuid)
                 {
                     OnAvatarDestroyed.Invoke(existing);
@@ -191,7 +193,6 @@ namespace Ubiq.Avatars
 
             avatar.OnPeerUpdated.Invoke(peer);
         
-            IfRecordingSetLayer(avatar, 0); // default (need this to generate a message that can be replayed later)
 
         }
 
@@ -199,8 +200,9 @@ namespace Ubiq.Avatars
         {
             if (scene.recorder != null && scene.recorder.IsRecording())
             {
+                Debug.Log("Set layer for joining/leaving avatar");
                 ILayer layerer = avatar.gameObject.GetComponentsInChildren<MonoBehaviour>().Where(mb => mb is ILayer).FirstOrDefault() as ILayer;
-                layerer.SetNetworkedObjectLayer(layer); 
+                layerer.SetNetworkedObjectLayer(layer);
             }
         }
 
@@ -213,7 +215,7 @@ namespace Ubiq.Avatars
         {
             if (playerAvatars.ContainsKey(peer.UUID))
             {
-                IfRecordingSetLayer(playerAvatars[peer.UUID], 8); // generate "hide" message for replay
+                //IfRecordingSetLayer(playerAvatars[peer.UUID], 8); // generate "hide" message for replay
 
                 Destroy(playerAvatars[peer.UUID].gameObject);
                 playerAvatars.Remove(peer.UUID);

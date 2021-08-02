@@ -13,6 +13,7 @@ using UnityEngine.UIElements;
 public class RecorderReplayerMenu : MonoBehaviour
 {
     public NetworkScene scene;
+    private RoomClient roomClient;
     public Sprite playSprite;
     public Sprite pauseSprite;
     public GameObject buttonPrefab;
@@ -40,17 +41,18 @@ public class RecorderReplayerMenu : MonoBehaviour
 
     public void OnPeerUpdated(IPeer peer)
     {
-        Debug.Log("Menu: OnPeerUpdated");
-        if (peer.UUID == me.UUID)
+        if (peer.UUID == roomClient.Me.UUID)
         {
             if (peer["creator"] == "1")
             {
+                Debug.Log("Menu: OnPeerUpdated creator");
                 recordBtn.SetActive(true);
                 replayBtn.SetActive(true);
                 filePanel.SetActive(true);
             }
             else
             {
+                Debug.Log("Menu: OnPeerUpdated NOT creator");
                 recordBtn.SetActive(false);
                 replayBtn.SetActive(false);
                 filePanel.SetActive(false);
@@ -73,7 +75,10 @@ public class RecorderReplayerMenu : MonoBehaviour
         recordings = new List<string>();
         newRecordings = new List<string>();
         recRep = scene.GetComponent<RecorderReplayer>();
-        me = scene.GetComponent<RoomClient>().Me;
+        roomClient = scene.GetComponent<RoomClient>();
+        roomClient.OnPeerUpdated.AddListener(OnPeerUpdated);
+        roomClient.OnPeerAdded.AddListener(OnPeerUpdated);
+        roomClient.OnPeerRemoved.AddListener(OnPeerUpdated);
 
         //fileText.text = "Replay: " + recRep.replayFile;
         fileText.text = "Replay: " + "none";

@@ -36,8 +36,10 @@ namespace Ubiq.Spawning
         {
             public int catalogueIndex;
             public NetworkId networkId;
+            public string peerUuid;
             public bool remove;
             public bool recording;
+            public bool replay;
             public bool visible;
             public string uuid;
         }
@@ -127,9 +129,9 @@ namespace Ubiq.Spawning
                 Destroy(spawned[msg.networkId]);
                 spawned.Remove(msg.networkId);
             }
-            else if (msg.recording)
+            else if (msg.replay)
             {
-                Debug.Log("NetworkSpawner ProcessMessage (recording)");
+                Debug.Log("NetworkSpawner ProcessMessage (replay)");
                 InstantiateReplay(msg.catalogueIndex, msg.networkId, false, msg.visible, msg.uuid);
 
             }
@@ -140,7 +142,6 @@ namespace Ubiq.Spawning
             }
         }
 
-        // called when all the objects are created for replay
         public GameObject SpawnPersistentReplay(GameObject gameObject, string uuid)
         {
             var i = ResolveIndex(gameObject);
@@ -148,7 +149,7 @@ namespace Ubiq.Spawning
             //Debug.Log("SpawnPersistentRecording() " + networkId.ToString());
             var key = $"SpawnedObject-{ networkId }";
             var spawned = InstantiateReplay(i, networkId, true, false, uuid);
-            roomClient.Room[key] = JsonUtility.ToJson(new Message() { catalogueIndex = i, networkId = networkId, recording = true, visible = false, uuid = uuid});
+            roomClient.Room[key] = JsonUtility.ToJson(new Message() { catalogueIndex = i, networkId = networkId, replay = true, visible = false, uuid = uuid});
             return spawned;
         }
 
@@ -183,17 +184,17 @@ namespace Ubiq.Spawning
 
         public void UpdateProperties(NetworkId networkId, string type, object arg)
         {
-            Debug.Log("Update properties for " + networkId.ToString());
             Message msg;
             var key = $"SpawnedObject-{ networkId }";
             string prop = roomClient.Room[key];
             if (prop == null || prop == "")
             {
-                Debug.Log("Object requested for Update is not in Room properties");
+                Debug.Log("Object requested for Update is not in Room properties. It is probably a normal peer.");
                 return;
             }
             else
             {
+                Debug.Log("Update properties for " + networkId.ToString());
                 msg = JsonUtility.FromJson<Message>(prop);
             }
             switch(type)
@@ -204,7 +205,7 @@ namespace Ubiq.Spawning
                         {
                             catalogueIndex = msg.catalogueIndex,
                             networkId = msg.networkId,
-                            recording = msg.recording,
+                            replay = msg.replay,
                             remove = msg.remove,
                             visible = (bool)arg,
                             uuid = msg.uuid
@@ -218,7 +219,7 @@ namespace Ubiq.Spawning
                         {
                             catalogueIndex = msg.catalogueIndex,
                             networkId = msg.networkId,
-                            recording = msg.recording,
+                            replay = msg.replay,
                             remove = msg.remove,
                             visible = msg.visible,
                             uuid = (string)arg
@@ -242,7 +243,7 @@ namespace Ubiq.Spawning
                         
                         if (!msg.remove)
                         {
-                            if (msg.recording)
+                            if (msg.replay)
                             {
                                 Debug.Log("OnRoom InstantiateReplay" + item.Key);
                                 InstantiateReplay(msg.catalogueIndex, msg.networkId, false, msg.visible, msg.uuid);

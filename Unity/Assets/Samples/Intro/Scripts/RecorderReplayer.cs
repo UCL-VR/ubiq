@@ -106,16 +106,14 @@ public class Recorder
                 }
                 messages = new MessagePack();
                 previousFrame++;
-            }
-            Debug.Log(message.ToString());
-    
+            } 
             SingleMessage recMsg = new SingleMessage(message.bytes);
             byte[] recBytes = recMsg.GetBytes();
 
             if (recBytes.Length < 100)
             {
-                Debug.Log(String.Join(" ", message.bytes));
-                Debug.Log(String.Join(" ", recBytes));
+                Debug.Log(Time.unscaledTime + " " + String.Join(" ", message.bytes) + " " + (obj as Avatar).Peer.UUID);
+                //Debug.Log(String.Join(" ", recBytes));
             }
           
             messages.AddMessage(recBytes);
@@ -634,12 +632,13 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder, INetworkCompone
 
     public void OnRoomUpdated(IRoom room)
     {
-        if(roomClient.Me["creator"] == "1")
+        if (roomClient.Me["creator"] == "1")
         {
-            Debug.Log("I record: " + Recording);
+            Debug.Log("I record: " + Recording + " " + roomClient.Me.UUID);
             roomClient.Room["Recorder"] = JsonUtility.ToJson(new RoomMessage() { peerUuid = roomClient.Me.UUID, isRecording = Recording });
         }
         else
+        //if (roomClient.Me["creator"] != "1") 
         {
             if (room["Recorder"] != null)
             {
@@ -656,8 +655,9 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder, INetworkCompone
 
     public void OnPeerRemoved(IPeer peer)
     {
-        if (peer == roomClient.Me)
+        if (peer["creator"] == "1")
         {
+            Debug.Log("RecRep: OnPeerRemoved");
             cleanedUp = true; 
             replayer.Cleanup(true);
         

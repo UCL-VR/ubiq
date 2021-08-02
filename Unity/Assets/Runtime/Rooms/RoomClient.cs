@@ -338,23 +338,15 @@ namespace Ubiq.Rooms
                         room.Update(args.room);
 
                         var newPeerUuids = args.peers.Select(x => x.uuid);
-                        var peersToRemove = peers.Keys.Except(newPeerUuids);
-
-                        var creatorLeft = false;
+                        var peersToRemove = peers.Keys.Except(newPeerUuids).ToList();
+                        //var peersToRemove = peers.Keys.Except(newPeerUuids);
+                        Debug.Log("peersToRemove: " + peersToRemove.Count);
                         foreach (var uuid in peersToRemove)
                         {
                             var peer = peers[uuid];
-                            if (peer["creator"] == "1")
-                            {
-                                creatorLeft = true;
-                            }
+                           
                             peers.Remove(uuid);
                             OnPeerRemoved.Invoke(peer);
-                        }
-                        if (creatorLeft)// reassign recorder authority
-                        {
-                            Debug.Log("Assign recording authority to next peer");
-                            peers[peers.Keys.First()]["creator"] = "1";
                         }
 
                         foreach (var item in args.peers)
@@ -388,10 +380,10 @@ namespace Ubiq.Rooms
                         var args = JsonUtility.FromJson<RoomInfo>(container.args);
                         if (room.Update(args))
                         {
-                            foreach(var item in room)
-                            {
-                                Debug.Log(Time.unscaledTime + "From Server" + item.Value);
-                            }
+                            //foreach(var item in room)
+                            //{
+                            //    Debug.Log(Time.unscaledTime + "From Server" + item.Value);
+                            //}
                             OnRoomUpdated.Invoke(room);
                         }
                     }
@@ -476,7 +468,7 @@ namespace Ubiq.Rooms
         /// </summary>
         public void JoinNew(string name, bool publish)
         {
-            me["creator"] = "0";
+            me["creator"] = "1";
             SendToServer("Join", new JoinRequest()
             {
                 joincode = "", // Empty joincode means request new room
@@ -485,8 +477,6 @@ namespace Ubiq.Rooms
                 peer = me.GetPeerInfo()
             });
             me.NeedsUpdate(); // This will clear the updated needed flag
-            me["creator"] = "0";
-
         }
 
         /// <summary>
@@ -537,11 +527,11 @@ namespace Ubiq.Rooms
 
             if (room.NeedsUpdate())
             {
-                foreach (var item in room)
-                {
-                    Debug.Log(Time.unscaledTime + " To Server " + item.Value);
+                //foreach (var item in room)
+                //{
+                //    Debug.Log(Time.unscaledTime + " To Server " + item.Value);
 
-                }
+                //}
                 SendToServer("UpdateRoom", room.GetRoomInfo());
             }
 
