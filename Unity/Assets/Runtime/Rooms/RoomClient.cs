@@ -340,7 +340,7 @@ namespace Ubiq.Rooms
                         var newPeerUuids = args.peers.Select(x => x.uuid);
                         var peersToRemove = peers.Keys.Except(newPeerUuids).ToList();
                         //var peersToRemove = peers.Keys.Except(newPeerUuids);
-                        Debug.Log("peersToRemove: " + peersToRemove.Count);
+                        //Debug.Log("peersToRemove: " + peersToRemove.Count);
                         foreach (var uuid in peersToRemove)
                         {
                             var peer = peers[uuid];

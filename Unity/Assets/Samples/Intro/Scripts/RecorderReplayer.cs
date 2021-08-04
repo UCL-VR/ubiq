@@ -106,15 +106,11 @@ public class Recorder
                 }
                 messages = new MessagePack();
                 previousFrame++;
-            } 
-            SingleMessage recMsg = new SingleMessage(message.bytes);
-            byte[] recBytes = recMsg.GetBytes();
-
-            if (recBytes.Length < 100)
-            {
-                Debug.Log(Time.unscaledTime + " " + String.Join(" ", message.bytes) + " " + (obj as Avatar).Peer.UUID);
-                //Debug.Log(String.Join(" ", recBytes));
             }
+            var msg = new byte[message.length + 10]; // just take header and message
+            Buffer.BlockCopy(message.bytes, 0, msg, 0, message.length + 10);
+            SingleMessage recMsg = new SingleMessage(msg);
+            byte[] recBytes = recMsg.GetBytes();
           
             messages.AddMessage(recBytes);
             //SingleMessage3 test = new SingleMessage3(recMsg.GetBytes());
@@ -462,12 +458,6 @@ public class Replayer
             i += 4;
             byte[] msg = new byte[lengthMsg];
             Buffer.BlockCopy(msgPack, i, msg, 0, lengthMsg);
-
-            if(msg[23] != 0)
-            {
-                Debug.Log("Start debugging");
-            }
-
 
             ReferenceCountedSceneGraphMessage rcsgm = CreateRCSGM(msg);
             ReplayedObjectProperties props = replayedObjects[rcsgm.objectid];

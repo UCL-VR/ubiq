@@ -10,7 +10,8 @@ using UnityEngine.Events;
 
 public interface ILayer
 {
-    void SetNetworkedObjectLayer(int layer);
+    void UpdateLayer(int layer);
+    void SetNetworkedObjectLayer(int layer); 
 }
 
 namespace Ubiq.Avatars
@@ -131,7 +132,6 @@ namespace Ubiq.Avatars
             if (playerAvatars.ContainsKey(peer.UUID))
             {
                 var existing = playerAvatars[peer.UUID];
-                //IfRecordingSetLayer(existing, 0);
 
                 if (existing.PrefabUuid != prefabUuid)
                 {
@@ -185,6 +185,8 @@ namespace Ubiq.Avatars
             if (local)
             {
                 avatar.gameObject.name = "My Avatar #" + avatar.Id.ToString();
+                IfRecordingSetLayer(avatar, 0);
+
             }
             else
             {
@@ -200,9 +202,10 @@ namespace Ubiq.Avatars
         {
             if (scene.recorder != null && scene.recorder.IsRecording())
             {
-                Debug.Log("Set layer for joining/leaving avatar");
                 ILayer layerer = avatar.gameObject.GetComponentsInChildren<MonoBehaviour>().Where(mb => mb is ILayer).FirstOrDefault() as ILayer;
                 layerer.SetNetworkedObjectLayer(layer);
+                //layerer.UpdateLayer(layer);
+
             }
         }
 
@@ -215,7 +218,7 @@ namespace Ubiq.Avatars
         {
             if (playerAvatars.ContainsKey(peer.UUID))
             {
-                //IfRecordingSetLayer(playerAvatars[peer.UUID], 8); // generate "hide" message for replay
+                IfRecordingSetLayer(playerAvatars[peer.UUID], 8); // generate "hide" message for replay
 
                 Destroy(playerAvatars[peer.UUID].gameObject);
                 playerAvatars.Remove(peer.UUID);
