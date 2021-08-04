@@ -101,21 +101,6 @@ namespace Ubiq.Samples
         private void Update()
         {
             UpdateTorso();
-            UpdateVisibility();
-        }
-
-        private void UpdateVisibility()
-        {
-            if (avatar.IsLocal)
-            {
-                headRenderer.enabled = false;
-                torsoRenderer.enabled = true;
-            }
-            else
-            {
-                headRenderer.enabled = true;
-                torsoRenderer.enabled = true;
-            }
         }
 
         private void UpdateTorso()
