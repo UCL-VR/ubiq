@@ -80,24 +80,23 @@ public class RecorderReplayerMenu : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        sliderPanel = gameObject.transform.Find("Slider Panel").gameObject;
-        filePanel = gameObject.transform.Find("Replay File Panel").gameObject;
+        recordings = new List<string>();
+        newRecordings = new List<string>();
+        //filePanel = gameObject.transform.Find("Replay File Panel").gameObject;
+        // this is not ideal if menu hierarchy changes forgive me but it does the job for now
+        filePanel = gameObject.transform.GetChild(0).GetChild(2).GetChild(1).gameObject;
         fileText = filePanel.transform.GetChild(1).GetChild(0).gameObject.GetComponent<Text>();
+        fileText.text = "Replay: " + "none";
 
-        //var verticalLayoutGroup = filePanel.GetComponentsInChildren<HorizontalLayoutGroup>(); // second one is scroll view content
-        //content = verticalLayoutGroup[1].gameObject;
+        recRep = scene.GetComponent<RecorderReplayer>();
 
+        sliderPanel = gameObject.transform.Find("Slider Panel").gameObject;
         slider = sliderPanel.GetComponentInChildren<Slider>();
         sliderText = sliderPanel.GetComponentInChildren<Text>();
 
-        recordings = new List<string>();
-        newRecordings = new List<string>();
-        recRep = scene.GetComponent<RecorderReplayer>();
         roomClient = scene.GetComponent<RoomClient>();
         roomClient.OnPeerUpdated.AddListener(OnPeerUpdated);
         roomClient.OnPeerAdded.AddListener(OnPeerAdded);
-
-        fileText.text = "Replay: " + "none";
 
         GetReplayFiles();
     }
