@@ -650,7 +650,9 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder, INetworkCompone
             Debug.Log("RecRep: OnPeerRemoved");
             cleanedUp = true; 
             replayer.Cleanup(true);
-        
+            Recording = false;
+            roomClient.Room["Recorder"] = JsonUtility.ToJson(new RoomMessage() { peerUuid = roomClient.Me.UUID, isRecording = Recording });
+
             if (replaying)
             {
                 replaying = false;
