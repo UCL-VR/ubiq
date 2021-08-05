@@ -399,11 +399,14 @@ namespace Ubiq.Rooms
                     {
                         var peerInfo = JsonUtility.FromJson<PeerInfo>(container.args);
                         var peerInterface = peers[peerInfo.uuid];
+                        Debug.Log("Remove Peer: " + peerInfo.uuid);
                         peers.Remove(peerInfo.uuid);
                         if (peerInfo.properties["creator"] == "1") // give authority over room (esp. recording) to next peer
                         {
-                            Debug.Log("Assign new recorder authority");
-                            peers[peers.Keys.First()]["creator"] = "1";
+                            Debug.Log("Assign new recorder authority to: " + peers[peers.Keys.First()].UUID);
+                            var creator = peers[peers.Keys.First()];
+                            creator["creator"] = "1";
+                            OnPeerUpdated.Invoke(creator);
                         }
                         OnPeerRemoved.Invoke(peerInterface);
                     }

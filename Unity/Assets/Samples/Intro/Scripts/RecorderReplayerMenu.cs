@@ -38,27 +38,45 @@ public class RecorderReplayerMenu : MonoBehaviour
     private bool needsUpdate = true;
     private bool resetReplayImage = false; // in case we loaded an invalid file path
 
+    public void OnPeerAdded(IPeer peer)
+    {
+        Debug.Log("Menu: OnPeerAdded");
+        GetReplayFiles();
+        OnPeerUpdated(peer);
+
+    }
 
     public void OnPeerUpdated(IPeer peer)
     {
-        if (peer.UUID == roomClient.Me.UUID)
+        if (peer.UUID == roomClient.Me.UUID) // check this otherwise we also update wrong peer and hide menu accidentally... could do this differently but ok 
         {
-            if (peer["creator"] == "1")
-            {
-                Debug.Log("Menu: OnPeerUpdated creator");
-                recordBtn.SetActive(true);
-                replayBtn.SetActive(true);
-                filePanel.SetActive(true);
-            }
-            else
-            {
-                Debug.Log("Menu: OnPeerUpdated NOT creator");
-                recordBtn.SetActive(false);
-                replayBtn.SetActive(false);
-                filePanel.SetActive(false);
-            }
-        } 
+            UpdateMenu(peer);
+        }
     }
+
+    private void UpdateMenu(IPeer peer)
+    {
+        if (peer["creator"] == "1")
+        {
+            Debug.Log("Menu: creator");
+            recordBtn.SetActive(true);
+            replayBtn.SetActive(true);
+            filePanel.SetActive(true);
+            // set color of record/replay button back to gray in case of ongoing recording/replaying
+            Image img = recordBtn.transform.Find("Icon").gameObject.GetComponent<Image>();
+            img.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
+            img = recordBtn.transform.Find("Icon").gameObject.GetComponent<Image>();
+            img.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
+        }
+        else
+        {
+            Debug.Log("Menu: NOT creator");
+            recordBtn.SetActive(false);
+            replayBtn.SetActive(false);
+            filePanel.SetActive(false);
+        }
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -77,23 +95,23 @@ public class RecorderReplayerMenu : MonoBehaviour
         recRep = scene.GetComponent<RecorderReplayer>();
         roomClient = scene.GetComponent<RoomClient>();
         roomClient.OnPeerUpdated.AddListener(OnPeerUpdated);
-        roomClient.OnPeerAdded.AddListener(OnPeerUpdated);
-        roomClient.OnPeerRemoved.AddListener(OnPeerUpdated);
+        roomClient.OnPeerAdded.AddListener(OnPeerAdded);
 
-        //fileText.text = "Replay: " + recRep.replayFile;
         fileText.text = "Replay: " + "none";
 
+        GetReplayFiles();
+    }
+
+    private void GetReplayFiles()
+    {
         try
         {
             dir = new DirectoryInfo(recRep.path); // path to recordings
             if (dir.Exists)
             {
-                foreach(var file in dir.EnumerateFiles("r*"))
+                foreach (var file in dir.EnumerateFiles("r*"))
                 {
                     recordings.Add(Path.GetFileNameWithoutExtension(file.Name));
-                    //GameObject go = Instantiate(buttonPrefab, content.transform);
-                    //Text t = go.GetComponentInChildren<Text>();
-                    //t.text = file.Name;
                 }
             }
         }
