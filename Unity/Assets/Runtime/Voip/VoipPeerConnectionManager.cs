@@ -95,14 +95,18 @@ namespace Ubiq.Voip
         }
 
         /// <summary>
-        /// Fires when a new (local) PeerConnection is created by an instance of this Component. This may be a new or replacement PeerConnection.
+        /// Emitted when a new (local) PeerConnection is created by an instance of this Component. This may be a new or replacement PeerConnection.
         /// When a new listener is added it is automatically fired for any existing connections that may have been created before it was joined.
         /// </summary>
+        public OnPeerConnectionEvent OnPeerConnectionAdded = new OnPeerConnectionEvent();
+
+        /// <summary>
+        /// Emitted when an existing VoipPeerConnection is destroyed.
+        /// </summary>
         /// <remarks>
-        /// WebRtcPeerConnection manager is designed to create connections based on the Peers in a RoomClient's Room, so the event includes a
-        /// PeerInfo struct, with information about which peer the connection is intended to reach.
+        /// Emitted before the underlying GameObject is destroyed, so it is safe to use any references for cleanup. It is not safe to store them however.
         /// </remarks>
-        public OnPeerConnectionEvent OnPeerConnection = new OnPeerConnectionEvent();
+        public OnPeerConnectionEvent OnPeerConnectionRemoved = new OnPeerConnectionEvent();
 
         private EventLogger logger;
 
@@ -111,7 +115,12 @@ namespace Ubiq.Voip
             peerConnectionSource = new RTCPeerConnectionSource();
             client = GetComponentInParent<RoomClient>();
             peerUuidToConnection = new Dictionary<string, VoipPeerConnection>();
-            OnPeerConnection.SetList(peerUuidToConnection.Values);
+            OnPeerConnectionAdded.SetList(peerUuidToConnection.Values);
+        
+            if(OnPeerConnectionRemoved == null)
+            {
+                OnPeerConnectionRemoved = new OnPeerConnectionEvent();
+            }
 
             audioSource = this.GetInterface<IAudioSource>();
             if(audioSource == null)
@@ -173,6 +182,7 @@ namespace Ubiq.Voip
         {
             if (peerUuidToConnection.TryGetValue(peer.UUID, out var connection))
             {
+                OnPeerConnectionRemoved.Invoke(connection);
                 Destroy(connection.gameObject);
                 peerUuidToConnection.Remove(peer.UUID);
             }
@@ -230,7 +240,7 @@ namespace Ubiq.Voip
             pc.Setup(objectid,peerUuid,polite,audioSource,pcSink,peerConnectionSource.Acquire());
 
             peerUuidToConnection.Add(peerUuid, pc);
-            OnPeerConnection.Invoke(pc);
+            OnPeerConnectionAdded.Invoke(pc);
 
             return pc;
         }
@@ -249,7 +259,7 @@ namespace Ubiq.Voip
         /// <returns></returns>
         public void GetPeerConnectionAsync(string peerUUID, Action<VoipPeerConnection> then)
         {
-            OnPeerConnection.AddListener((pc) =>
+            OnPeerConnectionAdded.AddListener((pc) =>
             {
                 if (pc.PeerUuid == peerUUID)
                 {

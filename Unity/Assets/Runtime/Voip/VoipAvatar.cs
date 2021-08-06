@@ -24,7 +24,7 @@ namespace Ubiq.Avatars
             var manager = NetworkScene.FindNetworkScene(this).GetComponentInChildren<VoipPeerConnectionManager>();
             if (manager)
             {
-                manager.OnPeerConnection.AddListener(OnPeerConnection, true);
+                manager.OnPeerConnectionAdded.AddListener(OnPeerConnection, true);
             }
         }
 

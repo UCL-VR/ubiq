@@ -77,20 +77,26 @@ namespace Ubiq.Messaging
 
         private EventLogger events;
 
-        public T GetNetworkComponent<T>() where T : class
+        public struct MessageStatistics
         {
-            foreach (var networkObject in objectProperties.Select(p => p.Value))
-            {
-                foreach (var component in networkObject.components)
-                {
-                    if(component is T)
-                    {
-                        return component as T;
-                    }
-                }
-            }
-            return null;
+            public uint BytesSent;
+            public uint BytesReceived;
+            public uint MessagesSent;
+            public uint MessagesReceived;
         }
+
+        private MessageStatistics statistics;
+
+        /// <summary>
+        /// Statistics on the number of messages and bytes sent and received by this NetworkScene.
+        /// </summary>
+        /// <remarks>
+        /// The statistics are before network fanout (i.e. one message from one component counts
+        /// as one message here, even if it is duplicated across two or more connections).
+        /// Byte counts include the Message Headers (Object and Component Ids) but not connection 
+        /// protocol headers or prefixes.
+        /// </remarks>
+        public MessageStatistics Statistics { get => statistics; }
 
         private class ObjectProperties
         {
@@ -175,6 +181,21 @@ namespace Ubiq.Messaging
                 component = component.parent;
             } while (component != null);
 
+            return null;
+        }
+
+        public T GetNetworkComponent<T>() where T : class
+        {
+            foreach (var networkObject in objectProperties.Select(p => p.Value))
+            {
+                foreach (var component in networkObject.components)
+                {
+                    if (component is T)
+                    {
+                        return component as T;
+                    }
+                }
+            }
             return null;
         }
 
@@ -308,6 +329,9 @@ namespace Ubiq.Messaging
                     m = c.Receive();
                     if(m != null)
                     {
+                        statistics.MessagesReceived++;
+                        statistics.BytesReceived += (uint)m.length;
+
                         try
                         {
                             var sgbmessage = new ReferenceCountedSceneGraphMessage(m);
@@ -378,6 +402,9 @@ namespace Ubiq.Messaging
         public void Send(ReferenceCountedMessage m)
         {
             Profiler.BeginSample("Send");
+
+            statistics.BytesSent += (uint)m.length;
+            statistics.MessagesSent++;
 
             foreach (var c in connections)
             {
