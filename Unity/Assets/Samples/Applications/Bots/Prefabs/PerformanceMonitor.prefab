@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3963914019510298463}
   - component: {fileID: 6548252390568184234}
   - component: {fileID: 1259908585800754698}
+  - component: {fileID: 7254551865539576861}
   m_Layer: 0
   m_Name: PerformanceMonitor
   m_TagString: Untagged
@@ -68,5 +69,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 91278953fa39be149b9d63bc52dfdf51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &7254551865539576861
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 653018032019797902}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d36b8970fbe77a438cc4b7f207bb657, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

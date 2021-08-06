@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Ubiq.Logging;
 using Ubiq.Rooms;
 using UnityEngine;
@@ -15,6 +16,9 @@ namespace Ubiq.Samples.Bots
         private LatencyMeter meter;
         private ThroughputMonitor throughput;
 
+        // Local event logger
+        private UserEventLogger info;
+
         public bool IsMeasuring { get; private set; }
         private float lastPingTime;
 
@@ -27,6 +31,7 @@ namespace Ubiq.Samples.Bots
 
         public void StartMeasurements()
         {
+            info = new UserEventLogger(this);
             collector.StartCollection();
             IsMeasuring = true;
         }
@@ -47,8 +52,8 @@ namespace Ubiq.Samples.Bots
                     lastPingTime = Time.time;
                     meter.MeasurePeerLatencies();
                     throughput.Sample();
+                    info.Log("RoomInfo", Peer.Peers.Count());
                 }
             }
-        }
-    }
+        }    }
 }
