@@ -330,6 +330,11 @@ namespace Ubiq.Rooms
         public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
             var container = JsonUtility.FromJson<Message>(message.ToString());
+            //foreach (var item in peers)
+            //{
+            //    Debug.Log(Time.unscaledTime + "Peer" + item.Key);
+            //}
+
             switch (container.type)
             {
                 case "SetRoom":
@@ -392,6 +397,7 @@ namespace Ubiq.Rooms
                     {
                         Debug.Log("UpdatePeer");
                         var peerInfo = JsonUtility.FromJson<PeerInfo>(container.args);
+                    
                         UpdatePeer(peerInfo);
                     }
                     break;
@@ -406,6 +412,10 @@ namespace Ubiq.Rooms
                             Debug.Log("Assign new recorder authority to: " + peers[peers.Keys.First()].UUID);
                             var creator = peers[peers.Keys.First()];
                             creator["creator"] = "1";
+                            if (creator.UUID == me.UUID)
+                            {
+                                me["creator"] = "1";
+                            }
                             OnPeerUpdated.Invoke(creator);
                         }
                         OnPeerRemoved.Invoke(peerInterface);

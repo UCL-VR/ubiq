@@ -41,14 +41,21 @@ public class RecorderReplayerMenu : MonoBehaviour
     public void OnPeerAdded(IPeer peer)
     {
         Debug.Log("Menu: OnPeerAdded");
-        GetReplayFiles();
         OnPeerUpdated(peer);
 
     }
 
+    public void OnJoinedRoom(IRoom room)
+    {
+        if (roomClient.Me["creator"] == "1")
+        {
+            GetReplayFiles();
+        }
+    }
+
     public void OnPeerUpdated(IPeer peer)
     {
-        if (peer.UUID == roomClient.Me.UUID) // check this otherwise we also update wrong peer and hide menu accidentally... could do this differently but ok 
+        if (peer.UUID == roomClient.Me.UUID) // check this otherwise we also update wrong peer and hide menu accidentally
         {
             UpdateMenu(peer);
         }
@@ -61,12 +68,19 @@ public class RecorderReplayerMenu : MonoBehaviour
             Debug.Log("Menu: creator");
             recordBtn.SetActive(true);
             replayBtn.SetActive(true);
-            filePanel.SetActive(true);
             // set color of record/replay button back to gray in case of ongoing recording/replaying
-            Image img = recordBtn.transform.Find("Icon").gameObject.GetComponent<Image>();
-            img.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
-            img = recordBtn.transform.Find("Icon").gameObject.GetComponent<Image>();
-            img.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
+            if (!recRep.recording)
+            {
+                Image img = recordBtn.transform.Find("Icon").gameObject.GetComponent<Image>();
+                img.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
+
+            }
+            if (!recRep.replaying)
+            {
+                filePanel.SetActive(true);
+                Image img = replayBtn.transform.Find("Icon").gameObject.GetComponent<Image>();
+                img.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
+            }
         }
         else
         {
@@ -97,12 +111,14 @@ public class RecorderReplayerMenu : MonoBehaviour
         roomClient = scene.GetComponent<RoomClient>();
         roomClient.OnPeerUpdated.AddListener(OnPeerUpdated);
         roomClient.OnPeerAdded.AddListener(OnPeerAdded);
+        roomClient.OnJoinedRoom.AddListener(OnJoinedRoom);
 
         GetReplayFiles();
     }
 
     private void GetReplayFiles()
     {
+        recordings.Clear();
         try
         {
             dir = new DirectoryInfo(recRep.path); // path to recordings
@@ -207,6 +223,12 @@ public class RecorderReplayerMenu : MonoBehaviour
             img.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
             recRep.replaying = false;
             resetReplayImage = false;
+            if (!recRep.play)
+            {
+                // when replay is initialised again the correct sprite is visible in the slider panel
+                var setToPause = sliderPanel.transform.GetChild(1).GetChild(0).gameObject.GetComponent<Image>();
+                setToPause.sprite = pauseSprite;
+            }
             // panel with slider gets set in PanelSwitcher
         }
         else // start replaying
@@ -221,7 +243,7 @@ public class RecorderReplayerMenu : MonoBehaviour
     public void PlayPauseReplay(GameObject icon)
     {
         Image img = icon.GetComponent<Image>();
-
+        
         if (recRep.play) // if playing pause it
         {
             img.sprite = playSprite;

@@ -616,9 +616,13 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder, INetworkCompone
         roomClient = GetComponent<RoomClient>();
         roomClient.OnPeerRemoved.AddListener(OnPeerRemoved);
         roomClient.OnRoomUpdated.AddListener(OnRoomUpdated);
+        //roomClient.OnPeerUpdated.AddListener(OnPeerUpdated);
         roomClient.Me["creator"] = "1"; // so recording is also enabled when not being in a room at startup
         roomClient.Room["Recorder"] = JsonUtility.ToJson(new RoomMessage() { peerUuid = roomClient.Me.UUID, isRecording = Recording });
     }
+    //public void OnPeerUpdated(IPeer peer)
+    //{
+    //}
 
     public void OnRoomUpdated(IRoom room)
     {
@@ -730,6 +734,10 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder, INetworkCompone
                 }
             }
         }
+       //else
+       // {
+       //     Debug.Log("I am not the creator");
+       // }
     }
     public void SetReplayFile()
     {
