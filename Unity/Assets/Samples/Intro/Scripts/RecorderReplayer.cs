@@ -283,7 +283,8 @@ public class Replayer
     {
   
         recRep.currentReplayFrame++;
-        if (recRep.currentReplayFrame == recInfo.frames)
+        //!!!!!!!!!!! sometimes the frame number is one too high so maybe just in case for now skip the last frame?
+        if (recRep.currentReplayFrame == recInfo.frames-1)
         {
             recRep.currentReplayFrame = 0;
             HideAll();
@@ -440,11 +441,6 @@ public class Replayer
     
     private void ReplayFromFile()
     {
-        //if (!recRep.play)
-        //{
-        //    HideAll();
-        //}
-
         var pckgSize = recInfo.pckgSizePerFrame[recRep.currentReplayFrame];
         streamFromFile.Position = recInfo.idxFrameStart[recRep.currentReplayFrame];
         byte[] msgPack = new byte[pckgSize];
@@ -462,12 +458,6 @@ public class Replayer
             ReferenceCountedSceneGraphMessage rcsgm = CreateRCSGM(msg);
             ReplayedObjectProperties props = replayedObjects[rcsgm.objectid];
             INetworkComponent component = props.components[rcsgm.componentid];
-            Debug.Log(rcsgm.ToString());
-
-            //if (!recRep.play)
-            //{
-            //    props.hider.Show();
-            //}
 
             // send and replay remotely
             recRep.scene.Send(rcsgm);
@@ -682,7 +672,6 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder, INetworkCompone
                 if (Recording)
                 {
                     Recording = false;
-                    //context.SendJson(new Message(Recording));
                     roomClient.Room["Recorder"] = JsonUtility.ToJson(new RoomMessage() { peerUuid = roomClient.Me.UUID, isRecording = Recording });
                     Debug.Log("Tell everyone we STOPPED recording");
                 }
@@ -710,12 +699,10 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder, INetworkCompone
                 if (!Recording)
                 {
                     Recording = true;
-                    //context.SendJson(new Message(Recording));
                     roomClient.Room["Recorder"] = JsonUtility.ToJson(new RoomMessage() { peerUuid = roomClient.Me.UUID, isRecording = Recording });
                     Debug.Log("Tell everyone we ARE recording");
                 }
                 recordingAvailable = true;
-                //cleanedUp = false;
             }
 
             if (replaying)
@@ -734,17 +721,11 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder, INetworkCompone
                 }
             }
         }
-       //else
-       // {
-       //     Debug.Log("I am not the creator");
-       // }
     }
     public void SetReplayFile()
     {
         // sets the previously recorded file as replay file
         replayFile = Path.GetFileNameWithoutExtension(recordFile); 
-        //recordFile.Substring(recordFile.IndexOf("rec"));
-        //replayFile = replayFile.Remove(replayFile.LastIndexOf(".")); // remove the ".txt", or ".dat"
         Debug.Log("Set replay file to " + replayFile);
         recordFile = null;
     }
