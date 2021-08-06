@@ -5,10 +5,7 @@ using UnityEngine;
 using Ubiq.Messaging;
 using UnityEngine.UI;
 using Ubiq.Rooms;
-using Slider = UnityEngine.UI.Slider;
-using Image = UnityEngine.UI.Image;
-using Button = UnityEngine.UI.Button;
-using UnityEngine.UIElements;
+using Ubiq.Samples;
 
 public class RecorderReplayerMenu : MonoBehaviour
 {
@@ -23,7 +20,8 @@ public class RecorderReplayerMenu : MonoBehaviour
     private Image recordImage;
     private Image replayImage;
 
-    private IPeer me;
+    private PanelSwitcher panelSwitcher;
+
     private RecorderReplayer recRep;
     private GameObject sliderPanel;
     private Slider slider;
@@ -92,9 +90,26 @@ public class RecorderReplayerMenu : MonoBehaviour
         }
     }
 
+    public void OnPanelSwitch()
+    {
+        if (recRep.recording)
+        {
+            Debug.Log("OnPanelSwitch: End ongoing recording (replay)");
+            EndRecordingAndCleanup();
+        }
+        if (recRep.replaying)
+        {
+            Debug.Log("OnPanelSwitch: End ongoing replay");
+            EndReplayAndCleanup();
+        }
+    }
+
     // Start is called before the first frame update
     void Start()
     {
+        panelSwitcher = GetComponent<PanelSwitcher>();
+        panelSwitcher.OnPanelSwitch.AddListener(OnPanelSwitch);
+
         recordings = new List<string>();
         newRecordings = new List<string>();
         replayImage = replayBtn.transform.Find("Icon").gameObject.GetComponent<Image>();
@@ -150,7 +165,7 @@ public class RecorderReplayerMenu : MonoBehaviour
     public void ShowReplayFiles(GameObject content)
     {
         Debug.Log("Show replay files");
-        //scrollView.SetActive(!scrollView.activeSelf);
+        scrollView.SetActive(!scrollView.activeSelf);
         if(!loaded)
         {
             Debug.Log("Add all files");
@@ -172,6 +187,7 @@ public class RecorderReplayerMenu : MonoBehaviour
     private void CloseFileWindow(GameObject content)
     {
         content.transform.parent.parent.gameObject.SetActive(false);
+        scrollView.SetActive(false);
     }
 
     private void AddFiles(List<string> recordings, GameObject content)
@@ -193,23 +209,7 @@ public class RecorderReplayerMenu : MonoBehaviour
         
         if (recRep.recording) // if recording stop it
         {
-            // add new recording to dropdown and set it as current replay file
-            string rec = Path.GetFileNameWithoutExtension(recRep.recordFile);
-            Debug.Log(rec);
-            recordings.Add(rec);
-            newRecordings.Add(rec);
-            needsUpdate = true;
-
-            recordImage.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
-            if (recRep.replaying)
-            {
-                filePanel.SetActive(true);
-                sliderPanel.SetActive(false);
-            }
-            recRep.recording = false;
-            recRep.replayFile = rec; // is probably set twice (in RecorderReplayer SetReplayFile() too)
-            fileText.text = "Replay: " + rec;
-            infoSet = false;
+            EndRecordingAndCleanup();
         }
         else // start recording
         {
@@ -219,6 +219,27 @@ public class RecorderReplayerMenu : MonoBehaviour
         
     }
 
+    private void EndRecordingAndCleanup()
+    {
+        // add new recording to dropdown and set it as current replay file
+        string rec = Path.GetFileNameWithoutExtension(recRep.recordFile);
+        Debug.Log(rec);
+        recordings.Add(rec);
+        newRecordings.Add(rec);
+        needsUpdate = true;
+
+        recordImage.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
+        if (recRep.replaying)
+        {
+            filePanel.SetActive(true);
+            sliderPanel.SetActive(false);
+        }
+        recRep.recording = false;
+        recRep.replayFile = rec; // is probably set twice (in RecorderReplayer SetReplayFile() too)
+        fileText.text = "Replay: " + rec;
+        infoSet = false;
+    }
+
     public void ToggleReplay()
     {
         //Image img = icon.GetComponent<Image>();
@@ -226,18 +247,7 @@ public class RecorderReplayerMenu : MonoBehaviour
 
         if (recRep.replaying) // if replaying stop it
         {
-            sliderPanel.SetActive(false);
-            filePanel.SetActive(true);
-            replayImage.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
-            recRep.replaying = false;
-            resetReplayImage = false;
-            if (!recRep.play)
-            {
-                // when replay is initialised again the correct sprite is visible in the slider panel
-                var setToPause = sliderPanel.transform.GetChild(1).GetChild(0).gameObject.GetComponent<Image>();
-                setToPause.sprite = pauseSprite;
-            }
-            // panel with slider gets set in PanelSwitcher
+            EndReplayAndCleanup();
         }
         else // start replaying
         {
@@ -247,6 +257,21 @@ public class RecorderReplayerMenu : MonoBehaviour
             recRep.replaying = true;
             resetReplayImage = true;
             slider.minValue = 0;
+        }
+    }
+
+    private void EndReplayAndCleanup()
+    {
+        sliderPanel.SetActive(false);
+        filePanel.SetActive(true);
+        replayImage.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
+        recRep.replaying = false;
+        resetReplayImage = false;
+        if (!recRep.play)
+        {
+            // when replay is initialised again the correct sprite is visible in the slider panel
+            var setToPause = sliderPanel.transform.GetChild(1).GetChild(0).gameObject.GetComponent<Image>();
+            setToPause.sprite = pauseSprite;
         }
     }
 

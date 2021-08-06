@@ -1,15 +1,27 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using Ubiq.Rooms;
 
 namespace Ubiq.Samples
 {
     public class PanelSwitcher : MonoBehaviour
     {
+        public UnityEvent OnPanelSwitch;
+        
         public GameObject defaultPanel;
 
         private GameObject currentPanel;
+
+        void Start()
+        {
+            if (OnPanelSwitch == null)
+            {
+                OnPanelSwitch = new UnityEvent();
+            }
+        }
+
         // private List<GameObject> childPanels = new List<GameObject>();
 
         // public void AddPanel(GameObject panel)
@@ -26,19 +38,11 @@ namespace Ubiq.Samples
         // }
 
         // Expected to be called by a UI element
-        public void TogglePanel(GameObject panel)
-        {
-            if (!currentPanel)
-            {
-                currentPanel = defaultPanel;
-            }
-
-            panel.SetActive(!panel.activeSelf);
-
-        }
 
         public void SwitchPanel (GameObject newPanel)
         {
+            OnPanelSwitch.Invoke();
+            
             if (!currentPanel)
             {
                 currentPanel = defaultPanel;
