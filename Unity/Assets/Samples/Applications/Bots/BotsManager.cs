@@ -16,23 +16,26 @@ namespace Ubiq.Samples.Bots
         public int NumBots { get => bots.Count; }
 
         public Camera Camera;
-        private int cullingMask;
 
-        private string botManagerInstance;
+        public string BotManagerInstance { get; private set; }
 
         /// <summary>
         /// When True, Remote Avatars belonging to bots in this scene have their Mesh Renderers disabled.
         /// </summary>
         public bool HideBotAvatars = true;
 
+        /// <summary>
+        /// When True, Bots are created with synthetic audio sources and sinks, and transmit and receive audio. When false, no Voip connections are made.
+        /// </summary>
+        public bool EnableAudio = true;
+
         private List<Bot> bots;
 
         private void Awake()
         {
-            botManagerInstance = Guid.NewGuid().ToString();
+            BotManagerInstance = Guid.NewGuid().ToString();
             bots = new List<Bot>();
             bots.AddRange(MonoBehaviourExtensions.GetComponentsInScene<Bot>());
-            cullingMask = Camera.cullingMask;
         }
 
         private void Start()
@@ -95,7 +98,7 @@ namespace Ubiq.Samples.Bots
         private void InitialiseBot(Bot bot)
         {
             var rc = GetRoomClient(bot);
-            rc.Me["ubiq.botmanager.id"] = botManagerInstance;
+            rc.Me["ubiq.botmanager.id"] = BotManagerInstance;
 
             var am = AvatarManager.Find(bot);
             if(am)
@@ -104,7 +107,7 @@ namespace Ubiq.Samples.Bots
                 {
                     if(HideBotAvatars)
                     {
-                        if(avatar.Peer["ubiq.botmanager.id"] == botManagerInstance && !avatar.IsLocal)
+                        if(avatar.Peer["ubiq.botmanager.id"] == BotManagerInstance && !avatar.IsLocal)
                         {
                             foreach(var r in avatar.GetComponentsInChildren<MeshRenderer>())
                             {
@@ -117,6 +120,15 @@ namespace Ubiq.Samples.Bots
                         }
                     }
                 });
+            }
+
+            if(!EnableAudio)
+            {
+                var voipManager = Voip.VoipPeerConnectionManager.Find(bot);
+                if(voipManager)
+                {
+                    DestroyImmediate(voipManager);
+                }
             }
         }
 

@@ -14,6 +14,7 @@ public class BotsControlPanel : MonoBehaviour
     public Button ToggleCameraButton;
     public InputField JoinCodeInputField;
     public InputField NumberOfBotsInputField;
+    public Toggle EnableAudioToggle;
 
     private BotsManager manager;
 
@@ -51,6 +52,11 @@ public class BotsControlPanel : MonoBehaviour
         JoinCodeInputField.onValueChanged.AddListener(joinCode =>
         {
             manager.JoinCode = joinCode;
+        });
+
+        EnableAudioToggle.onValueChanged.AddListener(enabled =>
+        {
+            manager.EnableAudio = enabled;
         });
     }
 
