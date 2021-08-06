@@ -20,15 +20,18 @@ public class RecorderReplayerMenu : MonoBehaviour
     public GameObject recordBtn;
     public GameObject replayBtn;
 
+    private Image recordImage;
+    private Image replayImage;
+
     private IPeer me;
     private RecorderReplayer recRep;
     private GameObject sliderPanel;
     private Slider slider;
     private Text sliderText;
     private GameObject filePanel;
+    private GameObject scrollView;
     private Text fileText;
     private DirectoryInfo dir;
-    private Image replayImage;
 
     private List<string> recordings;
     private List<string> newRecordings;
@@ -71,15 +74,13 @@ public class RecorderReplayerMenu : MonoBehaviour
             // set color of record/replay button back to gray in case of ongoing recording/replaying
             if (!recRep.recording)
             {
-                Image img = recordBtn.transform.Find("Icon").gameObject.GetComponent<Image>();
-                img.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
+                recordImage.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
 
             }
             if (!recRep.replaying)
             {
                 filePanel.SetActive(true);
-                Image img = replayBtn.transform.Find("Icon").gameObject.GetComponent<Image>();
-                img.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
+                replayImage.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
             }
         }
         else
@@ -96,9 +97,12 @@ public class RecorderReplayerMenu : MonoBehaviour
     {
         recordings = new List<string>();
         newRecordings = new List<string>();
-        //filePanel = gameObject.transform.Find("Replay File Panel").gameObject;
+        replayImage = replayBtn.transform.Find("Icon").gameObject.GetComponent<Image>();
+        recordImage = recordBtn.transform.Find("Icon").gameObject.GetComponent<Image>();
+
         // this is not ideal if menu hierarchy changes forgive me but it does the job for now
         filePanel = gameObject.transform.GetChild(0).GetChild(2).GetChild(1).gameObject;
+        scrollView = filePanel.transform.GetChild(0).gameObject;
         fileText = filePanel.transform.GetChild(1).GetChild(0).gameObject.GetComponent<Text>();
         fileText.text = "Replay: " + "none";
 
@@ -142,9 +146,11 @@ public class RecorderReplayerMenu : MonoBehaviour
         fileText.text = "Replay: " + file;
     }
 
+    // called when "select replay" is clicked
     public void ShowReplayFiles(GameObject content)
     {
         Debug.Log("Show replay files");
+        //scrollView.SetActive(!scrollView.activeSelf);
         if(!loaded)
         {
             Debug.Log("Add all files");
@@ -181,9 +187,9 @@ public class RecorderReplayerMenu : MonoBehaviour
         }
     }
 
-    public void ToggleRecord(GameObject icon)
+    public void ToggleRecord()
     {
-        Image img = icon.GetComponent<Image>();
+        //Image img = icon.GetComponent<Image>();
         
         if (recRep.recording) // if recording stop it
         {
@@ -194,7 +200,7 @@ public class RecorderReplayerMenu : MonoBehaviour
             newRecordings.Add(rec);
             needsUpdate = true;
 
-            img.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
+            recordImage.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
             if (recRep.replaying)
             {
                 filePanel.SetActive(true);
@@ -207,20 +213,22 @@ public class RecorderReplayerMenu : MonoBehaviour
         }
         else // start recording
         {
-            img.color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+            recordImage.color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
             recRep.recording = true;
         }
         
     }
 
-    public void ToggleReplay(GameObject icon)
+    public void ToggleReplay()
     {
-        Image img = icon.GetComponent<Image>();
-        replayImage = img;
+        //Image img = icon.GetComponent<Image>();
+        //replayImage = img;
 
         if (recRep.replaying) // if replaying stop it
         {
-            img.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
+            sliderPanel.SetActive(false);
+            filePanel.SetActive(true);
+            replayImage.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
             recRep.replaying = false;
             resetReplayImage = false;
             if (!recRep.play)
@@ -233,7 +241,9 @@ public class RecorderReplayerMenu : MonoBehaviour
         }
         else // start replaying
         {
-            img.color = new Color(0.0f, 0.8f, 0.2f, 1.0f);
+            sliderPanel.SetActive(true);
+            filePanel.SetActive(false);
+            replayImage.color = new Color(0.0f, 0.8f, 0.2f, 1.0f);
             recRep.replaying = true;
             resetReplayImage = true;
             slider.minValue = 0;

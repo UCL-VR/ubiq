@@ -26,6 +26,17 @@ namespace Ubiq.Samples
         // }
 
         // Expected to be called by a UI element
+        public void TogglePanel(GameObject panel)
+        {
+            if (!currentPanel)
+            {
+                currentPanel = defaultPanel;
+            }
+
+            panel.SetActive(!panel.activeSelf);
+
+        }
+
         public void SwitchPanel (GameObject newPanel)
         {
             if (!currentPanel)
