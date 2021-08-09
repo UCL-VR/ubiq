@@ -178,7 +178,15 @@ namespace Ubiq.Samples
             var simA = Vector3.Dot(dirA,indicatorRootTransform.forward);
             var simB = Vector3.Dot(dirB,indicatorRootTransform.forward);
 
-            indicatorRootTransform.forward = simA > simB ? dirA : dirB;
+            var forward = simA > simB ? dirA : dirB;
+
+            // Deal with rare case when avatars share a position
+            if (forward.sqrMagnitude <= 0)
+            {
+                forward = indicatorRootTransform.forward;
+            }
+
+            indicatorRootTransform.forward = forward;
         }
 
         private void Hide()
