@@ -409,6 +409,9 @@ namespace Ubiq.Rooms
                         peers.Remove(peerInfo.uuid);
                         if (peerInfo.properties["creator"] == "1") // give authority over room (esp. recording) to next peer
                         {
+                            // stop it before authority gets reassigned (expecially if previous authority disconnected)
+                            // otherwise new recordings are created but never ended correctly
+                            context.scene.recorder.StopRecording(); 
                             Debug.Log("Assign new recorder authority to: " + peers[peers.Keys.First()].UUID);
                             var creator = peers[peers.Keys.First()];
                             creator["creator"] = "1";

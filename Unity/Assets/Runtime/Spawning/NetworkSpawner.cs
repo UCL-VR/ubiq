@@ -78,6 +78,7 @@ namespace Ubiq.Spawning
             events = new ContextEventLogger(context);
             roomClient.OnRoomUpdated.AddListener(OnRoomUpdated);
             roomClient.OnJoinedRoom.AddListener(OnJoinedRoom);
+            roomClient.OnPeerRemoved.AddListener(OnPeerRemoved);
         }
 
         private GameObject Instantiate(int i, NetworkId networkId, bool local)
@@ -166,10 +167,6 @@ namespace Ubiq.Spawning
 
         public void UnspawnPersistent(NetworkId networkId)
         {
-            //foreach (var item in roomClient.Room)
-            //{
-            //    Debug.Log(Time.unscaledTime + " " + item.Value);
-            //}
             context.SendJson(new Message() { networkId = networkId, remove = true});
             var key = $"SpawnedObject-{ networkId }";
             // if OnLeftRoom is called too the objects are destroyed there and not here
@@ -229,6 +226,26 @@ namespace Ubiq.Spawning
                     }
             }
         }
+        // if a recording authority disconnects completely make sure the replays disappear too (and the menu indicators maybe?)
+        private void OnPeerRemoved(IPeer peer)
+        {
+            Debug.Log("NetworkSpawner: OnPeerRemoved");
+            if (peer["creator"] == "1")
+            {
+                foreach (var item in roomClient.Room)
+                {
+                    if (item.Key.StartsWith("SpawnedObject"))
+                    {
+                        var msg = JsonUtility.FromJson<Message>(item.Value);
+
+                        UnspawnPersistent(msg.networkId); // remove 
+
+                    }
+                }
+            }
+
+        }
+
         // Gets called after OnJoinedRoom
         private void OnRoomUpdated(IRoom room)
         {

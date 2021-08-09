@@ -339,6 +339,8 @@ public class RecorderReplayerMenu : MonoBehaviour
             {
                 replayImage.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
                 resetReplayImage = false;
+                sliderPanel.SetActive(false);
+                filePanel.SetActive(true);
             }
         }
     }

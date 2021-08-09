@@ -604,15 +604,31 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder, INetworkCompone
     {
         context = scene.RegisterComponent(this);
         roomClient = GetComponent<RoomClient>();
-        roomClient.OnPeerRemoved.AddListener(OnPeerRemoved);
+        //roomClient.OnPeerRemoved.AddListener(OnPeerRemoved);
         roomClient.OnRoomUpdated.AddListener(OnRoomUpdated);
-        //roomClient.OnPeerUpdated.AddListener(OnPeerUpdated);
+        roomClient.OnPeerUpdated.AddListener(OnPeerUpdated);
         roomClient.Me["creator"] = "1"; // so recording is also enabled when not being in a room at startup
         roomClient.Room["Recorder"] = JsonUtility.ToJson(new RoomMessage() { peerUuid = roomClient.Me.UUID, isRecording = Recording });
     }
-    //public void OnPeerUpdated(IPeer peer)
-    //{
-    //}
+    // if previous authority gets discoonected make sure that recording is stopped when authority is given to the next peer
+    // it shouldnt even be necessary to call it here
+    public void OnPeerUpdated(IPeer peer)
+    {
+        // just so i dont forget what i was thinking here...
+        if (peer["creator"] == "1") // if creator just got reassigned in the room client this could be true
+        {
+            // need to make sure that if this is called because of another update and this peer had the authority anyways, that we do not 
+            // end a recording that should not be ended... 
+            if (!recording) // this is true if the authority just got reassigned because then the new peer never did a recording before
+            {
+                // so we can safely globally set the Recording to false for everyone in case the previous peer who got disconnected cannot do this anymore
+                Debug.Log("RecorderReplayer: OnPeerUdated");
+                Recording = false; // should be false already because of StopRecording() in RoomClient!
+                // update the properties in the room for the new recorder authority...
+                roomClient.Room["Recorder"] = JsonUtility.ToJson(new RoomMessage() { peerUuid = roomClient.Me.UUID, isRecording = Recording });
+            }
+        }
+    }
 
     public void OnRoomUpdated(IRoom room)
     {
@@ -637,28 +653,42 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder, INetworkCompone
         }
     }
 
-    public void OnPeerRemoved(IPeer peer)
+    //public void OnPeerRemoved(IPeer peer)
+    //{
+    //    if (peer["creator"] == "1") // this might be called when the removed peer who was the creator isn't even the creator anymore...
+    //    {
+    //        Debug.Log("RecRep: OnPeerRemoved");
+    //        cleanedUp = true; 
+    //        replayer.Cleanup(true);
+    //        Recording = false;
+    //        roomClient.Room["Recorder"] = JsonUtility.ToJson(new RoomMessage() { peerUuid = roomClient.Me.UUID, isRecording = Recording });
+
+    //        if (replaying)
+    //        {
+    //            replaying = false;
+    //            replayingStartTime = 0.0f;
+    //            stopTime = 0.0f;
+    //            Debug.Log("Left room, replaying stopped!");
+    //        }
+    //        if (recording)
+    //        {
+    //            recording = false;
+    //            Debug.Log("Left room, recording stopped!");
+    //        }
+    //    }
+    //}
+
+    private void OnDestroy()
     {
-        if (peer["creator"] == "1")
+        Debug.Log("OnDestroy");
+        //replayer.Cleanup(true); objects should be removed by each client when OnPeerRemoved is called
+        if (recording)
         {
-            Debug.Log("RecRep: OnPeerRemoved");
-            cleanedUp = true; 
-            replayer.Cleanup(true);
-            Recording = false;
+            Recording = recording = false;
+            // this probably isn't sent anymore as the NetworkScene got already destroyed
             roomClient.Room["Recorder"] = JsonUtility.ToJson(new RoomMessage() { peerUuid = roomClient.Me.UUID, isRecording = Recording });
 
-            if (replaying)
-            {
-                replaying = false;
-                replayingStartTime = 0.0f;
-                stopTime = 0.0f;
-                Debug.Log("Left room, replaying stopped!");
-            }
-            if (recording)
-            {
-                recording = false;
-                Debug.Log("Left room, recording stopped!");
-            }
+            recorder.SaveRecordingInfo();
         }
     }
 
@@ -680,7 +710,7 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder, INetworkCompone
                 {
                     recorder.SaveRecordingInfo();
 
-                    // stop replaying once recording stops as is does not make sense to see the old replay since there is already a new one
+                    // stop replaying once recording stops as it does not make sense to see the old replay since there is already a new one
                     if (replaying)
                     {
                         replaying = false;
@@ -738,6 +768,11 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder, INetworkCompone
     public void NextFrame()
     {
         recorder.NextFrame();
+    }
+
+    public void StopRecording()
+    {
+        Recording = false;
     }
 
     public bool IsRecording()

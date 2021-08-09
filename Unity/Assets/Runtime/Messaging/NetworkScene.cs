@@ -90,6 +90,8 @@ namespace Ubiq.Messaging
         bool IsRecording();
 
         bool IsOwner();
+
+        void StopRecording();
     }
 
     /// <summary>
