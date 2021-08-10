@@ -18,28 +18,11 @@ namespace Ubiq.Voip
     public class VoipPeerConnectionManager : MonoBehaviour, INetworkComponent
     {
         // SipSorcery peer connections are slow to instantiate as cert
-        // generation seems to take a while.
-        // Bandaid solution is to keep some connections in memory ready to go
-        private class RTCPeerConnectionSource : IDisposable
+        // generation seems to take a while. This at least allows that to happen
+        // on a separate thread.
+        private class RTCPeerConnectionSource
         {
-            // Debug - should come from server
-            // private const string STUN_URL = "stun:stun.l.google.com:19302";
-            // private const string TURN_URL = "turn:20.84.122.207";
-            // private const string TURN_USER = "ubiqtestuser";
-            // private const string TURN_PASS = "1rZ$aU9C^cdbstHb";
-
-            // private ConcurrentBag<Task<RTCPeerConnection>> pcTasks;
-
             private List<RTCIceServer> iceServers = new List<RTCIceServer>();
-
-            public RTCPeerConnectionSource (int taskCount = 1)
-            {
-                // pcTasks = new ConcurrentBag<Task<RTCPeerConnection>>();
-                // for (int i = 0; i < taskCount; i++)
-                // {
-                //     pcTasks.Add(Task.Run(() => Create()));
-                // }
-            }
 
             public void ClearIceServers ()
             {
@@ -63,23 +46,11 @@ namespace Ubiq.Voip
                         credential = pass,
                         credentialType = RTCIceCredentialType.password
                     });
-                    Debug.Log(iceServers.Count + " ice server added: " + uri + " " + username + " " + pass);
                 }
             }
 
             public Task<RTCPeerConnection> Acquire ()
             {
-                // if (pcTasks.TryTake(out var pcTask))
-                // {
-                //     pcTasks.Add(Task.Run(() => Create()));
-                //     return pcTask;
-                // }
-
-                Debug.Log("acquiring pc with iceservers: ");
-                for (int i = 0; i < iceServers.Count; i++)
-                {
-                    Debug.Log(iceServers[i].urls + " " + iceServers[i].username + " " + iceServers[i].credential);
-                }
                 return Task.Run(() => Create());
             }
 
@@ -88,31 +59,7 @@ namespace Ubiq.Voip
                 return new RTCPeerConnection(new RTCConfiguration
                 {
                     iceServers = new List<RTCIceServer>(iceServers),
-                    iceTransportPolicy = RTCIceTransportPolicy.relay
-                    // iceServers = new List<RTCIceServer>
-                    // {
-                        // new RTCIceServer { urls = STUN_URL },
-                        // new RTCIceServer
-                        // {
-                        //     urls = TURN_URL,
-                        //     username = TURN_USER,
-                        //     credential = TURN_PASS,
-                        //     credentialType = RTCIceCredentialType.password
-                        // }
-                    // }
                 });
-                // return new RTCPeerConnection();
-            }
-
-            public async void Dispose()
-            {
-                // await Task.WhenAll(pcTasks).ConfigureAwait(false);
-
-                // while (pcTasks.TryTake(out var pc))
-                // {
-                //     pc.Dispose();
-                // }
-                // pcTasks = null;
             }
         }
 
@@ -191,7 +138,6 @@ namespace Ubiq.Voip
                 client.OnPeerRemoved.RemoveListener(OnPeerRemoved);
                 client.OnRoomUpdated.RemoveListener(OnRoomUpdated);
             }
-            peerConnectionSource.Dispose();
             peerConnectionSource = null;
         }
 
@@ -205,7 +151,6 @@ namespace Ubiq.Voip
                 && iceServersString != prevIceServersString)
             {
                 // Allocates, but this shouldn't happen frequently
-                // var nextIceServers = JsonUtility.FromJson<IceServerDetailsCollection>(iceServersString);
                 iceServers = JsonUtility.FromJson<IceServerDetailsCollection>(iceServersString);
 
                 peerConnectionSource.ClearIceServers();
@@ -215,26 +160,6 @@ namespace Ubiq.Voip
                     peerConnectionSource.AddIceServer(server.uri,server.username,server.password);
                 }
 
-                // // Push added ice servers to all existing peer connections
-                // // Ignore removed ice servers - should fail on their own
-                // for (int i = 0; i < nextIceServers.servers.Count; i++)
-                // {
-                //     if (!iceServers.servers.Contains(nextIceServers.servers[i]))
-                //     {
-                //         // Push added ice servers to all existing peer connections
-                //         // Ignore removed ice servers - should fail on their own
-                //         foreach (var pc in peerUuidToConnection.Values)
-                //         {
-                //             // pc.rtc
-                //         }
-
-                //         // Push new ice servers to peer connection provider
-
-                //     }
-                // }
-
-
-                // iceServers = nextIceServers;
                 prevIceServersString = iceServersString;
             }
         }

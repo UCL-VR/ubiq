@@ -41,42 +41,6 @@ namespace Ubiq.Voip
             Teardown();
         }
 
-        // public void AddIceCandidate (string uri)
-        // {
-        //     mainThreadActions.Enqueue(() =>
-        //     {
-        //         DoAddIceCandidate(uri,string.Empty,string.Empty);
-        //     });
-        // }
-
-        // public void AddIceCandidate (string uri, string username, string pass)
-        // {
-        //     mainThreadActions.Enqueue(() =>
-        //     {
-        //         DoAddIceCandidate(uri,username,pass);
-        //     });
-        // }
-
-        // private void DoAddIceCandidate (string uri, string username, string pass)
-        // {
-        //     // Only to be run from the main thread once pc is constructed
-        //     if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(pass))
-        //     {
-        //         // var c = new RTCConfiguration { iceServers = }
-        //         // rtcPeerConnection.addLocalIceCandidate(new RTCIceServer
-        //         // {
-        //         //     urls = uri,
-        //         //     username = username,
-        //         //     credential = pass,
-        //         //     credentialType = RTCIceCredentialType.password
-        //         // });
-        //     }
-        //     else
-        //     {
-
-        //     }
-        // }
-
         public void Setup (NetworkId objectId, string peerUuid,
             bool polite, VoipMicrophoneInput source, VoipAudioSourceOutput sink,
             Task<RTCPeerConnection> peerConnectionTask)
