@@ -14,28 +14,28 @@ namespace Ubiq.Avatars
 
         private Avatar avatar;
         private Transform sinkTransform;
-
-        private VoipPeerConnectionManager manager;
+        private VoipPeerConnectionManager peerConnectionManager;
 
         private void Awake()
         {
             avatar = GetComponent<Avatars.Avatar>();
         }
 
-        private void OnEnable()
+        private void Start()
         {
-            manager = NetworkScene.FindNetworkScene(this).GetComponentInChildren<VoipPeerConnectionManager>();
-            if (manager)
+            peerConnectionManager = NetworkScene.FindNetworkScene(this).
+                GetComponentInChildren<VoipPeerConnectionManager>();
+            if (peerConnectionManager)
             {
-                manager.OnPeerConnection.AddListener(OnPeerConnection, true);
+                peerConnectionManager.OnPeerConnection.AddListener(OnPeerConnection, true);
             }
         }
 
-        private void OnDisable()
+        private void OnDestroy()
         {
-            if (manager)
+            if (peerConnectionManager)
             {
-                manager.OnPeerConnection.RemoveListener(OnPeerConnection);
+                peerConnectionManager.OnPeerConnection.RemoveListener(OnPeerConnection);
             }
         }
 

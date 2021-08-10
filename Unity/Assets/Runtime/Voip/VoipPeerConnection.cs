@@ -25,8 +25,8 @@ namespace Ubiq.Voip
         [Serializable] public class IceConnectionStateEvent : UnityEvent<RTCIceConnectionState> { }
         [Serializable] public class PeerConnectionStateEvent : UnityEvent<RTCPeerConnectionState> { }
 
-        public IceConnectionStateEvent OnIceConnectionStateChanged;
-        public PeerConnectionStateEvent OnPeerConnectionStateChanged;
+        public IceConnectionStateEvent OnIceConnectionStateChanged = new IceConnectionStateEvent();
+        public PeerConnectionStateEvent OnPeerConnectionStateChanged = new PeerConnectionStateEvent();
 
         private NetworkContext context;
         private ConcurrentQueue<Action> mainThreadActions = new ConcurrentQueue<Action>();
@@ -41,6 +41,42 @@ namespace Ubiq.Voip
             Teardown();
         }
 
+        // public void AddIceCandidate (string uri)
+        // {
+        //     mainThreadActions.Enqueue(() =>
+        //     {
+        //         DoAddIceCandidate(uri,string.Empty,string.Empty);
+        //     });
+        // }
+
+        // public void AddIceCandidate (string uri, string username, string pass)
+        // {
+        //     mainThreadActions.Enqueue(() =>
+        //     {
+        //         DoAddIceCandidate(uri,username,pass);
+        //     });
+        // }
+
+        // private void DoAddIceCandidate (string uri, string username, string pass)
+        // {
+        //     // Only to be run from the main thread once pc is constructed
+        //     if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(pass))
+        //     {
+        //         // var c = new RTCConfiguration { iceServers = }
+        //         // rtcPeerConnection.addLocalIceCandidate(new RTCIceServer
+        //         // {
+        //         //     urls = uri,
+        //         //     username = username,
+        //         //     credential = pass,
+        //         //     credentialType = RTCIceCredentialType.password
+        //         // });
+        //     }
+        //     else
+        //     {
+
+        //     }
+        // }
+
         public void Setup (NetworkId objectId, string peerUuid,
             bool polite, VoipMicrophoneInput source, VoipAudioSourceOutput sink,
             Task<RTCPeerConnection> peerConnectionTask)
@@ -49,15 +85,6 @@ namespace Ubiq.Voip
             {
                 // Already setup or setup in progress
                 return;
-            }
-
-            if (OnIceConnectionStateChanged == null)
-            {
-                OnIceConnectionStateChanged = new IceConnectionStateEvent();
-            }
-            if (OnPeerConnectionStateChanged == null)
-            {
-                OnPeerConnectionStateChanged = new PeerConnectionStateEvent();
             }
 
             this.Id = objectId;
@@ -153,19 +180,23 @@ namespace Ubiq.Voip
 
         private void Update()
         {
+            if (!setupTask.IsCompleted)
+            {
+                return;
+            }
+
+            rtcPeerConnection = setupTask.Result;
+
+            // If RtcPeerConnection is initialised, process buffered actions
             while (mainThreadActions.TryDequeue(out Action action))
             {
                 action();
             }
 
             // If RtcPeerConnection is initialised, process buffered messages
-            if (setupTask.IsCompleted)
+            while (messageQueue.Count > 0)
             {
-                rtcPeerConnection = setupTask.Result;
-                while (messageQueue.Count > 0)
-                {
-                    DoProcessMessage(messageQueue.Dequeue());
-                }
+                DoProcessMessage(messageQueue.Dequeue());
             }
         }
 
