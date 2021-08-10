@@ -4,11 +4,10 @@ const { IceServerProvider } = require("./ice");
 const nconf = require('nconf');
 
 // nconf loads the configuration hierarchically; default.json contains most of
-// the rarely changing configuration properties, stored with the branch. 
-// Additional configuration files - where present - add or override parameters, 
+// the rarely changing configuration properties, stored with the branch.
+// Additional configuration files - where present - add or override parameters,
 // such as pre-shared secrets, that should not be in source control.
 nconf.file('default', 'config/default.json');
-nconf.file('ice', 'config/ice.json');
 nconf.file('local', 'config/local.json');
 
 roomServer = new RoomServer();
