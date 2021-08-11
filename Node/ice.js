@@ -176,8 +176,6 @@ function link(room, uri, username, password) {
         args.properties.values[propI] = JSON.stringify(iceServerProperty);
         room.updateRoom(args);
     }
-
-    console.log(JSON.stringify(args.properties.values[propI]));
 }
 
 // Used internally - not exported
