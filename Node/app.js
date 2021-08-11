@@ -7,8 +7,8 @@ const nconf = require('nconf');
 // the rarely changing configuration properties, stored with the branch.
 // Additional configuration files - where present - add or override parameters,
 // such as pre-shared secrets, that should not be in source control.
-nconf.file('default', 'config/default.json');
 nconf.file('local', 'config/local.json');
+nconf.file('default', 'config/default.json');
 
 roomServer = new RoomServer();
 roomServer.addServer(new WrappedTcpServer(nconf.get('roomserver:ports:tcp')));
