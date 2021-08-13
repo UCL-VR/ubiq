@@ -9,9 +9,41 @@ namespace Ubiq.Spawning
     {
         public List<GameObject> prefabs;
 
+        private Dictionary<string, GameObject> prefabNames = new Dictionary<string, GameObject>();
+
+        public void OnValidate()
+        {
+            if (prefabs != null)
+            {
+                foreach (var prefab in prefabs)
+                {
+                    if (prefab != null && !prefabNames.ContainsKey(prefab.name))
+                    {
+                        prefabNames.Add(prefab.name, prefab);
+                        Debug.Log(prefab.name);
+                    }
+                }
+            }
+            Debug.Log("Prefabs Catalogue size: " + prefabNames.Count);
+        }
+
         public int IndexOf(GameObject gameObject)
         {
             return prefabs.IndexOf(gameObject);
+        }
+
+        public GameObject GetPrefab(string prefabName)
+        {
+            try
+            {
+                return prefabNames[prefabName];
+            }
+            catch (KeyNotFoundException)
+            {
+                Debug.Log(prefabName + "is not in the Prefab Catalogue");
+                return null;
+            }
+            
         }
     }
 }
