@@ -48,7 +48,7 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
         //Debug.Log(Time.unscaledTime + " Process Message: " + message.ToString());
 
         Message msg = message.FromJson<Message>();
-        Debug.Log("Remote: SetLayer " + msg.layer);
+        //Debug.Log("Remote: SetLayer " + msg.layer);
         SetLayer(msg.layer);
     }
 // Awake instead of Start because objects are hidden immediately after creation.

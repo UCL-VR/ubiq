@@ -59,13 +59,13 @@ public class Outliner : MonoBehaviour, INetworkComponent
         Outline();
     }
 
-    void Update()
-    {
-        if (hasOutline)
-        {
-            Debug.Log(gameObject.name + " has an outline!");
-        }
-    }
+    //void Update()
+    //{
+    //    if (hasOutline)
+    //    {
+    //        Debug.Log(gameObject.name + " has an outline!");
+    //    }
+    //}
      
 
 }

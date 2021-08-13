@@ -533,7 +533,7 @@ public class Replayer
             Buffer.BlockCopy(msgPack, i, msg, 0, lengthMsg);
 
             ReferenceCountedSceneGraphMessage rcsgm = CreateRCSGM(msg);
-            Debug.Log(rcsgm.objectid.ToString());
+            //Debug.Log(rcsgm.objectid.ToString());
             ReplayedObjectProperties props = replayedObjects[rcsgm.objectid]; // avatars and objects
             INetworkComponent component = props.components[rcsgm.componentid];
 
