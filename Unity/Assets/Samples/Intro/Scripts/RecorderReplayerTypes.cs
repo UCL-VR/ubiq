@@ -77,7 +77,7 @@ namespace RecorderReplayerTypes {
     public class ReplayedObjectProperties
     {
         public GameObject gameObject;
-        public ObjectHider hider;
+        public ObjectHider hider; // only avatars currently have this
         public NetworkId id;
         public Dictionary<int, INetworkComponent> components = new Dictionary<int, INetworkComponent>();
 
@@ -90,20 +90,30 @@ namespace RecorderReplayerTypes {
         public int frames;
         public int avatarsAtStart;
         public int avatarNr;
-        public List<NetworkId> objectids;
+        public int objectsAtStart;
+        public List<NetworkId> avatars;
         public List<string> textures;
+        public List<NetworkId> objectids;
+        public List<string> prefabs; // prefabs
         public List<float> frameTimes;
         public List<int> pckgSizePerFrame;
         public List<int> idxFrameStart;
 
-        public RecordingInfo(int frames, int avatarsAtStart, int avatarNr, List<NetworkId> objectids, List<string> textures, List<float> frameTimes, List<int> pckgSizePerFrame, List<int> idxFrameStart)
+        public RecordingInfo(int frames, int avatarsAtStart, int avatarNr, 
+            int objectsAtStart,
+            List<NetworkId> avatars, List<string> textures,
+            List<NetworkId> objectids, List<string> prefabs, 
+            List<float> frameTimes, List<int> pckgSizePerFrame, List<int> idxFrameStart)
         {
             listLengths = new int[3] { frameTimes.Count, pckgSizePerFrame.Count, idxFrameStart.Count };
             this.frames = frames;
             this.avatarsAtStart = avatarsAtStart;
             this.avatarNr = avatarNr;
-            this.objectids = objectids;
+            this.objectsAtStart = objectsAtStart;
+            this.avatars = avatars;
             this.textures = textures;
+            this.objectids = objectids;
+            this.prefabs = prefabs;
             this.frameTimes = frameTimes;
             this.pckgSizePerFrame = pckgSizePerFrame;
             this.idxFrameStart = idxFrameStart;

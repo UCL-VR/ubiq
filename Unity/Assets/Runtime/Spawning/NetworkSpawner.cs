@@ -18,6 +18,7 @@ namespace Ubiq.Spawning
     {
         NetworkId Id { set; }
         void OnSpawned(bool local);
+        bool IsLocal();
     }
 
     public class NetworkSpawner : MonoBehaviour, INetworkObject, INetworkComponent
@@ -42,6 +43,11 @@ namespace Ubiq.Spawning
             public bool replay;
             public bool visible;
             public string uuid;
+        }
+
+        public Dictionary<NetworkId, GameObject> GetSpawned()
+        {
+            return spawned;
         }
 
         private void Reset()
@@ -84,6 +90,7 @@ namespace Ubiq.Spawning
         private GameObject Instantiate(int i, NetworkId networkId, bool local)
         {
             var go = GameObject.Instantiate(catalogue.prefabs[i], transform);
+            go.name = catalogue.prefabs[i].name; // assign prefab name and not prefab name + (Clone), to find correct prefab in catalogue for replay
             var spawnable = go.GetSpawnableInChildren();
             spawnable.Id = networkId;
             spawnable.OnSpawned(local);
@@ -96,8 +103,15 @@ namespace Ubiq.Spawning
         {
             Debug.Log("Instantiate Replay");
             GameObject go = Instantiate(i, networkId, local);
-            go.GetComponent<TexturedAvatar>().SetTexture(uuid);
-            go.GetComponent<Outliner>().SetOutline(true);
+            
+            // not everything that's replayed is an avatar
+            if (go.TryGetComponent(out TexturedAvatar texturedAvatar))
+            {
+                texturedAvatar.SetTexture(uuid);
+            }
+            //go.GetComponent<TexturedAvatar>().SetTexture(uuid); // only for avatars (for now)
+            
+            go.GetComponent<Outliner>().SetOutline(true); // every object/avatar that can be replayed should have this to distinguish them from the real deal
             Debug.Log("visible is " + visible);
             if (visible)
             {
@@ -107,6 +121,8 @@ namespace Ubiq.Spawning
             {
                 go.GetComponent<ObjectHider>().SetLayer(8); // hide
             }
+            
+            
             return go;
         }
 
@@ -149,7 +165,7 @@ namespace Ubiq.Spawning
             var networkId = NetworkScene.GenerateUniqueId();
             //Debug.Log("SpawnPersistentRecording() " + networkId.ToString());
             var key = $"SpawnedObject-{ networkId }";
-            var spawned = InstantiateReplay(i, networkId, true, false, uuid);
+            var spawned = InstantiateReplay(i, networkId, false, false, uuid);
             roomClient.Room[key] = JsonUtility.ToJson(new Message() { catalogueIndex = i, networkId = networkId, replay = true, visible = false, uuid = uuid});
             return spawned;
         }
@@ -161,6 +177,14 @@ namespace Ubiq.Spawning
             //Debug.Log("SpawnPersistent() " + networkId.ToString());
             var key = $"SpawnedObject-{ networkId }";
             var spawned = Instantiate(i, networkId, true);
+
+            // let's not record a spawn message, because it would be sent only once, and if we ever wanted to 
+            // sample a recording, this message might be skipped unless we find a way to mark messages that must not be skipped
+            //if (context.scene.recorder != null && context.scene.recorder.IsRecording())
+            //{
+            //    context.SendJson(new Message() { catalogueIndex = i, networkId = networkId, replay = true });
+            //}
+
             roomClient.Room[key] = JsonUtility.ToJson(new Message() { catalogueIndex = i, networkId = networkId });
             return spawned;
         }
