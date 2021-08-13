@@ -60,7 +60,7 @@ class IceServerProvider{
             iceServer.refreshSeconds = refreshSeconds;
 
             if (iceServer.refreshSeconds <= 0) {
-                iceServer.refreshSeconds = refreshSeconds * 0.8;
+                iceServer.refreshSeconds = iceServer.timeoutSeconds * 0.8;
             }
 
             // Setup refresh for short term credentials
@@ -108,6 +108,7 @@ class IceServerProvider{
 // Used internally - not exported
 // Generate fresh credentials for an ice server and link all rooms with new info
 function refresh(iceServer,roomServer) {
+    console.log("IceServerProvider: Refreshing credentials for ice server with uri " + iceServer.uri);
     var cred = generateCredentials(iceServer.secret,iceServer.timeoutSeconds);
     iceServer.username = cred.username;
     iceServer.password = cred.password;
@@ -149,12 +150,13 @@ function link(room, uri, username, password) {
     var propI = args.properties.keys.indexOf("ice-servers");
     if (propI < 0) {
         args.properties.keys.push("ice-servers");
-        args.properties.values.push("[]");
+        args.properties.values.push("{\"servers\":[]}");
         propI = args.properties.keys.length-1;
     }
 
     // Find ice-server object in property
-    var iceServers = JSON.parse(args.properties.values[propI]);
+    var iceServerProperty = JSON.parse(args.properties.values[propI]);
+    var iceServers = iceServerProperty.servers;
     var serverI = 0;
     var present = iceServers.some((iceServer, i) => { serverI = i; return iceServer.uri === uri; });
     if (!present) {
@@ -171,7 +173,7 @@ function link(room, uri, username, password) {
         server.uri = uri;
         server.username = username;
         server.password = password;
-        args.properties.values[propI] = JSON.stringify(iceServers);
+        args.properties.values[propI] = JSON.stringify(iceServerProperty);
         room.updateRoom(args);
     }
 }
