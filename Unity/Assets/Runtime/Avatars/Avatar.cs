@@ -107,5 +107,10 @@ namespace Ubiq.Avatars
             // technically, it would be local too, but we don't want user-controlled replay avatars
             this.IsLocal = false; 
         }
+
+        bool ISpawnable.IsLocal()
+        {
+            return IsLocal;
+        }
     }
 }

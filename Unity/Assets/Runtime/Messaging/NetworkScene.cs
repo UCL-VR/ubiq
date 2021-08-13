@@ -343,6 +343,9 @@ namespace Ubiq.Messaging
             ReceiveConnectionMessages();
             
         }
+        // want to exlude messages with these object ids for recording
+        private NetworkId serverId = new NetworkId(1);
+        private NetworkId spawnerId = new NetworkId("a369-2643-7725-a971");
 
         /// <summary>
         /// This checks all connections for messages and fans them out into the individual recieve queues
@@ -369,15 +372,17 @@ namespace Ubiq.Messaging
                                 {
                                     matching.Add(item.Value);
 
-                                    // record just avatars for now
-                                    if (recorder != null && recorder.IsOwner() && recorder.IsRecording() && item.Key is Ubiq.Avatars.Avatar)
+                                    if (recorder != null && recorder.IsOwner() && recorder.IsRecording() /*&& item.Key is Ubiq.Avatars.Avatar*/)
                                     {
-                                        //Debug.Log("Rcv");
-                                        recorder.RecordMessage(item.Key, sgbmessage);
-                                     
+                                        // record just avatars and objects and exclude messages for the room client and the network spawner
+                                        // and the network scene (bare in mind that LogManager and LogCollector are not exluded (yet))
+                                        if (!item.Key.Id.Equals(serverId) && !item.Key.Id.Equals(spawnerId) && !item.Key.Id.Equals(Id))
+                                        {
+                                            //Debug.Log("Rcv");
+                                            recorder.RecordMessage(item.Key, sgbmessage);
+                                        }
                                     }
                                 }
-
                             }
 
                             foreach (var item in matching)
@@ -447,10 +452,13 @@ namespace Ubiq.Messaging
                     foreach (var item in objectProperties)
                     {
                         // can be removed later if other objects are recorded too
-                        if (item.Key is Ubiq.Avatars.Avatar && item.Key.Id == m.objectid) // with second equality I make sure to exclude "Ping" mesages?
+                        if (/*item.Key is Ubiq.Avatars.Avatar &&*/ item.Key.Id == m.objectid) // with second equality I make sure to exclude "Ping" mesages?
                         {
-                            //Debug.Log("Send");
-                            recorder.RecordMessage(item.Key, m);
+                            if (!item.Key.Id.Equals(serverId) && !item.Key.Id.Equals(spawnerId) && !item.Key.Id.Equals(Id))
+                            {
+                                //Debug.Log("Send");
+                                recorder.RecordMessage(item.Key, m);
+                            }
                         }
                     }
                 }
