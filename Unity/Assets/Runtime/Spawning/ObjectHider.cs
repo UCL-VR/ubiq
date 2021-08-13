@@ -18,11 +18,13 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
 
     private int hideLayer = 8;
     private int defaultLayer = 0; // default
-    private int currentLayer;
+    private int currentLayer = 0;
     private bool needsUpdate = false;
     private Transform[] childTransforms;
-    private Avatar avatar;
+    //private Avatar avatar;
+    private NetworkId objectid;
     private NetworkSpawner spawner;
+    private ISpawnable spawnableObject;
 
     public struct Message
     {
@@ -42,8 +44,8 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
 
     public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
     {
-        Debug.Log(Time.unscaledTime + " Process Message: " + message.length + " " + System.String.Join(" ", message.bytes));
-        Debug.Log(Time.unscaledTime + " Process Message: " + message.ToString());
+        //Debug.Log(Time.unscaledTime + " Process Message: " + message.length + " " + System.String.Join(" ", message.bytes));
+        //Debug.Log(Time.unscaledTime + " Process Message: " + message.ToString());
 
         Message msg = message.FromJson<Message>();
         Debug.Log("Remote: SetLayer " + msg.layer);
@@ -56,10 +58,11 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
         Debug.Log("ObjectHider Awake()");
         scene = NetworkScene.FindNetworkScene(this);
         context = scene.RegisterComponent(this);
+        
         roomClient = NetworkScene.FindNetworkScene(this).GetComponent<RoomClient>();
+        childTransforms = GetComponentsInChildren<Transform>();
         //roomClient.OnPeerAdded.AddListener(OnPeerAdded);
         //roomClient.OnPeerRemoved.AddListener(OnPeerRemoved);
-        childTransforms = GetComponentsInChildren<Transform>();
     }
 
     void Start()
@@ -69,38 +72,40 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
             context = NetworkScene.Register(this);
         }
 
-        avatar = GetComponent<Avatar>();
+        //avatar = GetComponent<Avatar>(); // not ideal if I want to use this class for other objects too
+        objectid = context.networkObject.Id;
+        spawnableObject = GetComponent<ISpawnable>();
         spawner = NetworkSpawner.FindNetworkSpawner(context.scene);
     }
 
-    public void OnPeerAdded(IPeer peer)
-    {
-        if (scene.recorder != null && scene.recorder.IsRecording())
-        {
-            //Debug.Log("UUID:" + peer.UUID + " " + roomClient.Me.UUID);
-            if (peer.UUID == roomClient.Me.UUID)
-            {
-                Debug.Log("Set layer for joining/leaving avatar  (OnPeerUpdated)");
-                SetNetworkedObjectLayer(0);
-            }
-            else
-            {
-                Debug.Log("Does it even get called at the right time?");
-            }
-        }
-    }
+    //public void OnPeerAdded(IPeer peer)
+    //{
+    //    if (scene.recorder != null && scene.recorder.IsRecording())
+    //    {
+    //        //Debug.Log("UUID:" + peer.UUID + " " + roomClient.Me.UUID);
+    //        if (peer.UUID == roomClient.Me.UUID)
+    //        {
+    //            Debug.Log("Set layer for joining/leaving avatar  (OnPeerUpdated)");
+    //            SetNetworkedObjectLayer(0);
+    //        }
+    //        else
+    //        {
+    //            Debug.Log("Does it even get called at the right time?");
+    //        }
+    //    }
+    //}
 
-    public void OnPeerRemoved(IPeer peer)
-    {
-        if (scene.recorder != null && scene.recorder.IsRecording())
-        {
-            if (peer.UUID == roomClient.Me.UUID)
-            {
-                Debug.Log("Set layer for joining/leaving avatar (OnPeerRemoved)");
-                SetNetworkedObjectLayer(8);
-            }
-        }
-    }
+    //public void OnPeerRemoved(IPeer peer)
+    //{
+    //    if (scene.recorder != null && scene.recorder.IsRecording())
+    //    {
+    //        if (peer.UUID == roomClient.Me.UUID)
+    //        {
+    //            Debug.Log("Set layer for joining/leaving avatar (OnPeerRemoved)");
+    //            SetNetworkedObjectLayer(8);
+    //        }
+    //    }
+    //}
 
 
     public void SetLayer(int layer) // not networked
@@ -115,7 +120,7 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
     // only call locally
     public void NetworkedShow()
     {
-        Debug.Log("Show (layer) " + defaultLayer);
+        //Debug.Log("Show (layer) " + defaultLayer);
         context.SendJson(new Message() { layer = defaultLayer });
         SetLayer(defaultLayer);
     }
@@ -123,7 +128,7 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
     // only call locally
     public void NetworkedHide()
     {
-        Debug.Log("Hide (layer) " + hideLayer);
+        //Debug.Log("Hide (layer) " + hideLayer);
         context.SendJson(new Message() { layer = hideLayer });
         SetLayer(hideLayer);
     }
@@ -134,17 +139,17 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
         if (layer == defaultLayer)
         {
             // for actual peer avatars this method won't do anything because the peer avatars are in the AvatarManager and not in the NetworkSpawner
-            if (avatar != null)
+            if (objectid != null && layer != currentLayer)
             {
-                spawner.UpdateProperties(avatar.Id, "UpdateVisibility", true);
+                spawner.UpdateProperties(objectid, "UpdateVisibility", true);
             }
             NetworkedShow();
         }
         else if (layer == hideLayer)
         {
-            if (avatar != null)
+            if (objectid != null && layer != currentLayer)
             {
-                spawner.UpdateProperties(avatar.Id, "UpdateVisibility", false);
+                spawner.UpdateProperties(objectid, "UpdateVisibility", false);
             }
             NetworkedHide();
         }
@@ -154,13 +159,13 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
         }
     }
 
-    //void Update()
-    //{
-    //    if (needsUpdate && avatar.IsLocal)
-    //    {
-    //        Debug.Log("Set layer for joining/leaving avatar");
-    //        SetNetworkedObjectLayer(currentLayer);
-    //        needsUpdate = false;
-    //    }
-    //}
+    void Update()
+    {
+        if (spawnableObject.IsLocal())
+        {
+            //Debug.Log("Set layer for joining/leaving avatar");
+            SetNetworkedObjectLayer(currentLayer);
+            //needsUpdate = false;
+        }
+    }
 }

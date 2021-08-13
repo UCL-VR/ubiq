@@ -17,6 +17,7 @@ namespace Ubiq.Samples
 
         public bool owner;
         public bool fired;
+        public bool local;
 
         public struct Message
         {
@@ -101,6 +102,12 @@ namespace Ubiq.Samples
 
         public void OnSpawned(bool local)
         {
+            owner = local;
+        }
+
+        public bool IsLocal()
+        {
+            return owner;
         }
     }
 }

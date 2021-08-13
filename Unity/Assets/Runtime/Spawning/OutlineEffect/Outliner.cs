@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Ubiq.Messaging;
-// Attach to objects that should use an outline, e.g. recorded avatars
+// Attach to objects that should use an outline, e.g. recorded avatars/objects
+/// <summary>
+/// The outline is created when the recorded objects are instantiated in the NetworkSpawner
+/// </summary>
 public class Outliner : MonoBehaviour, INetworkComponent
 {
     NetworkContext context;
@@ -55,5 +58,14 @@ public class Outliner : MonoBehaviour, INetworkComponent
         context.SendJson(new Message(hasOutline));
         Outline();
     }
+
+    void Update()
+    {
+        if (hasOutline)
+        {
+            Debug.Log(gameObject.name + " has an outline!");
+        }
+    }
+     
 
 }

@@ -19,6 +19,8 @@ namespace Ubiq.Samples
 
         public NetworkId Id { get; set; } = NetworkId.Unique();
 
+        private bool local;
+
         [Serializable]
         private struct State
         {
@@ -129,6 +131,11 @@ namespace Ubiq.Samples
             transform.rotation = state[0].rotation;
         }
 
-        void ISpawnable.OnSpawned(bool local) { }
+        void ISpawnable.OnSpawned(bool local) { this.local = local; }
+
+        public bool IsLocal()
+        {
+            return local;
+        }
     }
 }

@@ -10,6 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 880890448539666899}
   - component: {fileID: 1708485201281007596}
+  - component: {fileID: 6892373588611719980}
+  - component: {fileID: 1423456409060464244}
   m_Layer: 0
   m_Name: Networked Main Menu Indicator
   m_TagString: Untagged
@@ -42,6 +44,30 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0a704bb64a9573948acb810d7ad8e613, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &6892373588611719980
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3207830129910488753}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79dea49f19acd784fa6b8351a8c1836b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1423456409060464244
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3207830129910488753}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c1eb0a01edd94848acb1cba4a6a9c7e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &6218890580434344003

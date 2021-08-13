@@ -77,5 +77,10 @@ namespace Ubiq.Samples
             transform.localPosition = state.position;
             transform.localRotation = state.rotation;
         }
+
+        public bool IsLocal()
+        {
+            return owner;
+        }
     }
 }
