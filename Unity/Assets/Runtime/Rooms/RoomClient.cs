@@ -22,7 +22,7 @@ namespace Ubiq.Rooms
     public class RoomClient : MonoBehaviour, INetworkComponent
     {
         public IRoom Room { get => room; }
-        
+
         public IPeer Me { get => me; }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace Ubiq.Rooms
         }
 
         /// <summary>
-        /// A list of default servers to connect to on start-up. The network must only have one RoomServer or 
+        /// A list of default servers to connect to on start-up. The network must only have one RoomServer or
         /// undefined behaviour will result.
         /// </summary>
         [SerializeField]
@@ -118,7 +118,7 @@ namespace Ubiq.Rooms
         private float lastGetRoomsTime;
         private PeerInterfaceFriend me;
         private RoomInterfaceFriend room;
-        
+
         /// <summary>
         /// Contains the current Peers, indexed by UUID
         /// </summary>
@@ -333,7 +333,7 @@ namespace Ubiq.Rooms
             switch (container.type)
             {
                 case "SetRoom":
-                    {                       
+                    {
                         var args = JsonUtility.FromJson<SetRoom>(container.args);
                         room.Update(args.room);
 
@@ -403,7 +403,12 @@ namespace Ubiq.Rooms
                         {
                             Debug.LogError($"Your version {roomClientVersion} of Ubiq doesn't match the server version {available.version}.");
                         }
-                        OnRoomsAvailable.Invoke(available.Rooms);
+                        var rooms = new List<IRoom>();
+                        for (int i = 0; i < available.rooms.Count; i++)
+                        {
+                            rooms.Add((IRoom)available.rooms[i]);
+                        }
+                        OnRoomsAvailable.Invoke(rooms);
                     }
                     break;
                 case "Blob":
