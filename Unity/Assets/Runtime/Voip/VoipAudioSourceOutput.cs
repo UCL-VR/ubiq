@@ -100,10 +100,15 @@ namespace Ubiq.Voip
                 stopwatch.Start();
             }
 
-            public void Commit (int currentTimeSamples, AudioClip audioClip)
+            public Stats Commit (int currentTimeSamples, AudioClip audioClip)
             {
-                Advance(currentTimeSamples, audioClip);
+                var stats = Advance(currentTimeSamples, audioClip);
+                Flush(audioClip);
+                return stats;
+            }
 
+            private void Flush (AudioClip audioClip)
+            {
                 if (rtps.Count == 0)
                 {
                     return;
@@ -179,7 +184,7 @@ namespace Ubiq.Voip
             }
 
             // Step internal time trackers forward and zero out just-read samples
-            private void Advance (int timeSamples, AudioClip audioClip)
+            private Stats Advance (int timeSamples, AudioClip audioClip)
             {
                 if (absTimeSamples < 0)
                 {
@@ -197,16 +202,32 @@ namespace Ubiq.Voip
                     // Zero out so we don't repeat audio on connection drop
                     // Note audio will still repeat if frames do not keep up
                     // TODO pool buffers to avoid runtime GC
+                    var volume = 0.0f;
                     if (deltaTimeSamples > 0)
                     {
                         var floatPcms = new float[deltaTimeSamples];
+
+                        // Gather volume for this set of stats
+                        audioClip.GetData(floatPcms,lastTimeSamples);
+                        for (int i = 0; i < floatPcms.Length; i++)
+                        {
+                            volume += Mathf.Abs(floatPcms[i]);
+                            floatPcms[i] = 0;
+                        }
+
+                        // Zero out
                         audioClip.SetData(floatPcms,lastTimeSamples);
                     }
 
                     // Update time trackers
                     absTimeSamples += deltaTimeSamples;
                     lastTimeSamples = timeSamples;
+
+                    // Calculate stats for the advance
+                    return new Stats { volume=volume, samples=deltaTimeSamples};
                 }
+
+                return new Stats { volume=0, samples=0};
             }
 
             public void AddRtp (AudioRtp rtp)
@@ -215,7 +236,20 @@ namespace Ubiq.Voip
             }
         }
 
+        public struct Stats
+        {
+            public float volume;
+            public int samples;
+        }
+
+        public int sampleRate { get { return 16000; } }
+        public int bufferSamples { get { return sampleRate * 2; } }
+        public int latencySamples { get { return sampleRate / 5; } }
+        public int syncSamples { get { return sampleRate * 1; } }
+
         public float gain = 1.0f;
+        public AudioSource unityAudioSource { get; private set; }
+        public Stats lastFrameStats { get; private set; }
 
         private G722AudioDecoder audioDecoder = new G722AudioDecoder();
         private MediaFormatManager<AudioFormat> audioFormatManager = new MediaFormatManager<AudioFormat>(
@@ -230,13 +264,6 @@ namespace Ubiq.Voip
         private TaskCompletionSource<bool> allTaskTcs = new TaskCompletionSource<bool>();
         private readonly object taskLock = new object();
 
-        private const int SAMPLE_RATE = 16000;
-        private const int BUFFER_SAMPLES = SAMPLE_RATE * 2;
-        private const int LATENCY_SAMPLES = SAMPLE_RATE / 5;
-        private const int SYNC_SAMPLES = SAMPLE_RATE * 1;
-
-        public AudioSource unityAudioSource { get; private set; }
-
         private RtpBufferer rtpBufferer;
 
         private void Awake()
@@ -244,15 +271,15 @@ namespace Ubiq.Voip
             unityAudioSource = gameObject.AddComponent<AudioSource>();
             unityAudioSource.clip = AudioClip.Create(
                 name: "WebRTC AudioClip",
-                lengthSamples: BUFFER_SAMPLES,
+                lengthSamples: bufferSamples,
                 channels: 1,
-                frequency: SAMPLE_RATE,
+                frequency: sampleRate,
                 stream: false);
             unityAudioSource.loop = true;
             unityAudioSource.ignoreListenerPause = true;
             unityAudioSource.Play();
 
-            rtpBufferer = new RtpBufferer(LATENCY_SAMPLES,SYNC_SAMPLES);
+            rtpBufferer = new RtpBufferer(latencySamples,syncSamples);
         }
 
         private void OnDestroy()
@@ -292,7 +319,9 @@ namespace Ubiq.Voip
                 rtpBufferer.AddRtp(rtp);
             }
 
-            rtpBufferer.Commit(unityAudioSource.timeSamples,unityAudioSource.clip);
+            var timeSamples = unityAudioSource.timeSamples;
+            var clip = unityAudioSource.clip;
+            lastFrameStats = rtpBufferer.Commit(timeSamples,clip);
         }
 
         private float PcmToFloat (short pcm)
