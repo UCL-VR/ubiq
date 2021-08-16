@@ -11,7 +11,7 @@ namespace Ubiq.Spawning
 
         private Dictionary<string, GameObject> prefabNames = new Dictionary<string, GameObject>();
 
-        public void OnValidate()
+        public void OnEnable()
         {
             if (prefabs != null)
             {
