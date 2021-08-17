@@ -101,8 +101,7 @@ namespace Ubiq.Samples
         private void Update()
         {
             UpdateTorso();
-<<<<<<< HEAD
-=======
+
             UpdateVisibility();
         }
 
@@ -147,7 +146,6 @@ namespace Ubiq.Samples
             }
             //renderToggle.Send();
 
->>>>>>> ab912038867d4558beb5f0d8378fcf156e01287e
         }
 
         private void UpdateTorso()
