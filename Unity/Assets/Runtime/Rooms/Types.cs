@@ -40,7 +40,7 @@ namespace Ubiq.Rooms.Messages
     }
 
     /// <summary>
-    /// An immutable description of a Room. This type is used by RoomClient as a Data Transfer Object. It can also pass it via 
+    /// An immutable description of a Room. This type is used by RoomClient as a Data Transfer Object. It can also pass it via
     /// events in the guise of an IRoom.
     /// </summary>
     [Serializable]
@@ -164,14 +164,6 @@ namespace Ubiq.Rooms.Messages
     {
         public string version;
         public List<RoomInfo> rooms;
-
-        public List<IRoom> Rooms
-        {
-            get
-            {
-                return Rooms;
-            }
-        }
     }
 
     [Serializable]
@@ -216,19 +208,19 @@ namespace Ubiq.Rooms
         NetworkId NetworkObjectId { get; }
     }
 
-    public class RejectedEvent : UnityEvent<Rejection> 
+    public class RejectedEvent : UnityEvent<Rejection>
     {
     };
 
-    public class RoomsAvailableEvent : UnityEvent<List<IRoom>> 
+    public class RoomsAvailableEvent : UnityEvent<List<IRoom>>
     {
     };
 
-    public class PeerEvent : UnityEvent<IPeer> 
+    public class PeerEvent : UnityEvent<IPeer>
     {
     };
 
-    public class RoomEvent : UnityEvent<IRoom> 
+    public class RoomEvent : UnityEvent<IRoom>
     {
     };
 

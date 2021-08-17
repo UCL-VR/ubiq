@@ -10,9 +10,11 @@ namespace Ubiq.Avatars
     public class VoipAvatar : MonoBehaviour
     {
         public Transform audioSourcePosition;
+        public VoipPeerConnection peerConnection { get; private set; }
 
         private Avatar avatar;
         private Transform sinkTransform;
+        private VoipPeerConnectionManager peerConnectionManager;
 
         private void Awake()
         {
@@ -21,10 +23,19 @@ namespace Ubiq.Avatars
 
         private void Start()
         {
-            var manager = NetworkScene.FindNetworkScene(this).GetComponentInChildren<VoipPeerConnectionManager>();
-            if (manager)
+            peerConnectionManager = NetworkScene.FindNetworkScene(this).
+                GetComponentInChildren<VoipPeerConnectionManager>();
+            if (peerConnectionManager)
             {
-                manager.OnPeerConnection.AddListener(OnPeerConnection, true);
+                peerConnectionManager.OnPeerConnection.AddListener(OnPeerConnection, true);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (peerConnectionManager)
+            {
+                peerConnectionManager.OnPeerConnection.RemoveListener(OnPeerConnection);
             }
         }
 
@@ -32,9 +43,9 @@ namespace Ubiq.Avatars
         {
             if (peerConnection.PeerUuid == avatar.Peer.UUID)
             {
-                var sink = peerConnection.audioSink;
-                sink.unityAudioSource.spatialBlend = 1.0f;
-                sinkTransform = sink.transform;
+                this.peerConnection = peerConnection;
+                peerConnection.audioSink.unityAudioSource.spatialBlend = 1.0f;
+                sinkTransform = peerConnection.audioSink.transform;
             }
         }
 

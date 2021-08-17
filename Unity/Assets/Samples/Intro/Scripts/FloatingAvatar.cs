@@ -34,13 +34,10 @@ namespace Ubiq.Samples
         private Vector3 footPosition;
         private Quaternion torsoFacing;
 
-        private RenderToggle renderToggle;
-
         private void Awake()
         {
             avatar = GetComponent<Avatars.Avatar>();
             trackedAvatar = GetComponent<ThreePointTrackedAvatar>();
-            renderToggle = GetComponent<RenderToggle>();
         }
 
         private void OnEnable()
@@ -104,50 +101,6 @@ namespace Ubiq.Samples
         private void Update()
         {
             UpdateTorso();
-            UpdateVisibility();
-        }
-
-        private void UpdateVisibility()
-        {
-            if (avatar.IsLocal)
-            {
-                //if(renderToggle != null && renderToggle.rendering)
-                {
-                    headRenderer.enabled = false;
-                    torsoRenderer.enabled = true;
-                    leftHandRenderer.enabled = true;
-                    rightHandRenderer.enabled = true;
-                }
-                //else
-                //{
-                //    headRenderer.enabled = false;
-                //    torsoRenderer.enabled = false;
-                //    leftHandRenderer.enabled = false;
-                //    rightHandRenderer.enabled = false;
-                //}
-
-                //renderToggle.Send();
-            }
-            else
-            {
-                //if (renderToggle != null && renderToggle.rendering)
-                {
-                    headRenderer.enabled = true;
-                    torsoRenderer.enabled = true;
-                    leftHandRenderer.enabled = true;
-                    rightHandRenderer.enabled = true;
-
-                }
-                //else
-                //{
-                //    headRenderer.enabled = false;
-                //    torsoRenderer.enabled = false;
-                //    leftHandRenderer.enabled = false;
-                //    rightHandRenderer.enabled = false;
-                //}
-            }
-            //renderToggle.Send();
-
         }
 
         private void UpdateTorso()

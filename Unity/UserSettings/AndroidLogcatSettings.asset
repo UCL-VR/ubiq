@@ -3,7 +3,7 @@
     "m_SelectedPackage": {
         "deviceId": "1WMHH8104T0462",
         "name": "com.ucl.ubiq",
-        "processId": 7750,
+        "processId": 5823,
         "exited": false
     },
     "m_SelectedPriority": 0,
@@ -30,6 +30,48 @@
             "deviceId": "1WMHH8104T0462",
             "name": "com.ucl.ubiq",
             "processId": 7750,
+            "exited": false
+        },
+        {
+            "deviceId": "1WMHH8104T0462",
+            "name": "com.ucl.ubiq",
+            "processId": 3883,
+            "exited": false
+        },
+        {
+            "deviceId": "1WMHH8104T0462",
+            "name": "com.ucl.ubiq",
+            "processId": 4617,
+            "exited": false
+        },
+        {
+            "deviceId": "1WMHH8104T0462",
+            "name": "com.ucl.ubiq",
+            "processId": 5202,
+            "exited": false
+        },
+        {
+            "deviceId": "1WMHH8104T0462",
+            "name": "com.ucl.ubiq",
+            "processId": 4130,
+            "exited": false
+        },
+        {
+            "deviceId": "1WMHH8104T0462",
+            "name": "com.ucl.ubiq",
+            "processId": 4217,
+            "exited": false
+        },
+        {
+            "deviceId": "1WMHH8104T0462",
+            "name": "com.ucl.ubiq",
+            "processId": 3802,
+            "exited": false
+        },
+        {
+            "deviceId": "1WMHH8104T0462",
+            "name": "com.ucl.ubiq",
+            "processId": 5823,
             "exited": false
         }
     ],
