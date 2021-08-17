@@ -34,10 +34,13 @@ namespace Ubiq.Samples
         private Vector3 footPosition;
         private Quaternion torsoFacing;
 
+        private RenderToggle renderToggle;
+
         private void Awake()
         {
             avatar = GetComponent<Avatars.Avatar>();
             trackedAvatar = GetComponent<ThreePointTrackedAvatar>();
+            renderToggle = GetComponent<RenderToggle>();
         }
 
         private void OnEnable()
@@ -102,7 +105,6 @@ namespace Ubiq.Samples
         {
             UpdateTorso();
 <<<<<<< HEAD
-=======
             UpdateVisibility();
         }
 
@@ -147,7 +149,8 @@ namespace Ubiq.Samples
             }
             //renderToggle.Send();
 
->>>>>>> ab912038867d4558beb5f0d8378fcf156e01287e
+=======
+>>>>>>> 384ca4bc03d2ab2d195432217c05d141041d279d
         }
 
         private void UpdateTorso()
