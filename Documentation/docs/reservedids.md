@@ -12,8 +12,5 @@ A number of Ids are pre-assigned to common objects in Ubiq. These are listed bel
 ## Known Component Ids
 
 * RoomClient : 1
-* AvatarManagaer : 2
-* WebRtcPeerConnectionManager : 3
-* WebRtcPeerConnectionUvMeterSample : 8
-* WebRtcRemoteSinceWaveExample : 9
+* AvatarManager : 2
 
