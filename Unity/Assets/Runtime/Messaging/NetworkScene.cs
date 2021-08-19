@@ -173,7 +173,12 @@ namespace Ubiq.Messaging
             // Try getting a RecorderReplayer if script is attached to the NetworkScene
             if(TryGetComponent(out IMessageRecorder recRep))
             {
+                Debug.Log("Set Recorder in NetworkScene");
                 recorder = recRep;
+            }
+            else
+            {
+                Debug.Log("No Recorder set in NetworkScene");
             }
         }
 

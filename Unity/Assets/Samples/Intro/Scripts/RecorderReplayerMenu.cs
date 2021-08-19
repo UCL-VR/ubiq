@@ -121,6 +121,7 @@ public class RecorderReplayerMenu : MonoBehaviour
         fileText = filePanel.transform.GetChild(1).GetChild(0).gameObject.GetComponent<Text>();
         fileText.text = "Replay: " + "none";
 
+        Debug.Log("Set RecorderReplayer in Menu");
         recRep = scene.GetComponent<RecorderReplayer>();
 
         sliderPanel = gameObject.transform.Find("Slider Panel").gameObject;
@@ -213,6 +214,7 @@ public class RecorderReplayerMenu : MonoBehaviour
         }
         else // start recording
         {
+            Debug.Log("Toggle Record");
             recordImage.color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
             recRep.recording = true;
         }

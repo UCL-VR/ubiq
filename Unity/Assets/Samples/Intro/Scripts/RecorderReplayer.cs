@@ -680,6 +680,7 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder, INetworkCompone
         spawner = NetworkSpawner.FindNetworkSpawner(scene);
 
         // create Recorder and Replayer
+        Debug.Log("Assign RecorderReplayer to Recorder and Replayer");
         recorder = new Recorder(this);
         replayer = new Replayer(this);
     }
