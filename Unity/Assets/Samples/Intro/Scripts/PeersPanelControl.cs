@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Ubiq.Rooms;
+using Ubiq.Avatars;
+using Ubiq.Voip;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
@@ -11,47 +13,169 @@ namespace Ubiq.Samples
 {
     public class PeersPanelControl : MonoBehaviour
     {
-        public Text Name;
-        public Text SceneName;
-        public RawImage ScenePreview;
+        [Serializable]
+        public class StagedIcon<T> where T : IComparable<T>
+        {
+            [Serializable]
+            public class Stage
+            {
+                public Sprite sprite;
+                public Color color;
+                public T threshold;
+            }
+            public Image image;
+            public List<Stage> stages;
+
+            public void Update (T value)
+            {
+                for (int i = 0; i < stages.Count; i++)
+                {
+                    if (value.CompareTo(stages[i].threshold) >= 0)
+                    {
+                        image.sprite = stages[i].sprite;
+                        image.color = stages[i].color;
+                    }
+                }
+            }
+        }
+        // For compatibility with Unity serialization
+        [Serializable]
+        public class StagedIconFloat //: StagedIcon<float> {}
+        {
+            [Serializable]
+            public class Stage
+            {
+                public Sprite sprite;
+                public Color color;
+                public float threshold;
+            }
+            public Image image;
+            public List<Stage> stages;
+
+            public void Update (float value)
+            {
+                for (int i = stages.Count-1; i >= 0; i++)
+                {
+                    if (value >= stages[i].threshold)
+                    {
+                        image.sprite = stages[i].sprite;
+                        image.color = stages[i].color;
+                        return;
+                    }
+                }
+
+                // No appropriate stage identified
+                image.sprite = null;
+                image.color = Color.white;
+            }
+        }
+
+        [Serializable]
+        public class StagedIconInt //: // StagedIcon<float> {}
+        {
+            [Serializable]
+            public class Stage
+            {
+                public Sprite sprite;
+                public Color color;
+                public int threshold;
+            }
+            public Image image;
+            public List<Stage> stages;
+
+            public void Update (int value)
+            {
+                for (int i = stages.Count-1; i >= 0; i++)
+                {
+                    if (value >= stages[i].threshold)
+                    {
+                        image.sprite = stages[i].sprite;
+                        image.color = stages[i].color;
+                        return;
+                    }
+                }
+
+                // No appropriate stage identified
+                image.sprite = null;
+                image.color = Color.white;
+            }
+        }
+
+        public Text meText;
+        public Text peerName;
+        public StagedIconFloat voipVolumeIndicator;
+        public StagedIconFloat latencyIndicator;
+        public StagedIconInt voipConnectionIndicator;
+        public Slider voipVolumeSlider;
 
         [System.Serializable]
-        public class BindEvent : UnityEvent<RoomClient, IRoom> { };
+        public class BindEvent : UnityEvent<RoomClient, IPeer> { };
         public BindEvent OnBind;
 
-        private string existing;
+        private VoipPeerConnectionManager peerConnectionManager;
+        // private VoipPeerConnection
+        private IPeer peer;
+        private bool isMe;
+        private RoomClient roomClient;
 
-        public void Bind(RoomClient client, IPeer peer)
+        private void ClearBinding ()
         {
+            peer = null;
+            roomClient = null;
+        }
+
+        private void OnDisable ()
+        {
+            ClearBinding();
+        }
+
+        private void Update ()
+        {
+            if (!roomClient)
+            {
+                return;
+            }
+
             var name = peer["ubiq.samples.intro.name"];
             if (name == null)
             {
-                name = "Unnamed";
+                name = "(unnamed)";
             }
-            Name.text = name;
+            this.peerName.text = name;
 
-            // TODO latency here
-
-            Name.text.AsMemory
-            Name.text = roomInfo.Name;
-            SceneName.text = roomInfo["scene-name"];
-
-            var image = roomInfo["scene-image"];
-            if (image != null && image != existing)
+            if (meText)
             {
-                client.GetBlob(roomInfo.UUID, image, (base64image) =>
-                {
-                    if (base64image.Length > 0)
-                    {
-                        var texture = new Texture2D(1, 1);
-                        texture.LoadImage(Convert.FromBase64String(base64image));
-                        existing = image;
-                        ScenePreview.texture = texture;
-                    }
-                });
+                meText.gameObject.SetActive(isMe);
             }
 
-            OnBind.Invoke(client,roomInfo);
+            if (peerConnectionManager)
+            {
+                var peerConnection = peerConnectionManager.GetPeerConnection(peer.UUID);
+                if (peerConnection)
+                {
+                    var volume = peerConnection.audioSink.lastFrameStats.volume;
+                    voipVolumeIndicator.Update(volume);
+                    voipConnectionIndicator.Update((int)peerConnection.peerConnectionState);
+                    peerConnection.audioSink.unityAudioSource.volume = voipVolumeSlider.value;
+                }
+            }
+
+            // TODO latency
         }
+
+        public void Bind(RoomClient client, IPeer peer, bool isMe)
+        {
+            ClearBinding();
+
+            this.peer = peer;
+            this.isMe = isMe;
+            this.peerConnectionManager = VoipPeerConnectionManager.Find(this);
+
+            OnBind.Invoke(client,peer);
+        }
+
+
     }
+
+
 }

@@ -11,8 +11,8 @@ namespace Ubiq.Samples
         public GameObject noRoomMessagePanel;
         public GameObject controlPrefab;
 
-        private BrowseMenuControl meControl;
-        private List<BrowseMenuControl> controls = new List<BrowseMenuControl>();
+        private PeersPanelControl meControl;
+        private List<PeersPanelControl> controls = new List<PeersPanelControl>();
         private List<IRoom> lastRoomArgs;
 
         private MainMenu mainMenu;
@@ -46,9 +46,10 @@ namespace Ubiq.Samples
             }
         }
 
-        private BrowseMenuControl InstantiateControl () {
+        private PeersPanelControl InstantiateControl () {
             var go = GameObject.Instantiate(controlPrefab, controlsRoot);
-            return go.GetComponent<BrowseMenuControl>();
+            go.SetActive(true);
+            return go.GetComponent<PeersPanelControl>();
         }
 
         private void RoomClient_OnPeer(IPeer peer)
@@ -74,19 +75,25 @@ namespace Ubiq.Samples
 
             if (!meControl)
             {
+                var peer = mainMenu.roomClient.Me;
                 meControl = InstantiateControl();
-                meControl.Bind(mainMenu.roomClient,mainMenu.roomClient.Me);
+                meControl.Bind(mainMenu.roomClient,peer,isMe:true);
             }
 
             var controlI = 0;
             foreach(var peer in mainMenu.roomClient.Peers)
             {
+                if (peer.UUID == mainMenu.roomClient.Me.UUID)
+                {
+                    continue;
+                }
+
                 if (controls.Count >= controlI)
                 {
                     controls.Add(InstantiateControl());
                 }
 
-                controls[controlI].Bind(mainMenu.roomClient,peer);
+                controls[controlI].Bind(mainMenu.roomClient,peer,isMe:false);
                 controlI++;
             }
 

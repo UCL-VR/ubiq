@@ -305,6 +305,34 @@ namespace Ubiq.Voip
         }
 
         /// <summary>
+        /// Gets the PeerConnection for a remote peer with the given UUID.
+        /// </summary>
+        /// <returns>The peer connection object, or null if it has not been established</returns>
+        public VoipPeerConnection GetPeerConnection(string peerUUID)
+        {
+            if(peerUuidToConnection.TryGetValue(peerUUID, out var pc))
+            {
+                return pc;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the PeerConnection for a remote peer with the given UUID on the closest VoipPeerConnectionManager to
+        /// component.
+        /// </summary>
+        /// <returns>The peer connection object, or null if it has not been established</returns>
+        public static VoipPeerConnection GetPeerConnection(MonoBehaviour component, string peerUUID)
+        {
+            var manager = Find(component);
+            if(manager && manager.peerUuidToConnection.TryGetValue(peerUUID, out var pc))
+            {
+                return pc;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Find the VoipConnectionManager for forest the Component is a member of. May return null if there is no Voip manager for the scene.
         /// </summary>
         public static VoipPeerConnectionManager Find(MonoBehaviour Component)

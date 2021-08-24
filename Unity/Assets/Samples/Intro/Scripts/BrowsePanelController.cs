@@ -11,7 +11,7 @@ namespace Ubiq.Samples
         public Transform controlsRoot;
         public GameObject roomListPanel;
         public GameObject noRoomsMessagePanel;
-        public GameObject controlPrefab;
+        public GameObject controlTemplate;
 
         private List<BrowseMenuControl> controls = new List<BrowseMenuControl>();
         private List<IRoom> lastRoomArgs;
@@ -33,7 +33,8 @@ namespace Ubiq.Samples
         }
 
         private BrowseMenuControl InstantiateControl () {
-            var go = GameObject.Instantiate(controlPrefab, controlsRoot);
+            var go = GameObject.Instantiate(controlTemplate, controlsRoot);
+            go.SetActive(true);
             return go.GetComponent<BrowseMenuControl>();
         }
 
