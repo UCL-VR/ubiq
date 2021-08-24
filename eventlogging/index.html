@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Introduction - Ubiq Docs</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Introduction";
+    var mkdocs_page_input_path = "eventlogging.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> Ubiq Docs</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Tutorials</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="#">Getting Started</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../gettingubiq/">Getting Ubiq</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../settingupvr/">Setting Up VR</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../creatinganetworkedobject/">Creating Networked Objects</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../spawningobjects/">Object Spawning</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../objectownership/">Ownership</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../ubiqxrinteraction/">Interaction with Ubiq XR</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serversandrooms/">Servers and Rooms</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../localloopback/">Testing with Local Loopback</a>
+                </li>
+    </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="#">Server</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../serversetup/">Running the server</a>
+                </li>
+    </ul>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../nexus/">Nexus</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Advanced</span></p>
+                <ul class="current">
+                    <li class="toctree-l1"><a class="reference internal" href="../xrinteraction/">Interaction</a>
+                    </li>
+                    <li class="toctree-l1 current"><a class="reference internal current" href="#">Logging</a>
+    <ul class="current">
+                <li class="toctree-l2 current"><a class="reference internal current" href="./">Introduction</a>
+    <ul class="current">
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloganalysis/">Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="#">Examples</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../eventloggingexperimentquestionnaire/">Questionnaire</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogserialisation/">Serialisation and Memory</a>
+                </li>
+    </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="#">Messaging</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../messaging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../objectids/">Object and Component Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../generatinguniqueids/">Generating Unique Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkidtype/">Types</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../reservedids/">Reserved IDs</a>
+                </li>
+    </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../webrtc/">WebRtc</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="#">Servers and Rooms</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../serverintroduction/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serveroverview/">Server Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serverheartbeat/">Heartbeat and Timeouts</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../leavingandjoiningrooms/">Leaving and Joining</a>
+                </li>
+    </ul>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Programming</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../asyncdesignpatterns/">Async Design Patterns</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Development</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../packaging/">Packaging</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../mkdocs/">Meta</a>
+                    </li>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">Ubiq Docs</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Advanced &raquo;</li>
+        
+      
+        
+          <li>Logging &raquo;</li>
+        
+      
+    
+    <li>Introduction</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="introduction">Introduction</h1>
+<p>Networked VR applications require different types of logging, such as:</p>
+<ol>
+<li>Debug Logs</li>
+<li>Experiment Logs</li>
+<li>Network Traces</li>
+</ol>
+<p/>
+
+<ol>
+<li>Refers to logging expected and exceptional events that occur during a regular session. The purpose is post-hoc debugging of high-level application code.</li>
+<li>Refers to logging application-specific data, such as measurements or questionnaire responses for an experiment.</li>
+<li>Refers to captures of network traffic to investigate reproducible low-level netcode bugs.</li>
+</ol>
+<p>(1) &amp; (2) are handled by Ubiq's Event Logging system. (3) has distinct performance implications, so is handled seperately.</p>
+<h1 id="use-case">Use Case</h1>
+<p>The Event Logging System is for collecting low or medium frequency events from multiple peers. The Event Logging system can log both Ubiq and user events, which can then be extracted and analysed.</p>
+<p>Events are discrete, but otherwise have very few restrictions. It is up to the user to ensure that event logging in their application doesn't negatively affect performance.</p>
+<h1 id="overview">Overview</h1>
+<p>Events are generated by <code>EventLogger</code> instances placed throughout the application. Events generated by these components are passed to a <code>LogManager</code> instance. The <code>LogManager</code> forwards all events in an application to a <code>LogCollector</code>, and the <code>LogCollector</code> writes them to disk (or database, or other endpoint). <code>LogManager</code> and <code>LogCollector</code> can be on the same machine or separated by the network.</p>
+<p><img alt="Data flow diagram of the Event Logging System" src="../images/16de1600-91ac-4377-9aae-c3b66b300889.svg" /></p>
+<h2 id="eventlogger">EventLogger</h2>
+<p><code>EventLogger</code> instances are lightweight objects that the application uses to log events.
+Calls to an <code>EventLogger</code> are expected to be placed throughout the system persistently, rather than gated with pre-processor defines.</p>
+<p>The most common types of event logger are the <code>ContextEventLogger</code>, which is designed to work with Components that have a <code>NetworkContext</code>, and the <code>UserEventLogger</code>, designed for logging measurements in user experiments.</p>
+<pre><code>public class VoipPeerConnectionManager : MonoBehaviour, INetworkComponent
+{
+    private EventLogger logger;
+
+    private void Start()
+    {
+        context = NetworkScene.Register(this);
+        logger = new ContextEventLogger(context);
+    }
+
+    public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+    {
+        var msg = JsonUtility.FromJson&lt;Message&gt;(message.ToString());
+        switch (msg.type)
+        {
+            case &quot;RequestPeerConnection&quot;:
+                logger.Log(&quot;CreatePeerConnectionForRequest&quot;, msg.objectid);
+                break;
+        }
+    }
+}
+</code></pre>
+<p>The snippet above demonstrates the creation and use of a <code>ContextEventLogger</code>. The <code>VoipPeerConnectionManager</code> declares the <code>logger</code> and initialises it with a <code>ContextEventLogger</code> once a context has been created. The <code>Log</code> method can then be called to log the receipt of a specific message.</p>
+<p><code>EventLogger</code> instances attach to a single <code>LogManager</code>. Event logger constructors find the closest <code>LogManager</code> automatically.</p>
+<p><code>EventLogger</code> methods can be safely called from outside the Unity main thread. They should not be called from outside CLR threads however.</p>
+<p><code>EventLogger</code> instances are designed to have zero overhead when logs are not actually written. The <code>Log</code> method has many overloads to avoid boxing, and serialisation only runs when logging is on. Logs are only written when there is a listening <code>LogManager</code> in the scene.</p>
+<p>It is encouraged to make as many <code>EventLogger</code> instances as needed. Individual event loggers are simple, with few options. Use multiple <code>EventLogger</code> instances within a class to get fine-grained control over logging, for example different log levels.</p>
+<h3 id="user-and-application-events">User and Application Events</h3>
+<p>An <code>EventLogger</code> can tag events as <code>Application</code> or <code>User</code> events. The <code>LogManager</code> can forward either or both types of event. The <code>LogCollector</code> will have different endpoints for different tags. In the case of the default <code>LogCollector</code>, events will be written to different files.</p>
+<p>The purpose is to make using the Event Logging System for experiments easier, by acknowledging that for such applications, generating log outputs are the primary purpose, and that such outputs are distinct from those used to debug and develop it.</p>
+<p><code>ComponentEventLogger</code> and <code>ContextEventLogger</code> have their type set to <code>Application</code> by default, whereas the <code>UserEventLogger</code> has its type set to <code>User</code>. The type for all <code>EventLogger</code> instances can be overridden at any time.</p>
+<p>All Ubiq events are of the type <code>Application</code>. The distinction between <code>Application</code> and <code>User</code> is not between Ubiq code and user code, but the purpose of the log; it is expected user applications will output both types, depending on their purpose.</p>
+<h2 id="logmanager">LogManager</h2>
+<p>When a <code>LogManager</code> is placed in a scene, it will recieve events from nearby event loggers. By default the <code>LogManager</code> will cache events up to a limit (50 Mb worth), dropping older events as new ones are receieved. <code>LogManager</code> can also be set to store an infinite number of events, which may be desirable for experiments if the limit may be reached before a <code>LogCollector</code> is created. There are no bounds on how much memory it may consume in this mode however, up to and including triggering out of memory exceptions for the whole application.</p>
+<p>When instructed, the <code>LogManager</code> will forward these events and any new ones to a <code>LogCollector</code>, the Component that actually writes the logs to an endpoint such as the disk, or database.</p>
+<p>Each Peer must have at least one <code>LogManager</code> to emit log events; event loggers cannot communicate over the network themselves. Only one <code>LogCollector</code> is needed between all Peers, though multiple collectors may be present (in which case all will receive all events). At least one <code>LogCollector</code> must be present in the network for logs to be written; a <code>LogManager</code> can cache logs but it cannot write them anywhere.</p>
+<p>Filtering of <code>User</code> and <code>Application</code> events is done at the <code>LogManager</code>. If a <code>LogManager</code> does not listen for a type of event, it is the equivalent of not having a <code>LogManager</code> in the scene for an <code>EventLogger</code> of that type.</p>
+<h1 id="logcollector">LogCollector</h1>
+<p><code>LogCollector</code> instances receive events from <code>LogManager</code> instances and write them to an appropriate location. <code>LogCollector</code> instances can also control <code>LogManager</code> instances remotely - for example, starting and stopping the transmission of events.</p>
+<p>A single <code>LogCollector</code> receives all event types; filtering can only occur at the <code>LogManager</code>. </p>
+<p>The current implementation of the <code>LogCollector</code> writes events with different types to different files in the <a href="https://docs.unity3d.com/ScriptReference/Application-persistentDataPath.html">Persistent Data</a> folder of whatever platform it is running on.</p>
+<p>Events are written as Json (Utf8 strings). The files themselves are Json compliant, with events being placed in a top-level Json <a href="https://www.w3schools.com/js/js_json_arrays.asp">Array</a>.</p>
+<h2 id="local-log-collection">Local Log Collection</h2>
+<p><code>LogCollector</code> instances will automatically recieve events sent over the network, but will also receive events from <code>LogManager</code> instances on the same peer, even without a network connection.</p>
+<p><code>LogCollector</code> instances will find all <code>LogManager</code> instances at the local Peer and register them on start-up. If a <code>LogManager</code> is instantiated in the Root of the scene, it will find all <code>LogManager</code> instances in the scene. If it is instantiated in a branch of the scene, it will find all <code>LogManager</code> instances within that branch.</p>
+<p>A <code>LogCollector</code> will recieve messages from a local <code>LogManager</code> whether that <code>LogManager</code> is transmitting or not.</p>
+<p>This allows logging events entirely on one machine, for example, data collection for an experiment, without using the network.</p>
+<h1 id="analysis">Analysis</h1>
+<p>A <code>LogCollector</code> outputs a stream of structured logs in standards compliant Json. These logs can be fed to a stack like the ELK, processed with third-party tools like Matlab or Excel, or processed programmatically on platforms such as Python.</p>
+<p>See the <a href="../eventloganalysis/">Analysis</a> section for examples of how to process the logs.</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../eventloganalysis/" class="btn btn-neutral float-right" title="Analysis">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../xrinteraction/" class="btn btn-neutral" title="Interaction"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../xrinteraction/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../eventloganalysis/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Object and Component Ids - Ubiq Docs</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Object and Component Ids";
+    var mkdocs_page_input_path = "objectids.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> Ubiq Docs</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Tutorials</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="#">Getting Started</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../gettingubiq/">Getting Ubiq</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../settingupvr/">Setting Up VR</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../creatinganetworkedobject/">Creating Networked Objects</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../spawningobjects/">Object Spawning</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../objectownership/">Ownership</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../ubiqxrinteraction/">Interaction with Ubiq XR</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serversandrooms/">Servers and Rooms</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../localloopback/">Testing with Local Loopback</a>
+                </li>
+    </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="#">Server</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../serversetup/">Running the server</a>
+                </li>
+    </ul>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../nexus/">Nexus</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Advanced</span></p>
+                <ul class="current">
+                    <li class="toctree-l1"><a class="reference internal" href="../xrinteraction/">Interaction</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="#">Logging</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloganalysis/">Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="#">Examples</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../eventloggingexperimentquestionnaire/">Questionnaire</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogserialisation/">Serialisation and Memory</a>
+                </li>
+    </ul>
+                    </li>
+                    <li class="toctree-l1 current"><a class="reference internal current" href="#">Messaging</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../messaging/">Introduction</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="./">Object and Component Ids</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#networkid">NetworkId</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#componentids">ComponentIds</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#fixed-component-ids">Fixed Component Ids</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#multicasting-implementation">Multicasting Implementation</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#routing-implementation">Routing Implementation</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../generatinguniqueids/">Generating Unique Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkidtype/">Types</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../reservedids/">Reserved IDs</a>
+                </li>
+    </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../webrtc/">WebRtc</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="#">Servers and Rooms</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../serverintroduction/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serveroverview/">Server Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serverheartbeat/">Heartbeat and Timeouts</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../leavingandjoiningrooms/">Leaving and Joining</a>
+                </li>
+    </ul>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Programming</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../asyncdesignpatterns/">Async Design Patterns</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Development</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../packaging/">Packaging</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../mkdocs/">Meta</a>
+                    </li>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">Ubiq Docs</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Advanced &raquo;</li>
+        
+      
+        
+          <li>Messaging &raquo;</li>
+        
+      
+    
+    <li>Object and Component Ids</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="object-and-component-ids">Object and Component Ids</h1>
+<p>Network Object Ids are analogous to GameObject instance Ids, and are intended to be initialised late. For example, a spawner instantiates a prefab, then set its Id. Object Ids are represented by the <code>NetworkId</code> type.</p>
+<p>Component Ids are analogous to class types and are intended to be fixed at design time. They should be unique within a single application. Component Ids are set by the NetworkComponentId Attribute, and so Ubiq can infer the Id from the type. Component Ids are <code>ushort</code>.</p>
+<h2 id="networkid">NetworkId</h2>
+<p>Classes that are network objects implement the <code>INetworkObject</code> interface, which has one member, a get accessor for a <code>NetworkId</code></p>
+<p><code>NetworkIds</code> can be generated or set at design time. They will almost always be generated however. While <code>NetworkId</code>s are mutable, they may be cached in different places (e.g. in lookup tables) by both Ubiq and user code, so changing them after the late-initialisation is strongly discouraged. By design <code>INetworkObject</code> only specifies the get accessor, so code that changes an object's <code>NetworkId</code> will need access to the full type - as it should if it is capable of safely changing the id.</p>
+<p>The recommended pattern is to set the <code>NetworkId</code> when the interface is implemented,</p>
+<pre><code>public NetworkId Id { get; } = NetworkId.Unique();
+</code></pre>
+<p>This prevents any code from changing the Id, even within the class itself. </p>
+<p>There are other patterns however depending on need. </p>
+<p>For example, the Avatar class initialises a unique Id, but also implements the set accessor, as remote instances will need to have their Ids set to match their player's counterpart. Performing initialisation with the option to override before <code>Start()</code> allows users to build scenes with Avatar instances in the Editor, but also to instantiate prefabs dynamically.</p>
+<pre><code>public NetworkId Id { get; set; } = NetworkId.Unique();
+</code></pre>
+<p>The ISpawnable interface explicitly requires the set accessor, as spawned objects also need their Id set externally.</p>
+<pre><code>public interface ISpawnable
+{
+    NetworkId Id { set; }
+    void OnSpawned(bool local);
+}
+</code></pre>
+<p>In general, the guidelines are to:</p>
+<ol>
+<li>Set <code>NetworkId</code>s before or during <code>Awake()</code>. </li>
+<li>Never read an object's <code>NetworkId</code> before <code>Start()</code></li>
+<li>Never change an unknown object's <code>NetworkId</code>.</li>
+</ol>
+<p>If a <code>NetworkId</code> changes, it must be re-registerd with <code>NetworkScene::Register()</code>, however be aware that this may not be sufficient as other components may have cached the object beforehand.</p>
+<h2 id="componentids">ComponentIds</h2>
+<p>Component Ids are fixed at design time and closely follow a particular type. </p>
+<p>If a Component Id is not explicitly set, it is automatically defined based on the full name of the type. For example, the full name of the NetworkSpawner as defined below is <code>Ubiq.Samples.NetworkSpawner</code>.</p>
+<pre><code>namespace Ubiq.Samples
+{
+    public class NetworkSpawner : MonoBehaviour, INetworkObject, INetworkComponent
+    {
+    }
+}
+
+</code></pre>
+<p>The <code>ushort</code> is calculated using an MD5 hash, to ensure that the same value is resolved on different platforms.</p>
+<p>Component Ids can also be set using the <code>NetworkComponentId</code> attribute.</p>
+<p>Multiple Components may have the same Id, so long as the components will not be added to the same <code>NetworkObject</code>, though this is not recommended.</p>
+<h2 id="fixed-component-ids">Fixed Component Ids</h2>
+<p>In the same way as a known, fixed location is needed for clients to rendezvous, some services, such as the Room Server, need to be defined ahead of time. These are given unique Object and Component Ids.</p>
+<h2 id="multicasting-implementation">Multicasting Implementation</h2>
+<p>How fan-out is performed depends on the network architecture. In a mesh arrangement, all messages are transmitted on each connection by the Router object. In a client-server arrangement, such as with the Room Server, the server is responsible for forwarding messages to each peer in a room.</p>
+<h2 id="routing-implementation">Routing Implementation</h2>
+<p>Object and Component Ids are concepts. In practice, Component instances register themselves with a Scene. This registration process infers the Object and Component Ids for that instance, and store them in a Context. This context is used to route the messages. Object Ids are inferred from the closest antecedent that implements INetworkObject.</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../generatinguniqueids/" class="btn btn-neutral float-right" title="Generating Unique Ids">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../messaging/" class="btn btn-neutral" title="Introduction"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../messaging/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../generatinguniqueids/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

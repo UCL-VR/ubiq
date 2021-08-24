@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Introduction - Ubiq Docs</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Introduction";
+    var mkdocs_page_input_path = "messaging.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> Ubiq Docs</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Tutorials</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="#">Getting Started</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../gettingubiq/">Getting Ubiq</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../settingupvr/">Setting Up VR</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../creatinganetworkedobject/">Creating Networked Objects</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../spawningobjects/">Object Spawning</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../objectownership/">Ownership</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../ubiqxrinteraction/">Interaction with Ubiq XR</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serversandrooms/">Servers and Rooms</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../localloopback/">Testing with Local Loopback</a>
+                </li>
+    </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="#">Server</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../serversetup/">Running the server</a>
+                </li>
+    </ul>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../nexus/">Nexus</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Advanced</span></p>
+                <ul class="current">
+                    <li class="toctree-l1"><a class="reference internal" href="../xrinteraction/">Interaction</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="#">Logging</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloganalysis/">Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="#">Examples</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../eventloggingexperimentquestionnaire/">Questionnaire</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogserialisation/">Serialisation and Memory</a>
+                </li>
+    </ul>
+                    </li>
+                    <li class="toctree-l1 current"><a class="reference internal current" href="#">Messaging</a>
+    <ul class="current">
+                <li class="toctree-l2 current"><a class="reference internal current" href="./">Introduction</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#the-medium-is-the-message">The Medium is the Message</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#scene-graph-as-a-bus">Scene Graph as a Bus</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#fan-out-at-the-network-layer">Fan-Out at the Network Layer</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example">Example</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../objectids/">Object and Component Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../generatinguniqueids/">Generating Unique Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkidtype/">Types</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../reservedids/">Reserved IDs</a>
+                </li>
+    </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../webrtc/">WebRtc</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="#">Servers and Rooms</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../serverintroduction/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serveroverview/">Server Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serverheartbeat/">Heartbeat and Timeouts</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../leavingandjoiningrooms/">Leaving and Joining</a>
+                </li>
+    </ul>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Programming</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../asyncdesignpatterns/">Async Design Patterns</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Development</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../packaging/">Packaging</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../mkdocs/">Meta</a>
+                    </li>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">Ubiq Docs</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Advanced &raquo;</li>
+        
+      
+        
+          <li>Messaging &raquo;</li>
+        
+      
+    
+    <li>Introduction</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="introduction">Introduction</h1>
+<p>Ubiq is built around message-based exchanges on unicast connections between peers (and servers). Messages are variable size with binary payloads. All messages passed by Ubiq have the same header.</p>
+<h2 id="the-medium-is-the-message">The Medium is the Message</h2>
+<p>Ubiq delivers individual messages between instances of networked objects (most commonly Unity Components). How messages get from Component A to Component B is the responsiblity of the Messaging Layer, and is abstracted from the developer.</p>
+<p>Network Components only recieve messages addressed to them directly, so they can rely on knowing the type of the message by virtue of having recieved it.</p>
+<p>The expected programming model is that Components implement send and recieve functionality in the same script, which is also where the format is defined. By the time a message reaches a Component, it is received as the exact raw sequence of bytes sent by the Component's counterpart. Individual components choose the best serialisation method and transmission frequency for their use case.</p>
+<h2 id="scene-graph-as-a-bus">Scene Graph as a Bus</h2>
+<p>Ubiq closely matches Unity's programming model. Since user code is placed in Components in Unity, networked objects in Ubiq are also Unity Components.</p>
+<p>Ubiq addresses have two elements: Object Id and Component Id. Object Id is analogous to the GameObject and Component Id is analgous to the Component script Type. Messages are only delivered between instances that have both the same Object Id <em>and</em> Component Id.</p>
+<p>This model allows complete seperation between the code that spawns and destroys Objects and the Components that make up those Objects. When an Object is created, only one identity needs to be generated and communicated, and instances of Components on different Objects don't need to disambiguate between eachother.</p>
+<h2 id="fan-out-at-the-network-layer">Fan-Out at the Network Layer</h2>
+<p>When a Component transmits a message, it is recieved by every other Component with the same address (Object &amp; Component Ids). This is the case regardless of how many instances there are with the same combination. Fanning out - or multicasting - the message is done at the network layer. Individual Components don't know how many counterparts they have.</p>
+<h2 id="example">Example</h2>
+<p>To see how these concepts work together, consider the example of an Avatar.</p>
+<p>The avatar will have one Object Id, and two Components, one for the Skeletal Animation and one for Eye Gaze. Each Component knows only it's Component Id, which must be distinct to avoid eye gaze messages being routed to the skeletal animation and vice versa. When the Avatar is created, the Avatar Spawner generates a new unqiue identity. It instantiates a prefab locally, and communicates its identity to the other peers, so that they also may instantiate the prefab. This identity becomes the Object Id.</p>
+<p>Each peer has an instance of the prefab with the new identity. This identity represents the players avatar. When the avatar changes, e.g. its skeleton is updated with tracking information, the avatars components send messages. These are received at remote peers by the avatar's counterparts, based on them having the same Object Ids. Within the Objects, messages are delivered to the correct Component based on the Component Id.</p>
+<p>The Avatar Spawner doesn't know which Components are on the Prefab, so only has to communicate one new identity to its peers. Netiher do the Components don't need to know which Prefab they belong to, or what other Components exist on the Object. They just exchange messages with their direct counterparts.</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../objectids/" class="btn btn-neutral float-right" title="Object and Component Ids">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../eventlogserialisation/" class="btn btn-neutral" title="Serialisation and Memory"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../eventlogserialisation/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../objectids/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

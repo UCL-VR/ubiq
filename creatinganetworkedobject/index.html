@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Creating Networked Objects - Ubiq Docs</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Creating Networked Objects";
+    var mkdocs_page_input_path = "creatinganetworkedobject.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> Ubiq Docs</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Tutorials</span></p>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal current" href="#">Getting Started</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../gettingubiq/">Getting Ubiq</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../settingupvr/">Setting Up VR</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="./">Creating Networked Objects</a>
+    <ul class="current">
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../spawningobjects/">Object Spawning</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../objectownership/">Ownership</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../ubiqxrinteraction/">Interaction with Ubiq XR</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serversandrooms/">Servers and Rooms</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../localloopback/">Testing with Local Loopback</a>
+                </li>
+    </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="#">Server</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../serversetup/">Running the server</a>
+                </li>
+    </ul>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../nexus/">Nexus</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Advanced</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../xrinteraction/">Interaction</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="#">Logging</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloganalysis/">Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="#">Examples</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../eventloggingexperimentquestionnaire/">Questionnaire</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogserialisation/">Serialisation and Memory</a>
+                </li>
+    </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="#">Messaging</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../messaging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../objectids/">Object and Component Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../generatinguniqueids/">Generating Unique Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkidtype/">Types</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../reservedids/">Reserved IDs</a>
+                </li>
+    </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../webrtc/">WebRtc</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="#">Servers and Rooms</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../serverintroduction/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serveroverview/">Server Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serverheartbeat/">Heartbeat and Timeouts</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../leavingandjoiningrooms/">Leaving and Joining</a>
+                </li>
+    </ul>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Programming</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../asyncdesignpatterns/">Async Design Patterns</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Development</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../packaging/">Packaging</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../mkdocs/">Meta</a>
+                    </li>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">Ubiq Docs</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Tutorials &raquo;</li>
+        
+      
+        
+          <li>Getting Started &raquo;</li>
+        
+      
+    
+    <li>Creating Networked Objects</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="building-a-basic-networked-object">Building a Basic Networked Object</h1>
+<ol>
+<li>Create a new Unity Script and add it to your GameObject that you want to have networked. You can do this via the inspector by clicking on &quot;Add Component&quot; and typing the new name.</li>
+</ol>
+<p><img alt="" src="../images/bd892032-38e4-4ddd-bc38-0d10437cdcb6.png" /></p>
+<ol>
+<li>Include Ubik.Messaging</li>
+</ol>
+<p><img alt="" src="../images/e80eacb1-1f1d-4ea9-a155-13664560eb88.png" /></p>
+<ol>
+<li>Inherit from INetworkObject and INetworkComponent</li>
+</ol>
+<p><img alt="" src="../images/ca92236f-ed39-40fc-9a2f-0c0d223b14c6.png" /></p>
+<ol>
+<li>Implement their interfaces
+ In Visual Studio this can be done through the context menu.
+ Right Click -\&gt; Quick Actions and Refactoring -\&gt; Implement interface
+<strong>Note:</strong> This will only give you the stubs. You will need to fill them in yourself in the next steps</li>
+</ol>
+<p><img alt="" src="../images/b067cfe4-d3ee-4a50-911f-6a510f643822.png" /></p>
+<ol>
+<li>Implement Network ID creation</li>
+</ol>
+<p><img alt="" src="../images/9237eeb3-44ef-493a-84a8-e633c23c9233.png" /></p>
+<ol>
+<li>Register your networked object with the network Scene
+ This should be done at the start of the objects life i.e. in the Start() function.
+ If you want to send messages as well, you also need to save the context object that is returned.</li>
+</ol>
+<p><img alt="" src="../images/dd24ba78-6e46-472e-bd68-fda10fe36d97.png" /></p>
+<ol>
+<li>Define how your message will look like.
+ This is best done as a struct in the class. It being defined in the class prevents naming conflict.
+ In the message, write the variables that you want to send. A good start is TransformMessage that is built to store the transform and is useful if you want your object&#39;s location and orientation to be synchronised.
+ Do not forget the constructor! It allows to create the message in one line.</li>
+</ol>
+<p><img alt="" src="../images/641029e0-cb0c-4188-879c-66d2a0b35961.png" /></p>
+<ol>
+<li>Receiving Messages
+ Messages are received automatically. However, you will have to define how they are processed.
+ For that, fill in ProcessMessage(…) The first step is usually &quot;decoding&quot; the message. Usually it will be sent as a JSON, but if you send it in a different format, you need to decode it differently as well.</li>
+</ol>
+<p><img alt="" src="../images/c4628137-6ac2-4ea5-8122-55a00742680e.png" /></p>
+<ol>
+<li>Sending Messages
+ You can send messages at any time and anywhere in the code through using your context object. However, most of the time you will probably want that the objects move in sync, so it makes sense to send an update each frame. For this, put your sending in Update(…).</li>
+</ol>
+<p><img alt="" src="../images/1dbfd8f4-7d2b-4651-8a28-0a5231603682.png" /></p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../spawningobjects/" class="btn btn-neutral float-right" title="Object Spawning">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../settingupvr/" class="btn btn-neutral" title="Setting Up VR"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../settingupvr/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../spawningobjects/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
