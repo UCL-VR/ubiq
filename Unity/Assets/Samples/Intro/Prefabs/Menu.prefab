@@ -1800,7 +1800,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 3661bdd4e3a4d664d8cdf164b780413b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b18d33e8e87043e40a466142e6384050, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -12940,6 +12940,7 @@ GameObject:
   - component: {fileID: 778881782337327932}
   - component: {fileID: 2104218635454823335}
   - component: {fileID: 4292123445269413749}
+  - component: {fileID: 4826561623767834742}
   m_Layer: 0
   m_Name: Leave
   m_TagString: Untagged
@@ -13048,17 +13049,30 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 5514386085745003191}
-        m_MethodName: SwitchPanel
-        m_Mode: 2
+      - m_Target: {fileID: 4826561623767834742}
+        m_MethodName: LeaveRoom
+        m_Mode: 1
         m_Arguments:
-          m_ObjectArgument: {fileID: 5514386084949254083}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &4826561623767834742
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4968970405987090567}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5ca84b7d66368042b6fe9817651a6c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mainMenu: {fileID: 307051098484144013}
 --- !u!1 &4998007810284846941
 GameObject:
   m_ObjectHideFlags: 0
@@ -25517,7 +25531,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 3661bdd4e3a4d664d8cdf164b780413b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: f75130f25c1fb6a4d8f655af0a219fed, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
