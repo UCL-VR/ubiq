@@ -6,7 +6,7 @@ using System.Linq;
 using Ubiq.Messaging;
 
 namespace RecorderReplayerTypes {
-
+    
     /// <summary>
     /// A MessagePack contains all the messages (SingleMessages) that are recorded in one frame.
     /// </summary>

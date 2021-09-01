@@ -19,7 +19,7 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
     private int hideLayer = 8;
     private int defaultLayer = 0; // default
     private int currentLayer = 0;
-    private bool needsUpdate = false;
+    private bool needsUpdate = true;
     private Transform[] childTransforms;
     //private Avatar avatar;
     private NetworkId objectid;
@@ -107,6 +107,20 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
     //    }
     //}
 
+    // when recording starts, this should be invoked to send a visiblity message once for the objects that are already in the scene,
+    // for objects that are created during a recording this happens anyways
+    //public void OnStartRecording()
+    //{
+    //    Debug.Log("Event: OnStartRecording Layer: " + currentLayer);
+    //    if (currentLayer == defaultLayer)
+    //    {
+    //        NetworkedShow();
+    //    }
+    //    else
+    //    {
+    //        NetworkedHide();
+    //    }
+    //}
 
     public void SetLayer(int layer) // not networked
     {
@@ -161,11 +175,13 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
 
     void Update()
     {
+        // recorded objects are never local... for my information in case I forget it
         if (spawnableObject.IsLocal())
         {
-            //Debug.Log("Set layer for joining/leaving avatar");
-            SetNetworkedObjectLayer(currentLayer);
-            //needsUpdate = false;
+            if (scene.recorder != null && scene.recorder.IsRecording())
+            {
+                SetNetworkedObjectLayer(currentLayer);
+            }
         }
     }
 }

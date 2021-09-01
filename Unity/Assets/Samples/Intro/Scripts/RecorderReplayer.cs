@@ -98,6 +98,8 @@ public class Recorder
             // start recoding time
             recordingStartTime = Time.unscaledTime;
 
+            //recRep.OnStartRecording.Invoke(); // object hider makes use of this so we know which objects were visible at the beginning of the recording
+
             initFile = true;
 
         }
@@ -236,74 +238,36 @@ public class Replayer
 
         if (recRep.play)
         {
-                
+
             if (loaded) // meaning recInfo
             {
-                // if show/hide messages are sent every frame then this might be obsolete...
-                //if (!showAvatarsFromStart)
-                //{
-                //    Debug.Log("Show avatars from start");
-                //    for (var i = 0; i < recInfo.avatarsAtStart; i++)
-                //    {
-                //        replayedAvatars.Values.ElementAt(i).hider.SetNetworkedObjectLayer(0); // show (default layer)
-                //    }
-                //    showAvatarsFromStart = true;
-                //}
-
-                //t1++;
-                //test += Time.deltaTime;
-                //Debug.Log(test);
-                //var currentTime = Time.unscaledTime;
-                //Debug.Log("loaded");
                 recRep.replayingStartTime += Time.deltaTime;
-                var t = recRep.replayingStartTime;
-                //var t = currentTime - (recRep.replayingStartTime - recRep.stopTime);
-                //Debug.Log("unscaled " + Time.unscaledTime + " start " + recRep.replayingStartTime + " stop " + recRep.stopTime);
-                //Debug.Log("before times " + recInfo.frameTimes[recRep.currentReplayFrame] + " " + t);
+                
                 var replayTime = recInfo.frameTimes[recRep.currentReplayFrame];
-                //var lb = t - 0.01f;
 
-                //if (replayTime < t) // catch up
-                //{
-                //    //t2++;
-                //    below = true;
-                //    UpdateFrame();
-                //    for (var i = recRep.currentReplayFrame; i < recInfo.frames; i++)
-                //    {
-                //        replayTime = recInfo.frameTimes[i];
-                     
-                //        if(replayTime >= t)
-                //        {
-                //            if (i > 0)
-                //            {
-                //                var prev = recInfo.frameTimes[i - 1];
-                //                if (Math.Abs(replayTime - t) < Math.Abs(prev - t))
-                //                {
-                //                    recRep.currentReplayFrame = i;
-                //                }
-                //                else
-                //                {
-                //                    replayTime = prev;
-                //                    recRep.currentReplayFrame = i - 1;
-                //                }
-                //            }
-                //            break;
-                //        }
-
-                //    }
+                while (replayTime < recRep.replayingStartTime) // catch up with currentReplayFrame to current time t
+                {
+                    //Debug.Log("Catch up: " + replayTime + " " + recRep.replayingStartTime + " " + recRep.currentReplayFrame);
                     ReplayFromFile();
-                    //Debug.Log("times " + recInfo.frameTimes[recRep.currentReplayFrame] + " " + t + " " + recRep.currentReplayFrame + " " + below);
-
-                    // depending on settings either forwards or backwards
                     UpdateFrame();
-                    
-                //}
-                //t = currentTime - (recRep.replayingStartTime - recRep.stopTime);
-                //lb = t - 0.01f;
-                //if (replayTime <= t)
-                //{
-                //}
-                //Debug.Log(t1 + " " + t2);
+                    replayTime = recInfo.frameTimes[recRep.currentReplayFrame];
+                }
+
+                if (recRep.currentReplayFrame > 0)
+                {
+                    var prev = recInfo.frameTimes[recRep.currentReplayFrame - 1];
+                    // if current replayTime is closer to current frame time replay current frame too, otherwise continue
+                    if (Math.Abs(replayTime - recRep.replayingStartTime) < Math.Abs(prev - recRep.replayingStartTime))
+                    {
+                        ReplayFromFile(); // replay current frame
+                        UpdateFrame(); // update to next frame
+                    }
+                }
+                else
+                {
+                    ReplayFromFile();
+                    UpdateFrame();
+                }
             }
         }
         else // !play 
@@ -313,7 +277,9 @@ public class Replayer
                 //Debug.Log("!play");
                 recRep.currentReplayFrame = recRep.sliderFrame;
                 recRep.stopTime = recInfo.frameTimes[recRep.currentReplayFrame];
-           
+                recRep.replayingStartTime = recInfo.frameTimes[recRep.currentReplayFrame];
+
+
                 ReplayFromFile();
             }
         }
@@ -332,6 +298,7 @@ public class Replayer
             streamFromFile.Position = 0;
             recRep.replayingStartTime = 0.0f;
             recRep.stopTime = 0.0f;
+            //Debug.Log("Reset frame");
         }
         recRep.sliderFrame = recRep.currentReplayFrame;
     }
@@ -866,6 +833,7 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder, INetworkCompone
         Recording = false;
     }
 
+    // returns if a recording is going on, no matter if we are recording or someone else is
     public bool IsRecording()
     {
         return Recording;
