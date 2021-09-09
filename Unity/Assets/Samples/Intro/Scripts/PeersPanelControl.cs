@@ -13,38 +13,14 @@ namespace Ubiq.Samples
 {
     public class PeersPanelControl : MonoBehaviour
     {
+        // Not generic for compatibility with Unity serialization
         [Serializable]
-        public class StagedIcon<T> where T : IComparable<T>
+        public class StagedIconFloat
         {
             [Serializable]
             public class Stage
             {
-                public Sprite sprite;
-                public Color color;
-                public T threshold;
-            }
-            public Image image;
-            public List<Stage> stages;
-
-            public void Update (T value)
-            {
-                for (int i = 0; i < stages.Count; i++)
-                {
-                    if (value.CompareTo(stages[i].threshold) >= 0)
-                    {
-                        image.sprite = stages[i].sprite;
-                        image.color = stages[i].color;
-                    }
-                }
-            }
-        }
-        // For compatibility with Unity serialization
-        [Serializable]
-        public class StagedIconFloat //: StagedIcon<float> {}
-        {
-            [Serializable]
-            public class Stage
-            {
+                public bool enabled;
                 public Sprite sprite;
                 public Color color;
                 public float threshold;
@@ -60,6 +36,7 @@ namespace Ubiq.Samples
                     {
                         image.sprite = stages[i].sprite;
                         image.color = stages[i].color;
+                        image.enabled = stages[i].enabled;
                         return;
                     }
                 }
@@ -67,15 +44,18 @@ namespace Ubiq.Samples
                 // No appropriate stage identified
                 image.sprite = null;
                 image.color = Color.white;
+                image.enabled = false;
             }
         }
 
+        // Not generic for compatibility with Unity serialization
         [Serializable]
-        public class StagedIconInt //: // StagedIcon<float> {}
+        public class StagedIconInt
         {
             [Serializable]
             public class Stage
             {
+                public bool enabled;
                 public Sprite sprite;
                 public Color color;
                 public int threshold;
@@ -85,12 +65,15 @@ namespace Ubiq.Samples
 
             public void Update (int value)
             {
-                for (int i = stages.Count-1; i >= 0; i++)
+                for (int i = stages.Count-1; i >= 0; i--)
                 {
                     if (value >= stages[i].threshold)
                     {
                         image.sprite = stages[i].sprite;
                         image.color = stages[i].color;
+                        image.enabled = stages[i].enabled;
+
+                        Debug.Log(image.gameObject.name + " " + i);
                         return;
                     }
                 }
@@ -98,6 +81,7 @@ namespace Ubiq.Samples
                 // No appropriate stage identified
                 image.sprite = null;
                 image.color = Color.white;
+                image.enabled = false;
             }
         }
 
@@ -136,17 +120,15 @@ namespace Ubiq.Samples
                 return;
             }
 
-            var name = peer["ubiq.samples.intro.name"];
-            if (name == null)
-            {
-                name = "(unnamed)";
-            }
-            this.peerName.text = name;
+            peerName.text = peer["ubiq.samples.social.name"] ?? "(unnamed)";
 
             if (meText)
             {
                 meText.gameObject.SetActive(isMe);
             }
+
+            // Hide volume slider for local user
+            voipVolumeSlider.gameObject.SetActive(!isMe);
 
             if (peerConnectionManager)
             {
@@ -156,8 +138,22 @@ namespace Ubiq.Samples
                     var volume = peerConnection.audioSink.lastFrameStats.volume;
                     voipVolumeIndicator.Update(volume);
                     voipConnectionIndicator.Update((int)peerConnection.peerConnectionState);
-                    peerConnection.audioSink.unityAudioSource.volume = voipVolumeSlider.value;
+
+                    if (!isMe)
+                    {
+                        peerConnection.audioSink.unityAudioSource.volume = voipVolumeSlider.value;
+                    }
+                    else
+                    {
+                        voipVolumeSlider.value = 1.0f;
+                    }
                 }
+            }
+            else
+            {
+                // No peer connection manager - we haven't connected yet
+                var state = SIPSorcery.Net.RTCPeerConnectionState.disconnected;
+                voipConnectionIndicator.Update((int)state);
             }
 
             // TODO latency
@@ -167,6 +163,7 @@ namespace Ubiq.Samples
         {
             ClearBinding();
 
+            this.roomClient = client;
             this.peer = peer;
             this.isMe = isMe;
             this.peerConnectionManager = VoipPeerConnectionManager.Find(this);

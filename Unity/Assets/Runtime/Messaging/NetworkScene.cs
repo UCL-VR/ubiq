@@ -152,7 +152,6 @@ namespace Ubiq.Messaging
         public static NetworkScene FindNetworkScene(Transform component)
         {
             // Check if the scene is simply a parent, or if we can find a root scene.
-
             var scene = component.GetComponentInParent<NetworkScene>();
             if (scene)
             {

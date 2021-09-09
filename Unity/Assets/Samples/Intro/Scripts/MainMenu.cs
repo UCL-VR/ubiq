@@ -73,6 +73,8 @@ namespace Ubiq.Samples
         {
             roomClient.OnJoinedRoom.AddListener(RoomClient_OnJoinedRoom);
             menuRequestHandler.OnRequest.AddListener(MenuRequestHandler_OnMenuRequest);
+
+            Request();
         }
 
         private void OnDestroy()
@@ -103,11 +105,7 @@ namespace Ubiq.Samples
 
         private void MenuRequestHandler_OnMenuRequest(GameObject requester)
         {
-            var cam = Camera.main.transform;
-
-            transform.position = cam.TransformPoint(spawnRelativeTransform.localPosition);
-            transform.rotation = cam.rotation * spawnRelativeTransform.localRotation;
-            gameObject.SetActive(true);
+            Request();
         }
 
         private void RoomClient_OnJoinedRoom(IRoom room)
@@ -134,6 +132,15 @@ namespace Ubiq.Samples
                     }
                 }
             }
+        }
+
+        public void Request ()
+        {
+            var cam = Camera.main.transform;
+
+            transform.position = cam.TransformPoint(spawnRelativeTransform.localPosition);
+            transform.rotation = cam.rotation * spawnRelativeTransform.localRotation;
+            gameObject.SetActive(true);
         }
     }
 }

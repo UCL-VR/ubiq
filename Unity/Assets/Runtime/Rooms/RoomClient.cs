@@ -45,17 +45,17 @@ namespace Ubiq.Rooms
         /// <summary>
         /// Emitted when a Peer appears in the Room for the first time.
         /// </summary>
-        public PeerEvent OnPeerAdded;
+        public PeerEvent OnPeerAdded = new PeerEvent();
 
         /// <summary>
         /// Emitted when the properties of a Peer change.
         /// </summary>
-        public PeerEvent OnPeerUpdated;
+        public PeerEvent OnPeerUpdated = new PeerEvent();
 
         /// <summary>
         /// Emitted when a Peer goes out of scope (e.g. it leaves the room)
         /// </summary>
-        public PeerEvent OnPeerRemoved;
+        public PeerEvent OnPeerRemoved = new PeerEvent();
 
         /// <summary>
         /// Emitted when this peer has joined a room
@@ -63,22 +63,22 @@ namespace Ubiq.Rooms
         /// <remarks>
         /// There is no OnLeftRoom equivalent; leaving a room is the same as joining a new, empty room.
         /// </remarks>
-        public RoomEvent OnJoinedRoom;
+        public RoomEvent OnJoinedRoom = new RoomEvent();
 
         /// <summary>
         /// Emitted when a Room this peer is a member of has updated its properties
         /// </summary>
-        public RoomEvent OnRoomUpdated;
+        public RoomEvent OnRoomUpdated = new RoomEvent();
 
         /// <summary>
         /// Emitted when this peer attempts to join a room and is rejected
         /// </summary>
-        public RejectedEvent OnJoinRejected;
+        public RejectedEvent OnJoinRejected = new RejectedEvent();
 
         /// <summary>
         /// Contains the latest list of rooms currently available on the server. Usually emitted in response to a discovery request.
         /// </summary>
-        public RoomsAvailableEvent OnRoomsAvailable;
+        public RoomsAvailableEvent OnRoomsAvailable = new RoomsAvailableEvent();
 
         /// <summary>
         /// A list of all the Peers in the Room. This does not include the local Peer, Me.
@@ -273,35 +273,6 @@ namespace Ubiq.Rooms
 
         private void Awake()
         {
-            if (OnJoinedRoom == null)
-            {
-                OnJoinedRoom = new RoomEvent();
-            }
-            if (OnJoinRejected == null)
-            {
-                OnJoinRejected = new RejectedEvent();
-            }
-            if (OnPeerAdded == null)
-            {
-                OnPeerAdded = new PeerEvent();
-            }
-            if (OnPeerUpdated == null)
-            {
-                OnPeerUpdated = new PeerEvent();
-            }
-            if (OnPeerRemoved == null)
-            {
-                OnPeerRemoved = new PeerEvent();
-            }
-            if (OnRoomsAvailable == null)
-            {
-                OnRoomsAvailable = new RoomsAvailableEvent();
-            }
-            if (OnRoomUpdated == null)
-            {
-                OnRoomUpdated = new RoomEvent();
-            }
-
             blobCallbacks = new Dictionary<string, Action<string>>();
             room = new RoomInterfaceFriend();
             peers = new Dictionary<string, PeerInterfaceFriend>();
@@ -393,6 +364,7 @@ namespace Ubiq.Rooms
                     {
                         var peerInfo = JsonUtility.FromJson<PeerInfo>(container.args);
                         UpdatePeer(peerInfo);
+                        Debug.Log("updating peer");
                     }
                     break;
                 case "RemovedPeer":
@@ -443,7 +415,13 @@ namespace Ubiq.Rooms
         private void UpdatePeer(PeerInfo item)
         {
             PeerInterfaceFriend peer;
-            if (peers.TryGetValue(item.uuid, out peer))
+
+            if (item.uuid == me.UUID)
+            {
+                // We've already sent the event before updating the server
+                return;
+            }
+            else if (peers.TryGetValue(item.uuid, out peer))
             {
                 if (peer.Update(item))
                 {
@@ -521,6 +499,7 @@ namespace Ubiq.Rooms
             if (me.NeedsUpdate())
             {
                 SendToServer("UpdatePeer", me.GetPeerInfo());
+                OnPeerUpdated.Invoke(me);
             }
 
             if (room.NeedsUpdate())

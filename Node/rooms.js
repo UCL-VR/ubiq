@@ -73,7 +73,7 @@ class RoomServer extends EventEmitter{
                     break;
                 }
             }
-            var publish = true;
+            var publish = false;
             if (args.hasOwnProperty("publish")) {
                 publish = args.publish;
             }
@@ -198,14 +198,14 @@ Schema.add({
     type: "object",
     properties: {
         id: { $ref: "/ubiq.messaging.networkid"}
-    } 
+    }
 });
 
 Schema.add({
     id: "/ubiq.rooms.requestroomargs",
     type: "object",
     properties: {
-    } 
+    }
 });
 
 Schema.add({
