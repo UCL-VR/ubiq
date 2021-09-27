@@ -109,6 +109,10 @@ namespace Ubiq.Spawning
             {
                 texturedAvatar.SetTexture(uuid);
             }
+            //if (go.TryGetComponent(out TexturedObject texturedObject))
+            //{
+            //    texturedObject.SetTexture(uuid);
+            //}
             //go.GetComponent<TexturedAvatar>().SetTexture(uuid); // only for avatars (for now)
             
             go.GetComponent<Outliner>().SetOutline(true); // every object/avatar that can be replayed should have this to distinguish them from the real deal
@@ -338,7 +342,11 @@ namespace Ubiq.Spawning
             var spawner = FindNetworkSpawner(NetworkScene.FindNetworkScene(caller));
             return spawner.Spawn(prefab);
         }
-
+        public static void UnspawnPersistent(MonoBehaviour caller, NetworkId id)
+        {
+            var spawner = FindNetworkSpawner(NetworkScene.FindNetworkScene(caller));
+            spawner.UnspawnPersistent(id);
+        }
         public static GameObject SpawnPersistent(MonoBehaviour caller, GameObject prefab)
         {
             var spawner = FindNetworkSpawner(NetworkScene.FindNetworkScene(caller));
