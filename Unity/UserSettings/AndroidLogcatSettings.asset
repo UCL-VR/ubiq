@@ -1,9 +1,9 @@
 {
-    "m_SelectedDeviceId": "1WMHH8104T0462",
+    "m_SelectedDeviceId": "1WMHH8143J0383",
     "m_SelectedPackage": {
-        "deviceId": "1WMHH8104T0462",
-        "name": "com.ucl.ubiq",
-        "processId": 5823,
+        "deviceId": "",
+        "name": "",
+        "processId": 0,
         "exited": false
     },
     "m_SelectedPriority": 0,
@@ -72,6 +72,54 @@
             "deviceId": "1WMHH8104T0462",
             "name": "com.ucl.ubiq",
             "processId": 5823,
+            "exited": false
+        },
+        {
+            "deviceId": "1WMHH8104T0462",
+            "name": "com.ucl.ubiq",
+            "processId": 4827,
+            "exited": false
+        },
+        {
+            "deviceId": "1WMHH8104T0462",
+            "name": "com.ucl.ubiq",
+            "processId": 9815,
+            "exited": false
+        },
+        {
+            "deviceId": "1WMHH8104T0462",
+            "name": "com.ucl.ubiq",
+            "processId": 11935,
+            "exited": false
+        },
+        {
+            "deviceId": "1WMHH8104T0462",
+            "name": "com.ucl.ubiq",
+            "processId": 12827,
+            "exited": false
+        },
+        {
+            "deviceId": "1WMHH8104T0462",
+            "name": "com.ucl.ubiq",
+            "processId": 13687,
+            "exited": false
+        },
+        {
+            "deviceId": "1WMHH8104T0462",
+            "name": "com.ucl.ubiq",
+            "processId": 13985,
+            "exited": false
+        },
+        {
+            "deviceId": "1WMHH8143J0383",
+            "name": "com.oculus.shellenv",
+            "processId": 2014,
+            "exited": false
+        },
+        {
+            "deviceId": "1WMHH8143J0383",
+            "name": "com.oculus.xrstreamingclient",
+            "processId": 31185,
             "exited": false
         }
     ],

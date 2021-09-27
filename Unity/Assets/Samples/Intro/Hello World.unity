@@ -1751,8 +1751,11 @@ MonoBehaviour:
       frames: 0
       avatarsAtStart: 0
       avatarNr: 0
-      objectids: []
+      objectsAtStart: 0
+      avatars: []
       textures: []
+      objectids: []
+      prefabs: []
       frameTimes: []
       pckgSizePerFrame: 
       idxFrameStart: 
