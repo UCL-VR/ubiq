@@ -7,14 +7,13 @@ using UnityEngine;
 
 namespace Ubiq.Samples.Bots
 {
-    [RequireComponent(typeof(ThroughputMonitor))]
     [RequireComponent(typeof(LogCollector))]
+    [RequireComponent(typeof(LatencyMeter))]
     public class PerformanceMonitor : MonoBehaviour
     {
-        public RoomClient Peer;
+        public RoomClient RoomClient;
         private LogCollector collector;
         private LatencyMeter meter;
-        private ThroughputMonitor throughput;
 
         // Local event logger
         private UserEventLogger info;
@@ -24,9 +23,8 @@ namespace Ubiq.Samples.Bots
 
         private void Awake()
         {
-            meter = Peer.GetComponentInChildren<LatencyMeter>();
+            meter = RoomClient.GetComponentInChildren<LatencyMeter>();
             collector = GetComponent<LogCollector>();
-            throughput = GetComponent<ThroughputMonitor>();
         }
 
         public void StartMeasurements()
@@ -35,6 +33,8 @@ namespace Ubiq.Samples.Bots
             collector.StartCollection();
             IsMeasuring = true;
         }
+
+        public int NumPeers => RoomClient.Peers.Count();
 
         // Start is called before the first frame update
         void Start()
@@ -51,9 +51,9 @@ namespace Ubiq.Samples.Bots
                 {
                     lastPingTime = Time.time;
                     meter.MeasurePeerLatencies();
-                    throughput.Sample();
-                    info.Log("RoomInfo", Peer.Peers.Count());
+                    info.Log("RoomInfo", RoomClient.Peers.Count());
                 }
             }
-        }    }
+        }
+    }
 }

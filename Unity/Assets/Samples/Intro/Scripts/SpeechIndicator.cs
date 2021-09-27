@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Ubiq.Avatars;
+using Ubiq.Voip;
 
 namespace Ubiq.Samples
 {
@@ -70,9 +71,12 @@ namespace Ubiq.Samples
 
             var volumeWindowSampleCount = GetVolumeWindowSampleCount();
 
-            var stats = voipAvatar.peerConnection.audioSink.lastFrameStats;
-            currentFrameVolumeSum += stats.volume;
-            currentFrameSampleCount += stats.samples;
+            if (voipAvatar.peerConnection.audioSink is VoipAudioSourceOutput)
+            {
+                var stats = (voipAvatar.peerConnection.audioSink as VoipAudioSourceOutput).lastFrameStats;
+                currentFrameVolumeSum += stats.volume;
+                currentFrameSampleCount += stats.samples;
+            }
 
             if (currentFrameSampleCount > volumeWindowSampleCount)
             {
@@ -84,8 +88,12 @@ namespace Ubiq.Samples
 
         private int GetVolumeWindowSampleCount()
         {
-            var sampleRate = voipAvatar.peerConnection.audioSink.sampleRate;
-            return (int)(sampleSecondsPerIndicator * sampleRate);
+            if (voipAvatar.peerConnection.audioSink is VoipAudioSourceOutput)
+            {
+                var sampleRate = (voipAvatar.peerConnection.audioSink as VoipAudioSourceOutput).sampleRate;
+                return (int)(sampleSecondsPerIndicator * sampleRate);
+            }
+            return -1;
         }
 
         private void PushVolumeSample(float sample)

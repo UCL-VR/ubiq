@@ -32,7 +32,7 @@ namespace Ubiq.Samples.Bots
             if((Time.realtimeSinceStartup - lastTime) > 1)
             {
                 lastTime = Time.realtimeSinceStartup;
-                Info.Log("BotsManager", Manager.BotManagerInstance, Manager.NumBots, Time.deltaTime);
+                Info.Log("BotsManager", Manager.Guid, Manager.NumBots, Time.deltaTime);
             }
         }
     }

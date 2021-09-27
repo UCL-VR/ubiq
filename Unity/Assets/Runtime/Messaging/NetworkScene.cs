@@ -63,6 +63,11 @@ namespace Ubiq.Messaging
         {
             SendJson(networkObject.Id, message);
         }
+
+        public void SendJson<T>(NetworkId objectid, ushort componentid, T message)
+        {
+            Send(objectid, componentid, JsonUtility.ToJson(message));
+        }
     }
 
     /// <summary>
@@ -227,6 +232,11 @@ namespace Ubiq.Messaging
                         break;
                     }
                 }
+            }
+
+            if(networkObject == null)
+            {
+                throw new ArgumentException("Cannot find a Network Object Id for " + component.GetType().Name);
             }
 
             if (!objectProperties.ContainsKey(networkObject))

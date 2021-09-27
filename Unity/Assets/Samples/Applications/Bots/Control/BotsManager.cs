@@ -4,20 +4,22 @@ using System.Collections.Generic;
 using System.Linq;
 using Ubiq.Avatars;
 using Ubiq.Extensions;
+using Ubiq.Messaging;
 using Ubiq.Rooms;
+using Ubiq.Samples.Bots.Messaging;
 using UnityEngine;
 
 namespace Ubiq.Samples.Bots
 {
-    public class BotsManager : MonoBehaviour
+    [NetworkComponentId(typeof(BotsManager), 1)]
+    public class BotsManager : MonoBehaviour, INetworkComponent, INetworkObject
     {
         public GameObject BotPeer;
-        public string JoinCode { get; set; }
         public int NumBots { get => bots.Count; }
+        public float Fps { get; private set; }
+        public string Guid { get; private set; }
 
-        public Camera Camera;
-
-        public string BotManagerInstance { get; private set; }
+        public NetworkId Id { get; set; } = NetworkId.Unique();
 
         /// <summary>
         /// When True, Remote Avatars belonging to bots in this scene have their Mesh Renderers disabled.
@@ -29,36 +31,54 @@ namespace Ubiq.Samples.Bots
         /// </summary>
         public bool EnableAudio = true;
 
+        /// <summary>
+        /// The default join code to use when adding new bots to a room.
+        /// </summary>
+        [NonSerialized]
+        public string joinCode;
+
+        [NonSerialized]
+        public NetworkContext context;
+
         private List<Bot> bots;
 
         private void Awake()
         {
-            BotManagerInstance = Guid.NewGuid().ToString();
+            Guid = System.Guid.NewGuid().ToString();
             bots = new List<Bot>();
             bots.AddRange(MonoBehaviourExtensions.GetComponentsInScene<Bot>());
+            joinCode = "";
         }
 
         private void Start()
         {
             bots.ForEach(b => InitialiseBot(b));
+
+            context = NetworkScene.Register(this);
+            var roomClient = context.scene.GetComponent<RoomClient>();
+            roomClient.OnJoinedRoom.AddListener(room =>
+            {
+                Announce();
+            });
+            roomClient.OnPeerAdded.AddListener(peer =>
+            {
+                Announce();
+            });
         }
 
-        /// <summary>
-        /// Create a new room and have all the bots join it. Any new bots will also join the room.
-        /// </summary>
-        public void CreateRoom()
+        public void Announce()
         {
-            if(bots.Count > 0)
-            {
-                var bot = bots.First();
-                var roomClient = GetRoomClient(bot);
-                roomClient.OnJoinedRoom.AddListener(room =>
-                {
-                    JoinCode = room.JoinCode;
-                    JoinRoom();
-                });
-                GetRoomClient(bot).JoinNew("Bots Room", false);
-            }
+            context.SendJson(BotsController.Id, 1, new BotManagerAnnounce(this));
+        }
+
+        public void JoinCommandRoom(string JoinCode)
+        {
+            context.scene.GetComponent<RoomClient>().Join(JoinCode);
+        }
+
+        private void Update()
+        {
+            Fps = 1 / Time.deltaTime;
         }
 
         public void AddBot()
@@ -67,7 +87,7 @@ namespace Ubiq.Samples.Bots
             var bot = newBot.GetComponentInChildren<Bot>();
             bots.Add(bot);
             InitialiseBot(bot);
-            JoinRoom(bot);
+            AddBotsToRoom(bot);
         }
 
         public void AddBots(int count)
@@ -78,27 +98,27 @@ namespace Ubiq.Samples.Bots
             }
         }
 
-        public void JoinRoom()
+        public void AddBotsToRoom()
         {
             foreach (var bot in bots)
             {
-                JoinRoom(bot);
+                AddBotsToRoom(bot);
             }
         }
 
-        public void JoinRoom(Bot bot)
+        public void AddBotsToRoom(Bot bot)
         {
             var rc = GetRoomClient(bot);
-            if(!string.IsNullOrEmpty(JoinCode) && rc.Room.JoinCode != JoinCode)
+            if(!string.IsNullOrEmpty(joinCode) && rc.Room.JoinCode != joinCode)
             {
-                rc.Join(JoinCode);
+                rc.Join(joinCode);
             }
         }
 
         private void InitialiseBot(Bot bot)
         {
             var rc = GetRoomClient(bot);
-            rc.Me["ubiq.botmanager.id"] = BotManagerInstance;
+            rc.Me["ubiq.botmanager.id"] = Guid;
 
             var am = AvatarManager.Find(bot);
             if(am)
@@ -107,7 +127,7 @@ namespace Ubiq.Samples.Bots
                 {
                     if(HideBotAvatars)
                     {
-                        if(avatar.Peer["ubiq.botmanager.id"] == BotManagerInstance && !avatar.IsLocal)
+                        if(avatar.Peer["ubiq.botmanager.id"] == Guid && !avatar.IsLocal)
                         {
                             foreach(var r in avatar.GetComponentsInChildren<MeshRenderer>())
                             {
@@ -137,9 +157,34 @@ namespace Ubiq.Samples.Bots
             return bot.GetClosestComponent<RoomClient>();
         }
 
-        public void ToggleCamera()
+        public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
-            Camera.cullingMask ^= 1 << LayerMask.NameToLayer("Default");
+            var Base = message.FromJson<Message>();
+            switch (Base.Type)
+            {
+                case "UpdateBotManagerSettings":
+                    {
+                        var Message = message.FromJson<BotManagerSettings>();
+                        EnableAudio = Message.EnableAudio;
+                        if(joinCode != Message.BotsRoomJoinCode)
+                        {
+                            joinCode = Message.BotsRoomJoinCode;
+                            AddBotsToRoom();
+                        }
+                    }
+                    break;
+                case "AddBots":
+                    {
+                        var Message = message.FromJson<AddBots>();
+                        AddBots(Message.NumBots);
+                    }
+                    break;
+                case "GetStats":
+                    {
+                        context.SendJson(BotsController.Id, 1, new BotManagerStats(this));
+                    }
+                    break;
+            }
         }
     }
 }
