@@ -43,7 +43,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0932c7c545617c1459c3f9cf1aae9653, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleName: Bow
-  puzzlePiecePrefab: {fileID: 1597658356344920067, guid: 6ddc3d2d54f6f17478acfff979aea66f,
-    type: 3}
   spawnPoint: {fileID: 0}
+  puzzleImage: {fileID: 2100000, guid: 6c39a3187c58c5c40afa65601cae6d7a, type: 2}
+  imageCatalogue: {fileID: 11400000, guid: 5f12964e4a2efe74eafcd1f3cb4acffb, type: 2}
+  prefabCatalogue: {fileID: 11400000, guid: e9294dc4382ae304a8ee8961eaa34805, type: 2}
+  random: 1
+  isSpawned: 0
