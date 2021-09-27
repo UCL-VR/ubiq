@@ -1,18 +1,17 @@
-This project is the Unity-side implementation of the UCL CVE.
+This project is the Unity-side implementation of Ubiq.
 
-The expected use-case is for a team to branch this project and extend the code-base to build a CVE specific to their application.
+The expected use-case is for a team to branch this project and extend the code-base to build something specific to their application.
 
-The project has three parts:
+Assets are divided into four folders:
 
-**Common Code Base**
-- Scripts and other assets specific to the UCL CVE that form the common platform. 
-- Derivative projects will add to and modify these.
-- Stored in the root Assets/ folder and subfolders other than dependencies or samples
+**Runtime and Editor**
+- Scripts and other assets specific to the Ubiq that form the common platform
+- Derivative projects will add to (and potentially modify) these
+- Divided into runtime and editor to allow for easy packing as a UPM package
 
-**Dependencies**
-- Re-usable components that handle message passing, time, book-keeping etc that support the common code base
-- Loosely coupled with eachother, completely de-coupled from the platform
-- Have contributions from other projects, but do *not* have their own repositories
-
-**Samples** 
+**Samples**
 - Example mini-projects of various size, demonstrating how the common code base may be used.
+
+**Local**
+- Assets specific to this Unity project, including packaging tools and XR settings
+- These need not be included in any other project and are not included in the UPM package

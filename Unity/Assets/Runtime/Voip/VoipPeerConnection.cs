@@ -26,8 +26,8 @@ namespace Ubiq.Voip
         [Serializable] public class IceConnectionStateEvent : UnityEvent<RTCIceConnectionState> { }
         [Serializable] public class PeerConnectionStateEvent : UnityEvent<RTCPeerConnectionState> { }
 
-        public IceConnectionStateEvent OnIceConnectionStateChanged;
-        public PeerConnectionStateEvent OnPeerConnectionStateChanged;
+        public IceConnectionStateEvent OnIceConnectionStateChanged = new IceConnectionStateEvent();
+        public PeerConnectionStateEvent OnPeerConnectionStateChanged = new PeerConnectionStateEvent();
 
         private NetworkContext context;
         private ConcurrentQueue<Action> mainThreadActions = new ConcurrentQueue<Action>();
@@ -68,15 +68,6 @@ namespace Ubiq.Voip
             {
                 // Already setup or setup in progress
                 return;
-            }
-
-            if (OnIceConnectionStateChanged == null)
-            {
-                OnIceConnectionStateChanged = new IceConnectionStateEvent();
-            }
-            if (OnPeerConnectionStateChanged == null)
-            {
-                OnPeerConnectionStateChanged = new PeerConnectionStateEvent();
             }
 
             this.Id = objectId;
@@ -163,19 +154,23 @@ namespace Ubiq.Voip
 
         private void Update()
         {
+            if (!setupTask.IsCompleted)
+            {
+                return;
+            }
+
+            rtcPeerConnection = setupTask.Result;
+
+            // If RtcPeerConnection is initialised, process buffered actions
             while (mainThreadActions.TryDequeue(out Action action))
             {
                 action();
             }
 
             // If RtcPeerConnection is initialised, process buffered messages
-            if (setupTask.IsCompleted)
+            while (messageQueue.Count > 0)
             {
-                rtcPeerConnection = setupTask.Result;
-                while (messageQueue.Count > 0)
-                {
-                    DoProcessMessage(messageQueue.Dequeue());
-                }
+                DoProcessMessage(messageQueue.Dequeue());
             }
         }
 

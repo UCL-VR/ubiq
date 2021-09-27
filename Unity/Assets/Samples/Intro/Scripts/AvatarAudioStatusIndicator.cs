@@ -30,6 +30,12 @@ namespace Ubiq.Samples
 
         private void Start()
         {
+            if (avatar.IsLocal)
+            {
+                indicator.gameObject.SetActive(false);
+                return;
+            }
+
             VoipPeerConnectionManager.GetPeerConnectionAsync(this, avatar.Peer.UUID, pc =>
             {
                 pc.OnIceConnectionStateChanged.AddListener(OnStateChange);

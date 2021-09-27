@@ -96,7 +96,7 @@ namespace Ubiq.Rooms
         }
 
         /// <summary>
-        /// A list of default servers to connect to on start-up. The network must only have one RoomServer or 
+        /// A list of default servers to connect to on start-up. The network must only have one RoomServer or
         /// undefined behaviour will result.
         /// </summary>
         [SerializeField]
@@ -339,12 +339,19 @@ namespace Ubiq.Rooms
             switch (container.type)
             {
                 case "SetRoom":
-                    {                       
+                    {
                         var args = JsonUtility.FromJson<SetRoom>(container.args);
                         room.Update(args.room);
 
                         var newPeerUuids = args.peers.Select(x => x.uuid);
-                        var peersToRemove = peers.Keys.Except(newPeerUuids);
+                        var peersToRemove = new List<string>();
+                        foreach (var peer in peers.Keys)
+                        {
+                            if (!newPeerUuids.Contains(peer))
+                            {
+                                peersToRemove.Add(peer);
+                            }
+                        }
 
                         foreach (var uuid in peersToRemove)
                         {
@@ -409,7 +416,12 @@ namespace Ubiq.Rooms
                         {
                             Debug.LogError($"Your version {roomClientVersion} of Ubiq doesn't match the server version {available.version}.");
                         }
-                        OnRoomsAvailable.Invoke(available.Rooms);
+                        var rooms = new List<IRoom>();
+                        for (int i = 0; i < available.rooms.Count; i++)
+                        {
+                            rooms.Add((IRoom)available.rooms[i]);
+                        }
+                        OnRoomsAvailable.Invoke(rooms);
                     }
                     break;
                 case "Blob":
