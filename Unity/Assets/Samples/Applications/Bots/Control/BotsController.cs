@@ -30,6 +30,8 @@ namespace Ubiq.Samples.Bots
         {
             proxies = new Dictionary<string, BotManagerProxy>();
             lastPingTime = Time.realtimeSinceStartup;
+            RoomClient.Find(this).SetDefaultServer(BotsServers.CommandServer);
+            BotsRoom.RoomClient.SetDefaultServer(BotsServers.BotServer);
         }
 
         // Start is called before the first frame update
@@ -38,7 +40,16 @@ namespace Ubiq.Samples.Bots
             Context = NetworkScene.Register(this);
             var roomClient = Context.scene.GetComponent<RoomClient>();
             roomClient.OnJoinedRoom.AddListener(OnJoinedCommandRoom);
-            roomClient.JoinNew("Bots Command and Control Room", false);
+
+            var commandRoomJoinCode = CommandLine.GetArgument("commandroomjoincode");
+            if (!string.IsNullOrEmpty(commandRoomJoinCode))
+            {
+                roomClient.Join(commandRoomJoinCode);
+            }
+            else
+            {
+                roomClient.JoinNew("Bots Command and Control Room", false);
+            }
 
             BotsRoom.RoomClient.OnJoinedRoom.AddListener(Room => {
                 AddBotsToRoom(Room.JoinCode);
@@ -88,44 +99,29 @@ namespace Ubiq.Samples.Bots
             }
         }
 
-        // Update is called once per frame
-        void Update()
-        {
-            if(Time.realtimeSinceStartup - lastPingTime > 0.25)
-            {
-                lastPingTime = Time.realtimeSinceStartup;
-                foreach (var item in proxies.Values)
-                {
-                    item.GetStats();
-                }
-            }
-        }
-
         public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
             var Base = message.FromJson<Message>();
             switch (Base.Type)
             {
-                case "BotManagerAnnounce":
+                case "BotManagerStatus":
                     {
-                        var Message = message.FromJson<BotManagerAnnounce>();
-                        if (!proxies.ContainsKey(Message.Guid))
+                        var Message = message.FromJson<BotManagerStatus>();
+                        if(!proxies.ContainsKey(Message.Guid))
                         {
                             var Proxy = new BotManagerProxy(this);
                             Proxy.Id = Message.NetworkId;
+                            Proxy.ComponentId = Message.ComponentId;
                             Proxy.Guid = Message.Guid;
                             proxies.Add(Proxy.Guid, Proxy);
                             Proxy.UpdateSettings();
                         }
-                    }
-                    break;
-                case "BotManagerStats":
-                    {
-                        var Message = message.FromJson<BotManagerStats>();
-                        var Proxy = proxies[Message.Guid];
-                        Proxy.NumBots = Message.NumBots;
-                        Proxy.Fps = Message.Fps;
-                        Proxy.LastMessageTime = Time.realtimeSinceStartup;
+                        {
+                            var Proxy = proxies[Message.Guid];
+                            Proxy.NumBots = Message.NumBots;
+                            Proxy.Fps = Message.Fps;
+                            Proxy.LastMessageTime = Time.realtimeSinceStartup;
+                        }
                     }
                     break;
             }
@@ -142,26 +138,22 @@ namespace Ubiq.Samples.Bots
 
         public void UpdateSettings()
         {
-            controller.Context.SendJson(Id, 1, new BotManagerSettings()
+            controller.Context.SendJson(Id, ComponentId, new BotManagerSettings()
             { 
                 BotsRoomJoinCode = controller.BotsJoinCode,
                 EnableAudio = controller.EnableAudio
             });
         }
 
-        public void GetStats()
-        {
-            controller.Context.SendJson(Id, 1, new GetStats());
-        }
-
         public void AddBots(int NumBots)
         {
-            controller.Context.SendJson(Id, 1, new AddBots(NumBots));
+            controller.Context.SendJson(Id, ComponentId, new AddBots(NumBots));
         }
 
         private BotsController controller;
 
         public NetworkId Id;
+        public ushort ComponentId;
         public string Guid;
 
         public int NumBots;

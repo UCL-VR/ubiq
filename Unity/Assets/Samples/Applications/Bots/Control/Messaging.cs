@@ -15,26 +15,6 @@ namespace Ubiq.Samples.Bots.Messaging
         }
     }
 
-    public class GetStats : Message
-    {
-        public GetStats():base("GetStats")
-        {
-        }
-    }
-
-    public class BotManagerAnnounce : Message
-    {
-        public NetworkId NetworkId;
-        public ushort ComponentId;
-        public string Guid;
-
-        public BotManagerAnnounce(BotsManager manager):base("BotManagerAnnounce")
-        {
-            NetworkId = manager.context.networkObject.Id;
-            Guid = manager.Guid;
-        }
-    }
-
     public class BotManagerSettings : Message 
     {
         public bool EnableAudio;
@@ -55,14 +35,18 @@ namespace Ubiq.Samples.Bots.Messaging
         }
     }
 
-    public class BotManagerStats : Message
+    public class BotManagerStatus : Message
     {
+        public NetworkId NetworkId;
+        public ushort ComponentId;
         public string Guid;
         public float Fps;
         public int NumBots;
 
-        public BotManagerStats(BotsManager manager):base("BotManagerStats")
+        public BotManagerStatus(BotsManager manager):base("BotManagerStatus")
         {
+            NetworkId = manager.Id;
+            ComponentId = 1;
             Guid = manager.Guid;
             Fps = manager.Fps;
             NumBots = manager.NumBots;

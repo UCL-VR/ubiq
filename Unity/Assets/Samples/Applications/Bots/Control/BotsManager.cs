@@ -5,6 +5,7 @@ using System.Linq;
 using Ubiq.Avatars;
 using Ubiq.Extensions;
 using Ubiq.Messaging;
+using Ubiq.Networking;
 using Ubiq.Rooms;
 using Ubiq.Samples.Bots.Messaging;
 using UnityEngine;
@@ -16,8 +17,10 @@ namespace Ubiq.Samples.Bots
     {
         public GameObject BotPeer;
         public int NumBots { get => bots.Count; }
-        public float Fps { get; private set; }
+        public float Fps { get { return FpsMovingAverage.Mean(); } private set { FpsMovingAverage.Update(value); } }
         public string Guid { get; private set; }
+
+        private MovingAverage FpsMovingAverage = new MovingAverage(30);
 
         public NetworkId Id { get; set; } = NetworkId.Unique();
 
@@ -32,22 +35,27 @@ namespace Ubiq.Samples.Bots
         public bool EnableAudio = true;
 
         /// <summary>
-        /// The default join code to use when adding new bots to a room.
+        /// The default join code to use when joining a command and control room
         /// </summary>
         [NonSerialized]
-        public string joinCode;
+        public string commandRoomJoinCode;
 
         [NonSerialized]
         public NetworkContext context;
 
         private List<Bot> bots;
+        private float lastStatusTime;
 
         private void Awake()
         {
             Guid = System.Guid.NewGuid().ToString();
             bots = new List<Bot>();
             bots.AddRange(MonoBehaviourExtensions.GetComponentsInScene<Bot>());
-            joinCode = "";
+            commandRoomJoinCode = "";
+            CheckCommandLineConfiguration();
+            bots.ForEach(b => GetRoomClient(b).SetDefaultServer(BotsServers.BotServer));
+            RoomClient.Find(this).SetDefaultServer(BotsServers.CommandServer);
+            lastStatusTime = Time.time;
         }
 
         private void Start()
@@ -56,19 +64,11 @@ namespace Ubiq.Samples.Bots
 
             context = NetworkScene.Register(this);
             var roomClient = context.scene.GetComponent<RoomClient>();
-            roomClient.OnJoinedRoom.AddListener(room =>
-            {
-                Announce();
-            });
-            roomClient.OnPeerAdded.AddListener(peer =>
-            {
-                Announce();
-            });
-        }
 
-        public void Announce()
-        {
-            context.SendJson(BotsController.Id, 1, new BotManagerAnnounce(this));
+            if(!String.IsNullOrWhiteSpace(commandRoomJoinCode))
+            {
+                roomClient.Join(commandRoomJoinCode);
+            }
         }
 
         public void JoinCommandRoom(string JoinCode)
@@ -79,6 +79,11 @@ namespace Ubiq.Samples.Bots
         private void Update()
         {
             Fps = 1 / Time.deltaTime;
+            if(Time.time - lastStatusTime > 0.25)
+            {
+                lastStatusTime = Time.time;
+                context.SendJson(BotsController.Id, 1, new BotManagerStatus(this));
+            }
         }
 
         public void AddBot()
@@ -109,9 +114,9 @@ namespace Ubiq.Samples.Bots
         public void AddBotsToRoom(Bot bot)
         {
             var rc = GetRoomClient(bot);
-            if(!string.IsNullOrEmpty(joinCode) && rc.Room.JoinCode != joinCode)
+            if(!string.IsNullOrEmpty(commandRoomJoinCode) && rc.Room.JoinCode != commandRoomJoinCode)
             {
-                rc.Join(joinCode);
+                rc.Join(commandRoomJoinCode);
             }
         }
 
@@ -119,6 +124,7 @@ namespace Ubiq.Samples.Bots
         {
             var rc = GetRoomClient(bot);
             rc.Me["ubiq.botmanager.id"] = Guid;
+            rc.SetDefaultServer(BotsServers.BotServer);
 
             var am = AvatarManager.Find(bot);
             if(am)
@@ -166,9 +172,9 @@ namespace Ubiq.Samples.Bots
                     {
                         var Message = message.FromJson<BotManagerSettings>();
                         EnableAudio = Message.EnableAudio;
-                        if(joinCode != Message.BotsRoomJoinCode)
+                        if(commandRoomJoinCode != Message.BotsRoomJoinCode)
                         {
-                            joinCode = Message.BotsRoomJoinCode;
+                            commandRoomJoinCode = Message.BotsRoomJoinCode;
                             AddBotsToRoom();
                         }
                     }
@@ -179,11 +185,20 @@ namespace Ubiq.Samples.Bots
                         AddBots(Message.NumBots);
                     }
                     break;
-                case "GetStats":
-                    {
-                        context.SendJson(BotsController.Id, 1, new BotManagerStats(this));
-                    }
-                    break;
+            }
+        }
+
+        private void CheckCommandLineConfiguration()
+        {
+            var args = System.Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length; i++)
+            {
+                switch (args[i])
+                {
+                    case "-commandroomjoincode":
+                        commandRoomJoinCode = args[i + 1];
+                        break;
+                }
             }
         }
     }
