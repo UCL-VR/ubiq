@@ -1101,12 +1101,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MaxGetRoomsRefreshRate: 2
-  servers:
-  - listen_on_ip: 
-    listen_on_port: 
-    send_to_ip: nexus.cs.ucl.ac.uk
-    send_to_port: 8002
-    type: 0
+  servers: []
 --- !u!114 &805875560
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1253,10 +1248,10 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 894081378}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1013.25, y: -599.25, z: 0}
+  m_LocalPosition: {x: -291.08472, y: -198.33502, z: -0.01686509}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 2070328405}
+  m_Father: {fileID: 1027869415}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &909147499
@@ -1490,6 +1485,41 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 943382805}
   m_CullTransparentMesh: 0
+--- !u!1 &1027869414
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1027869415}
+  m_Layer: 0
+  m_Name: Bots Control
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1027869415
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1027869414}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 2070328405}
+  - {fileID: 1950966756}
+  - {fileID: 894081381}
+  - {fileID: 2041814738}
+  - {fileID: 1239983069}
+  m_Father: {fileID: 0}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1089625274
 GameObject:
   m_ObjectHideFlags: 0
@@ -1514,12 +1544,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1089625274}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 2070328405}
-  m_RootOrder: 4
+  m_Father: {fileID: 2041814738}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1778,7 +1808,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1197662684}
   m_CullTransparentMesh: 0
---- !u!1 &1373184166
+--- !u!1 &1239983068
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1786,47 +1816,34 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1373184168}
-  - component: {fileID: 1373184167}
+  - component: {fileID: 1239983069}
   m_Layer: 0
-  m_Name: Bots Server
+  m_Name: Bots Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1373184167
-MonoBehaviour:
+--- !u!224 &1239983069
+RectTransform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1373184166}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2224fc2dedf3a0f408a2941160302f03, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  connection:
-    listen_on_ip: localhost
-    listen_on_port: 8002
-    send_to_ip: 
-    send_to_port: 
-    type: 1
---- !u!4 &1373184168
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1373184166}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.26548392, y: 1.497511, z: 0.57753515}
+  m_GameObject: {fileID: 1239983068}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -0.01686509}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_Children:
+  - {fileID: 1617545857}
+  m_Father: {fileID: 1027869415}
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 722.1653, y: 400.91498}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1385429793
 GameObject:
   m_ObjectHideFlags: 0
@@ -1868,7 +1885,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 110.64636}
   m_Pivot: {x: 0.5, y: 1}
---- !u!1 &1394536515
+--- !u!1 &1567755669
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1876,28 +1893,52 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1394536516}
+  - component: {fileID: 1567755671}
+  - component: {fileID: 1567755670}
   m_Layer: 0
-  m_Name: Bots Room Monitor
+  m_Name: Bots Servers
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1394536516
+--- !u!114 &1567755670
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1567755669}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 918c67203be66094baaa634b6f854d04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DefaultCommandServer:
+    listen_on_ip: 
+    listen_on_port: 
+    send_to_ip: nexus.cs.ucl.ac.uk
+    send_to_port: 8002
+    type: 0
+  DefaultBotServer:
+    listen_on_ip: 
+    listen_on_port: 
+    send_to_ip: nexus.cs.ucl.ac.uk
+    send_to_port: 8002
+    type: 0
+--- !u!4 &1567755671
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1394536515}
+  m_GameObject: {fileID: 1567755669}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children:
-  - {fileID: 1617545857}
+  m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1617545856
 GameObject:
@@ -1927,11 +1968,11 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1617545856}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -722, y: -399.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 1394536516}
+  m_Father: {fileID: 1239983069}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1617545858
@@ -1959,12 +2000,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MaxGetRoomsRefreshRate: 2
-  servers:
-  - listen_on_ip: 
-    listen_on_port: 
-    send_to_ip: nexus.cs.ucl.ac.uk
-    send_to_port: 8002
-    type: 0
+  servers: []
 --- !u!114 &1617545860
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2263,12 +2299,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1934431612}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 2070328405}
-  m_RootOrder: 3
+  m_Father: {fileID: 2041814738}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -2288,12 +2324,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MaxGetRoomsRefreshRate: 2
-  servers:
-  - listen_on_ip: 
-    listen_on_port: 
-    send_to_ip: nexus.cs.ucl.ac.uk
-    send_to_port: 8002
-    type: 0
+  servers: []
 --- !u!114 &1934431615
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2382,13 +2413,50 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1950966753}
-  m_LocalRotation: {x: -0.31059688, y: -0.19296275, z: 0.064546496, w: -0.92850894}
-  m_LocalPosition: {x: -1016.5667, y: -595.0896, z: -6.738708}
+  m_LocalRotation: {x: -0.32833043, y: -0.19581452, z: 0.06977607, w: -0.921405}
+  m_LocalPosition: {x: -3.0025635, y: 4.280487, z: -6.357073}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 2070328405}
+  m_Father: {fileID: 1027869415}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2041814737
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2041814738}
+  m_Layer: 0
+  m_Name: Command Room
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2041814738
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2041814737}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -0.01686509}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 1934431613}
+  - {fileID: 1089625275}
+  m_Father: {fileID: 1027869415}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 722.1653, y: 400.91498}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2070328404
 GameObject:
   m_ObjectHideFlags: 0
@@ -2421,12 +2489,8 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_Children:
   - {fileID: 424452053}
-  - {fileID: 1950966756}
-  - {fileID: 894081381}
-  - {fileID: 1934431613}
-  - {fileID: 1089625275}
-  m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_Father: {fileID: 1027869415}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -2769,7 +2833,7 @@ PrefabInstance:
     - target: {fileID: 4904968254921343994, guid: c1a55c9926c8d4843a76621513810efd,
         type: 3}
       propertyPath: m_RootOrder
-      value: 5
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 4904968254921343994, guid: c1a55c9926c8d4843a76621513810efd,
         type: 3}
@@ -2838,7 +2902,7 @@ PrefabInstance:
     - target: {fileID: 7290265295817051041, guid: f2d44976f09b5df40b4d00077fec932a,
         type: 3}
       propertyPath: m_RootOrder
-      value: 4
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 7290265295817051041, guid: f2d44976f09b5df40b4d00077fec932a,
         type: 3}
