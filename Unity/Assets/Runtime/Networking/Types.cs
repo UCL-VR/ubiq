@@ -92,6 +92,18 @@ namespace Ubiq.Networking
                     throw new NotImplementedException();
             }
         }
+
+        public ConnectionDefinition()
+        {
+        }
+
+        public ConnectionDefinition(string tcpUri)
+        {
+            var tokens = tcpUri.Split(':');
+            send_to_ip = tokens[0];
+            send_to_port = tokens[1];
+            type = ConnectionType.tcp_client;
+        }
     }
 
     public static class Connections
