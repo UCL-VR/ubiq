@@ -13,6 +13,7 @@ namespace Ubiq.Samples.Bots.UI
         public Text FpsText;
         public Button AddBotsButton;
         public InputField AddBotsInputField;
+        public Gradient FpsGradient;
 
         [NonSerialized]
         public BotManagerProxy proxy;
@@ -55,6 +56,7 @@ namespace Ubiq.Samples.Bots.UI
             {
                 NumberOfBotsText.text = proxy.NumBots.ToString();
                 FpsText.text = proxy.Fps.ToString();
+                FpsText.color = FpsGradient.Evaluate(proxy.Fps * 0.01f);
             }            
         }
     }
