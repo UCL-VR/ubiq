@@ -28,7 +28,7 @@ namespace Ubiq.Samples.Bots
         {
             Fps.text = (1 / Time.deltaTime).ToString();
 
-            if(monitor.IsMeasuring)
+            if(monitor.Measure)
             {
                 StartMeasurements.interactable = false;
             }

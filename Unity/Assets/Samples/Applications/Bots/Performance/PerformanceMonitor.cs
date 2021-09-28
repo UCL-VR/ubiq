@@ -18,7 +18,7 @@ namespace Ubiq.Samples.Bots
         // Local event logger
         private UserEventLogger info;
 
-        public bool IsMeasuring { get; private set; }
+        public bool Measure;
         private float lastPingTime;
 
         private void Awake()
@@ -29,9 +29,7 @@ namespace Ubiq.Samples.Bots
 
         public void StartMeasurements()
         {
-            info = new UserEventLogger(this);
-            collector.StartCollection();
-            IsMeasuring = true;
+            Measure = true;
         }
 
         public int NumPeers => RoomClient.Peers.Count();
@@ -39,13 +37,14 @@ namespace Ubiq.Samples.Bots
         // Start is called before the first frame update
         void Start()
         {
-
+            info = new UserEventLogger(this);
+            collector.StartCollection();
         }
 
         // Update is called once per frame
         void Update()
         {
-            if (IsMeasuring)
+            if (Measure)
             {
                 if (Time.time - lastPingTime > 1f)
                 {
