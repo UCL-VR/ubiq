@@ -24,7 +24,8 @@ public class PuzzlePiece : MonoBehaviour, INetworkObject, INetworkComponent, ISp
     private bool local;
     private bool owner;
     private bool owned;
-    private Vector3 previousPosition = new Vector3(1, 1, 1);
+    private bool isKinematic = false;
+    private Vector3 previousPosition = Vector3.zero;
 
     public NetworkId Id { get; set; } // the network Id will be set by the spawner, which will always be the one to instantiate the PuzzlePiece
 
@@ -35,19 +36,21 @@ public class PuzzlePiece : MonoBehaviour, INetworkObject, INetworkComponent, ISp
     {
         public TransformMessage transform;
         public bool owned;
+        public bool isKinematic;
 
-        public Message(Transform transform, bool owned)
+        public Message(Transform transform, bool owned, bool isKinematic)
         {
             this.transform = new TransformMessage(transform);
             this.owned = owned;
+            this.isKinematic = isKinematic;
         }
 
     }
 
-    public void SetMaterial(Material mat)
-    {
-        texturedObject.SetMaterial(mat);
-    }
+    //public void SetMaterial(Material mat)
+    //{
+    //    texturedObject.SetMaterial(mat);
+    //}
 
     public void SetTexture(Texture2D tex)
     {
@@ -82,17 +85,20 @@ public class PuzzlePiece : MonoBehaviour, INetworkObject, INetworkComponent, ISp
     public void Grasp(Hand controller)
     {
         // think about how to do it if you want to take a piece away from someone else
-        var handTransform = controller.transform;
-        localGrabPoint = handTransform.InverseTransformPoint(transform.position); //transform.InverseTransformPoint(handTransform.position);
-        localGrabRotation = Quaternion.Inverse(handTransform.rotation) * transform.rotation;
-        grabHandRotation = handTransform.rotation;
-        follow = handTransform;
-        owner = owned = true;
+        if (!owned)
+        { 
+            var handTransform = controller.transform;
+            localGrabPoint = handTransform.InverseTransformPoint(transform.position); //transform.InverseTransformPoint(handTransform.position);
+            localGrabRotation = Quaternion.Inverse(handTransform.rotation) * transform.rotation;
+            grabHandRotation = handTransform.rotation;
+            follow = handTransform;
+            owner = owned = true;
+        }
     }
     public void Release(Hand controller)
     {
         follow = null;
-        owner = false;
+        owner = owned = false;
     }
 
     public bool IsLocal()
@@ -105,16 +111,21 @@ public class PuzzlePiece : MonoBehaviour, INetworkObject, INetworkComponent, ISp
         this.local = local;
     }
 
-    public void SetNetworkedMaterial(Material mat)
+    //public void SetNetworkedMaterial(Material mat)
+    //{
+    //    texturedObject.SetNetworkedMaterial(mat);
+    //}
+
+    public void SetNetworkedTexture(Texture2D tex)
     {
-        texturedObject.SetNetworkedMaterial(mat);
+        texturedObject.SetNetworkedTexture(tex);
     }
 
     public void SetNetworkedTransform(Transform trafo)
     {
         transform.localPosition = trafo.localPosition;
         transform.localRotation = trafo.localRotation;
-        context.SendJson(new Message(trafo, owner));
+        context.SendJson(new Message(trafo, owner, true)); // isKinematic is true
 
     }
 
@@ -124,6 +135,8 @@ public class PuzzlePiece : MonoBehaviour, INetworkObject, INetworkComponent, ISp
         transform.localPosition = msg.transform.position; // The Message constructor will take the *local* properties of the passed transform.
         transform.localRotation = msg.transform.rotation;
         owned = msg.owned;
+        isKinematic = msg.isKinematic;
+        body.isKinematic = msg.isKinematic;
     }
 
     // Update is called once per frame
@@ -138,30 +151,39 @@ public class PuzzlePiece : MonoBehaviour, INetworkObject, INetworkComponent, ISp
             //transform.position = follow.transform.position;
             //transform.rotation = follow.transform.rotation;
             body.isKinematic = true;
-            context.SendJson(new Message(transform, owner));
+            context.SendJson(new Message(transform, owner, true));
 
         }
         else // follow is null, we do not own the piece
         {
-            // but if it is owned by someone else we don't want the piece controlled by physics but by the transformed sent by the owner of the piece
+            // but if it is owned by someone else we don't want the piece controlled by physics but by the transform sent by the owner of the piece
             if (owned) // (this should work if it is a recording too, because we have the information that someone owns it)
             {
                 body.isKinematic = true;
             }
             else // unless nobody owns the piece
             {
-                body.isKinematic = true;
+                body.isKinematic = false;
+               
                 // then we need to check if we are recording and also send messages accordingly
                 if (local && scene.recorder != null && scene.recorder.IsRecording())
                 { 
                     // only send new message if the position has changed
                     if (!transform.position.Equals(previousPosition))
                     {
-                        context.SendJson(new Message(transform, owned));
+                        context.SendJson(new Message(transform, owned, true));
+                        Debug.Log("Transforms " + previousPosition.ToString() + " " + transform.position.ToString());
                         previousPosition = transform.position;
                     }
                 }
+                else
+                {
+                    previousPosition = Vector3.zero; // when recording is stopped reset previousPosition for potential new recording
+                }
             }
+            //Debug.Log("Transforms " + gameObject.name + " " + transform.position.ToString());
+
+
         }
     }
 }
