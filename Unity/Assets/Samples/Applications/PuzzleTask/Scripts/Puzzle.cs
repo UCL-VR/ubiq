@@ -7,11 +7,14 @@ using Ubiq.Samples;
 using Ubiq.Spawning;
 using UnityEditor;
 
+/// <summary>
+/// Puzzle organizes the spawning and unspawning of puzzle pieces with (random) images
+/// </summary>
 public class Puzzle : MonoBehaviour, INetworkObject
 {
     //public GameObject puzzlePiecePrefab;
     public GameObject spawnPoint; // spawn point is in the middle of the table
-    public Material puzzleImage;
+    public Texture2D puzzleImage;
     public ImageCatalogue imageCatalogue;
     public PrefabCatalogue prefabCatalogue;
     public bool random = true;
@@ -20,6 +23,8 @@ public class Puzzle : MonoBehaviour, INetworkObject
     private float maxX;
     private float minZ;
     private float maxZ;
+
+    private RecorderReplayer recRep;
 
     [HideInInspector] public bool isSpawned = false;
 
@@ -47,16 +52,9 @@ public class Puzzle : MonoBehaviour, INetworkObject
                 puzzlePiecesGo.Add(p);
                 Debug.Log("Adding " + p.name + " to puzzlePiecesGo");
             }
-            //var go = Resources.Load<GameObject>(Path.GetFileNameWithoutExtension(p));
-            //go.GetComponent<PuzzlePiece>().SetMaterial(puzzleImage);
-            //var piece = NetworkSpawner.SpawnPersistent(this, go);
-            //puzzlePiecesSpawned.Add(piece);
-            //byte[] img = File.ReadAllBytes(piece);
-            //tex = new Texture2D(2, 2); // size does not matter as it will be overwritten by new image
-            //tex.LoadImage(img);
-            //pTextures.Add(tex);
-            //isSpawned = true;
         }
+
+        recRep = NetworkScene.FindNetworkScene(this).GetComponent<RecorderReplayer>();
     }
     public void UnspawnPuzzle()
     {
@@ -79,13 +77,13 @@ public class Puzzle : MonoBehaviour, INetworkObject
         Debug.Log(spawnPoint.transform.position.ToString());
         if (random)
         {
-            puzzleImage = imageCatalogue.GetRandomMaterial();
+            puzzleImage = imageCatalogue.GetRandomImage();
         }
         foreach (var p in puzzlePiecesGo)
         {
             var piece = NetworkSpawner.SpawnPersistent(this, p);
             PuzzlePiece pp = piece.GetComponent<PuzzlePiece>();
-            pp.SetNetworkedMaterial(puzzleImage);
+            pp.SetNetworkedTexture(puzzleImage);
             var position = new Vector3(Random.Range(minX, maxX), Random.Range(spawnPoint.transform.position.y, spawnPoint.transform.position.y + 0.2f), Random.Range(minZ, maxZ));
             piece.transform.position = position;
             piece.transform.eulerAngles = new Vector3(0.0f, Random.Range(0, 360), 0.0f);
@@ -114,7 +112,11 @@ public class Puzzle : MonoBehaviour, INetworkObject
     // Update is called once per frame
     void Update()
     {
-        
+        if(recRep.replaying && isSpawned)
+        {
+            UnspawnPuzzle();
+            isSpawned = false;
+        }
     }
 }
 
@@ -136,7 +138,7 @@ public class PuzzleEditor : Editor
 
             if (GUILayout.Button("Shuffle"))
             {
-
+                t.Shuffle();
             }
             //if (!t.random)
             //{
