@@ -21,6 +21,15 @@ namespace Ubiq.Spawning
         bool IsLocal();
     }
 
+    public interface ITexturedObject
+    {
+        string GetTextureUid();
+        Texture2D GetTexture();
+
+        void SetTexture(Texture2D tex);
+        void SetTexture(string uid);
+    }
+
     public class NetworkSpawner : MonoBehaviour, INetworkObject, INetworkComponent
     {
         public NetworkId Id { get; } = new NetworkId("a369-2643-7725-a971");
@@ -93,7 +102,7 @@ namespace Ubiq.Spawning
             go.name = catalogue.prefabs[i].name; // assign prefab name and not prefab name + (Clone), to find correct prefab in catalogue for replay
             var spawnable = go.GetSpawnableInChildren();
             spawnable.Id = networkId;
-            spawnable.OnSpawned(local);
+            spawnable.OnSpawned(local); 
             spawned[networkId] = go;
             events.Log("SpawnObject", i, networkId, local);
             return go;
@@ -104,17 +113,17 @@ namespace Ubiq.Spawning
             Debug.Log("Instantiate Replay");
             GameObject go = Instantiate(i, networkId, local);
             
-            // not everything that's replayed is an avatar
+            // not everything that's replayed is an avatar or has a texture
             if (go.TryGetComponent(out TexturedAvatar texturedAvatar))
             {
                 texturedAvatar.SetTexture(uuid);
             }
-            //if (go.TryGetComponent(out TexturedObject texturedObject))
-            //{
-            //    texturedObject.SetTexture(uuid);
-            //}
+            if (go.TryGetComponent(out ITexturedObject texturedObject))
+            {
+                texturedObject.SetTexture(uuid);
+            }
             //go.GetComponent<TexturedAvatar>().SetTexture(uuid); // only for avatars (for now)
-            
+
             go.GetComponent<Outliner>().SetOutline(true); // every object/avatar that can be replayed should have this to distinguish them from the real deal
             Debug.Log("visible is " + visible);
             if (visible)
@@ -162,14 +171,23 @@ namespace Ubiq.Spawning
                 Instantiate(msg.catalogueIndex, msg.networkId, false);
             }
         }
-
+        // called locally
         public GameObject SpawnPersistentReplay(GameObject gameObject, string uuid)
         {
             var i = ResolveIndex(gameObject);
             var networkId = NetworkScene.GenerateUniqueId();
             //Debug.Log("SpawnPersistentRecording() " + networkId.ToString());
             var key = $"SpawnedObject-{ networkId }";
-            var spawned = InstantiateReplay(i, networkId, false, false, uuid);
+            GameObject spawned;
+            // locally replayed avatars cannot be local otherwise they follow the player
+            if (gameObject.GetComponent<Ubiq.Avatars.Avatar>() != null)
+            {
+                spawned = InstantiateReplay(i, networkId, false, false, uuid); // not local
+            }
+            else
+            {
+                spawned = InstantiateReplay(i, networkId, true, false, uuid); // can be local
+            }
             roomClient.Room[key] = JsonUtility.ToJson(new Message() { catalogueIndex = i, networkId = networkId, replay = true, visible = false, uuid = uuid});
             return spawned;
         }
