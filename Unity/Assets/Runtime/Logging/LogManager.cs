@@ -4,11 +4,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Linq;
 using Ubiq.Extensions;
 using Ubiq.Messaging;
 using Ubiq.Networking.JmBucknall.Structures;
-using UnityEngine;
 using Ubiq.Logging.Utf8Json;
+using UnityEngine;
+
 
 namespace Ubiq.Logging
 {
@@ -102,7 +104,7 @@ namespace Ubiq.Logging
         // Update is called once per frame
         void Update()
         {
-            bool transmitLocal = localCollectors.Count > 0;
+            bool transmitLocal = localCollectors.Any(c => c.Collecting);
             bool transmitRemote = Mode == LogManagerMode.Transmit;
             bool holdLogs = Mode == LogManagerMode.Hold;
 
