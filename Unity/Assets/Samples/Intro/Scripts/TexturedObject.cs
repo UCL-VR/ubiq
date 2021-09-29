@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using Ubiq.Messaging;
+using Ubiq.Spawning;
 
-public class TexturedObject : MonoBehaviour, INetworkComponent
+public class TexturedObject : MonoBehaviour, INetworkComponent, ITexturedObject
 {
     public ImageCatalogue catalogue;
+
+    private string uuid;
     
     private Material material;
     private Texture2D texture;
@@ -15,30 +18,42 @@ public class TexturedObject : MonoBehaviour, INetworkComponent
 
     public struct Message
     {
-        public string matName;
+        public string imageName;
 
-        public Message(string matName)
+        public Message(string imageName)
         {
-            this.matName = matName;
+            this.imageName = imageName;
         }
 
     }
 
-    public void SetMaterial(Material mat)
+    //public void SetMaterial(Material mat)
+    //{
+    //    material = mat;
+    //    renderer.material = mat;
+    //}
+
+    public void SetTexture(string uid)
     {
-        material = mat;
-        renderer.material = mat;
+        SetTexture(catalogue.Get(uid));
     }
 
     public void SetTexture(Texture2D tex)
     {
         texture = tex;
         renderer.material.SetTexture("_MainTex", tex);
+        material = renderer.material;
+        uuid = catalogue.Get(tex);
     }
 
-    public Material GetMaterial()
+    //public Material GetMaterial()
+    //{
+    //    return material;
+    //}
+
+    public string GetTextureUid()
     {
-        return material;
+        return uuid;
     }
 
     public Texture2D GetTexture()
@@ -61,16 +76,23 @@ public class TexturedObject : MonoBehaviour, INetworkComponent
         }
     }
 
-    public void SetNetworkedMaterial(Material mat)
+    public void SetNetworkedTexture(Texture2D tex)
     {
-        SetMaterial(mat);
-        Debug.Log("Set networked material: " + mat.name);
-        context.SendJson(new Message(mat.name));
+        SetTexture(tex);
+        Debug.Log("Set networked texture: " + tex.name);
+        context.SendJson(new Message(tex.name));
     }
+
+    //public void SetNetworkedMaterial(Material mat)
+    //{
+    //    SetMaterial(mat);
+    //    Debug.Log("Set networked material: " + mat.name);
+    //    context.SendJson(new Message(mat.name));
+    //}
 
     public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
     {
         var msg = message.FromJson<Message>();
-        SetMaterial(catalogue.GetMaterial(msg.matName));
+        SetTexture(catalogue.GetImage(msg.imageName));
     }
 }

@@ -21,7 +21,7 @@ public class Recorder
 
     private BinaryWriter binaryWriter;
     private string recordFileIDs; // save the objectIDs of the recorded avatars
-    private Dictionary<NetworkId, string> avatars; // just avatars with texture
+    private Dictionary<NetworkId, string> textures; // textures
     private Dictionary<NetworkId, string> recordedObjectIds; // everything with prefab
     //private int lineNr = 0; // number of lines in recordFile
     private List<int> pckgSizePerFrame;
@@ -40,7 +40,7 @@ public class Recorder
     {
         this.recRep = recRep;
         //recordedAvatarIds = new Dictionary<NetworkId, string>();
-        avatars = new Dictionary<NetworkId, string>();
+        textures = new Dictionary<NetworkId, string>();
         recordedObjectIds = new Dictionary<NetworkId, string>();
         pckgSizePerFrame = new List<int>();
         idxFrameStart = new List<int>();
@@ -137,16 +137,21 @@ public class Recorder
                 var name = (obj as Avatar).PrefabUuid;
                 string uid = (obj as Avatar).gameObject.GetComponent<TexturedAvatar>().GetTextureUuid(); // get texture of avatar so we can later replay a look-alike avatar
                 recordedObjectIds.Add(message.objectid, name); // change this to prefab later... dunno how to get that yet though...
-                if (!avatars.ContainsKey(message.objectid))
+                if (!textures.ContainsKey(message.objectid))
                 {
-                    avatars.Add(message.objectid, uid);
+                    textures.Add(message.objectid, uid);
                 }
             }
             else
             {
                 string name = (obj as MonoBehaviour).name;
-                // objects that aren't avatars don't save the texture uid, but the name of their prefab 
-                // maybe do something similar for avatars later, especially when different avatar types are used (how to deal with texture uid then?)
+                string uid = "n";
+                // not every object might have a TexturedObject component (e.g. the menu)
+                if ((obj as MonoBehaviour).gameObject.TryGetComponent<TexturedObject>(out TexturedObject texturedObject))
+                {
+                    uid = texturedObject.GetTextureUid();
+                }
+                textures.Add(message.objectid, uid); 
                 recordedObjectIds.Add(message.objectid, name); 
             }
         }
@@ -163,13 +168,13 @@ public class Recorder
 
             Debug.Log("FrameNr, pckgsize, idxFrameStart" + frameNr + " " + pckgSizePerFrame.Count + " " + idxFrameStart.Count);
            
-            File.WriteAllText(recordFileIDs, JsonUtility.ToJson(new RecordingInfo(frameNr-1, avatarsAtStart, avatars.Count,
+            File.WriteAllText(recordFileIDs, JsonUtility.ToJson(new RecordingInfo(frameNr-1, avatarsAtStart, textures.Count,
                 objectsAtStart,
-                new List<NetworkId>(avatars.Keys), new List<string>(avatars.Values),
+                new List<NetworkId>(textures.Keys), new List<string>(textures.Values),
                 new List<NetworkId>(recordedObjectIds.Keys), new List<string>(recordedObjectIds.Values),
                 frameTimes, pckgSizePerFrame, idxFrameStart)));
 
-            avatars.Clear();
+            textures.Clear();
             recordedObjectIds.Clear();
             avatarsAtStart = 0;
             objectsAtStart = 0;
@@ -339,16 +344,20 @@ public class Replayer
         {
             var objectid = item.Key;
             var prefabName = item.Value;
-            var uid = "n";
+            var uid = textures[objectid]; // value is "n" if there is no texture
             GameObject prefab = spawner.catalogue.GetPrefab(prefabName);
             if (prefab == null)
             {
                 continue;
             }
-            if (prefab.GetComponent<Avatar>() != null) // object is an avatar, so it has a saved texture
-            {
-                uid = textures[objectid];
-            }
+            //if (prefab.GetComponent<TexturedAvatar>() != null) // object is an avatar, so it has a saved texture
+            //{
+            //    uid = textures[objectid];
+            //}
+            //else if (prefab.GetComponent<TexturedObject>() != null)
+            //{
+            //    uid = textures[objectid];
+            //}
             GameObject go = spawner.SpawnPersistentReplay(prefab, uid);
 
             ReplayedObjectProperties props = new ReplayedObjectProperties();

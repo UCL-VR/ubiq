@@ -5,22 +5,37 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Image Catalogue")]
 public class ImageCatalogue : ScriptableObject
 {
-    public List<Material> materials;
+    public List<Texture2D> images;
 
-    public Material GetRandomMaterial()
+    public Texture2D GetRandomImage()
     {
-        var i = Random.Range(0, materials.Count);
-        return materials[i];
+        var i = Random.Range(0, images.Count);
+        return images[i];
     }
-    public Material GetMaterial(string name)
+    public Texture2D GetImage(string name)
     {
-        foreach (var m in materials)
+        foreach (var i in images)
         {
-            if (m.name == name)
+            if (i.name == name)
             {
-                return m;
+                return i;
             }
         }
         return null;
+    }
+
+    public Texture2D Get(string uid)
+    {
+        if (uid == null)
+        {
+            return null;
+        }
+        return images[int.Parse(uid)];
+    }
+
+    public string Get(Texture2D texture)
+    {
+        var index = images.IndexOf(texture);
+        return index > -1 ? $"{index}" : null;
     }
 }

@@ -175,7 +175,7 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
 
     void Update()
     {
-        // recorded objects are never local... for my information in case I forget it
+        // recorded objects that are not avatars can be local
         if (spawnableObject.IsLocal())
         {
             if (scene.recorder != null && scene.recorder.IsRecording())
