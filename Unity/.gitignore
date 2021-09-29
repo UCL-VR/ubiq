@@ -78,3 +78,5 @@ crashlytics-build.properties
 /Assets/XR.meta
 
 Recordings/
+
+.vsconfig
