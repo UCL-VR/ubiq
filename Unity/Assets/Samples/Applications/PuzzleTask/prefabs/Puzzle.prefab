@@ -44,8 +44,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spawnPoint: {fileID: 0}
-  puzzleImage: {fileID: 2100000, guid: 6c39a3187c58c5c40afa65601cae6d7a, type: 2}
-  imageCatalogue: {fileID: 11400000, guid: 5f12964e4a2efe74eafcd1f3cb4acffb, type: 2}
+  puzzleImage: {fileID: 2800000, guid: 6eabaf924c6724c49a488e25bb4774e4, type: 3}
+  imageCatalogue: {fileID: 11400000, guid: fe2fba8614c156547b1202eec5fb2177, type: 2}
   prefabCatalogue: {fileID: 11400000, guid: e9294dc4382ae304a8ee8961eaa34805, type: 2}
   random: 1
   isSpawned: 0
