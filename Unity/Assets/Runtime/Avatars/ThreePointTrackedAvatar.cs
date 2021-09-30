@@ -42,9 +42,9 @@ namespace Ubiq.Avatars
             if(avatar.IsLocal)
             {
                 // Update state from hints
-                state[0].head = GetHintNode (AvatarHints.Node.Head);
-                state[0].leftHand = GetHintNode(AvatarHints.Node.LeftHand);
-                state[0].rightHand = GetHintNode(AvatarHints.Node.RightHand);
+                state[0].head = GetHintNode (AvatarHints.NodePosRot.Head);
+                state[0].leftHand = GetHintNode(AvatarHints.NodePosRot.LeftHand);
+                state[0].rightHand = GetHintNode(AvatarHints.NodePosRot.RightHand);
 
                 // Send it through network
                 Send();
@@ -72,7 +72,7 @@ namespace Ubiq.Avatars
             return local;
         }
 
-        private PositionRotation GetHintNode (AvatarHints.Node node)
+        private PositionRotation GetHintNode (AvatarHints.NodePosRot node)
         {
             if (AvatarHints.TryGet(node,out PositionRotation nodePosRot))
             {
