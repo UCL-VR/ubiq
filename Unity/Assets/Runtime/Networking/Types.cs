@@ -99,10 +99,31 @@ namespace Ubiq.Networking
 
         public ConnectionDefinition(string tcpUri)
         {
+            if(String.IsNullOrEmpty(tcpUri))
+            {
+                throw new ArgumentException($"Invalid Connection String {tcpUri}");
+            }
+
             var tokens = tcpUri.Split(':');
+
+            if(tokens.Length != 2) 
+            {
+                throw new ArgumentException($"Invalid Connection String {tcpUri}");
+            }
+
             send_to_ip = tokens[0];
             send_to_port = tokens[1];
             type = ConnectionType.tcp_client;
+
+            if(Uri.CheckHostName(send_to_ip) == UriHostNameType.Unknown)
+            {
+                throw new ArgumentException($"Invalid Connection String {tcpUri}");
+            }
+            int temp = 0;
+            if(!int.TryParse(send_to_port, out temp))
+            {
+                throw new ArgumentException($"Invalid Connection String {tcpUri}");
+            }
         }
     }
 
