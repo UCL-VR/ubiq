@@ -208,14 +208,7 @@ namespace Ubiq.Logging
 
                 if(outputStream == null)
                 {
-                    int i = 0;
-                    string filename = Filepath(i);
-                    while (File.Exists(filename))
-                    {
-                        filename = Filepath(i++);
-                    }
-
-                    outputStream = File.Open(filename, FileMode.Create, FileAccess.Write, FileShare.Read);
+                    outputStream = File.Open(Extensions.Utilities.Paths.NewPersistentFileName(postfix, "json"), FileMode.Create, FileAccess.Write, FileShare.Read);
                     outputStream.Write(startArray, 0, startArray.Length);
                 }
 
@@ -228,11 +221,6 @@ namespace Ubiq.Logging
                 outputStream.Write(workingArea, 0, record.Length);
                 outputStream.Flush(); // This is mainly so other programs can read the logs while Ubiq is running; we don't care about the progress of the flush.
                 entries++;
-            }
-
-            private string Filepath(int i)
-            {
-                return Path.Combine(Application.persistentDataPath, $"{postfix}_log_{DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss")}_{i}.json");
             }
 
             public void Dispose()
