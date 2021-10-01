@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Ubiq.Networking;
 using Ubiq.Rooms;
@@ -43,7 +44,13 @@ namespace Ubiq.Samples.Bots
 
         private void CheckCommandLineArguments()
         {
-            // todo
+            try
+            {
+                DefaultBotServer = new ConnectionDefinition(CommandLine.GetArgument("-botsserver"));
+            }catch(ArgumentException)
+            {
+                //Ignore this setting 
+            }
         }
 
         public static ConnectionDefinition CommandServer

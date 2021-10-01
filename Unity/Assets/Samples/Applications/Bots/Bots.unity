@@ -1923,7 +1923,7 @@ MonoBehaviour:
   DefaultBotServer:
     listen_on_ip: 
     listen_on_port: 
-    send_to_ip: nexus.cs.ucl.ac.uk
+    send_to_ip: localhost
     send_to_port: 8002
     type: 0
 --- !u!4 &1567755671
