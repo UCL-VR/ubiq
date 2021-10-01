@@ -14,6 +14,7 @@ namespace Ubiq.Samples.Bots
         public RoomClient RoomClient;
         private LogCollector collector;
         private LatencyMeter meter;
+        private Queue<IPeer> peersToPing;
 
         // Local event logger
         private UserEventLogger info;
@@ -25,6 +26,7 @@ namespace Ubiq.Samples.Bots
         {
             meter = RoomClient.GetComponentInChildren<LatencyMeter>();
             collector = GetComponent<LogCollector>();
+            peersToPing = new Queue<IPeer>();
         }
 
         public void StartMeasurements()
@@ -46,13 +48,31 @@ namespace Ubiq.Samples.Bots
         {
             if (Measure)
             {
-                if (Time.time - lastPingTime > 1f)
+                // Iterate over all peers doing a time-divided ping
+                if(peersToPing.Count <= 0)
                 {
+                    foreach (var item in RoomClient.Peers)
+                    {
+                        peersToPing.Enqueue(item);
+                    }
+                }
+
+
+
+                if (Time.time - lastPingTime > 0.25f)
+                {
+                    if (peersToPing.Count > 0)
+                    {
+                        var peer = peersToPing.Dequeue();
+                        meter.MeasurePeerLatencies(peer);
+                    }
+
                     lastPingTime = Time.time;
-                    meter.MeasurePeerLatencies();
                     info.Log("RoomInfo", RoomClient.Peers.Count());
                 }
             }
         }
+
+
     }
 }
