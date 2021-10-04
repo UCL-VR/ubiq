@@ -52,6 +52,8 @@ namespace Ubiq.Spawning
             public bool replay;
             public bool visible;
             public string uuid;
+            public bool outline;
+            public TransformMessage transform;
         }
 
         public Dictionary<NetworkId, GameObject> GetSpawned()
@@ -108,11 +110,13 @@ namespace Ubiq.Spawning
             return go;
         }
 
-        private GameObject InstantiateReplay(int i, NetworkId networkId, bool local, bool visible, string uuid)
+        private GameObject InstantiateReplay(int i, NetworkId networkId, bool local, bool visible, string uuid, bool outline, TransformMessage transform)
         {
             Debug.Log("Instantiate Replay");
             GameObject go = Instantiate(i, networkId, local);
-            
+            go.transform.position = transform.position;
+            go.transform.rotation = transform.rotation;
+
             // not everything that's replayed is an avatar or has a texture
             if (go.TryGetComponent(out TexturedAvatar texturedAvatar))
             {
@@ -122,9 +126,19 @@ namespace Ubiq.Spawning
             {
                 texturedObject.SetTexture(uuid);
             }
-            //go.GetComponent<TexturedAvatar>().SetTexture(uuid); // only for avatars (for now)
 
-            go.GetComponent<Outliner>().SetOutline(true); // every object/avatar that can be replayed should have this to distinguish them from the real deal
+            if (outline)
+            {
+                if (go.TryGetComponent(out Outliner outliner))
+                {
+                    outliner.SetOutline(true);
+                    //go.GetComponent<Outliner>().SetOutline(true); // every object/avatar that can be replayed should have this to distinguish them from the real deal
+                }
+            }
+            //else
+            //{
+
+            //}
             Debug.Log("visible is " + visible);
             if (visible)
             {
@@ -157,12 +171,12 @@ namespace Ubiq.Spawning
                 // might already be removed
                 roomClient.Room[key] = JsonUtility.ToJson(new Message() {networkId = msg.networkId, remove = true});
                 Destroy(spawned[msg.networkId]);
-                spawned.Remove(msg.networkId);
+                //spawned.Remove(msg.networkId);
             }
             else if (msg.replay)
             {
                 Debug.Log("NetworkSpawner ProcessMessage (replay)");
-                InstantiateReplay(msg.catalogueIndex, msg.networkId, false, msg.visible, msg.uuid);
+                InstantiateReplay(msg.catalogueIndex, msg.networkId, false, msg.visible, msg.uuid, msg.outline, msg.transform);
 
             }
             else
@@ -172,7 +186,7 @@ namespace Ubiq.Spawning
             }
         }
         // called locally
-        public GameObject SpawnPersistentReplay(GameObject gameObject, string uuid)
+        public GameObject SpawnPersistentReplay(GameObject gameObject, bool visible, string uuid, bool outline, TransformMessage transform)
         {
             var i = ResolveIndex(gameObject);
             var networkId = NetworkScene.GenerateUniqueId();
@@ -182,13 +196,13 @@ namespace Ubiq.Spawning
             // locally replayed avatars cannot be local otherwise they follow the player
             if (gameObject.GetComponent<Ubiq.Avatars.Avatar>() != null)
             {
-                spawned = InstantiateReplay(i, networkId, false, false, uuid); // not local
+                spawned = InstantiateReplay(i, networkId, false, visible, uuid, outline, transform); // not local
             }
             else
             {
-                spawned = InstantiateReplay(i, networkId, true, false, uuid); // can be local
+                spawned = InstantiateReplay(i, networkId, true, visible, uuid, outline, transform); // can be local
             }
-            roomClient.Room[key] = JsonUtility.ToJson(new Message() { catalogueIndex = i, networkId = networkId, replay = true, visible = false, uuid = uuid});
+            roomClient.Room[key] = JsonUtility.ToJson(new Message() { catalogueIndex = i, networkId = networkId, replay = true, visible = visible, uuid = uuid, outline = outline, transform = transform});
             return spawned;
         }
 
@@ -219,7 +233,7 @@ namespace Ubiq.Spawning
             if (spawned.ContainsKey(networkId))
             {
                 Destroy(spawned[networkId]);
-                spawned.Remove(networkId);
+                //spawned.Remove(networkId); Ben did that
             }
             roomClient.Room[key] = JsonUtility.ToJson(new Message() {networkId = networkId, remove = true});
             //Debug.Log("UnspawnPersistent " + networkId.ToString() + "  " + roomClient.Room[key]);
@@ -251,7 +265,8 @@ namespace Ubiq.Spawning
                             replay = msg.replay,
                             remove = msg.remove,
                             visible = (bool)arg,
-                            uuid = msg.uuid
+                            uuid = msg.uuid,
+                            outline = msg.outline
                         });
                         Debug.Log("UpdateVisibility of " + networkId + " to " + arg);
                         break;
@@ -265,7 +280,8 @@ namespace Ubiq.Spawning
                             replay = msg.replay,
                             remove = msg.remove,
                             visible = msg.visible,
-                            uuid = (string)arg
+                            uuid = (string)arg,
+                            outline = msg.outline
                         });
                         Debug.Log("UpdateTexture of " + networkId + " to " + arg);
                         break;
@@ -309,7 +325,7 @@ namespace Ubiq.Spawning
                             if (msg.replay)
                             {
                                 Debug.Log("OnRoom InstantiateReplay" + item.Key);
-                                InstantiateReplay(msg.catalogueIndex, msg.networkId, false, msg.visible, msg.uuid);
+                                InstantiateReplay(msg.catalogueIndex, msg.networkId, false, msg.visible, msg.uuid, msg.outline, msg.transform);
                             }
                             else
                             {
@@ -365,6 +381,7 @@ namespace Ubiq.Spawning
             var spawner = FindNetworkSpawner(NetworkScene.FindNetworkScene(caller));
             spawner.UnspawnPersistent(id);
         }
+
         public static GameObject SpawnPersistent(MonoBehaviour caller, GameObject prefab)
         {
             var spawner = FindNetworkSpawner(NetworkScene.FindNetworkScene(caller));

@@ -16,6 +16,18 @@ namespace Ubiq.Messaging
             this.position = transform.localPosition;
             this.rotation = transform.localRotation;
         }
+
+        public TransformMessage(Vector3 position, Quaternion rotation)
+        {
+            this.position = position;
+            this.rotation = rotation;
+        }
+
+        public TransformMessage(Vector3 position, Vector3 eulerAngles)
+        {
+            this.position = position;
+            this.rotation = Quaternion.Euler(eulerAngles);
+        }
     }
 
 
