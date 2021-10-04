@@ -78,7 +78,7 @@ public class Recorder
             initFile = true;
         }
 
-        Debug.Log("Framenr: " + frameNr + " " + previousFrame);
+        //Debug.Log("Framenr: " + frameNr + " " + previousFrame);
         if (previousFrame != frameNr) // went on to next frame so generate new message pack
         {
             if (messages != null)

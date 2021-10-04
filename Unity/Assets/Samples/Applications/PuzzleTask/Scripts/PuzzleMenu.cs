@@ -17,9 +17,15 @@ public class PuzzleMenu : MonoBehaviour
     public Puzzle puzzle1;
     public Puzzle puzzle2;
 
-    public bool random = true;
+    public bool random = false;
+    public bool useOneTexture = true;
     public Texture2D texture;
-    public int uid = 3;
+    public Texture2D texture1;
+    public Texture2D texture2;
+
+    public int uid = 0;
+    public int uid1 = 1;
+    public int uid2 = 2;
 
     [HideInInspector, System.NonSerialized]
     public bool hideAvatar = false;
@@ -32,7 +38,7 @@ public class PuzzleMenu : MonoBehaviour
     private ObjectHider avatarHider;
     private ObjectHider menuHider;
 
-    public void SetTextureFromUid(int uid)
+    public Texture2D SetTextureFromUid(int uid)
     {
         if (uid < 0)
             uid = 0;
@@ -41,37 +47,45 @@ public class PuzzleMenu : MonoBehaviour
         string suid = uid.ToString();
         if (suid != null || suid != "")
         {
-            texture = catalogue.Get(suid);
+            return texture = catalogue.Get(suid);
         }
+        return texture;
     }
 
-    public void SpawnPuzzle1(Texture2D tex)
+    public void SpawnPuzzle(Puzzle puzzle, Texture2D texture, bool random)
     {
-        puzzle1.random = random;
-        puzzle1.puzzleImage = tex;
-        puzzle1.SpawnPersistentPuzzle();
-
+        puzzle.puzzleImage = texture;
+        puzzle.random = random;
+        puzzle.SpawnPersistentPuzzle();
     }
 
-    public void SpawnPuzzle2(Texture2D tex)
+    public void UnspawnPuzzle(Puzzle puzzle)
     {
-        puzzle2.random = random;
-        puzzle2.puzzleImage = tex;
-        puzzle2.SpawnPersistentPuzzle();
-
+        puzzle.UnspawnPuzzle();
     }
 
     public void SpawnPuzzles()
     {
-        SetTextureFromUid(uid);
-        SpawnPuzzle1(texture);
-        SpawnPuzzle2(texture);
+        if (useOneTexture)
+        {
+            texture = SetTextureFromUid(uid);
+            SpawnPuzzle(puzzle1, texture, random); // texture does not matter if random is true
+            SpawnPuzzle(puzzle2, texture, random); 
+
+        }
+        else
+        {
+            texture1 = SetTextureFromUid(uid1);
+            texture2 = SetTextureFromUid(uid2);
+            SpawnPuzzle(puzzle1, texture1, random);
+            SpawnPuzzle(puzzle2, texture2, random);
+        }
     }
 
     public void UnspawnPuzzles()
     {
-        puzzle1.UnspawnPuzzle();
-        puzzle2.UnspawnPuzzle();
+        UnspawnPuzzle(puzzle1);
+        UnspawnPuzzle(puzzle2);
     }
 
     public void ShowHideAvatar(int layer)

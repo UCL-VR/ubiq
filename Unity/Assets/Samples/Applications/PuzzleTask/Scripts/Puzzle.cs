@@ -50,10 +50,10 @@ public class Puzzle : MonoBehaviour, INetworkObject
         roomClient = scene.gameObject.GetComponent<RoomClient>();
         roomClient.OnJoinedRoom.AddListener(OnJoinedRoom);
 
-        minX = spawnPoint.transform.position.x - 0.3f;
-        maxX = spawnPoint.transform.position.x + 0.3f;
-        minZ = spawnPoint.transform.position.z - 0.3f;
-        maxZ = spawnPoint.transform.position.z + 0.3f;
+        minX = spawnPoint.transform.position.x - 0.35f;
+        maxX = spawnPoint.transform.position.x + 0.35f;
+        minZ = spawnPoint.transform.position.z - 0.35f;
+        maxZ = spawnPoint.transform.position.z + 0.35f;
         Debug.Log("spawn area: x " + minX + " " + maxX + " z " + minZ + " " + maxZ);
 
         puzzlePiecesGo = new List<GameObject>();
