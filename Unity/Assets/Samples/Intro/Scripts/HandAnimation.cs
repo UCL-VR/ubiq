@@ -2,38 +2,76 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Ubiq.Avatars;
+using Ubiq.Messaging;
+using Avatar = Ubiq.Avatars.Avatar;
 
-[RequireComponent(typeof(Animator))]
-public class HandAnimation : MonoBehaviour
+public class HandAnimation : MonoBehaviour, INetworkComponent
 {
-    public AvatarHints.NodeFloat node;
+    //public AvatarHints.NodeFloat node;
     public float speed;
 
-    private Animator animator;
-    private float gripTarget;
-    private float gripCurrent;
+    public Animator leftHandAnimator;
+    public Animator rightHandAnimator;
+
+    private float gripTargetLeft;
+    private float gripTargetRight;
+
+    private float gripCurrentLeft;
+    private float gripCurrentRight;
+
     private string animatorGripParam = "Grip";
+
+    private NetworkContext context;
+    private Avatar avatar;
+
+    public struct Message
+    {
+        //public string animatorGripParam;
+        public float l;
+        public float r;
+
+        public Message(float gripTargetL, float gripTargetR)
+        {
+            this.l = gripTargetL;
+            this.r = gripTargetR;
+        }
+
+    }
 
     // Start is called before the first frame update
     void Start()
     {
-        animator = GetComponent<Animator>();
+        context = NetworkScene.Register(this);
+        avatar = GetComponent<Avatar>();
+        
     }
 
     // Update is called once per frame
     void Update()
     {
-        AnimateHand();
+        AnimateHands();
     }
 
-    private void AnimateHand()
+    private void AnimateHands()
     {
-        gripTarget = GetHintNode(node);
-        
-        if (gripCurrent != gripTarget)
+        if (avatar.IsLocal)
         {
-            gripCurrent = Mathf.MoveTowards(gripCurrent, gripTarget, Time.deltaTime * speed);
-            animator.SetFloat(animatorGripParam, gripCurrent);
+            gripTargetLeft = GetHintNode(AvatarHints.NodeFloat.LeftHandGrip);
+            gripTargetRight = GetHintNode(AvatarHints.NodeFloat.RightHandGrip);
+
+            context.SendJson(new Message(gripTargetLeft, gripTargetRight)); // sent every frame currently...put into if() ?
+            //Debug.Log("Anim: " + gripCurrent + " " + gripTarget);
+        }
+        
+        if (gripCurrentLeft != gripTargetLeft)
+        {
+            gripCurrentLeft = Mathf.MoveTowards(gripCurrentLeft, gripTargetLeft, Time.deltaTime * speed);
+            leftHandAnimator.SetFloat(animatorGripParam, gripCurrentLeft);
+        }
+        if (gripCurrentRight != gripTargetRight)
+        {
+            gripCurrentRight = Mathf.MoveTowards(gripCurrentRight, gripTargetRight, Time.deltaTime * speed);
+            rightHandAnimator.SetFloat(animatorGripParam, gripCurrentRight);
         }
     }
 
@@ -44,5 +82,14 @@ public class HandAnimation : MonoBehaviour
             return nodeFloat;
         }
         return 0.0f;
+    }
+
+    public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+    {
+        Message msg = message.FromJson<Message>();
+        gripTargetLeft = msg.l;
+        gripTargetRight = msg.r;
+        //Debug.Log("Anim Remote: " + gripCurrent + " " + gripTarget);
+
     }
 }
