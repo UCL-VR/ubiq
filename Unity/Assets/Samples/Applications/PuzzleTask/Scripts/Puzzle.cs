@@ -6,6 +6,7 @@ using Ubiq.Messaging;
 using Ubiq.Samples;
 using Ubiq.Spawning;
 using UnityEditor;
+using Ubiq.Rooms;
 
 /// <summary>
 /// Puzzle organizes the spawning and unspawning of puzzle pieces with (random) images
@@ -19,10 +20,16 @@ public class Puzzle : MonoBehaviour, INetworkObject
     public PrefabCatalogue prefabCatalogue;
     public bool random = true;
 
+    private NetworkScene scene;
+    private RoomClient roomClient;
+
     private float minX;
     private float maxX;
     private float minZ;
     private float maxZ;
+
+    private int unspawnedPuzzles = 0;
+    private int spawnedPuzzles = 0;
 
     private RecorderReplayer recRep;
 
@@ -31,11 +38,18 @@ public class Puzzle : MonoBehaviour, INetworkObject
     private List<GameObject> puzzlePiecesGo; // just the GameObjects that we can assign a material to
     private List<GameObject> puzzlePiecesSpawned; // the spawned puzzle pieces that have an object id and their material should not be changed as it is not networked
 
+    private NetworkSpawner spawner;
+
     public NetworkId Id => throw new System.NotImplementedException();
 
     // Start is called before the first frame update
     void Start()
     {
+        scene = NetworkScene.FindNetworkScene(this);
+        spawner = NetworkSpawner.FindNetworkSpawner(scene);
+        roomClient = scene.gameObject.GetComponent<RoomClient>();
+        roomClient.OnJoinedRoom.AddListener(OnJoinedRoom);
+
         minX = spawnPoint.transform.position.x - 0.3f;
         maxX = spawnPoint.transform.position.x + 0.3f;
         minZ = spawnPoint.transform.position.z - 0.3f;
@@ -56,6 +70,14 @@ public class Puzzle : MonoBehaviour, INetworkObject
 
         recRep = NetworkScene.FindNetworkScene(this).GetComponent<RecorderReplayer>();
     }
+
+    // the NetworkSpawner makes sure that the pieces get removed, but need to remove them from the puzzlePiecesSpawned list too
+    // would be possible to keep them spawned (e.g. respawn them immediately after joining the room) - not now though
+    public void OnJoinedRoom(IRoom room)
+    {
+        puzzlePiecesSpawned.Clear();
+        isSpawned = false;
+    }
     public void UnspawnPuzzle()
     {
         foreach (var p in puzzlePiecesSpawned)
@@ -64,6 +86,7 @@ public class Puzzle : MonoBehaviour, INetworkObject
         }
         puzzlePiecesSpawned.Clear();
         isSpawned = false;
+        unspawnedPuzzles += 1;
     }
 
     public void SpawnPersistentPuzzle()
@@ -81,17 +104,15 @@ public class Puzzle : MonoBehaviour, INetworkObject
         }
         foreach (var p in puzzlePiecesGo)
         {
-            var piece = NetworkSpawner.SpawnPersistent(this, p);
-            PuzzlePiece pp = piece.GetComponent<PuzzlePiece>();
-            pp.SetNetworkedTexture(puzzleImage);
             var position = new Vector3(Random.Range(minX, maxX), Random.Range(spawnPoint.transform.position.y, spawnPoint.transform.position.y + 0.2f), Random.Range(minZ, maxZ));
-            piece.transform.position = position;
-            piece.transform.eulerAngles = new Vector3(0.0f, Random.Range(0, 360), 0.0f);
-            pp.SetNetworkedTransform(piece.transform);
+            TransformMessage transform = new TransformMessage(position, new Vector3(0.0f, Random.Range(0, 360), 0.0f));
+            var piece = spawner.SpawnPersistentReplay(p, true, imageCatalogue.Get(puzzleImage), false, transform);
             puzzlePiecesSpawned.Add(piece);
             Debug.Log("Spawn a piece at: " + piece.transform.position.ToString() + ", rot: " + piece.transform.eulerAngles.ToString());
         }
         isSpawned = true;
+        spawnedPuzzles += 1;
+        Debug.Log("Spawned vs unspawned: " + spawnedPuzzles + " " + unspawnedPuzzles);
     }
     // Just shuffles existing puzzle, without spawning a new one
     public void Shuffle()
@@ -139,6 +160,10 @@ public class PuzzleEditor : Editor
             if (GUILayout.Button("Shuffle"))
             {
                 t.Shuffle();
+            }
+            if (GUILayout.Button("Unspawn"))
+            {
+                t.UnspawnPuzzle();
             }
             //if (!t.random)
             //{
