@@ -14,6 +14,20 @@ namespace Ubiq.XR
 
         private Collider contacted;
         private IGraspable grasped;
+        private bool grasping;
+
+        public bool isGrasping()
+        {
+            return grasping;
+        }
+
+        public bool hasContact()
+        {
+            if (contacted != null)
+                return true;
+            else
+                return false;
+        }
 
         private void Start()
         {
@@ -24,6 +38,7 @@ namespace Ubiq.XR
         {
             if (grasp)
             {
+                grasping = true;
                 if (contacted != null)
                 {
                     // parent because physical bodies consist of a rigid body, and colliders *below* it in the scene graph
@@ -33,6 +48,7 @@ namespace Ubiq.XR
             }
             else
             {
+                grasping = false;
                 if (grasped != null)
                 {
                     grasped.Release(controller);

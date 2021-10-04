@@ -21,7 +21,7 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
     private int currentLayer = 0;
     private bool needsUpdate = true;
     private Transform[] childTransforms;
-    //private Avatar avatar;
+    private Avatar avatar;
     private NetworkId objectid;
     private NetworkSpawner spawner;
     private ISpawnable spawnableObject;
@@ -58,74 +58,60 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
         Debug.Log("ObjectHider Awake()");
         scene = NetworkScene.FindNetworkScene(this);
         context = scene.RegisterComponent(this);
-        
+
         roomClient = NetworkScene.FindNetworkScene(this).GetComponent<RoomClient>();
         childTransforms = GetComponentsInChildren<Transform>();
+        roomClient.OnPeerUpdated.AddListener(OnPeerUpdated);
         //roomClient.OnPeerAdded.AddListener(OnPeerAdded);
+        //roomClient.OnJoinedRoom.AddListener(OnJoinedRoom);
         //roomClient.OnPeerRemoved.AddListener(OnPeerRemoved);
     }
 
     void Start()
     {
-        if (context == null)
+        // not all objects are avatars!!!!
+        if (TryGetComponent<Avatar>(out avatar) && avatar.Peer.UUID != null)
+        {
+            avatar.Peer["visible"] = "1";
+        }
+
+            if (context == null)
         {
             context = NetworkScene.Register(this);
         }
 
-        //avatar = GetComponent<Avatar>(); // not ideal if I want to use this class for other objects too
         objectid = context.networkObject.Id;
         spawnableObject = GetComponent<ISpawnable>();
         spawner = NetworkSpawner.FindNetworkSpawner(context.scene);
     }
 
-    //public void OnPeerAdded(IPeer peer)
-    //{
-    //    if (scene.recorder != null && scene.recorder.IsRecording())
-    //    {
-    //        //Debug.Log("UUID:" + peer.UUID + " " + roomClient.Me.UUID);
-    //        if (peer.UUID == roomClient.Me.UUID)
-    //        {
-    //            Debug.Log("Set layer for joining/leaving avatar  (OnPeerUpdated)");
-    //            SetNetworkedObjectLayer(0);
-    //        }
-    //        else
-    //        {
-    //            Debug.Log("Does it even get called at the right time?");
-    //        }
-    //    }
-    //}
-
-    //public void OnPeerRemoved(IPeer peer)
-    //{
-    //    if (scene.recorder != null && scene.recorder.IsRecording())
-    //    {
-    //        if (peer.UUID == roomClient.Me.UUID)
-    //        {
-    //            Debug.Log("Set layer for joining/leaving avatar (OnPeerRemoved)");
-    //            SetNetworkedObjectLayer(8);
-    //        }
-    //    }
-    //}
-
-    // when recording starts, this should be invoked to send a visiblity message once for the objects that are already in the scene,
-    // for objects that are created during a recording this happens anyways
-    //public void OnStartRecording()
-    //{
-    //    Debug.Log("Event: OnStartRecording Layer: " + currentLayer);
-    //    if (currentLayer == defaultLayer)
-    //    {
-    //        NetworkedShow();
-    //    }
-    //    else
-    //    {
-    //        NetworkedHide();
-    //    }
-    //}
+    public void OnPeerUpdated(IPeer peer)
+    {
+        if (avatar != null)
+        {
+            Debug.Log("ObjectHider OnPeerUpdated");
+            Debug.Log(peer.UUID + " " + avatar.Peer.UUID);
+            if (peer.UUID == avatar.Peer.UUID)
+            {
+                if (peer["visible"] == "0")
+                {
+                    Debug.Log("Hide");
+                    SetLayer(hideLayer);
+                }
+                if (peer["visible"] == "1")
+                {
+                    Debug.Log("Show");
+                    SetLayer(defaultLayer);
+                }
+            }
+        }
+    }
 
     public void SetLayer(int layer) // not networked
     {
         currentLayer = layer;
         this.gameObject.layer = layer;
+
         foreach (Transform child in childTransforms)
         {
             child.gameObject.layer = layer;
@@ -136,6 +122,7 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
     {
         //Debug.Log("Show (layer) " + defaultLayer);
         context.SendJson(new Message() { layer = defaultLayer });
+        //roomClient.Me["visible"] = "1";
         SetLayer(defaultLayer);
     }
 
@@ -144,6 +131,7 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
     {
         //Debug.Log("Hide (layer) " + hideLayer);
         context.SendJson(new Message() { layer = hideLayer });
+        //roomClient.Me["visible"] = "0";
         SetLayer(hideLayer);
     }
 

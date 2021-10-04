@@ -67,6 +67,10 @@ namespace Ubiq.Samples
         public MainMenuEvent OnOpen;
         public MainMenuEvent OnClose;
 
+        [Serializable]
+        public class MainMenuIndicatorEvent : UnityEvent<NetworkedMainMenuIndicator> { }
+        public MainMenuIndicatorEvent OnIndicatorSpawned;
+
         private GameObject uiIndicator;
         private string roomUUID;
 
@@ -122,6 +126,7 @@ namespace Ubiq.Samples
                 var spawner = NetworkSpawner.FindNetworkSpawner(networkScene);
                 uiIndicator = spawner.SpawnPersistent(networkedIndicatorPrefab);
                 var bindable = uiIndicator.GetComponent<IMainMenuBindable>();
+                OnIndicatorSpawned.Invoke(uiIndicator.GetComponent<NetworkedMainMenuIndicator>());
                 if (bindable != null)
                 {
                     bindable.Bind(this);
