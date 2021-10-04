@@ -8,7 +8,7 @@ namespace Ubiq.Samples
 {
     public class JoincodeJoinButton : MonoBehaviour
     {
-        public MainMenu mainMenu;
+        public SocialMenu mainMenu;
         public PanelSwitcher mainPanel;
         public Text joincodeText;
 

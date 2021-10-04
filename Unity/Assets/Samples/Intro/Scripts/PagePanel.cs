@@ -15,9 +15,6 @@ namespace Ubiq.Samples.Social
 
         public bool buttonsWrap = true;
 
-        public int debugPage = 3;
-        public int debugPageCount = 5;
-
         public int page { get; private set; }
         public int pageCount { get; private set; }
 

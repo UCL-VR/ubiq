@@ -8,7 +8,7 @@ namespace Ubiq.Samples
 {
     public class NewRoomButton : MonoBehaviour
     {
-        public MainMenu mainMenu;
+        public SocialMenu mainMenu;
         public Text nameText;
         public bool publish;
 

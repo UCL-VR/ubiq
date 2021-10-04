@@ -10,11 +10,11 @@ namespace Ubiq.Samples.Social
     public class UserPanelController : MonoBehaviour
     {
         public Text nameText;
-        private MainMenu mainMenu;
+        private SocialMenu mainMenu;
 
         private void Awake()
         {
-            mainMenu = GetComponentInParent<MainMenu>();
+            mainMenu = GetComponentInParent<SocialMenu>();
         }
 
         private void Start()

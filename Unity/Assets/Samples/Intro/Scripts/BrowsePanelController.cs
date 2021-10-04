@@ -6,7 +6,7 @@ namespace Ubiq.Samples
 {
     public class BrowsePanelController : MonoBehaviour
     {
-        public MainMenu mainMenu;
+        public SocialMenu mainMenu;
         public BrowseMenuControl joinedControl;
         public Transform controlsRoot;
         public GameObject roomListPanel;

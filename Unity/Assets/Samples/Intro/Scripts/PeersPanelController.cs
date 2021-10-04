@@ -15,11 +15,11 @@ namespace Ubiq.Samples
         private List<PeersPanelControl> controls = new List<PeersPanelControl>();
         private List<IRoom> lastRoomArgs;
 
-        private MainMenu mainMenu;
+        private SocialMenu mainMenu;
 
         private void Awake()
         {
-            mainMenu = GetComponentInParent<MainMenu>();
+            mainMenu = GetComponentInParent<SocialMenu>();
         }
 
         private void OnEnable()
@@ -75,10 +75,10 @@ namespace Ubiq.Samples
 
             if (!meControl)
             {
-                var peer = mainMenu.roomClient.Me;
                 meControl = InstantiateControl();
-                meControl.Bind(mainMenu.roomClient,peer,isMe:true);
             }
+
+            meControl.Bind(mainMenu.roomClient,mainMenu.roomClient.Me,isMe:true);
 
             var controlI = 0;
             foreach(var peer in mainMenu.roomClient.Peers)

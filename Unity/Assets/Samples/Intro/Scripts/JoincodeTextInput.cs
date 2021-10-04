@@ -10,7 +10,7 @@ namespace Ubiq.Samples
     {
         public string failMessage;
         public Color failTextInputAreaColor;
-        public MainMenu mainMenu;
+        public SocialMenu mainMenu;
         public TextEntry textEntry;
         public Image textInputArea;
 

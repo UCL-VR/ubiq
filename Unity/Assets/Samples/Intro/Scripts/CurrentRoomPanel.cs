@@ -8,7 +8,7 @@ namespace Ubiq.Samples
 {
     public class CurrentRoomPanel : MonoBehaviour
     {
-        public MainMenu mainMenu;
+        public SocialMenu mainMenu;
         public GameObject notInRoomPanel;
         public GameObject inRoomPanel;
         public CurrentRoomPanelControl control;

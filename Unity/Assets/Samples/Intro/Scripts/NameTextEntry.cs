@@ -9,12 +9,12 @@ namespace Ubiq.Samples.Social
     public class NameTextEntry : MonoBehaviour
     {
         private TextEntry textEntry;
-        private MainMenu mainMenu;
+        private SocialMenu mainMenu;
 
         private void Awake()
         {
             textEntry = GetComponent<TextEntry>();
-            mainMenu = GetComponentInParent<MainMenu>();
+            mainMenu = GetComponentInParent<SocialMenu>();
         }
 
         private void OnEnable()

@@ -72,8 +72,6 @@ namespace Ubiq.Samples
                         image.sprite = stages[i].sprite;
                         image.color = stages[i].color;
                         image.enabled = stages[i].enabled;
-
-                        Debug.Log(image.gameObject.name + " " + i);
                         return;
                     }
                 }

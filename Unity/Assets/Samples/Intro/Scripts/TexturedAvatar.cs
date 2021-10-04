@@ -13,18 +13,24 @@ namespace Ubiq.Samples
     [RequireComponent(typeof(Avatar))]
     public class TexturedAvatar : MonoBehaviour
     {
+        [Serializable]
+        private class TextureConfig
+        {
+            public List<string> ids = new List<string>();
+            public List<string> uuids = new List<string>();
+        }
+
         public AvatarTextureCatalogue Textures;
         public bool RandomTextureOnSpawn;
         public bool SaveTextureSetting;
 
         [Serializable]
-        public class TextureEvent : UnityEvent<Texture2D> { }
+        public class TextureEvent : UnityEvent<Texture2D, string> { }
         public TextureEvent OnTextureChanged;
 
         private Avatar avatar;
-        private string uuid;
-
-        private Texture2D cached; // Cache for GetTexture. Do not do anything else with this; use the uuid
+        private TextureConfig config = new TextureConfig();
+        private string configString;
 
         private void Awake()
         {
@@ -50,7 +56,7 @@ namespace Ubiq.Samples
 
         void OnPeerUpdated(IPeer peer)
         {
-            SetTexture(peer["ubiq.avatar.texture.uuid"]);
+            SetTexture(peer["ubiq.samples.social.texture"]);
         }
 
         /// <summary>
@@ -59,27 +65,48 @@ namespace Ubiq.Samples
         /// </summary>
         public void SetTexture(Texture2D texture)
         {
-            SetTexture(Textures.Get(texture));
+            SetTexture(texture,"");
+        }
+
+        public void SetTexture(Texture2D texture, string id)
+        {
+            SetTexture(Textures.Get(texture),id);
         }
 
         public void SetTexture(string uuid)
         {
-            if(String.IsNullOrWhiteSpace(uuid))
+            SetTexture(uuid,"");
+        }
+
+        public void SetTexture(string uuid, string id)
+        {
+            if (uuid == null)
             {
                 return;
             }
 
-            if (this.uuid != uuid)
+            var index = config.ids.IndexOf(id);
+
+            // Add texture to config if id is new
+            if (index < 0)
+            {
+                config.ids.Add(id);
+                config.uuids.Add(null);
+                index = config.ids.Count-1;
+            }
+
+            // Load and set texture for uuid if different from existing record
+            if (config.uuids[index] != uuid)
             {
                 var texture = Textures.Get(uuid);
-                this.uuid = uuid;
-                this.cached = texture;
+                config.uuids[index] = uuid;
+                configString = JsonUtility.ToJson(config);
 
-                OnTextureChanged.Invoke(texture);
+                OnTextureChanged.Invoke(texture,id);
 
                 if(avatar.IsLocal)
                 {
-                    avatar.Peer["ubiq.avatar.texture.uuid"] = this.uuid;
+                    avatar.Peer["ubiq.samples.social.texture"] = configString;
                 }
 
                 if (avatar.IsLocal && SaveTextureSetting)
@@ -91,24 +118,31 @@ namespace Ubiq.Samples
 
         private void SaveSettings()
         {
-            PlayerPrefs.SetString("ubiq.avatar.texture.uuid", uuid);
+            PlayerPrefs.SetString("ubiq.samples.social.texture", JsonUtility.ToJson(config));
         }
 
         private bool LoadSettings()
         {
-            var uuid = PlayerPrefs.GetString("ubiq.avatar.texture.uuid", "");
-            SetTexture(uuid);
-            return !String.IsNullOrWhiteSpace(uuid);
+            configString = PlayerPrefs.GetString("ubiq.samples.social.texture", "");
+
+            if (!string.IsNullOrEmpty(configString))
+            {
+                config = JsonUtility.FromJson<TextureConfig>(configString);
+
+                for (int i = 0; i < config.ids.Count; i++)
+                {
+                    SetTexture(config.uuids[i],config.ids[i]);
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         public void ClearSettings()
         {
-            PlayerPrefs.DeleteKey("ubiq.avatar.texture.uuid");
-        }
-
-        public Texture2D GetTexture()
-        {
-            return cached;
+            PlayerPrefs.DeleteKey("ubiq.samples.social.texture");
         }
     }
 }

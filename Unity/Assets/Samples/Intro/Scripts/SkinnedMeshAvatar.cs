@@ -29,7 +29,7 @@ namespace Ubiq.Samples
             }
         }
 
-        private void OnSkinUpdated (Texture2D skin)
+        private void OnSkinUpdated (Texture2D skin, string id)
         {
             // This should clone the material just once, and re-use the clone
             // on subsequent calls. Whole avatar can still use the one material
