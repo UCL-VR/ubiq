@@ -6,7 +6,6 @@ using Ubiq.XR;
 
 namespace Ubiq.Avatars
 {
-
     public class AvatarHintFloat : MonoBehaviour, IAvatarHintProvider<float>
     {
         public AvatarHints.NodeFloat node;

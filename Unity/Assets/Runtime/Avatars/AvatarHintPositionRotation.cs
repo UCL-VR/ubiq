@@ -84,8 +84,16 @@ namespace Ubiq.Avatars
             RightHandGrip
         }
 
+        public enum NodeBool
+        {
+            LeftGraspObject,
+            RightGraspObject
+        }
+
         private static Dictionary<NodePosRot,IAvatarHintProvider<PositionRotation>> providersPosRot;
         private static Dictionary<NodeFloat, IAvatarHintProvider<float>> providersFloat;
+        private static Dictionary<NodeBool, IAvatarHintProvider<bool>> providersBool;
+
 
         private static Dictionary<NodePosRot,IAvatarHintProvider<PositionRotation>> RequireProvidersPosRot ()
         {
@@ -104,7 +112,14 @@ namespace Ubiq.Avatars
             }
             return providersFloat;
         }
-
+        private static Dictionary<NodeBool, IAvatarHintProvider<bool>> RequireProvidersBool()
+        {
+            if (providersBool == null)
+            {
+                providersBool = new Dictionary<NodeBool, IAvatarHintProvider<bool>>();
+            }
+            return providersBool;
+        }
         public static bool TryGet (NodePosRot node, out PositionRotation posRot)
         {
             RequireProvidersPosRot();
@@ -127,6 +142,18 @@ namespace Ubiq.Avatars
                 return true;
             }
             f = 0.0f;
+            return false;
+        }
+        public static bool TryGet(NodeBool node, out bool b)
+        {
+            RequireProvidersBool();
+
+            if (providersBool.TryGetValue(node, out IAvatarHintProvider<bool> provider))
+            {
+                b = provider.Provide();
+                return true;
+            }
+            b = false;
             return false;
         }
 
@@ -157,6 +184,17 @@ namespace Ubiq.Avatars
 
             providersFloat[node] = provider;
         }
+        public static void AddProvider(NodeBool node, IAvatarHintProvider<bool> provider)
+        {
+            RequireProvidersBool();
+
+            if (providersBool.ContainsKey(node))
+            {
+                return;
+            }
+
+            providersBool[node] = provider;
+        }
 
         public static void RemoveProvider (NodePosRot node, IAvatarHintProvider<PositionRotation> provider)
         {
@@ -176,6 +214,16 @@ namespace Ubiq.Avatars
                 && extProvider == provider)
             {
                 providersFloat.Remove(node);
+            }
+        }
+        public static void RemoveProvider(NodeBool node, IAvatarHintProvider<bool> provider)
+        {
+            RequireProvidersBool();
+
+            if (providersBool.TryGetValue(node, out IAvatarHintProvider<bool> extProvider)
+                && extProvider == provider)
+            {
+                providersBool.Remove(node);
             }
         }
     }
