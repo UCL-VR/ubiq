@@ -86,33 +86,25 @@ namespace RecorderReplayerTypes {
     [System.Serializable]
     public class RecordingInfo
     {
-        public int[] listLengths;
+        public int[] listLengths; // frameTimes.Count, pckSizePerFrame.Count, idxFrameStart.Count
         public int frames;
-        public int avatarsAtStart;
-        public int avatarNr;
-        public int objectsAtStart;
-        public List<NetworkId> avatars;
-        public List<string> textures;
-        public List<NetworkId> objectids;
+        public int numberOfObjects;
+        public List<NetworkId> objectids; // objectids from prefabs (unnecessary?)
+        public List<string> textures; // textures
         public List<string> prefabs; // prefabs
         public List<float> frameTimes;
         public List<int> pckgSizePerFrame;
-        public List<int> idxFrameStart;
+        public List<long> idxFrameStart; // long! index could get extremely high
 
-        public RecordingInfo(int frames, int avatarsAtStart, int avatarNr, 
-            int objectsAtStart,
-            List<NetworkId> avatars, List<string> textures,
-            List<NetworkId> objectids, List<string> prefabs, 
-            List<float> frameTimes, List<int> pckgSizePerFrame, List<int> idxFrameStart)
+        public RecordingInfo(int frames, int numberOfObjects, 
+            List<NetworkId> objectids, List<string> textures, List<string> prefabs, 
+            List<float> frameTimes, List<int> pckgSizePerFrame, List<long> idxFrameStart)
         {
             listLengths = new int[3] { frameTimes.Count, pckgSizePerFrame.Count, idxFrameStart.Count };
             this.frames = frames;
-            this.avatarsAtStart = avatarsAtStart;
-            this.avatarNr = avatarNr;
-            this.objectsAtStart = objectsAtStart;
-            this.avatars = avatars;
-            this.textures = textures;
+            this.numberOfObjects = numberOfObjects;
             this.objectids = objectids;
+            this.textures = textures;
             this.prefabs = prefabs;
             this.frameTimes = frameTimes;
             this.pckgSizePerFrame = pckgSizePerFrame;

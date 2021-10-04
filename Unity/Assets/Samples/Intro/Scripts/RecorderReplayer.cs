@@ -21,32 +21,28 @@ public class Recorder
 
     private BinaryWriter binaryWriter;
     private string recordFileIDs; // save the objectIDs of the recorded avatars
-    private Dictionary<NetworkId, string> textures; // textures
-    private Dictionary<NetworkId, string> recordedObjectIds; // everything with prefab
-    //private int lineNr = 0; // number of lines in recordFile
-    private List<int> pckgSizePerFrame;
-    private List<int> idxFrameStart; // start of a specific frame in the recorded data
+    
     private int frameNr = 0;
     private int previousFrame = 0;
-    private int avatarsAtStart = 0;
-    private int objectsAtStart = 0;
+    private Dictionary<NetworkId, string> textures; // textures
+    private Dictionary<NetworkId, string> recordedObjectIds; // ids and prefabs   
+    private List<float> frameTimes = new List<float>(); 
+    private List<int> pckgSizePerFrame;
+    private List<long> idxFrameStart; // start of a specific frame in the recorded data, entry in list could be a huge value
     private bool initFile = false;
     private MessagePack messages = null;
    
-    private List<float> frameTimes = new List<float>(); 
     private float recordingStartTime = 0.0f;
 
     public Recorder(RecorderReplayer recRep)
     {
         this.recRep = recRep;
-        //recordedAvatarIds = new Dictionary<NetworkId, string>();
         textures = new Dictionary<NetworkId, string>();
         recordedObjectIds = new Dictionary<NetworkId, string>();
         pckgSizePerFrame = new List<int>();
-        idxFrameStart = new List<int>();
+        idxFrameStart = new List<long>();
 
     }
-
     // so we know how many of the messages belonge to one frame,
     // this is called after all connections have received their messages after one Update()
     public void NextFrame()
@@ -68,75 +64,52 @@ public class Recorder
             var dateTime = System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
             recRep.recordFile = recRep.path + "/rec" + dateTime + ".dat";
             recordFileIDs = recRep.path + "/IDsrec" + dateTime + ".txt";
-            //recordedAvatarIds = new Dictionary<NetworkId, string>();
             recordedObjectIds = new Dictionary<NetworkId, string>();
 
             idxFrameStart.Add(0); // first frame in byte data has idx 0
 
-            avatarsAtStart = recRep.aManager.Avatars.Count();
-            // also consider avatars that are currently visible from a potential previous recording!
-            //foreach (var props in recRep.replayer.replayedAvatars.Values)
-            //{
-            //    if (props.hider.GetCurrentLayer() == 0) // default visibility layer 
-            //    {
-            //        avatarsAtStart += 1;
-            //    }    
-            //}
-            //objectsAtStart = recRep.spawner.GetSpawned().Count;
-            foreach (var props in recRep.replayer.replayedObjects.Values)
-            {
-                if (props.hider.GetCurrentLayer() == 0) // default
-                {   
-                    objectsAtStart += 1;
-                }
-            }
-            objectsAtStart += avatarsAtStart; // i think we don't need this
-
-            //recStream = File.Open(recordFile, FileMode.OpenOrCreate);
             binaryWriter = new BinaryWriter(File.Open(recRep.recordFile, FileMode.OpenOrCreate)); // dispose when recording is finished
-            
             // start recoding time
             recordingStartTime = Time.unscaledTime;
 
-            //recRep.OnStartRecording.Invoke(); // object hider makes use of this so we know which objects were visible at the beginning of the recording
+            // create message pack for first frame (frameNr == 0)
+            messages = new MessagePack();
 
             initFile = true;
-
         }
 
-        //Debug.Log("Framenr: " + frameNr);
-        if (frameNr == 0 || previousFrame != frameNr) // went on to next frame so generate new message pack
+        Debug.Log("Framenr: " + frameNr + " " + previousFrame);
+        if (previousFrame != frameNr) // went on to next frame so generate new message pack
         {
             if (messages != null)
             {
                 byte[] bMessages = messages.GetBytes();
                 binaryWriter.Write(bMessages);
                 pckgSizePerFrame.Add(bMessages.Length);
-                var idx = idxFrameStart[idxFrameStart.Count - 1] + bMessages.Length;
+                long idx = idxFrameStart[idxFrameStart.Count - 1] + bMessages.Length;
                 idxFrameStart.Add(idx);
                 frameTimes.Add(Time.unscaledTime - recordingStartTime);
-                //Debug.Log("Pack size: " + bMessages.Length); // length includes 4 byte of size
+                //Debug.Log("FrameNr, pckgsize, idxFrameStart " + frameNr + " " + pckgSizePerFrame.Count + " " + idxFrameStart.Count);
             }
             messages = new MessagePack();
-            previousFrame++;
+            previousFrame += 1; 
         }
+
         var msg = new byte[message.length + 10]; // just take header and message
         Buffer.BlockCopy(message.bytes, 0, msg, 0, message.length + 10);
         SingleMessage recMsg = new SingleMessage(msg);
         byte[] recBytes = recMsg.GetBytes();
           
         messages.AddMessage(recBytes);
-        //SingleMessage3 test = new SingleMessage3(recMsg.GetBytes());
         //Debug.Log(message.objectid.ToString() + " " + frameNr);
 
         if (!recordedObjectIds.ContainsKey(message.objectid)) // dictionary ContainsKey is O(1) and List Contains is O(n)
         {
-        
             if (obj is Avatar) // check it here too in case we later record other things than avatars as well
             {
                 var name = (obj as Avatar).PrefabUuid;
                 string uid = (obj as Avatar).gameObject.GetComponent<TexturedAvatar>().GetTextureUuid(); // get texture of avatar so we can later replay a look-alike avatar
-                recordedObjectIds.Add(message.objectid, name); // change this to prefab later... dunno how to get that yet though...
+                recordedObjectIds.Add(message.objectid, name); // prefab
                 if (!textures.ContainsKey(message.objectid))
                 {
                     textures.Add(message.objectid, uid);
@@ -163,21 +136,16 @@ public class Recorder
         if (recordedObjectIds != null && recordFileIDs != null) // save objectids and texture uids once recording is done
         {
             Debug.Log("Save recording info");
-            //recStream.Dispose();
             binaryWriter.Dispose();
 
             Debug.Log("FrameNr, pckgsize, idxFrameStart" + frameNr + " " + pckgSizePerFrame.Count + " " + idxFrameStart.Count);
            
-            File.WriteAllText(recordFileIDs, JsonUtility.ToJson(new RecordingInfo(frameNr-1, avatarsAtStart, textures.Count,
-                objectsAtStart,
-                new List<NetworkId>(textures.Keys), new List<string>(textures.Values),
-                new List<NetworkId>(recordedObjectIds.Keys), new List<string>(recordedObjectIds.Values),
+            File.WriteAllText(recordFileIDs, JsonUtility.ToJson(new RecordingInfo(frameNr-1, recordedObjectIds.Count,
+                new List<NetworkId>(recordedObjectIds.Keys), new List<string>(textures.Values), new List<string>(recordedObjectIds.Values),
                 frameTimes, pckgSizePerFrame, idxFrameStart)));
 
             textures.Clear();
             recordedObjectIds.Clear();
-            avatarsAtStart = 0;
-            objectsAtStart = 0;
             recordFileIDs = null;
             pckgSizePerFrame.Clear();
             idxFrameStart.Clear();
@@ -186,8 +154,7 @@ public class Recorder
             messages = null;
 
             initFile = false;
-            frameNr = 0;
-
+            frameNr = previousFrame = 0;
             Debug.Log("Recording info saved");
 
         }
@@ -294,8 +261,8 @@ public class Replayer
     {
         recRep.currentReplayFrame++;
         //!!!!!!!!!!! sometimes the frame number is one too high so maybe just in case for now skip the last frame?
-        // no clue why that happens actually... I do reset all the variables after each recording.
-        if (recRep.currentReplayFrame == recInfo.frames-1)
+        // no clue why that happens actually... I do reset all the variables after each recording. (update... I did not reset the previousFrame variable)
+        if (recRep.currentReplayFrame == recInfo.frames) // no -1 for now
         {
             recRep.currentReplayFrame = 0;
             HideAll();
@@ -358,7 +325,7 @@ public class Replayer
             //{
             //    uid = textures[objectid];
             //}
-            GameObject go = spawner.SpawnPersistentReplay(prefab, uid);
+            GameObject go = spawner.SpawnPersistentReplay(prefab, false, uid, true, new TransformMessage(recRep.thisTransform));
 
             ReplayedObjectProperties props = new ReplayedObjectProperties();
             props.hider = go.GetComponent<ObjectHider>();
@@ -368,7 +335,7 @@ public class Replayer
             Debug.Log(objectid.ToString() + " new: " + newId.ToString());
             props.gameObject = go;
             props.id = newId;
-            INetworkComponent[] components = go.GetComponents<INetworkComponent>();
+            INetworkComponent[] components = go.GetComponentsInChildren<INetworkComponent>();
             foreach (var comp in components)
             {
                 props.components.Add(NetworkScene.GetComponentId(comp), comp);
@@ -431,7 +398,7 @@ public class Replayer
 
             recInfo = JsonUtility.FromJson<RecordingInfo>(recString);
             prefabs = recInfo.objectids.Zip(recInfo.prefabs, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
-            textures = recInfo.avatars.Zip(recInfo.textures, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
+            textures = recInfo.objectids.Zip(recInfo.textures, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
         }
 
         return recInfo;
@@ -511,6 +478,7 @@ public class Replayer
             ReferenceCountedSceneGraphMessage rcsgm = CreateRCSGM(msg);
             //Debug.Log(rcsgm.objectid.ToString());
             ReplayedObjectProperties props = replayedObjects[rcsgm.objectid]; // avatars and objects
+            Debug.Log(rcsgm.componentid);
             INetworkComponent component = props.components[rcsgm.componentid];
 
             // send and replay remotely
@@ -614,6 +582,7 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder, INetworkCompone
     [HideInInspector] public bool loop = true;
     [HideInInspector] public int currentReplayFrame = 0;
     [HideInInspector] public bool reverse = false;
+    [HideInInspector] public Transform thisTransform;
 
     [HideInInspector] public bool leftRoom = false;
     private RoomClient roomClient;
@@ -669,6 +638,7 @@ public class RecorderReplayer : MonoBehaviour, IMessageRecorder, INetworkCompone
 
     void Start ()
     {
+        thisTransform = gameObject.transform;
         context = scene.RegisterComponent(this);
         roomClient = GetComponent<RoomClient>();
         //roomClient.OnPeerRemoved.AddListener(OnPeerRemoved);
