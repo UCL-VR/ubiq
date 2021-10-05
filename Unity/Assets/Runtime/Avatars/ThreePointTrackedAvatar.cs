@@ -26,6 +26,9 @@ namespace Ubiq.Avatars
         private IAvatarHintProvider leftHand;
         private IAvatarHintProvider rightHand;
 
+        private float avatarUpdateRate = 60;
+        private float lastTransmitTime;
+
         [Serializable]
         private struct State
         {
@@ -39,6 +42,7 @@ namespace Ubiq.Avatars
             avatar = GetComponent<Avatar>();
             context = NetworkScene.Register(this);
             networkSceneRoot = context.scene.transform;
+            lastTransmitTime = Time.time;
         }
 
         private void Start()
@@ -58,7 +62,7 @@ namespace Ubiq.Avatars
 
         private void Update ()
         {
-            if(avatar.IsLocal)
+            if (avatar.IsLocal)
             {
                 // Update state from hints
 
@@ -76,7 +80,10 @@ namespace Ubiq.Avatars
                 }
 
                 // Send it through network
-                Send();
+                if ((Time.time - lastTransmitTime) > (1 / avatarUpdateRate))
+                {
+                    Send();
+                }
 
                 // Update local listeners
                 OnRecv();
@@ -125,6 +132,8 @@ namespace Ubiq.Avatars
             transformBytes.CopyTo(new Span<byte>(message.bytes, message.start, message.length));
 
             context.Send(message);
+
+            lastTransmitTime = Time.time;
         }
 
         public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
