@@ -27,7 +27,7 @@ git clone git@github.com:UCL-VR/ubiq.git Ubiq
 
 2. Open the `Unity` folder in Unity. To add Ubiq to the `Unity Hub`, open the `Unity Hub`, click `Add`, then navigate to `/Ubiq/Unity` and click `Select Folder`.
 
-3. Open the `Assets/Samples/Introduction/Hello World` scene.
+3. Open the `Assets/Samples/Intro/Hello World` scene.
 
 4. Click `Play`.
 
