@@ -24,6 +24,12 @@ namespace Ubiq.Samples.Bots
 
         private void Awake()
         {
+            if(Application.isBatchMode) // The performance monitor should only run in headed builds
+            {
+                Destroy(this);
+                return;
+            }
+
             meter = RoomClient.GetComponentInChildren<LatencyMeter>();
             collector = GetComponent<LogCollector>();
             peersToPing = new Queue<IPeer>();
