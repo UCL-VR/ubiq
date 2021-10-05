@@ -3,6 +3,7 @@ const { randString } = require("./joincode");
 const { uuid } = require("./uuid");
 const { Schema } = require("./schema");
 const { EventEmitter } = require('events');
+const { Info, Performance } = require('./logging');
 
 const VERSION_STRING = "0.0.4";
 const RoomServerReservedId = 1;
@@ -28,16 +29,22 @@ class RoomServer extends EventEmitter{
         this.version = VERSION_STRING;
         this.objectId = new NetworkId(RoomServerReservedId);
         this.componentId = RoomServerReservedComponent;
+        this.statistics = {
+            numRooms: 0,
+            numPeers: 0,
+            messagesIn: 0,
+            messagesOut: 0,
+        }
+        this.statisticsTimer = setInterval(this.updateStatistics.bind(this), 1000);
     }
 
     addServer(server){
-        console.log("Added RoomServer port " + server.port);
+        Info.log("Added RoomServer port " + server.port);
         server.onConnection.push(this.onConnection.bind(this));
-
     }
 
     onConnection(wrapped){
-        console.log("RoomServer: Client Connection from " + wrapped.endpoint().address + ":" + wrapped.endpoint().port);
+        Info.log("RoomServer: Client Connection from " + wrapped.endpoint().address + ":" + wrapped.endpoint().port);
         new RoomPeer(this, wrapped);
     }
 
@@ -48,13 +55,13 @@ class RoomServer extends EventEmitter{
             // Room join request by joincode
             room = this.roomDatabase.joincode(args.joincode);
             if (room === null) {
-                console.log(peer.uuid + " attempted to join room with code " + args.joincode + " but no such room exists");
+                Info.log(peer.uuid + " attempted to join room with code " + args.joincode + " but no such room exists");
                 peer.sendRejected(args,"Could not join room with code " + args.joincode + ". No such room exists.");
                 return;
             }
 
             if (peer.room.uuid === room.uuid){
-                console.log(peer.uuid + " attempted to join room with code " + args.joincode + " but peer is already in room");
+                Info.log(peer.uuid + " attempted to join room with code " + args.joincode + " but peer is already in room");
                 return;
             }
         } else {
@@ -85,7 +92,7 @@ class RoomServer extends EventEmitter{
             this.roomDatabase.add(room);
             this.emit("create",room);
 
-            console.log(room.uuid + " created with joincode " + joincode);
+            Info.log(room.uuid + " created with joincode " + joincode);
         }
 
         if (peer.room.uuid != null){
@@ -93,7 +100,7 @@ class RoomServer extends EventEmitter{
         }
         room.addPeer(peer);
 
-        console.log(peer.uuid + " joined room " + room.uuid);
+        Info.log(peer.uuid + " joined room " + room.uuid);
     }
 
     async leave(peer){
@@ -115,7 +122,7 @@ class RoomServer extends EventEmitter{
     removeRoom(room){
         this.emit("destroy",room);
         this.roomDatabase.remove(room.uuid);
-        console.log("RoomServer: Deleting empty room " + room.uuid);
+        Info.log("RoomServer: Deleting empty room " + room.uuid);
     }
 
     setBlob(args){
@@ -132,6 +139,10 @@ class RoomServer extends EventEmitter{
         if(room !== null && room.blobs.hasOwnProperty(args.uuid)){
             args.blob = room.blobs[args.uuid];
         }
+    }
+
+    updateStatistics(){
+        Performance.logProperties("RoomServerStatistics", this.statistics);
     }
 }
 
@@ -248,14 +259,16 @@ class RoomPeer{
         this.connection.onMessage.push(this.onMessage.bind(this));
         this.connection.onClose.push(this.onClose.bind(this));
         this.sessionId = uuid();
+        this.server.statistics.numPeers++;
     }
 
     onMessage(message){
+        this.server.statistics.messagesIn++;
         if(NetworkId.Compare(message.objectId, this.server.objectId) && message.componentId == this.server.componentId){
             try {
                 message.object = message.toObject();
             } catch {
-                console.log("Peer " + this.uuid + ": Invalid JSON in message");
+                Info.log("Peer " + this.uuid + ": Invalid JSON in message");
                 return;
             }
 
@@ -269,7 +282,7 @@ class RoomPeer{
                 try {
                     message.args = JSON.parse(message.object.args);
                 } catch {
-                    console.log("Peer " + this.uuid + ": Invalid JSON in message args");
+                    Info.log("Peer " + this.uuid + ": Invalid JSON in message args");
                     return;
                 }
             }
@@ -333,8 +346,8 @@ class RoomPeer{
     }
 
     onValidationFailure(error){
-        console.log(error.json);
-        console.log(error.validation.message);
+        Info.log(error.json);
+        Info.log(error.validation.message);
     }
 
     setPeerArgs(peer){
@@ -359,6 +372,7 @@ class RoomPeer{
 
     onClose(){
         this.room.removePeer(this);
+        this.server.statistics.numPeers--;
     }
 
     setRoom(room){
@@ -477,6 +491,7 @@ class RoomPeer{
     }
 
     send(message){
+        this.server.statistics.messagesOut++;
         this.connection.send(message);
     }
 }
@@ -545,7 +560,7 @@ class Room{
             otherpeer.sendPeerRemoved(peer); // (no check here because peer was already removed from the list)
         });
 
-        console.log(peer.uuid + " left room " + this.name);
+        Info.log(peer.uuid + " left room " + this.name);
 
         if(this.peers.length <= 0){
             this.server.removeRoom(this);
@@ -564,7 +579,7 @@ class Room{
 
     updateRoom(args){
         if(args.uuid != this.uuid){
-            console.log("Attempt to update room outside membership.");
+            Info.log("Attempt to update room outside membership.");
         }
         this.name = args.name;
         Object.assign(this.properties, SerialisedDictionary.From(args.properties));  // This line converts the key/value properties array into a JS object, and merges it with the existing properties.
