@@ -203,7 +203,7 @@ namespace Ubiq.Logging
 
         protected virtual void WriteHeader(ref JsonWriter writer)
         {
-            writer.Write("ticks", DateTime.Now.Ticks);
+            writer.Write("ticks", DateTime.Now.Ticks * 100);
         }
     }
 
