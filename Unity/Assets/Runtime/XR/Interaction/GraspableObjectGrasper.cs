@@ -21,14 +21,6 @@ namespace Ubiq.XR
             return grasping;
         }
 
-        public bool hasContact()
-        {
-            if (contacted != null)
-                return true;
-            else
-                return false;
-        }
-
         private void Start()
         {
             controller.GripPress.AddListener(Grasp);
@@ -38,20 +30,24 @@ namespace Ubiq.XR
         {
             if (grasp)
             {
-                grasping = true;
+                Debug.Log("Grasping");
                 if (contacted != null)
                 {
+                    Debug.Log("Contacted");
                     // parent because physical bodies consist of a rigid body, and colliders *below* it in the scene graph
                     grasped = contacted.gameObject.GetComponentsInParent<MonoBehaviour>().Where(mb => mb is IGraspable).FirstOrDefault() as IGraspable;
                     grasped.Grasp(controller);
+                    // so if something is grasped once, this should stay true until we release it again and it should be fine!!!
+                    grasping = true;
                 }
             }
             else
             {
-                grasping = false;
+                Debug.Log("Not grasping");
                 if (grasped != null)
                 {
                     grasped.Release(controller);
+                    grasping = false;
                     grasped = null;
                 }
             }

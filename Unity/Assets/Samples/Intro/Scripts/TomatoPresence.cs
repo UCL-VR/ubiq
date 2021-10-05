@@ -19,6 +19,7 @@ public class TomatoPresence : MonoBehaviour, INetworkComponent
     private HandAnimation handAnimation;
 
     private bool isGraspingLeft;
+    private bool previousStateRight = false;
     private bool isGraspingRight;
 
     private NetworkContext context;
@@ -40,6 +41,7 @@ public class TomatoPresence : MonoBehaviour, INetworkComponent
     public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
     {
         Message msg = message.FromJson<Message>();
+        previousStateRight = isGraspingRight;
         isGraspingLeft = msg.l;
         isGraspingRight = msg.r;
     }
@@ -79,17 +81,16 @@ public class TomatoPresence : MonoBehaviour, INetworkComponent
             leftHandOutline.enabled = true;
             handAnimation.enabled = true;
         }
-
         if (isGraspingRight)
         {
             rightHandRenderer.enabled = false;
-            leftHandOutline.enabled = false;
+            rightHandOutline.enabled = false;
             handAnimation.enabled = false;
         }
         else
         {
             rightHandRenderer.enabled = true;
-            leftHandOutline.enabled = true;
+            rightHandOutline.enabled = true;
             handAnimation.enabled = true;
         }
     }

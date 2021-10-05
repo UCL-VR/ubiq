@@ -26,7 +26,7 @@ namespace Ubiq.Avatars
         {
             if (graspableObjectGrasper != null)
             {
-                return graspableObjectGrasper.hasContact() && graspableObjectGrasper.isGrasping();
+                return graspableObjectGrasper.isGrasping();
             }
             else
             {
