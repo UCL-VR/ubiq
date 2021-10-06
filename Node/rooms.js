@@ -1,7 +1,4 @@
-const { Message, NetworkId } = require("./messaging");
-const { randString } = require("./joincode");
-const { uuid } = require("./uuid");
-const { Schema } = require("./schema");
+const { Message, NetworkId, Schema, Uuid } = require("./ubiq");
 const { EventEmitter } = require('events');
 const { args } = require("commander");
 
@@ -17,6 +14,18 @@ class SerialisedDictionary{
     static To(object){
         return { keys: Object.keys(object), values: Object.values(object) };
     }
+}
+
+// https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
+// Proof of concept - not crypto secure
+function JoinCode() {
+    var result           = '';
+    var characters       = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < 3; i++ ) {
+       result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
 }
 
 // This is the primary server for rendezvous and bootstrapping. It accepts websocket connections,
@@ -60,7 +69,7 @@ class RoomServer extends EventEmitter{
             // New room requested
             var uuid = "";
             while(true){
-                uuid = randString(32);
+                uuid = Uuid();
                 if(this.roomDatabase.uuid(uuid) === null){
                     break;
                 }
@@ -72,7 +81,7 @@ class RoomServer extends EventEmitter{
             } else {
                 // Create new joincode if none specified
                 while(true){
-                    joincode = randString(3);
+                    joincode = JoinCode();
                     if (this.roomDatabase.joincode(joincode) === null){
                         break;
                     }
@@ -258,7 +267,7 @@ class RoomPeer{
         this.properties = [];
         this.connection.onMessage.push(this.onMessage.bind(this));
         this.connection.onClose.push(this.onClose.bind(this));
-        this.sessionId = uuid();
+        this.sessionId = Uuid();
     }
 
     onMessage(message){

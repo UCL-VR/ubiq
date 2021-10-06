@@ -2,7 +2,7 @@ const { performance, PerformanceObserver } = require('perf_hooks');
 
 //https://stackoverflow.com/questions/105034/how-to-create-guid-uuid
 
-function uuid() { // Public Domain
+function Uuid() { // Public Domain
     var d = new Date().getTime();//Timestamp
     var d2 = (performance && performance.now && (performance.now()*1000)) || 0;//Time in microseconds since page-load or 0 if unsupported
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -18,6 +18,7 @@ function uuid() { // Public Domain
     });
 }
 
+
 module.exports = {
-    uuid
+    Uuid
 }

@@ -1,4 +1,4 @@
-const { WrappedWebSocketServer, WrappedTcpServer } = require("./connections")
+const { WrappedWebSocketServer, WrappedTcpServer } = require("./ubiq")
 const { RoomServer } = require("./rooms");
 const { IceServerProvider } = require("./ice");
 const nconf = require('nconf');
