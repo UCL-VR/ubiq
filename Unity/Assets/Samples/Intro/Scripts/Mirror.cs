@@ -118,17 +118,15 @@ namespace Ubiq.Samples.Social
                 avatarRenderCommandBufferTmp = new CommandBuffer();
             }
 
-            if (avatarTmp != avatarManager.LocalAvatar)
-            {
-                avatarTmp = avatarManager.LocalAvatar;
-                avatarRenderCommandBufferTmp.Clear();
-                avatarTmp.GetComponentsInChildren<Renderer>(avatarRenderersTmp);
+            avatarTmp = avatarManager.LocalAvatar;
+            avatarRenderCommandBufferTmp.Clear();
 
-                for (int i = 0; i < avatarRenderersTmp.Count; i++)
-                {
-                    avatarRenderCommandBufferTmp.DrawRenderer(
-                        avatarRenderersTmp[i],avatarRenderersTmp[i].sharedMaterial);
-                }
+            // We could gather renderers only once, but it fails if materials are swapped
+            avatarTmp.GetComponentsInChildren<Renderer>(avatarRenderersTmp);
+            for (int i = 0; i < avatarRenderersTmp.Count; i++)
+            {
+                avatarRenderCommandBufferTmp.DrawRenderer(
+                    avatarRenderersTmp[i],avatarRenderersTmp[i].material);
             }
 
             mirrorCamera.RemoveAllCommandBuffers();

@@ -85,27 +85,12 @@ namespace Ubiq.Samples
             rightHand.rotation = rot;
         }
 
-        private void TexturedAvatar_OnTextureChanged(Texture2D tex, string id)
+        private void TexturedAvatar_OnTextureChanged(Texture2D tex)
         {
-            switch (id)
-            {
-                case "head" : headRenderer.material.mainTexture = tex; break;
-                case "torso" : torsoRenderer.material.mainTexture = tex; break;
-                case "hands" :
-                {
-                    leftHandRenderer.material.mainTexture = tex;
-                    rightHandRenderer.material = leftHandRenderer.material;
-                    break;
-                }
-                default :
-                {
-                    headRenderer.material.mainTexture = tex;
-                    torsoRenderer.material = headRenderer.material;
-                    leftHandRenderer.material = headRenderer.material;
-                    rightHandRenderer.material = headRenderer.material;
-                    break;
-                }
-            }
+            headRenderer.material.mainTexture = tex;
+            torsoRenderer.material = headRenderer.material;
+            leftHandRenderer.material = headRenderer.material;
+            rightHandRenderer.material = headRenderer.material;
         }
 
         private void Update()

@@ -6,6 +6,7 @@ namespace Ubiq.Samples
 {
     public class BrowsePanelController : MonoBehaviour
     {
+        public float roomRefreshInterval = 2.0f;
         public SocialMenu mainMenu;
         public BrowseMenuControl joinedControl;
         public Transform controlsRoot;
@@ -15,10 +16,11 @@ namespace Ubiq.Samples
 
         private List<BrowseMenuControl> controls = new List<BrowseMenuControl>();
         private List<IRoom> lastRoomArgs;
+        private float nextRoomRefreshTime = -1;
 
         private void OnEnable()
         {
-            mainMenu.roomClient.OnRoomsAvailable.AddListener(RoomClient_OnRoomsAvailable);
+            mainMenu.roomClient.OnRoomsDiscovered.AddListener(RoomClient_OnRoomsDiscovered);
             mainMenu.roomClient.OnJoinedRoom.AddListener(RoomClient_OnJoinedRoom);
             UpdateAvailableRooms();
         }
@@ -27,7 +29,7 @@ namespace Ubiq.Samples
         {
             if (mainMenu.roomClient)
             {
-                mainMenu.roomClient.OnRoomsAvailable.RemoveListener(RoomClient_OnRoomsAvailable);
+                mainMenu.roomClient.OnRoomsDiscovered.RemoveListener(RoomClient_OnRoomsDiscovered);
                 mainMenu.roomClient.OnJoinedRoom.RemoveListener(RoomClient_OnJoinedRoom);
             }
         }
@@ -43,13 +45,17 @@ namespace Ubiq.Samples
             UpdateAvailableRooms();
 
             // Immediately ask for a refresh - maybe room we left is now empty
-            mainMenu.roomClient.GetRooms();
+            mainMenu.roomClient.DiscoverRooms();
         }
 
-        private void RoomClient_OnRoomsAvailable(List<IRoom> rooms)
+        private void RoomClient_OnRoomsDiscovered(List<IRoom> rooms,RoomsDiscoveredRequest request)
         {
-            lastRoomArgs = rooms;
-            UpdateAvailableRooms();
+            // Ignore filtered requests
+            if (string.IsNullOrEmpty(request.joincode))
+            {
+                lastRoomArgs = rooms;
+                UpdateAvailableRooms();
+            }
         }
 
         private void UpdateAvailableRooms() {
@@ -99,7 +105,12 @@ namespace Ubiq.Samples
 
         private void Update()
         {
-            mainMenu.roomClient.GetRooms();
+            if (Time.realtimeSinceStartup > nextRoomRefreshTime)
+            {
+                mainMenu.roomClient.DiscoverRooms();
+                nextRoomRefreshTime = Time.realtimeSinceStartup + roomRefreshInterval;
+            }
+
         }
     }
 }
