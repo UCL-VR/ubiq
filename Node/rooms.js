@@ -1,19 +1,9 @@
-const { Message, NetworkId, Schema, Uuid } = require("./ubiq");
+const { Message, NetworkId, Schema, SerialisedDictionary, Uuid } = require("./ubiq");
 const { EventEmitter } = require('events');
 
 const VERSION_STRING = "0.0.4";
 const RoomServerReservedId = 1;
 const RoomServerReservedComponent = 1;
-
-class SerialisedDictionary{
-    static From(dictionary){
-        return Object.assign(...dictionary.keys.map((k,i) => ({[k]: dictionary.values[i]})));
-    }
-
-    static To(object){
-        return { keys: Object.keys(object), values: Object.values(object) };
-    }
-}
 
 // https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
 // Proof of concept - not crypto secure

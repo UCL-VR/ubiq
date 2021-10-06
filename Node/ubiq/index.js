@@ -12,7 +12,8 @@ const {
     WrappedWebSocketServer,
     WrappedTcpServer,
     WebSocketConnectionWrapper,
-    TcpConnectionWrapper 
+    TcpConnectionWrapper,
+    UbiqTcpConnection
 } = require("./connections")
 
 const { 
@@ -26,8 +27,16 @@ const {
 
 const { 
     Uuid,
-    JoinCode
-} = require("./uids");
+} = require("./uuid");
+
+const {
+    NetworkContext,
+    NetworkScene
+} = require("./networkscene");
+
+const {
+    SerialisedDictionary
+} = require("./dictionary")
 
 module.exports = {
     WebSocketConnectionWrapper,
@@ -36,7 +45,10 @@ module.exports = {
     WrappedTcpServer,
     Message,
     NetworkId,
+    NetworkContext,
+    NetworkScene,
     Schema,
+    SerialisedDictionary,
     Uuid,
-    JoinCode
+    UbiqTcpConnection    
 }

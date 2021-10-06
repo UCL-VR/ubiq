@@ -1,6 +1,17 @@
 const { Message } = require('./messaging');
 const WebSocket = require('ws');
 const Tcp = require('net');
+const { networkInterfaces } = require('os');
+
+// All WrappedConnection types implement two callbacks,
+// onMessage and onClose, and one function, Send.
+// onMessage and send both provide and receive Ubiq Message
+// types.
+
+// Use the callbacks like so,
+// connection.onMessage.push(this.myOnMessageCallback.bind(this));
+// connection.onClose.push(this.myOnCloseCallback.bind(this));
+
 
 class WrappedWebSocketServer{
     constructor(port){
@@ -131,9 +142,17 @@ class TcpConnectionWrapper{
     }
 }
 
+// Creates a new Ubiq Messaging Connection over TCP
+function UbiqTcpConnection(uri,port){
+    var client = new Tcp.Socket();
+    client.connect(port, uri);
+    return new TcpConnectionWrapper(client);
+}
+
 module.exports = {
     WebSocketConnectionWrapper,
     WrappedWebSocketServer,
     TcpConnectionWrapper,
-    WrappedTcpServer
+    WrappedTcpServer,
+    UbiqTcpConnection
 }
