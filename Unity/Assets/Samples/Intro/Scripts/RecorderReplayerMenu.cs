@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using Ubiq.Messaging;
 using UnityEngine.UI;
 using Ubiq.Rooms;
@@ -30,6 +31,8 @@ public class RecorderReplayerMenu : MonoBehaviour
     private GameObject scrollView;
     private Text fileText;
     private DirectoryInfo dir;
+
+    private EventTrigger trigger;
 
     private List<string> recordings;
     private List<string> newRecordings;
@@ -127,13 +130,29 @@ public class RecorderReplayerMenu : MonoBehaviour
         sliderPanel = gameObject.transform.Find("Slider Panel").gameObject;
         slider = sliderPanel.GetComponentInChildren<Slider>();
         sliderText = sliderPanel.GetComponentInChildren<Text>();
+        trigger = slider.gameObject.GetComponent<EventTrigger>();
+        EventTrigger.Entry entry = new EventTrigger.Entry();
+        entry.eventID = EventTriggerType.PointerUp;
+        entry.callback.AddListener((data) => { OnPointerUpDelegate((PointerEventData)data); });
+        trigger.triggers.Add(entry);
+        //EventTrigger.Entry entry = new EventTrigger.Entry();
+        //entry.eventID = EventTriggerType.EndDrag;
+        //entry.callback.AddListener((data) => { OnEndDrag((PointerEventData)data); });
+        //trigger.triggers.Add(entry);
 
         roomClient = scene.GetComponent<RoomClient>();
         roomClient.OnPeerUpdated.AddListener(OnPeerUpdated);
         roomClient.OnPeerAdded.AddListener(OnPeerAdded);
         roomClient.OnJoinedRoom.AddListener(OnJoinedRoom);
 
+
+
         GetReplayFiles();
+    }
+
+    public void OnPointerUpDelegate(PointerEventData data)
+    {
+        SetReplayFrame();
     }
 
     private void GetReplayFiles()
@@ -347,6 +366,8 @@ public class RecorderReplayerMenu : MonoBehaviour
         }
     }
 
-
-
+    //public void OnEndDrag(PointerEventData eventData)
+    //{
+    //    Debug.Log("OnEndDrag");
+    //}
 }

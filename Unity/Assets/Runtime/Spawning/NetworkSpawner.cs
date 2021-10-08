@@ -235,6 +235,9 @@ namespace Ubiq.Spawning
                 Destroy(spawned[networkId]);
                 //spawned.Remove(networkId); Ben did that
             }
+            // send a hide message so the recording knows when the object should be invisible
+            spawned[networkId].gameObject.GetComponent<ObjectHider>().SetNetworkedObjectLayer(8);
+
             roomClient.Room[key] = JsonUtility.ToJson(new Message() {networkId = networkId, remove = true});
             //Debug.Log("UnspawnPersistent " + networkId.ToString() + "  " + roomClient.Room[key]);
         }

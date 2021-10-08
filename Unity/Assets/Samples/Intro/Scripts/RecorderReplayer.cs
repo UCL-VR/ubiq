@@ -244,15 +244,40 @@ public class Replayer
         }
         else // !play 
         {
+            // TODO: consider cleaning up the complete recording whenever jumping to a frame.
             if (loaded)
             {
                 //Debug.Log("!play");
+                if(recRep.currentReplayFrame < recRep.sliderFrame)
+                {
+                    Debug.Log("after");
+                    while (recRep.currentReplayFrame < recRep.sliderFrame)
+                    {
+                        ReplayFromFile();
+                        recRep.currentReplayFrame++;
+                    }
+                }
+                else if(recRep.currentReplayFrame > recRep.sliderFrame)
+                {
+                    HideAll();
+                    recRep.currentReplayFrame = 0;
+                    showAvatarsFromStart = false;
+                    streamFromFile.Position = 0;
+                    while (recRep.currentReplayFrame < recRep.sliderFrame)
+                    {
+                        ReplayFromFile();
+                        recRep.currentReplayFrame++;
+                    }
+                }
+                //Debug.Log("nothing");
                 recRep.currentReplayFrame = recRep.sliderFrame;
+                //Debug.Log(recRep.currentReplayFrame + " " + recRep.sliderFrame);
                 recRep.stopTime = recInfo.frameTimes[recRep.currentReplayFrame];
                 recRep.replayingStartTime = recInfo.frameTimes[recRep.currentReplayFrame];
-
-
                 ReplayFromFile();
+
+              
+
             }
         }
     }
@@ -478,7 +503,7 @@ public class Replayer
             ReferenceCountedSceneGraphMessage rcsgm = CreateRCSGM(msg);
             //Debug.Log(rcsgm.objectid.ToString());
             ReplayedObjectProperties props = replayedObjects[rcsgm.objectid]; // avatars and objects
-            Debug.Log(rcsgm.componentid);
+            //Debug.Log(rcsgm.componentid);
             INetworkComponent component = props.components[rcsgm.componentid];
 
             // send and replay remotely

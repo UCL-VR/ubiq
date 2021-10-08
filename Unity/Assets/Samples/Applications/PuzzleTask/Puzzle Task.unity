@@ -703,6 +703,25 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 326682399}
   m_CullTransparentMesh: 0
+--- !u!1 &344231579 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9031656778351493275, guid: bb25b73aa11996046885b3fbcfa4587c,
+    type: 3}
+  m_PrefabInstance: {fileID: 1271058775}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &344231582
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 344231579}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Delegates: []
 --- !u!1 &344922204
 GameObject:
   m_ObjectHideFlags: 0
@@ -1307,9 +1326,10 @@ MonoBehaviour:
   texture: {fileID: 0}
   texture1: {fileID: 0}
   texture2: {fileID: 0}
-  uid: 1
-  uid1: 1
-  uid2: 2
+  uidCollab1: 1
+  uidCollab2: 4
+  uidComp1: 5
+  uidComp2: 6
 --- !u!4 &538117945
 Transform:
   m_ObjectHideFlags: 0
@@ -2548,9 +2568,10 @@ MonoBehaviour:
   texture: {fileID: 0}
   texture1: {fileID: 0}
   texture2: {fileID: 0}
-  uid: 3
-  uid1: 1
-  uid2: 2
+  uidCollab1: 1
+  uidCollab2: 4
+  uidComp1: 5
+  uidComp2: 6
 --- !u!114 &1219511018
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2736,6 +2757,21 @@ PrefabInstance:
       propertyPath: scene
       value: 
       objectReference: {fileID: 1691235788}
+    - target: {fileID: 183249001276307500, guid: bb25b73aa11996046885b3fbcfa4587c,
+        type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 183249001276307500, guid: bb25b73aa11996046885b3fbcfa4587c,
+        type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 183249001276307500, guid: bb25b73aa11996046885b3fbcfa4587c,
+        type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 307051098484144013, guid: bb25b73aa11996046885b3fbcfa4587c,
         type: 3}
       propertyPath: menuRequestHandler
@@ -3339,7 +3375,7 @@ PrefabInstance:
     - target: {fileID: 2469311197753214015, guid: 33cb6d2a29abed346b39b957a9e24d34,
         type: 3}
       propertyPath: enableXROnStartup
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4387748794111788625, guid: 33cb6d2a29abed346b39b957a9e24d34,
         type: 3}
@@ -3755,9 +3791,10 @@ MonoBehaviour:
   texture: {fileID: 0}
   texture1: {fileID: 0}
   texture2: {fileID: 0}
-  uid: 3
-  uid1: 1
-  uid2: 2
+  uidCollab1: 1
+  uidCollab2: 4
+  uidComp1: 5
+  uidComp2: 6
 --- !u!1 &1503686524
 GameObject:
   m_ObjectHideFlags: 0
@@ -7868,8 +7905,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 0.9999997, y: 2.6178274, z: 1}
+  m_Center: {x: 0, y: 0.8089135, z: 0}
 --- !u!65 &3508766482046825874
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -8102,8 +8139,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 0.9999997, y: 2.5986984, z: 1}
+  m_Center: {x: 0, y: 0.7993492, z: 0}
 --- !u!65 &3508766485711452672
 BoxCollider:
   m_ObjectHideFlags: 0

@@ -20,11 +20,14 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
     private int defaultLayer = 0; // default
     private int currentLayer = 0;
     private bool needsUpdate = true;
-    private Transform[] childTransforms;
     private Avatar avatar;
     private NetworkId objectid;
     private NetworkSpawner spawner;
     private ISpawnable spawnableObject;
+    
+    private Transform[] childTransforms;
+    private Rigidbody[] rigidbodies;
+    private Collider[] colliders;
 
     public struct Message
     {
@@ -61,6 +64,9 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
 
         roomClient = NetworkScene.FindNetworkScene(this).GetComponent<RoomClient>();
         childTransforms = GetComponentsInChildren<Transform>();
+        rigidbodies = GetComponentsInChildren<Rigidbody>();
+        colliders = GetComponentsInChildren<Collider>();
+
         roomClient.OnPeerUpdated.AddListener(OnPeerUpdated);
         //roomClient.OnPeerAdded.AddListener(OnPeerAdded);
         //roomClient.OnJoinedRoom.AddListener(OnJoinedRoom);
@@ -72,7 +78,17 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
         // not all objects are avatars!!!!
         if (TryGetComponent<Avatar>(out avatar) && avatar.Peer.UUID != null)
         {
-            avatar.Peer["visible"] = "1";
+            if (avatar.Peer["visible"] == null || avatar.Peer["visible"] == "1")
+            {
+                Debug.Log("Show");
+                SetLayer(defaultLayer);
+            }
+            else
+            {
+                Debug.Log("Hide");
+                SetLayer(hideLayer);
+            }
+            //avatar.Peer["visible"] = "1";
         }
 
             if (context == null)
@@ -83,40 +99,99 @@ public class ObjectHider : MonoBehaviour, INetworkComponent, ILayer
         objectid = context.networkObject.Id;
         spawnableObject = GetComponent<ISpawnable>();
         spawner = NetworkSpawner.FindNetworkSpawner(context.scene);
+
+        roomClient.OnPeerAdded.AddListener(OnPeerAdded);
+    }
+
+    public void OnPeerAdded(IPeer peer) // so the added peer gets the information about visibility of other peers
+    {
+        if (avatar == null || peer.UUID != avatar.Peer.UUID)
+        {
+            return;
+        }
+        
+        Debug.Log("ObjectHider OnPeerAdded");
+        Debug.Log(avatar.Peer["visible"]);
+        if (avatar.Peer["visible"] == null || avatar.Peer["visible"]  == "1")
+        {
+            Debug.Log("Show");
+            SetLayer(defaultLayer);
+        }
+        else
+        {
+            Debug.Log("Hide");
+            SetLayer(hideLayer);
+
+        }
+        //OnPeerUpdated(peer);
     }
 
     public void OnPeerUpdated(IPeer peer)
     {
-        if (avatar != null)
+        if (avatar == null || peer.UUID != avatar.Peer.UUID)
         {
-            Debug.Log("ObjectHider OnPeerUpdated");
-            Debug.Log(peer.UUID + " " + avatar.Peer.UUID);
-            if (peer.UUID == avatar.Peer.UUID)
-            {
-                if (peer["visible"] == "0")
-                {
-                    Debug.Log("Hide");
-                    SetLayer(hideLayer);
-                }
-                if (peer["visible"] == "1")
-                {
-                    Debug.Log("Show");
-                    SetLayer(defaultLayer);
-                }
-            }
+            return;
+        }
+
+        Debug.Log("ObjectHider OnPeerUpdated");
+        Debug.Log(peer.UUID + " " + avatar.Peer.UUID);
+
+        if (peer["visible"] == null || peer["visible"] == "1")
+        {
+            Debug.Log("Show");
+            SetLayer(defaultLayer);
+        }
+        else 
+        {
+            Debug.Log("Hide");
+            SetLayer(hideLayer);
         }
     }
 
     public void SetLayer(int layer) // not networked
     {
+        var previousLayer = currentLayer;
         currentLayer = layer;
         this.gameObject.layer = layer;
 
-        foreach (Transform child in childTransforms)
+        foreach (var child in childTransforms)
         {
             child.gameObject.layer = layer;
         }
+        // don't set this every frame if nothing changed
+        if (previousLayer != layer)
+        {
+            DisableEnablePhysics();
+        }
     }
+    public void DisableEnablePhysics()
+    {
+        if (currentLayer == hideLayer)
+        {
+            foreach (var rb in rigidbodies)
+            {
+                rb.isKinematic = true;
+                rb.useGravity = false;
+            }
+            foreach (var co in colliders)
+            {
+                co.enabled = false;
+            }
+        }
+        else if (currentLayer == defaultLayer)
+        {
+            foreach (var co in colliders)
+            {
+                co.enabled = true;
+            }
+            foreach (var rb in rigidbodies)
+            {
+                rb.isKinematic = false;
+                rb.useGravity = true;
+            }
+        }
+    }
+
     // only call locally
     public void NetworkedShow()
     {
