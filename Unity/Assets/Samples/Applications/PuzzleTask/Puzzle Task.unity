@@ -1319,6 +1319,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   catalogue: {fileID: 11400000, guid: fe2fba8614c156547b1202eec5fb2177, type: 2}
   mainMenu: {fileID: 932875028}
+  mainPanel: {fileID: 1871535550}
   puzzle1: {fileID: 985749123}
   puzzle2: {fileID: 1756989430}
   random: 0
@@ -1326,10 +1327,9 @@ MonoBehaviour:
   texture: {fileID: 0}
   texture1: {fileID: 0}
   texture2: {fileID: 0}
-  uidCollab1: 1
-  uidCollab2: 4
-  uidComp1: 5
-  uidComp2: 6
+  recRepMenu: {fileID: 0}
+  numberCollab: 1
+  numberComp: 1
 --- !u!4 &538117945
 Transform:
   m_ObjectHideFlags: 0
@@ -2207,7 +2207,7 @@ PrefabInstance:
     - target: {fileID: 6070348422349934233, guid: a25a78370100fea448d4116b53512053,
         type: 3}
       propertyPath: random
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6070348422349934233, guid: a25a78370100fea448d4116b53512053,
         type: 3}
@@ -2561,6 +2561,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   catalogue: {fileID: 0}
   mainMenu: {fileID: 0}
+  mainPanel: {fileID: 0}
   puzzle1: {fileID: 0}
   puzzle2: {fileID: 0}
   random: 0
@@ -2568,10 +2569,9 @@ MonoBehaviour:
   texture: {fileID: 0}
   texture1: {fileID: 0}
   texture2: {fileID: 0}
-  uidCollab1: 1
-  uidCollab2: 4
-  uidComp1: 5
-  uidComp2: 6
+  recRepMenu: {fileID: 0}
+  numberCollab: 1
+  numberComp: 1
 --- !u!114 &1219511018
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3784,6 +3784,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   catalogue: {fileID: 0}
   mainMenu: {fileID: 0}
+  mainPanel: {fileID: 0}
   puzzle1: {fileID: 0}
   puzzle2: {fileID: 0}
   random: 0
@@ -3791,10 +3792,9 @@ MonoBehaviour:
   texture: {fileID: 0}
   texture1: {fileID: 0}
   texture2: {fileID: 0}
-  uidCollab1: 1
-  uidCollab2: 4
-  uidComp1: 5
-  uidComp2: 6
+  recRepMenu: {fileID: 0}
+  numberCollab: 1
+  numberComp: 1
 --- !u!1 &1503686524
 GameObject:
   m_ObjectHideFlags: 0
@@ -4769,6 +4769,12 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1854903232}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1871535550 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5514386085745003189, guid: bb25b73aa11996046885b3fbcfa4587c,
+    type: 3}
+  m_PrefabInstance: {fileID: 1271058775}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1926963869
 GameObject:
   m_ObjectHideFlags: 0

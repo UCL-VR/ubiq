@@ -13,22 +13,30 @@ public class PuzzleMenu : MonoBehaviour
 {
     public ImageCatalogue catalogue;
     public MainMenu mainMenu;
-    
+    public GameObject mainPanel; // where the record/replay menu is
+
     public Puzzle puzzle1;
     public Puzzle puzzle2;
-
+    [HideInInspector]
     public bool random = false;
+    [HideInInspector]
     public bool useOneTexture = true;
+    [HideInInspector]
     public Texture2D texture;
+    [HideInInspector]
     public Texture2D texture1;
+    [HideInInspector]
     public Texture2D texture2;
 
-    public int uid = 0;
-    public int uid1 = 1;
-    public int uid2 = 2;
+    [HideInInspector]
+    public RecorderReplayerMenu recRepMenu;
 
     [HideInInspector, System.NonSerialized]
     public bool hideAvatar = false;
+
+    private Dictionary<int, int[]> collaboration;
+    private Dictionary<int, int[]> competition;
+
 
     private NetworkScene scene;
     private RoomClient roomClient;
@@ -37,6 +45,11 @@ public class PuzzleMenu : MonoBehaviour
 
     private ObjectHider avatarHider;
     private ObjectHider menuHider;
+
+    // not play more than two puzzles anyways
+    public int numberCollab = 1; // number of puzzle in collab/comp dictionary
+    public int numberComp = 1; // competition dictionary has one puzzle less than collaboration
+
 
     public Texture2D SetTextureFromUid(int uid)
     {
@@ -52,40 +65,46 @@ public class PuzzleMenu : MonoBehaviour
         return texture;
     }
 
-    public void SpawnPuzzle(Puzzle puzzle, Texture2D texture, bool random)
+    public void SpawnPuzzlePair(string mode, int number)
     {
-        puzzle.puzzleImage = texture;
-        puzzle.random = random;
-        puzzle.SpawnPersistentPuzzle();
-    }
-
-    public void UnspawnPuzzle(Puzzle puzzle)
-    {
-        puzzle.UnspawnPuzzle();
-    }
-
-    public void SpawnPuzzles()
-    {
-        if (useOneTexture)
+        if (number > collaboration.Count || number > competition.Count)
         {
-            texture = SetTextureFromUid(uid);
-            SpawnPuzzle(puzzle1, texture, random); // texture does not matter if random is true
-            SpawnPuzzle(puzzle2, texture, random); 
-
+            numberCollab = 1;
+            numberComp = 1;
+        }
+        
+        int p1, p2;
+        if (mode == "col")
+        {
+            p1 = collaboration[number][0];
+            p2 = collaboration[number][1];
+        }
+        else if (mode == "com")
+        {
+            p1 = competition[number][0];
+            p2 = competition[number][1];
         }
         else
         {
-            texture1 = SetTextureFromUid(uid1);
-            texture2 = SetTextureFromUid(uid2);
-            SpawnPuzzle(puzzle1, texture1, random);
-            SpawnPuzzle(puzzle2, texture2, random);
+            //Test puzzle
+            p1 = collaboration[0][0];
+            p2 = collaboration[0][1];
         }
+ 
+        texture1 = SetTextureFromUid(p1);
+        texture2 = SetTextureFromUid(p2);
+
+        puzzle1.puzzleImage = texture1;
+        puzzle1.SpawnPersistentPuzzle();
+
+        puzzle2.puzzleImage = texture2;
+        puzzle2.SpawnPersistentPuzzle();
     }
 
     public void UnspawnPuzzles()
     {
-        UnspawnPuzzle(puzzle1);
-        UnspawnPuzzle(puzzle2);
+        puzzle1.UnspawnPuzzle();
+        puzzle2.UnspawnPuzzle();
     }
 
     public void ShowHideAvatar(int layer)
@@ -94,8 +113,8 @@ public class PuzzleMenu : MonoBehaviour
         {
             avatarManager.LocalAvatar.Peer["visible"] = layer == 0 ? "1" : "0";
             // if not in a room use this
-            //avatarHider = avatarManager.LocalAvatar.gameObject.GetComponent<ObjectHider>();
-            //avatarHider.SetLayer(layer);
+            avatarHider = avatarManager.LocalAvatar.gameObject.GetComponent<ObjectHider>();
+            avatarHider.SetLayer(layer);
 
             if (uiIndicator != null)
             {
@@ -115,6 +134,20 @@ public class PuzzleMenu : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        recRepMenu = mainPanel.GetComponent<RecorderReplayerMenu>();
+        collaboration = new Dictionary<int, int[]>();
+        competition = new Dictionary<int, int[]>();
+        collaboration.Add(0, new int[] { 0, 19 });
+        collaboration.Add(1, new int[] { 1, 2 });
+        collaboration.Add(2, new int[] { 3, 4 });
+        collaboration.Add(3, new int[] { 5, 6 });
+        collaboration.Add(4, new int[] { 7, 8 });
+        collaboration.Add(5, new int[] { 9, 10 });
+        competition.Add(1, new int[] { 11, 12 });
+        competition.Add(2, new int[] { 13, 14 });
+        competition.Add(3, new int[] { 15, 16 });
+        competition.Add(4, new int[] { 17, 18 });
+
         scene = NetworkScene.FindNetworkScene(this);
         roomClient = scene.GetComponent<RoomClient>();
         avatarManager = scene.GetComponentInChildren<AvatarManager>();
@@ -132,48 +165,127 @@ public class PuzzleMenu : MonoBehaviour
 [CustomEditor(typeof(PuzzleMenu))]
 public class PuzzleMenuEditor : Editor
 {
+    bool avatarHidden, testSpawned, rec,
+        recCollab, collabSpawned,
+        recComp, compSpawned = false;
+
+    bool enabledCollab = true;
+    bool enabledComp = true;
     public override void OnInspectorGUI()
     {
         var t = (PuzzleMenu)target;
         DrawDefaultInspector();
 
-        if (Application.isPlaying)
+        var white = new GUIStyle(GUI.skin.button);
+        var black = new GUIStyle(GUI.skin.button);
+        var red = new GUIStyle(GUI.skin.button);
+        var labelRed = new GUIStyle(GUI.skin.label);
+        var labelGreen = new GUIStyle(GUI.skin.label);
+
+        white.normal.background = Texture2D.whiteTexture;
+        black.normal.background = Texture2D.blackTexture;
+        red.normal.background = Texture2D.redTexture;
+        labelRed.normal.textColor = Color.red;
+        labelGreen.normal.textColor = Color.green;
+
+
+        //if (Application.isPlaying)
+        //{
+        EditorGUILayout.LabelField("<<< Workflow Checklist >>>");
+        EditorGUILayout.LabelField("Explain teleport!");
+        EditorGUILayout.LabelField("Guardian area");
+        EditorGUILayout.LabelField("Grabbing objects (test puzzle)");
+
+        if (GUILayout.Button(avatarHidden == true ? "1) Show Avatar" : "1) Hide Avatar"))
         {
-            if (GUILayout.Button("Spawn Puzzles"))
+            if (avatarHidden) // make avatar visible again
             {
-                t.SpawnPuzzles();
+                avatarHidden = !avatarHidden;
+                t.ShowHideAvatar(0);
+                Debug.Log("Show avatar");
             }
-            if (GUILayout.Button("Unspawn Puzzles"))
+            else
             {
+                avatarHidden = !avatarHidden;
+                t.ShowHideAvatar(8);
+                Debug.Log(" Hide avatar");
+            }
+        }
+        if (GUILayout.Button(testSpawned == true ? "2) Unspawn Test" : "2) Spawn Test"))
+        {
+            if (testSpawned)
+            {
+                testSpawned = !testSpawned;
                 t.UnspawnPuzzles();
             }
-            if (GUILayout.Button(t.hideAvatar == true ? "Show Avatar" : "Hide Avatar"))
+            else
             {
-                if (t.hideAvatar) // make avatar visible again
-                {
-                    t.hideAvatar = !t.hideAvatar;
-                    t.ShowHideAvatar(0);
-                    Debug.Log("Show avatar");
-                }
-                else
-                {
-                    t.hideAvatar = !t.hideAvatar;
-                    t.ShowHideAvatar(8);
-                    Debug.Log(" Hide avatar");
-                }
+                testSpawned = !testSpawned;
+                t.SpawnPuzzlePair("test", 0);
+
             }
-
-
-
-            //if (GUILayout.Button("Shuffle"))
-            //{
-            //    t.Shuffle();
-            //}
-            //if (!t.random)
-            //{
-            //    t.puzzleImage = EditorGUILayout.ObjectField("Template", t.puzzleImage, typeof(Material), true) as Material;
-            //}
         }
+
+        EditorGUILayout.LabelField("START recording!!!", labelRed);
+        GUI.enabled = enabledCollab;
+        if (GUILayout.Button(rec == true ? "2) STOP recording" : "2) START recording", red))
+        {
+            rec = !rec;
+            enabledComp = !enabledComp;
+            t.recRepMenu.ToggleRecord();
+        }
+
+        //GUI.enabled = true;
+        if (GUILayout.Button(collabSpawned == true ? "2) Unspawn Collab" : "2) Spawn Collab"))
+        {
+            if (collabSpawned)
+            {
+                collabSpawned = !collabSpawned;
+                t.UnspawnPuzzles();
+            }
+            else
+            {
+                collabSpawned = !collabSpawned;
+                t.SpawnPuzzlePair("col", t.numberCollab);
+                Debug.Log("Spawn competitive puzzle " + t.numberCollab);
+                t.numberCollab++;
+
+            }
+        }
+        EditorGUILayout.LabelField("Puzzle number: " + (t.numberCollab-1));
+
+
+        EditorGUILayout.LabelField("STOP recording!!!", labelGreen);
+
+        EditorGUILayout.LabelField("Next task is competitive!");
+
+        EditorGUILayout.LabelField("START recording!!!", labelRed);
+        GUI.enabled = enabledComp;
+        if (GUILayout.Button(rec == true ? "2) STOP recording" : "2) START recording", red))
+        {
+            rec = !rec;
+            enabledCollab = !enabledCollab;
+            t.recRepMenu.ToggleRecord();
+        }
+        if (GUILayout.Button(compSpawned == true ? "2) Unspawn Comp" : "2) Spawn Comp"))
+        {
+            if (compSpawned)
+            {
+                compSpawned = !compSpawned;
+                t.UnspawnPuzzles();
+            }
+            else
+            {
+                compSpawned = !compSpawned;
+                t.SpawnPuzzlePair("com", t.numberComp);
+                Debug.Log("Spawn competitive puzzle " + t.numberComp);
+                t.numberComp++;
+            }
+        }
+        EditorGUILayout.LabelField("Puzzle number: " + (t.numberComp - 1));
+
+        EditorGUILayout.LabelField("STOP recording!!!", labelGreen);
+        //}
     }
 }
 # endif
