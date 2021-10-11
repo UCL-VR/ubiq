@@ -138,15 +138,19 @@ public class PuzzleMenu : MonoBehaviour
         collaboration = new Dictionary<int, int[]>();
         competition = new Dictionary<int, int[]>();
         collaboration.Add(0, new int[] { 0, 19 });
-        collaboration.Add(1, new int[] { 1, 2 });
-        collaboration.Add(2, new int[] { 3, 4 });
-        collaboration.Add(3, new int[] { 5, 6 });
-        collaboration.Add(4, new int[] { 7, 8 });
-        collaboration.Add(5, new int[] { 9, 10 });
-        competition.Add(1, new int[] { 11, 12 });
-        competition.Add(2, new int[] { 13, 14 });
-        competition.Add(3, new int[] { 15, 16 });
-        competition.Add(4, new int[] { 17, 18 });
+
+        collaboration.Add(1, new int[] { 11, 12 });
+        collaboration.Add(2, new int[] { 17, 18 });
+
+        competition.Add(1, new int[] { 9, 10 });
+        competition.Add(2, new int[] { 15, 16 });
+
+        collaboration.Add(3, new int[] { 1, 2 });
+        collaboration.Add(4, new int[] { 3, 4 });
+        collaboration.Add(5, new int[] { 5, 6 });
+        collaboration.Add(6, new int[] { 7, 8 });
+
+        competition.Add(3, new int[] { 13, 14 });
 
         scene = NetworkScene.FindNetworkScene(this);
         roomClient = scene.GetComponent<RoomClient>();
@@ -286,6 +290,11 @@ public class PuzzleMenuEditor : Editor
 
         EditorGUILayout.LabelField("STOP recording!!!", labelGreen);
         //}
+
+        EditorGUILayout.LabelField("START recording for collaborative debrief!!!", labelRed);
+        EditorGUILayout.LabelField("START recording for competitive debrief!!!", labelRed);
+
+
     }
 }
 # endif
