@@ -111,13 +111,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d61f55a1b9a02064ebf167b08e5b22b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Available: []
-  MaxGetRoomsRefreshRate: 2
   servers:
   - listen_on_ip: 
     listen_on_port: 
     send_to_ip: nexus.cs.ucl.ac.uk
-    send_to_port: 8002
+    send_to_port: 8005
     type: 0
 --- !u!114 &7068762446378101731
 MonoBehaviour:

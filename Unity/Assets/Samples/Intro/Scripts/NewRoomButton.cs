@@ -8,14 +8,14 @@ namespace Ubiq.Samples
 {
     public class NewRoomButton : MonoBehaviour
     {
-        public MainMenu mainMenu;
+        public SocialMenu mainMenu;
         public Text nameText;
         public bool publish;
 
         // Expected to be called by a UI element
         public void NewRoom ()
         {
-            mainMenu.roomClient.JoinNew(nameText.text,publish);
+            mainMenu.roomClient.Join("",nameText.text,publish);
         }
     }
 }

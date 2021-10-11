@@ -1,5 +1,6 @@
 const { Message, NetworkId, Schema, SerialisedDictionary, Uuid } = require("./ubiq");
 const { EventEmitter } = require('events');
+const { args } = require("commander");
 
 const VERSION_STRING = "0.0.4";
 const RoomServerReservedId = 1;
@@ -40,24 +41,22 @@ class RoomServer extends EventEmitter{
         new RoomPeer(this, wrapped);
     }
 
+    // Expects args from schema ubiq.rooms.joinargs
     async join(peer, args){
 
         var room = null;
         if(args.hasOwnProperty("joincode") && args.joincode != ""){
             // Room join request by joincode
             room = this.roomDatabase.joincode(args.joincode);
-            if (room === null) {
-                console.log(peer.uuid + " attempted to join room with code " + args.joincode + " but no such room exists");
-                peer.sendRejected(args,"Could not join room with code " + args.joincode + ". No such room exists.");
-                return;
-            }
 
-            if (peer.room.uuid === room.uuid){
+            if (room !== null && peer.room.uuid === room.uuid){
                 console.log(peer.uuid + " attempted to join room with code " + args.joincode + " but peer is already in room");
                 return;
             }
-        } else {
-            // Otherwise new room requested
+        }
+
+        if (room === null) {
+            // New room requested
             var uuid = "";
             while(true){
                 uuid = Uuid();
@@ -66,13 +65,19 @@ class RoomServer extends EventEmitter{
                 }
             }
             var joincode = "";
-            while(true){
-                joincode = JoinCode();
-                if (this.roomDatabase.joincode(joincode) === null){
-                    break;
+            if(args.hasOwnProperty("joincode") && args.joincode != ""){
+                // Use specified joincode - we're sure it isn't already in db
+                joincode = args.joincode;
+            } else {
+                // Create new joincode if none specified
+                while(true){
+                    joincode = JoinCode();
+                    if (this.roomDatabase.joincode(joincode) === null){
+                        break;
+                    }
                 }
             }
-            var publish = true;
+            var publish = false;
             if (args.hasOwnProperty("publish")) {
                 publish = args.publish;
             }
@@ -103,11 +108,14 @@ class RoomServer extends EventEmitter{
         return this.roomDatabase.all();
     }
 
-    getRoomArgs({publishable = true} = {}){
-        if(publishable){
-            return this.roomDatabase.all().filter(r => r.publish === true).map(r => r.getRoomArgs());
+    // Return requested rooms for publishable rooms
+    // Optionally uses joincode to filter, in which case room need not be publishable
+    // Expects args from schema ubiq.rooms.discoverroomargs
+    discoverRooms(args){
+        if(args.hasOwnProperty("joincode") && args.joincode != "") {
+            return this.roomDatabase.all().filter(r => r.joincode === args.joincode);
         } else {
-            return this.roomDatabase.all().map(r => r.getRoomArgs());
+            return this.roomDatabase.all().filter(r => r.publish === true);
         }
     }
 
@@ -117,6 +125,7 @@ class RoomServer extends EventEmitter{
         console.log("RoomServer: Deleting empty room " + room.uuid);
     }
 
+    // Expects args from schema ubiq.rooms.setblobargs
     setBlob(args){
         var room = this.roomDatabase.uuid(args.room);
         // only existing rooms may have blobs set
@@ -125,6 +134,7 @@ class RoomServer extends EventEmitter{
         }
     }
 
+    // Expects args from schema ubiq.rooms.getblobargs
     getBlob(args){
         var room = this.roomDatabase.uuid(args.room);
         // only existing rooms may have blobs set
@@ -197,14 +207,15 @@ Schema.add({
     type: "object",
     properties: {
         id: { $ref: "/ubiq.messaging.networkid"}
-    } 
+    }
 });
 
 Schema.add({
-    id: "/ubiq.rooms.requestroomargs",
+    id: "/ubiq.rooms.discoverroomsargs",
     type: "object",
     properties: {
-    } 
+        joincode: {type: "string"}
+    }
 });
 
 Schema.add({
@@ -301,11 +312,12 @@ class RoomPeer{
                         this.room.updateRoom(message.args);
                     }
                     break;
-                case "RequestRooms":
-                    if (Schema.validate(message.args, "/ubiq.rooms.requestroomargs", this.onValidationFailure)) {
-                        this.sendRooms({
-                            rooms: this.server.getRoomArgs({publishable:true}),
-                            version: this.server.version
+                case "DiscoverRooms":
+                    if (Schema.validate(message.args, "/ubiq.rooms.discoverroomsargs", this.onValidationFailure)) {
+                        this.sendDiscoveredRooms({
+                            rooms: this.server.discoverRooms(message.args).map(r => r.getRoomArgs()),
+                            version: this.server.version,
+                            request: message.args
                         });
                     }
                     break;
@@ -365,22 +377,6 @@ class RoomPeer{
         this.sendSetRoom();
     }
 
-    sendRejected(joinArgs,reason){
-        this.send(
-            Message.Create(
-                this.objectId,
-                1,
-                {
-                    type: "Rejected",
-                    args: JSON.stringify({
-                        reason: reason,
-                        joinArgs: joinArgs
-                    })
-                }
-            )
-        );
-    }
-
     sendSetRoom(){
         this.send(
             Message.Create(
@@ -410,7 +406,7 @@ class RoomPeer{
         );
     }
 
-    sendRooms(rooms){
+    sendDiscoveredRooms(rooms){
         this.send(
             Message.Create(
                 this.objectId,

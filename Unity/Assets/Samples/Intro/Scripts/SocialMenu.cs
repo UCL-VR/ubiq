@@ -9,17 +9,17 @@ using Ubiq.XR;
 
 namespace Ubiq.Samples
 {
-    public interface IMainMenuBindable
+    public interface ISocialMenuBindable
     {
-        void Bind(MainMenu mainMenu);
+        void Bind(SocialMenu mainMenu);
     }
 
-    public class MainMenu : MonoBehaviour
+    public class SocialMenu : MonoBehaviour
     {
         public NetworkScene networkSceneOverride;
 
         public MenuRequestHandler menuRequestHandler;
-        public GameObject networkedIndicatorPrefab;
+        public GameObject networkedIndicatorTemplate;
 
         public Transform spawnRelativeTransform;
 
@@ -62,9 +62,9 @@ namespace Ubiq.Samples
         }
 
         [Serializable]
-        public class MainMenuEvent : UnityEvent<MainMenu> { }
-        public MainMenuEvent OnOpen;
-        public MainMenuEvent OnClose;
+        public class SocialMenuEvent : UnityEvent<SocialMenu> { }
+        public SocialMenuEvent OnOpen;
+        public SocialMenuEvent OnClose;
 
         private GameObject uiIndicator;
         private string roomUUID;
@@ -73,6 +73,8 @@ namespace Ubiq.Samples
         {
             roomClient.OnJoinedRoom.AddListener(RoomClient_OnJoinedRoom);
             menuRequestHandler.OnRequest.AddListener(MenuRequestHandler_OnMenuRequest);
+
+            Request();
         }
 
         private void OnDestroy()
@@ -103,11 +105,7 @@ namespace Ubiq.Samples
 
         private void MenuRequestHandler_OnMenuRequest(GameObject requester)
         {
-            var cam = Camera.main.transform;
-
-            transform.position = cam.TransformPoint(spawnRelativeTransform.localPosition);
-            transform.rotation = cam.rotation * spawnRelativeTransform.localRotation;
-            gameObject.SetActive(true);
+            Request();
         }
 
         private void RoomClient_OnJoinedRoom(IRoom room)
@@ -119,8 +117,8 @@ namespace Ubiq.Samples
                 roomUUID = roomClient.Room.UUID;
 
                 var spawner = NetworkSpawner.FindNetworkSpawner(networkScene);
-                uiIndicator = spawner.SpawnPersistent(networkedIndicatorPrefab);
-                var bindable = uiIndicator.GetComponent<IMainMenuBindable>();
+                uiIndicator = spawner.SpawnPersistent(networkedIndicatorTemplate);
+                var bindable = uiIndicator.GetComponent<ISocialMenuBindable>();
                 if (bindable != null)
                 {
                     bindable.Bind(this);
@@ -134,6 +132,15 @@ namespace Ubiq.Samples
                     }
                 }
             }
+        }
+
+        public void Request ()
+        {
+            var cam = Camera.main.transform;
+
+            transform.position = cam.TransformPoint(spawnRelativeTransform.localPosition);
+            transform.rotation = cam.rotation * spawnRelativeTransform.localRotation;
+            gameObject.SetActive(true);
         }
     }
 }

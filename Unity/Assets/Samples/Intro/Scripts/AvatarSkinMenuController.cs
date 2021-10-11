@@ -52,7 +52,7 @@ namespace Ubiq.Samples
                     }
 
                     PreviewAvatar.Textures = Textured.Textures;
-                    PreviewAvatar.SetTexture(Textured.GetTexture());
+                    // PreviewAvatar.SetTexture(Textured.GetTexture());
                 }
             }
         }

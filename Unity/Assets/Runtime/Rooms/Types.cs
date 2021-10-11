@@ -155,15 +155,17 @@ namespace Ubiq.Rooms.Messages
     }
 
     [Serializable]
-    public class RoomsRequest
+    public class DiscoverRoomsRequest
     {
+        public string joincode;
     }
 
     [Serializable]
-    public class RoomsResponse
+    public class DiscoverRoomsResponse
     {
         public string version;
         public List<RoomInfo> rooms;
+        public DiscoverRoomsRequest request;
     }
 
     [Serializable]
@@ -208,11 +210,7 @@ namespace Ubiq.Rooms
         NetworkId NetworkObjectId { get; }
     }
 
-    public class RejectedEvent : UnityEvent<Rejection>
-    {
-    };
-
-    public class RoomsAvailableEvent : UnityEvent<List<IRoom>>
+    public class RoomsDiscoveredEvent : UnityEvent<List<IRoom>,RoomsDiscoveredRequest>
     {
     };
 
@@ -224,11 +222,8 @@ namespace Ubiq.Rooms
     {
     };
 
-    public struct Rejection
+    public struct RoomsDiscoveredRequest
     {
-        public string reason;
         public string joincode;
-        public string name;
-        public bool publish;
     }
 }
