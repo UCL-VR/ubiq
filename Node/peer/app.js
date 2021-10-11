@@ -6,10 +6,11 @@
 // Import Ubiq types
 const { NetworkScene, UbiqTcpConnection } = require("../ubiq");
 const { RoomClient } = require("./roomclient");
-const { LogCollector } = require("./logcollector")
+const { LogCollector, MyStream } = require("./logcollector")
+const { fs } = require('fs');
 
 // Create a connection to a Server
-const connection = UbiqTcpConnection("localhost", 8002);
+const connection = UbiqTcpConnection("localhost", 8005);
 
 // A NetworKScene
 const scene = new NetworkScene();
@@ -19,16 +20,51 @@ scene.addConnection(connection);
 const roomclient = new RoomClient(scene);
 const logcollector = new LogCollector(scene);
 
-// Configure
-
-roomclient.addListener("OnPing", ()=>{
-    console.log("Received Ping");
-})
-
 roomclient.addListener("OnJoinedRoom", room => {
     console.log(room.joincode);
 })
 
+// This snippet opens a new filename, by attempting to open files with a given pattern until an unused name is found.
+// One the file has been opened, the userEventStream is piped into it.
+var counter = 0;
+function startNewUserFileStream(){
+    var filename = `UserApplicationLog_${counter}.log.json`;
+    var stream = fs.createWriteStream(filename,{
+        flags: "wx"
+    });
+    stream.on("error", function(error){
+        if(error.code == "EEXIST"){
+            counter++;
+            startNewUserFileStream();
+        }
+    })
+    stream.on("open", function(){
+        logcollector.userEventStream.unpipe(); // This disconnects all streams (don't use this code as-is if you want to route the events elsewhere too)
+        logcollector.userEventStream.pipe(this); // There is no race condition here because Node is single threaded, so the new pipe will be established before any new messages are processed
+    });
+}
+
+roomclient.addListener("OnPeerAdded", function() {
+    if(roomclient.peers.size == 1){
+        // The only time that the number of peers here is 1, is when a second
+        // peer has joined for the first time (i.e. there is maybe one real
+        // peer in a room).
+        // When this happens, start a new log file, to roughly split the events
+        // into files corresponding to 'sessions' of different groups in a room/
+        // Note that participants do unexpected things. Do not use this as the
+        // main way to distinguish sessions; always include identifying information
+        // with each log event.
+        startNewUserFileStream();
+    }
+})
+
+// Pipe the events to the file. Do this before calling startCollection to prevent race conditions
+// resulting in lost data.
+startNewUserFileStream();
+
+// Calling startCollection() will start streaming from the LogManagers at existing and
+// and new Peers.
+// The events will be buffered in userEventStream and applicationEventStream.
 logcollector.startCollection();
 
 roomclient.join(); // no parameters means create a new room

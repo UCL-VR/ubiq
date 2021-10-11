@@ -144,7 +144,7 @@ class RoomClient extends EventEmitter{
                 newPeersMap.forEach((value,key)=>{
                     if(!this.peers.has(key)){
                         this.peers.set(key,value);
-                        this.emit("OnPeerAdded",value);
+                        this.emit("OnPeerAdded", value);
                     }
                 });            
                 this.emit("OnJoinedRoom", this.room);
