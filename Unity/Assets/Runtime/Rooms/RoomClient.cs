@@ -446,19 +446,16 @@ namespace Ubiq.Rooms
         }
 
         /// <summary>
-        /// Joins a room, possibly creating one if none exists
+        /// Create a new room with the specified name and visibility
         /// </summary>
-        /// <param name="uuid">Optional room uuid. If a room exists with the uuid, join it. If not, create it</param>
-        /// <param name="name">Optional joincode. If a room exists with the joincode, join it. If not, the server will send a rejection response</param>
-        /// <param name="name">Optional name to identify the room when published</param>
-        /// <param name="name">Optionally make the room available to join without uuid or joincode</param>
-        public void Join(string uuid = "", string joincode = "", string name = "", bool publish = false)
+        /// <param name="name">The name of the new room</param>
+        /// <param name="bool">Whether others should be able to browse for this room</param>
+        public void Join(string name, bool publish)
         {
             actions.Add(() =>
             {
                 SendToServer("Join", new JoinRequest()
                 {
-                    joincode = "", // Empty joincode means request new room
                     name = name,
                     publish = publish,
                     peer = me.GetPeerInfo()
@@ -477,6 +474,22 @@ namespace Ubiq.Rooms
                 SendToServer("Join", new JoinRequest()
                 {
                     joincode = joincode,
+                    peer = me.GetPeerInfo()
+                });
+                me.NeedsUpdate();
+            });
+        }
+
+        /// <summary>
+        /// Joins an existing room using a join code.
+        /// </summary>
+        public void Join(Guid guid)
+        {
+            actions.Add(() =>
+            {
+                SendToServer("Join", new JoinRequest()
+                {
+                    uuid = guid.ToString(),
                     peer = me.GetPeerInfo()
                 });
                 me.NeedsUpdate();
