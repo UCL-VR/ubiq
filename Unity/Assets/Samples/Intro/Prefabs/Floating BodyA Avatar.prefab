@@ -19,20 +19,6 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
---- !u!114 &4417726312930787585
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 815592229552865677}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a29d521c850e80c42b8ec193ad00bc8d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  node: 0
-  speed: 10
 --- !u!1 &1023099991752390223
 GameObject:
   m_ObjectHideFlags: 0
@@ -128,6 +114,7 @@ GameObject:
   - component: {fileID: 6305583007509887283}
   - component: {fileID: 2075108968}
   - component: {fileID: 4298616475857224935}
+  - component: {fileID: 977680884827395689}
   m_Layer: 0
   m_Name: Floating BodyA Avatar
   m_TagString: Untagged
@@ -294,6 +281,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   audioSourcePosition: {fileID: 6003368457278044233}
+--- !u!114 &977680884827395689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3172939939781028348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a29d521c850e80c42b8ec193ad00bc8d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speed: 10
+  leftHandAnimator: {fileID: 4111884431626766707}
+  rightHandAnimator: {fileID: 7322442156188559726}
 --- !u!1 &4643478336081950923
 GameObject:
   m_ObjectHideFlags: 0
@@ -394,20 +396,6 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
---- !u!114 &7706370318311634142
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4976244087506742573}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a29d521c850e80c42b8ec193ad00bc8d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  node: 1
-  speed: 10
 --- !u!1 &6840510625264382670
 GameObject:
   m_ObjectHideFlags: 0
