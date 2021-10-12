@@ -6,11 +6,11 @@
 // Import Ubiq types
 const { NetworkScene, UbiqTcpConnection } = require("../ubiq");
 const { RoomClient } = require("./roomclient");
-const { LogCollector, MyStream } = require("./logcollector")
-const { fs } = require('fs');
+const { LogCollector, MyStream } = require("./logcollector");
+const fs = require('fs');
 
 // Create a connection to a Server
-const connection = UbiqTcpConnection("localhost", 8005);
+const connection = UbiqTcpConnection("nexus.cs.ucl.ac.uk", 8005);
 
 // A NetworKScene
 const scene = new NetworkScene();
@@ -67,4 +67,4 @@ startNewUserFileStream();
 // The events will be buffered in userEventStream and applicationEventStream.
 logcollector.startCollection();
 
-roomclient.join(); // no parameters means create a new room
+roomclient.join("6765c52b-3ad6-4fb0-9030-2c9a05dc4731"); // Join by UUID. Use an online generator to create a new one for your experiment.

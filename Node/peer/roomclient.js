@@ -19,7 +19,7 @@ class RoomClient extends EventEmitter{
         this.context = scene.register(this);
 
         this.peer = {
-            uuid: Uuid(),
+            uuid: Uuid.generate(),
             properties: {}
         }
 
@@ -78,10 +78,22 @@ class RoomClient extends EventEmitter{
             publish: false,
             peer: this.getPeerInfo()
         };
-        if(arguments.length == 1){
-            args.joincode = arguments[1]; //TODO; add support for uuids and join code
-        }
-        if(arguments.length == 2){
+        if(arguments.length == 0){ // Create a new room (with default parameters)
+            args.name = "My Room";
+            args.publish = false;
+        }else
+        if(arguments.length == 1){ //Join an existing room by join code or UID
+            var identifier = arguments[0];
+            if(typeof(identifier) === "string" && identifier.length === 3){
+                args.joincode = identifier;
+            }else
+            if(typeof(identifier) === "string" && Uuid.validate(identifier)){
+                args.uuid = identifier;
+            }else{
+                throw (identifier + " is not a Join Code or a GUID");
+            }
+        }else
+        if(arguments.length == 2){ // Create a new room with the specified parameters
             for(var i = 0; i < arguments.length; i++){
                 var arg = arguments[i];
                 if(typeof(arg) == "boolean"){
@@ -91,7 +103,7 @@ class RoomClient extends EventEmitter{
                     args.name = arg;
                 }
             }
-        }
+        }else
         if(arguments.length > 2){
             throw "Join must have 0, 1 or 2 arguments";
         }
