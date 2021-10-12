@@ -15,7 +15,9 @@ namespace Ubiq.Samples
         // Expected to be called by a UI element
         public void NewRoom ()
         {
-            mainMenu.roomClient.Join("",nameText.text,publish);
+            mainMenu.roomClient.Join(
+                name: nameText.text,
+                publish: publish);
         }
     }
 }

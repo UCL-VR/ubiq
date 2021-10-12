@@ -105,7 +105,7 @@ class RoomClient{
         this.context = parent.scene.register(this);
         this.context.object.objectId = NetworkId.Unique();
         this.peer = new Object();
-        this.peer.uuid = Uuid();
+        this.peer.uuid = Uuid.generate();
         this.peer.networkObject = this.context.object.objectId;
         this.peer.component = this.context.component.componentId;
         this.peer.properties = new Object();

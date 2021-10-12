@@ -60,6 +60,11 @@ namespace Ubiq.Rooms
         public RoomEvent OnRoomUpdated = new RoomEvent();
 
         /// <summary>
+        /// Emitted when this peer attempts to join a room and is rejected
+        /// </summary>
+        public RejectedEvent OnJoinRejected = new RejectedEvent();
+
+        /// <summary>
         /// Emitted in response to a discovery request
         /// </summary>
         public RoomsDiscoveredEvent OnRoomsDiscovered = new RoomsDiscoveredEvent();
@@ -321,6 +326,19 @@ namespace Ubiq.Rooms
                         OnRoomUpdated.Invoke(room);
                     }
                     break;
+                case "Rejected":
+                    {
+                        var args = JsonUtility.FromJson<RejectedArgs>(container.args);
+                        OnJoinRejected.Invoke(new Rejection()
+                        {
+                            reason = args.reason,
+                            uuid = args.joinArgs.uuid,
+                            joincode = args.joinArgs.joincode,
+                            name = args.joinArgs.name,
+                            publish = args.joinArgs.publish
+                        });
+                    }
+                    break;
                 case "UpdateRoom":
                     {
                         var args = JsonUtility.FromJson<RoomInfo>(container.args);
@@ -414,13 +432,17 @@ namespace Ubiq.Rooms
         }
 
         /// <summary>
-        /// Joins a room. If no such room exists, it will be created.
-        /// If joincode is empty, a new joincode will be randomly generated.
+        /// Joins a room, possibly creating one if none exists
         /// </summary>
-        public void Join(string joincode = "", string name = "", bool publish = false)
+        /// <param name="uuid">Optional room uuid. If a room exists with the uuid, join it. If not, create it</param>
+        /// <param name="name">Optional joincode. If a room exists with the joincode, join it. If not, the server will send a rejection response</param>
+        /// <param name="name">Optional name to identify the room when published</param>
+        /// <param name="name">Optionally make the room available to join without uuid or joincode</param>
+        public void Join(string uuid = "", string joincode = "", string name = "", bool publish = false)
         {
             SendToServer("Join", new JoinRequest()
             {
+                uuid = uuid,
                 joincode = joincode,
                 name = name,
                 publish = publish,

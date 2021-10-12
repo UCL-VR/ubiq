@@ -8,6 +8,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "jsonschema": "^1.4.0",
+    "uuid": "^8.3.2",
     "ws": "^8.2.3"
   }
 }

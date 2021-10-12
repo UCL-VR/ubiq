@@ -41,7 +41,7 @@ namespace Ubiq.Samples.Minimal.Rooms
                 }
             });
 
-            primary.Join("",$"Room Client Join Helper {Random.Range(0, 1000)}", false); // we will get the roomcode in the callback, so we dont need to make these public
+            primary.Join(name: $"Room Client Join Helper {Random.Range(0, 1000)}"); // we will get the roomcode in the callback, so we dont need to make these public
         }
     }
 }
