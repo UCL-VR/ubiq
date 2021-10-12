@@ -22,8 +22,18 @@ namespace Ubiq.Rooms
     public class RoomClient : MonoBehaviour, INetworkComponent
     {
         public IRoom Room { get => room; }
-
+        
+        /// <summary>
+        /// A reference to the Peer that represents this local player. Me will be the same reference through the life of the RoomClient.
+        /// It is valid after Awake() (can be used in Start()).
+        /// </summary>
         public IPeer Me { get => me; }
+
+        /// <summary>
+        /// The Rooms that are available for this client to Join. Clients can join rooms not on this list via
+        /// a Room Code shared out of band.
+        /// </summary>
+        public List<IRoom> Available { get; private set; }
 
         /// <summary>
         /// The Session Id identifies a persistent connection to a RoomServer. If the Session Id returned by the Room Server changes,
@@ -108,6 +118,8 @@ namespace Ubiq.Rooms
         private PeerInterfaceFriend me;
         private RoomInterfaceFriend room;
 
+        private List<Action> actions;
+        
         /// <summary>
         /// Contains the current Peers, indexed by UUID
         /// </summary>
@@ -265,6 +277,8 @@ namespace Ubiq.Rooms
             blobCallbacks = new Dictionary<string, Action<string>>();
             room = new RoomInterfaceFriend();
             peers = new Dictionary<string, PeerInterfaceFriend>();
+            Available = new List<IRoom>();
+            actions = new List<Action>();
 
             OnJoinedRoom.AddListener((room) => Debug.Log("Joined Room " + room.Name));
 
@@ -432,23 +446,54 @@ namespace Ubiq.Rooms
         }
 
         /// <summary>
-        /// Joins a room, possibly creating one if none exists
+        /// Create a new room with the specified name and visibility
         /// </summary>
-        /// <param name="uuid">Optional room uuid. If a room exists with the uuid, join it. If not, create it</param>
-        /// <param name="name">Optional joincode. If a room exists with the joincode, join it. If not, the server will send a rejection response</param>
-        /// <param name="name">Optional name to identify the room when published</param>
-        /// <param name="name">Optionally make the room available to join without uuid or joincode</param>
-        public void Join(string uuid = "", string joincode = "", string name = "", bool publish = false)
+        /// <param name="name">The name of the new room</param>
+        /// <param name="bool">Whether others should be able to browse for this room</param>
+        public void Join(string name, bool publish)
         {
-            SendToServer("Join", new JoinRequest()
+            actions.Add(() =>
             {
-                uuid = uuid,
-                joincode = joincode,
-                name = name,
-                publish = publish,
-                peer = me.GetPeerInfo()
+                SendToServer("Join", new JoinRequest()
+                {
+                    name = name,
+                    publish = publish,
+                    peer = me.GetPeerInfo()
+                });
+                me.NeedsUpdate(); // This will clear the updated needed flag
             });
-            me.NeedsUpdate();
+        }
+
+        /// <summary>
+        /// Joins an existing room using a join code.
+        /// </summary>
+        public void Join(string joincode)
+        {
+            actions.Add(() =>
+            {
+                SendToServer("Join", new JoinRequest()
+                {
+                    joincode = joincode,
+                    peer = me.GetPeerInfo()
+                });
+                me.NeedsUpdate();
+            });
+        }
+
+        /// <summary>
+        /// Joins an existing room using a join code.
+        /// </summary>
+        public void Join(Guid guid)
+        {
+            actions.Add(() =>
+            {
+                SendToServer("Join", new JoinRequest()
+                {
+                    uuid = guid.ToString(),
+                    peer = me.GetPeerInfo()
+                });
+                me.NeedsUpdate();
+            });
         }
 
         /// <summary>
@@ -459,9 +504,12 @@ namespace Ubiq.Rooms
         /// </remarks>
         public void Leave()
         {
-            SendToServer("Leave", new LeaveRequest()
+            actions.Add(() =>
             {
-                peer = me.GetPeerInfo()
+                SendToServer("Leave", new LeaveRequest()
+                {
+                    peer = me.GetPeerInfo()
+                });
             });
         }
 
@@ -478,6 +526,9 @@ namespace Ubiq.Rooms
 
         private void Update()
         {
+            actions.ForEach(a => a());
+            actions.Clear();
+
             if (me.NeedsUpdate())
             {
                 SendToServer("UpdatePeer", me.GetPeerInfo());
