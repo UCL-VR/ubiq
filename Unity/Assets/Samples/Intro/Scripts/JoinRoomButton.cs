@@ -22,14 +22,14 @@ namespace Ubiq.Samples
         private void OnEnable()
         {
             mainMenu.roomClient.OnJoinedRoom.AddListener(RoomClient_OnJoinedRoom);
-            mainMenu.roomClient.OnRoomsDiscovered.AddListener(RoomClient_OnRoomsDiscovered);
+            mainMenu.roomClient.OnJoinRejected.AddListener(RoomClient_OnJoinRejected);
             defaultTextInputAreaColor = textInputArea.color;
         }
 
         private void OnDisable()
         {
             mainMenu.roomClient.OnJoinedRoom.RemoveListener(RoomClient_OnJoinedRoom);
-            mainMenu.roomClient.OnRoomsDiscovered.RemoveListener(RoomClient_OnRoomsDiscovered);
+            mainMenu.roomClient.OnJoinRejected.RemoveListener(RoomClient_OnJoinRejected);
             textInputArea.color = defaultTextInputAreaColor;
         }
 
@@ -38,29 +38,22 @@ namespace Ubiq.Samples
             mainPanel.SwitchPanelToDefault();
         }
 
-        private void RoomClient_OnRoomsDiscovered(List<IRoom> rooms, RoomsDiscoveredRequest request)
+        private void RoomClient_OnJoinRejected(Rejection rejection)
         {
-            if (request.joincode != lastRequestedJoincode)
+            if (rejection.joincode != lastRequestedJoincode)
             {
                 return;
             }
 
-            if (rooms.Count > 0)
-            {
-                mainMenu.roomClient.Join(lastRequestedJoincode);
-            }
-            else
-            {
-                textEntry.SetText(failMessage,textEntry.defaultTextColor,true);
-                textInputArea.color = failTextInputAreaColor;
-            }
+            textEntry.SetText(failMessage,textEntry.defaultTextColor,true);
+            textInputArea.color = failTextInputAreaColor;
         }
 
         // Expected to be called by a UI element
         public void Join()
         {
             lastRequestedJoincode = joincodeText.text.ToLowerInvariant();
-            mainMenu.roomClient.DiscoverRooms(lastRequestedJoincode);
+            mainMenu.roomClient.Join(joincode:lastRequestedJoincode);
         }
     }
 }

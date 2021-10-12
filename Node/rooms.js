@@ -45,36 +45,54 @@ class RoomServer extends EventEmitter{
     async join(peer, args){
 
         var room = null;
-        if(args.hasOwnProperty("joincode") && args.joincode != ""){
+        if(args.hasOwnProperty("uuid") && args.uuid != ""){
+            // Room join request by uuid
+            if (!Uuid.validate(args.uuid)){
+                console.log(peer.uuid + " attempted to join room with uuid " + args.uuid + " but the we were expecting an RFC4122 v4 uuid.");
+                peer.sendRejected(args,"Could not join room with uuid " + args.uuid + ". We require an RFC4122 v4 uuid.");
+                return;
+            }
+
+            // Not a problem if no such room exists - we'll create one
+            room = this.roomDatabase.uuid(args.uuid);
+        }
+        else if(args.hasOwnProperty("joincode") && args.joincode != ""){
             // Room join request by joincode
             room = this.roomDatabase.joincode(args.joincode);
 
-            if (room !== null && peer.room.uuid === room.uuid){
-                console.log(peer.uuid + " attempted to join room with code " + args.joincode + " but peer is already in room");
+            if (room === null) {
+                console.log(peer.uuid + " attempted to join room with code " + args.joincode + " but no such room exists");
+                peer.sendRejected(args,"Could not join room with code " + args.joincode + ". No such room exists.");
                 return;
             }
         }
 
+        if (room !== null && peer.room.uuid === room.uuid){
+            console.log(peer.uuid + " attempted to join room with code " + args.joincode + " but peer is already in room");
+            return;
+        }
+
         if (room === null) {
-            // New room requested
+            // Otherwise new room requested
             var uuid = "";
-            while(true){
-                uuid = Uuid();
-                if(this.roomDatabase.uuid(uuid) === null){
-                    break;
+            if(args.hasOwnProperty("uuid") && args.uuid != ""){
+                // Use specified uuid
+                // we're sure it's correctly formatted and isn't already in db
+                uuid = args.uuid;
+            } else {
+                // Create new uuid if none specified
+                while(true){
+                    uuid = Uuid.generate();
+                    if(this.roomDatabase.uuid(uuid) === null){
+                        break;
+                    }
                 }
             }
             var joincode = "";
-            if(args.hasOwnProperty("joincode") && args.joincode != ""){
-                // Use specified joincode - we're sure it isn't already in db
-                joincode = args.joincode;
-            } else {
-                // Create new joincode if none specified
-                while(true){
-                    joincode = JoinCode();
-                    if (this.roomDatabase.joincode(joincode) === null){
-                        break;
-                    }
+            while(true){
+                joincode = JoinCode();
+                if (this.roomDatabase.joincode(joincode) === null){
+                    break;
                 }
             }
             var publish = false;
@@ -162,11 +180,12 @@ Schema.add({
     type: "object",
     properties: {
         joincode: {type: "string"},
+        uuid: {type: "string"},
         name: {type: "string"},
         publish: {type: "boolean"},
         peer: {$ref: "/ubiq.rooms.peerinfo"},
     },
-    required: ["joincode","peer"]
+    required: ["peer"]
 });
 
 Schema.add({
@@ -257,7 +276,7 @@ class RoomPeer{
         this.properties = [];
         this.connection.onMessage.push(this.onMessage.bind(this));
         this.connection.onClose.push(this.onClose.bind(this));
-        this.sessionId = Uuid();
+        this.sessionId = Uuid.generate();
     }
 
     onMessage(message){
@@ -375,6 +394,22 @@ class RoomPeer{
     setRoom(room){
         this.room = room;
         this.sendSetRoom();
+    }
+
+    sendRejected(joinArgs,reason){
+        this.send(
+            Message.Create(
+                this.objectId,
+                1,
+                {
+                    type: "Rejected",
+                    args: JSON.stringify({
+                        reason: reason,
+                        joinArgs: joinArgs
+                    })
+                }
+            )
+        );
     }
 
     sendSetRoom(){
