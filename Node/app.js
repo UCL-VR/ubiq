@@ -1,6 +1,7 @@
 const { WrappedWebSocketServer, WrappedTcpServer } = require("./connections")
 const { RoomServer } = require("./rooms");
 const { IceServerProvider } = require("./ice");
+const { Performance } = require('./logging')
 const nconf = require('nconf');
 
 // nconf loads the configuration hierarchically; default.json contains most of
@@ -27,3 +28,5 @@ if (iceServers){
             iceServer.password);
     }
 }
+
+Performance.startLog("C:/Users/Sebastian/AppData/LocalLow/UCL/ubiq");
