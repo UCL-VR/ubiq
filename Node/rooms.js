@@ -34,6 +34,8 @@ class RoomServer extends EventEmitter{
             numPeers: 0,
             messagesIn: 0,
             messagesOut: 0,
+            bytesIn: 0,
+            bytesOut: 0
         }
         this.statisticsTimer = setInterval(this.updateStatistics.bind(this), 1000);
     }
@@ -264,6 +266,7 @@ class RoomPeer{
 
     onMessage(message){
         this.server.statistics.messagesIn++;
+        this.server.statistics.bytesIn += message.length;
         if(NetworkId.Compare(message.objectId, this.server.objectId) && message.componentId == this.server.componentId){
             try {
                 message.object = message.toObject();
@@ -492,6 +495,7 @@ class RoomPeer{
 
     send(message){
         this.server.statistics.messagesOut++;
+        this.server.statistics.bytesOut += message.length;
         this.connection.send(message);
     }
 }
