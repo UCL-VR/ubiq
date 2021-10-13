@@ -1,6 +1,5 @@
 const { hrtime } = require('process')
 const fs = require('fs');
-const { file } = require('nconf');
 
 class FileTransport{
     constructor(args){
@@ -46,6 +45,18 @@ class EventLogger{
         });
         return ev;
     }
+
+    static buildStructuredEvent(args){
+        if(typeof(args[0])!== "string"){
+            console.error("First argument to log() must be the event type as a string.");
+            return;
+        }
+        var ev = this.begin(args[0]);
+        for(var i = 1; i < args.length; i++){
+            ev["arg"+i] = args[i];
+        }
+        return ev;
+    }
 }
 
 // For standard observation and diagnostics. These events should be logged all the time.
@@ -67,8 +78,10 @@ class Performance extends EventLogger{
     }
     
     //The log entry point for Performance. When logging is disabled, this is set as an empty function.
-    static log(event){
-        var ev = EventLogger.buildStructuredEvent(arguments);
+    static log(event, values){
+        if(this.transport != null){
+            this.logStructedEvent(EventLogger.buildStructuredEvent(arguments));
+        }
     }
 
     static logProperties(event, object){
