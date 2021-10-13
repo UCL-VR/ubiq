@@ -24,12 +24,19 @@ roomclient.addListener("OnJoinedRoom", room => {
     console.log(room.joincode);
 })
 
+// The stream
+var stream = undefined;
+
 // This snippet opens a new filename, by attempting to open files with a given pattern until an unused name is found.
 // One the file has been opened, the userEventStream is piped into it.
 var counter = 0;
 function startNewUserFileStream(){
     var filename = `UserApplicationLog_${counter}.log.json`;
-    var stream = fs.createWriteStream(filename,{
+    if(stream !== undefined){
+        stream.close();
+        stream = undefined;
+    }
+    stream = fs.createWriteStream(filename,{
         flags: "wx"
     });
     stream.on("error", function(error){
@@ -58,9 +65,16 @@ roomclient.addListener("OnPeerAdded", function() {
     }
 })
 
-// Pipe the events to the file. Do this before calling startCollection to prevent race conditions
-// resulting in lost data.
-startNewUserFileStream();
+roomclient.addListener("OnPeerRemoved", function(){
+    if(roomclient.peers.size == 0){
+        stream.close();
+        stream = undefined;
+    }
+})
+
+// Manually start the user stream before creating a log file. This will avoid race conditions between calling logcollector.start()
+// and the first stream being created when peers join the room.
+logcollector.userEventStream.resume();
 
 // Calling startCollection() will start streaming from the LogManagers at existing and
 // and new Peers.
