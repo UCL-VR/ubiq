@@ -21,6 +21,11 @@ namespace Ubiq.Samples.Bots.UI
         public Toggle EnableAudioToggle;
         public Camera Camera;
         public LayoutGroup BotManagerControlList;
+        public Button ClearButton;
+
+        // VR2022 Controls
+        public InputField UpdateRateField;
+        public InputField PaddingField;
 
         private GameObject BotManagerControlPrototype;
         private List<BotsManagerControl> BotManagerControls;
@@ -35,6 +40,11 @@ namespace Ubiq.Samples.Bots.UI
             JoinRoomButton.onClick.AddListener(() =>
             {
                 Controller.AddBotsToRoom(JoinCodeInputField.text);
+            });
+
+            ClearButton.onClick.AddListener(() =>
+            {
+                Controller.ClearBots();
             });
 
             ToggleCameraButton.onClick.AddListener(ToggleCamera);
@@ -59,7 +69,7 @@ namespace Ubiq.Samples.Bots.UI
             }
             CommandRoomJoinCodeLabel.text = Controller.CommandJoinCode;
 
-            while(BotManagerControls.Count < Controller.BotManagers.Count)
+            while (BotManagerControls.Count < Controller.BotManagers.Count)
             {
                 BotManagerControls.Add(
                     GameObject.Instantiate(BotManagerControlPrototype, BotManagerControlList.transform)
@@ -74,9 +84,25 @@ namespace Ubiq.Samples.Bots.UI
                 BotManagerControls[i].gameObject.SetActive(true);
                 i++;
             }
+
+            try
+            {
+                Controller.UpdateRate = int.Parse(UpdateRateField.text);
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                Controller.Padding = int.Parse(PaddingField.text);
+            }
+            catch
+            {
+            }
         }
 
-        public void ToggleCamera()
+            public void ToggleCamera()
         {
             Camera.cullingMask ^= 1 << LayerMask.NameToLayer("Default");
         }

@@ -9,6 +9,7 @@ using Ubiq.Networking;
 using Ubiq.Rooms;
 using Ubiq.Samples.Bots.Messaging;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Ubiq.Samples.Bots
 {
@@ -29,6 +30,10 @@ namespace Ubiq.Samples.Bots
         /// </summary>
         public bool HideBotAvatars = true;
 
+        public int AvatarUpdateRate = 60;
+
+        public int Padding = 0;
+
         /// <summary>
         /// When True, Bots are created with synthetic audio sources and sinks, and transmit and receive audio. When false, no Voip connections are made.
         /// </summary>
@@ -45,6 +50,12 @@ namespace Ubiq.Samples.Bots
 
         private List<Bot> bots;
         private float lastStatusTime;
+
+        public class BotPeerEvent : UnityEvent<Bot>
+        {
+        }
+
+        public BotPeerEvent OnBot;
 
         private void Awake()
         {
@@ -111,6 +122,15 @@ namespace Ubiq.Samples.Bots
             }
         }
 
+        public void ClearBots()
+        {
+            foreach (var bot in bots)
+            {
+                GameObject.Destroy(bot.transform.parent.gameObject);
+            }
+            bots.Clear();
+        }
+
         public void AddBotsToRoom(Bot bot)
         {
             var rc = GetRoomClient(bot);
@@ -145,6 +165,12 @@ namespace Ubiq.Samples.Bots
                             }
                         }
                     }
+
+                    avatar.UpdateRate = AvatarUpdateRate;
+
+                    var adm = avatar.gameObject.AddComponent<AvatarDataGenerator>();
+                    adm.BytesPerMessage = Padding;
+
                 });
             }
 
@@ -156,6 +182,8 @@ namespace Ubiq.Samples.Bots
                     DestroyImmediate(voipManager);
                 }
             }
+
+            OnBot?.Invoke(bot);
         }
 
         private RoomClient GetRoomClient(Bot bot)
@@ -172,7 +200,9 @@ namespace Ubiq.Samples.Bots
                     {
                         var Message = message.FromJson<BotManagerSettings>();
                         EnableAudio = Message.EnableAudio;
-                        if(commandRoomJoinCode != Message.BotsRoomJoinCode)
+                        AvatarUpdateRate = Message.AvatarUpdateRate;
+                        Padding = Message.AvatarDataPadding;
+                        if (commandRoomJoinCode != Message.BotsRoomJoinCode)
                         {
                             commandRoomJoinCode = Message.BotsRoomJoinCode;
                             AddBotsToRoom();
@@ -183,6 +213,11 @@ namespace Ubiq.Samples.Bots
                     {
                         var Message = message.FromJson<AddBots>();
                         AddBots(Message.NumBots);
+                    }
+                    break;
+                case "ClearBots":
+                    {
+                        ClearBots();
                     }
                     break;
             }

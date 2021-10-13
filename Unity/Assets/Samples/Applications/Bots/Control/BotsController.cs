@@ -1,8 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Ubiq.Logging;
 using Ubiq.Messaging;
 using Ubiq.Rooms;
 using Ubiq.Samples.Bots.Messaging;
+using Ubiq.Utilities.Coroutines;
 using UnityEngine;
 
 namespace Ubiq.Samples.Bots
@@ -18,18 +20,20 @@ namespace Ubiq.Samples.Bots
         public string CommandJoinCode { get; private set; }
         public string BotsJoinCode { get; set; }
         public bool EnableAudio { get; set; }
+        public int UpdateRate { get; set; }
+        public int Padding { get; set; }
 
         public int NumBotsRoomPeers => BotsRoom.NumPeers;
         public PerformanceMonitor BotsRoom;
         public ICollection<BotManagerProxy> BotManagers => proxies.Values;
 
         private Dictionary<string, BotManagerProxy> proxies;
-        private float lastPingTime = 0;
+
+        private UserEventLogger Info;
 
         private void Awake()
         {
             proxies = new Dictionary<string, BotManagerProxy>();
-            lastPingTime = Time.realtimeSinceStartup;
             RoomClient.Find(this).SetDefaultServer(BotsServers.CommandServer);
             BotsRoom.RoomClient.SetDefaultServer(BotsServers.BotServer);
         }
@@ -54,6 +58,18 @@ namespace Ubiq.Samples.Bots
             BotsRoom.RoomClient.OnJoinedRoom.AddListener(Room => {
                 AddBotsToRoom(Room.JoinCode);
             });
+
+            Info = new UserEventLogger(this);
+
+            StartCoroutine(Coroutines.Update(0.5f, () =>
+            {
+                var totalBots = 0;
+                foreach (var item in proxies)
+                {
+                    totalBots += item.Value.NumBots;
+                }
+                Info.Log("BotsControllerInfo", totalBots, UpdateRate, Padding);
+            }));
         }
 
         void OnJoinedCommandRoom(IRoom room)
@@ -88,6 +104,14 @@ namespace Ubiq.Samples.Bots
             {
                 BotsJoinCode = JoinCode;
                 UpdateProxies();
+            }
+        }
+
+        public void ClearBots()
+        {
+            foreach (var item in proxies.Values)
+            {
+                item.ClearBots();
             }
         }
 
@@ -139,15 +163,22 @@ namespace Ubiq.Samples.Bots
         public void UpdateSettings()
         {
             controller.Context.SendJson(Id, ComponentId, new BotManagerSettings()
-            { 
+            {
                 BotsRoomJoinCode = controller.BotsJoinCode,
-                EnableAudio = controller.EnableAudio
+                EnableAudio = controller.EnableAudio,
+                AvatarDataPadding = controller.Padding,
+                AvatarUpdateRate = controller.UpdateRate
             });
         }
 
         public void AddBots(int NumBots)
         {
             controller.Context.SendJson(Id, ComponentId, new AddBots(NumBots));
+        }
+
+        public void ClearBots()
+        {
+            controller.Context.SendJson(Id, ComponentId, new ClearBots());
         }
 
         private BotsController controller;

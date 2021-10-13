@@ -19,6 +19,8 @@ namespace Ubiq.Samples.Bots.Messaging
     {
         public bool EnableAudio;
         public string BotsRoomJoinCode;
+        public int AvatarUpdateRate;
+        public int AvatarDataPadding;
 
         public BotManagerSettings():base("UpdateBotManagerSettings")
         {
@@ -32,6 +34,13 @@ namespace Ubiq.Samples.Bots.Messaging
         public AddBots(int NumBots):base("AddBots")
         {
             this.NumBots = NumBots;
+        }
+    }
+
+    public class ClearBots : Message
+    {
+        public ClearBots():base("ClearBots")
+        {
         }
     }
 
