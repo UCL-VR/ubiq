@@ -26,7 +26,6 @@ namespace Ubiq.Avatars
         private IAvatarHintProvider leftHand;
         private IAvatarHintProvider rightHand;
 
-        private float avatarUpdateRate = 60;
         private float lastTransmitTime;
 
         [Serializable]
@@ -80,7 +79,7 @@ namespace Ubiq.Avatars
                 }
 
                 // Send it through network
-                if ((Time.time - lastTransmitTime) > (1 / avatarUpdateRate))
+                if ((Time.time - lastTransmitTime) > (1 / avatar.UpdateRate))
                 {
                     Send();
                 }
