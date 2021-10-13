@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Ubiq.Logging;
@@ -46,6 +47,7 @@ namespace Ubiq.Samples.Bots
         void Start()
         {
             info = new UserEventLogger(this);
+            info.Log("Sync", DateTime.Now.Second + DateTime.Now.Hour * 60);
             collector.StartCollection();
         }
 
@@ -62,8 +64,6 @@ namespace Ubiq.Samples.Bots
                         peersToPing.Enqueue(item);
                     }
                 }
-
-
 
                 if (Time.time - lastPingTime > 0.25f)
                 {

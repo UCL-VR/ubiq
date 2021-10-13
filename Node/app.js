@@ -30,3 +30,6 @@ if (iceServers){
 }
 
 Performance.startLog("C:/Users/Sebastian/AppData/LocalLow/UCL/ubiq");
+dateNow = new Date();
+secondsNow = dateNow.getSeconds() + dateNow.getHours() * 60;
+Performance.log("Sync", secondsNow);
