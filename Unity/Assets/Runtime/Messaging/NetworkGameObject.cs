@@ -214,14 +214,6 @@ namespace Ubiq.Messaging
             return obj.a.GetHashCode();
         }
 
-        public bool Valid
-        {
-            get
-            {
-                return b != 0;
-            }
-        }
-
         public static bool operator ==(NetworkId a, NetworkId b)
         {
             return a.Equals(b);
