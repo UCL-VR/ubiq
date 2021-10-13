@@ -22,10 +22,6 @@ namespace Ubiq.Avatars
         private State[] state = new State[1];
         private Avatar avatar;
 
-        private IAvatarHintProvider head;
-        private IAvatarHintProvider leftHand;
-        private IAvatarHintProvider rightHand;
-
         private float lastTransmitTime;
 
         [Serializable]
@@ -44,39 +40,14 @@ namespace Ubiq.Avatars
             lastTransmitTime = Time.time;
         }
 
-        private void Start()
-        {
-            if (avatar.IsLocal)
-            {
-                InitialiseHints();
-            }
-        }
-
-        public void InitialiseHints()
-        {
-            head = AvatarHints.Find(AvatarHints.Node.Head, this);
-            leftHand = AvatarHints.Find(AvatarHints.Node.LeftHand, this);
-            rightHand = AvatarHints.Find(AvatarHints.Node.RightHand, this);
-        }
-
         private void Update ()
         {
             if (avatar.IsLocal)
             {
                 // Update state from hints
-
-                if (head != null)
-                {
-                    state[0].head = InverseTransformPosRot(head.Provide(), networkSceneRoot);
-                }
-                if (leftHand != null)
-                {
-                    state[0].leftHand = InverseTransformPosRot(leftHand.Provide(), networkSceneRoot);
-                }
-                if (rightHand != null)
-                {
-                    state[0].rightHand = InverseTransformPosRot(rightHand.Provide(), networkSceneRoot);
-                }
+                state[0].head = GetHintNode (AvatarHints.NodePosRot.Head);
+                state[0].leftHand = GetHintNode(AvatarHints.NodePosRot.LeftHand);
+                state[0].rightHand = GetHintNode(AvatarHints.NodePosRot.RightHand);
 
                 // Send it through network
                 if ((Time.time - lastTransmitTime) > (1 / avatar.UpdateRate))
@@ -107,9 +78,9 @@ namespace Ubiq.Avatars
             return local;
         }
 
-        private PositionRotation GetHintNode (AvatarHints.Node node)
+        private PositionRotation GetHintNode (AvatarHints.NodePosRot node)
         {
-            if (AvatarHints.TryGet(node,out PositionRotation nodePosRot))
+            if (AvatarHints.TryGet(node, avatar, out PositionRotation nodePosRot))
             {
                 return new PositionRotation
                 {

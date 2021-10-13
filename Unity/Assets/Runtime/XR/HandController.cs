@@ -30,6 +30,10 @@ namespace Ubiq.XR
 
         public Vector2 Joystick;
 
+        // for smooth hand animation transitions
+        public float GripValue; 
+        public float TriggerValue;
+
         public bool GripState;
         public bool TriggerState;
         public bool PrimaryButtonState;
@@ -116,11 +120,13 @@ namespace Ubiq.XR
                 foreach (var item in controllers)
                 {
                     item.TryGetFeatureValue(CommonUsages.triggerButton, out TriggerState);
+                    item.TryGetFeatureValue(CommonUsages.trigger, out TriggerValue);
                 }
 
                 foreach (var item in controllers)
                 {
                     item.TryGetFeatureValue(CommonUsages.gripButton, out GripState);
+                    item.TryGetFeatureValue(CommonUsages.grip, out GripValue);
                 }
 
                 foreach (var item in controllers)

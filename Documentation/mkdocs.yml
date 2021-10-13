@@ -11,6 +11,7 @@ nav:
             - Interaction with Ubiq XR: ubiqxrinteraction.md
             - Servers and Rooms: serversandrooms.md
             - Testing with Local Loopback: localloopback.md
+            - Logging: eventlogginggettingstarted.md
         - Server:
             - Running the server: serversetup.md
     - Nexus: nexus.md
