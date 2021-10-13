@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Ubiq.Extensions;
 using UnityEngine;
 
 namespace Ubiq.Avatars
@@ -105,18 +106,31 @@ namespace Ubiq.Avatars
             return providersFloat;
         }
 
-        public static bool TryGet (NodePosRot node, out PositionRotation posRot)
+        public static bool TryGet (NodePosRot node, Avatar avatar, out PositionRotation posRot)
         {
-            RequireProvidersPosRot();
-
-            if (providersPosRot.TryGetValue(node,out IAvatarHintProvider<PositionRotation> provider))
+            if(avatar == null)
             {
-                posRot = provider.Provide();
+                posRot = PositionRotation.identity; // todo, put this back
+                return false;
+            }
+
+            var hint = avatar.GetClosestPredicate<AvatarHintPositionRotation>(hp =>
+            {
+                return hp.node == node;
+            });
+
+            if(hint != null)
+            {
+                posRot = hint.Provide();
                 return true;
             }
-            posRot = PositionRotation.identity;
-            return false;
+            else
+            {
+                posRot = PositionRotation.identity;
+                return false;
+            }
         }
+
         public static bool TryGet (NodeFloat node, out float f)
         {
             RequireProvidersFloat();

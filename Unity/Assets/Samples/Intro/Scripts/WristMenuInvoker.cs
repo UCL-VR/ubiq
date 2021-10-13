@@ -44,7 +44,7 @@ namespace Ubiq.Samples
             var node = wrist == Wrist.Left
                 ? AvatarHints.NodePosRot.LeftWrist
                 : AvatarHints.NodePosRot.RightWrist;
-            if (AvatarHints.TryGet(node, out var positionRotation))
+            if (AvatarHints.TryGet(node, null, out var positionRotation))
             {
                 transform.position = positionRotation.position;
                 transform.rotation = positionRotation.rotation;

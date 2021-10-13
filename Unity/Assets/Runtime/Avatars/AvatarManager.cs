@@ -131,7 +131,7 @@ namespace Ubiq.Avatars
 
             // Avatars require a valid id and a prefab. If either of these are missing, it means the remote player does not want an avatar.
 
-            if (!id.Valid)
+            if (!id)
             {
                 return; 
             }
