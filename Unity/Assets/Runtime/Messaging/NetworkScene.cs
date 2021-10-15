@@ -19,6 +19,11 @@ namespace Ubiq.Messaging
         public ushort componentId;
         public INetworkComponent component;
 
+        public NetworkId ObjectId
+        {
+            get { return networkObject.Id; }
+        }
+
         /// <summary>
         /// Sends the message to the network. If the objectid is uninitialised, the message will be sent
         /// to the context address (i.e. the objects with the same object and component ids).

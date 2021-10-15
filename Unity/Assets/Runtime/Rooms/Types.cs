@@ -158,6 +158,7 @@ namespace Ubiq.Rooms.Messages
     [Serializable]
     public class DiscoverRoomsRequest
     {
+        public NetworkId networkId;
         public string joincode;
     }
 
