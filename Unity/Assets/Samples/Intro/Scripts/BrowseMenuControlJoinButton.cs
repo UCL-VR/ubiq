@@ -42,7 +42,7 @@ namespace Ubiq.Samples
                 return;
             }
 
-            roomClient.Join(joincode);
+            roomClient.Join(joincode:joincode);
         }
     }
 }

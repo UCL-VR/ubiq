@@ -55,7 +55,7 @@ GameObject:
   - component: {fileID: 2260868788067765717}
   - component: {fileID: 7068762446378101730}
   - component: {fileID: 7068762446378101731}
-  - component: {fileID: 3778928616593041101}
+  - component: {fileID: 5238363714920747434}
   m_Layer: 0
   m_Name: Network Scene
   m_TagString: Untagged
@@ -112,12 +112,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d61f55a1b9a02064ebf167b08e5b22b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MaxGetRoomsRefreshRate: 2
   servers:
   - listen_on_ip: 
     listen_on_port: 
     send_to_ip: nexus.cs.ucl.ac.uk
-    send_to_port: 8002
+    send_to_port: 8005
     type: 0
 --- !u!114 &7068762446378101731
 MonoBehaviour:
@@ -131,7 +130,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fddd4936b870f084aa3cf82b0e18125f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &3778928616593041101
+--- !u!114 &5238363714920747434
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

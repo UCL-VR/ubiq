@@ -27,7 +27,7 @@ namespace Ubiq.Samples
 
         public AnimationCurve torsoFacingCurve;
 
-        public TexturedAvatar skinnable;
+        public TexturedAvatar texturedAvatar;
 
         private Avatars.Avatar avatar;
         private ThreePointTrackedAvatar trackedAvatar;
@@ -46,9 +46,9 @@ namespace Ubiq.Samples
             trackedAvatar.OnLeftHandUpdate.AddListener(ThreePointTrackedAvatar_OnLeftHandUpdate);
             trackedAvatar.OnRightHandUpdate.AddListener(ThreePointTrackedAvatar_OnRightHandUpdate);
 
-            if (skinnable)
+            if (texturedAvatar)
             {
-                skinnable.OnTextureChanged.AddListener(SkinnableAvatar_OnSkinChanged);
+                texturedAvatar.OnTextureChanged.AddListener(TexturedAvatar_OnTextureChanged);
             }
         }
 
@@ -61,9 +61,9 @@ namespace Ubiq.Samples
                 trackedAvatar.OnRightHandUpdate.RemoveListener(ThreePointTrackedAvatar_OnRightHandUpdate);
             }
 
-            if (skinnable && skinnable != null)
+            if (texturedAvatar && texturedAvatar != null)
             {
-                skinnable.OnTextureChanged.RemoveListener(SkinnableAvatar_OnSkinChanged);
+                texturedAvatar.OnTextureChanged.RemoveListener(TexturedAvatar_OnTextureChanged);
             }
         }
 
@@ -85,17 +85,12 @@ namespace Ubiq.Samples
             rightHand.rotation = rot;
         }
 
-        private void SkinnableAvatar_OnSkinChanged(Texture2D skin)
+        private void TexturedAvatar_OnTextureChanged(Texture2D tex)
         {
-            // This should clone the material just once, and re-use the clone
-            // on subsequent calls. Whole avatar can still use the one material
-            var material = headRenderer.material;
-            material.mainTexture = skin;
-
-            headRenderer.material = material;
-            torsoRenderer.material = material;
-            leftHandRenderer.material = material;
-            rightHandRenderer.material = material;
+            headRenderer.material.mainTexture = tex;
+            torsoRenderer.material = headRenderer.material;
+            leftHandRenderer.material = headRenderer.material;
+            rightHandRenderer.material = headRenderer.material;
         }
 
         private void Update()

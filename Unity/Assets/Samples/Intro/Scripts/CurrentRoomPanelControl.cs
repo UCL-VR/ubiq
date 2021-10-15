@@ -11,8 +11,6 @@ namespace Ubiq.Samples
     public class CurrentRoomPanelControl : MonoBehaviour
     {
         public Text Joincode;
-        public Text Name;
-        public Text SceneName;
         public RawImage ScenePreview;
 
         private string existing;
@@ -20,8 +18,6 @@ namespace Ubiq.Samples
         public void Bind(RoomClient client)
         {
             Joincode.text = client.Room.JoinCode.ToUpperInvariant();
-            Name.text = client.Room.Name;
-            SceneName.text = client.Room["scene-name"];
 
             var image = client.Room["scene-image"];
             if (image != null && image != existing)

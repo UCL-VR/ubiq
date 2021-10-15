@@ -14,6 +14,19 @@ namespace Ubiq.Rooms
         private ReorderableList managerReorderableList;
         private SerializedProperty serversProperty;
         private bool foldoutRooms;
+        private List<IRoom> available = new List<IRoom>();
+        private double nextRoomRefreshTime = -1;
+        private const double ROOM_REFRESH_INTERVAL = 2d;
+
+        private void Awake()
+        {
+            (target as RoomClient).OnRoomsDiscovered.AddListener(RoomClient_OnRoomsDiscovered);
+        }
+
+        private void OnDestroy()
+        {
+            (target as RoomClient).OnRoomsDiscovered.RemoveListener(RoomClient_OnRoomsDiscovered);
+        }
 
         private void OnEnable()
         {
@@ -53,6 +66,12 @@ namespace Ubiq.Rooms
             serializedObject.Update();
             var component = target as RoomClient;
 
+            if (EditorApplication.isPlaying && EditorApplication.timeSinceStartup > nextRoomRefreshTime)
+            {
+                component.DiscoverRooms();
+                nextRoomRefreshTime = EditorApplication.timeSinceStartup + ROOM_REFRESH_INTERVAL;
+            }
+
             managerReorderableList.DoLayoutList();
 
             if(component.JoinedRoom)
@@ -64,7 +83,7 @@ namespace Ubiq.Rooms
 
             if (foldoutRooms)
             {
-                foreach (var item in component.Available)
+                foreach (var item in available)
                 {
                     EditorGUILayout.LabelField($"{item.Name}");
                 }
@@ -72,14 +91,14 @@ namespace Ubiq.Rooms
 
             EditorGUILayout.EndFoldoutHeaderGroup();
 
-            if (component.Available != null)
+            if (available != null)
             {
-                if (component.Available.Count > 0)
+                if (available.Count > 0)
                 {
-                    var room = component.Available.First();
+                    var room = available.First();
                     if (GUILayout.Button($"Join Room {room.Name}"))
                     {
-                        component.Join(room.JoinCode);
+                        component.Join(joincode: room.JoinCode);
                     }
                 }
             }
@@ -91,7 +110,7 @@ namespace Ubiq.Rooms
 
             if(GUILayout.Button("Create Room")) // creates a room with a random id and joins it
             {
-                component.JoinNew($"Editor Room {IdGenerator.GenerateUnique().ToString()}", true); // publish true because we probably need other Editor inspectors to see it
+                component.Join(name:$"Editor Room {IdGenerator.GenerateUnique().ToString()}",publish:true); // publish true because we probably need other Editor inspectors to see it
             }
 
             if(GUILayout.Button("Leave Room"))
@@ -101,7 +120,7 @@ namespace Ubiq.Rooms
 
             if (GUILayout.Button("Refresh"))
             {
-                component.GetRooms();
+                component.DiscoverRooms();
             }
 
             GUI.enabled = false;
@@ -114,6 +133,17 @@ namespace Ubiq.Rooms
             GUI.enabled = true;
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private void RoomClient_OnRoomsDiscovered(List<IRoom> rooms, RoomsDiscoveredRequest request)
+        {
+            // We're interested only in requests for all rooms
+            if (!string.IsNullOrEmpty(request.joincode))
+            {
+                return;
+            }
+
+            available = new List<IRoom>(rooms);
         }
     }
 }

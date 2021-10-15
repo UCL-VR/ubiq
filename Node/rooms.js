@@ -1,7 +1,4 @@
-const { Message, NetworkId } = require("./messaging");
-const { randString } = require("./joincode");
-const { uuid } = require("./uuid");
-const { Schema } = require("./schema");
+const { Message, NetworkId, Schema, Uuid } = require("./ubiq");
 const { EventEmitter } = require('events');
 const { Info, Performance } = require('./logging');
 
@@ -17,6 +14,18 @@ class SerialisedDictionary{
     static To(object){
         return { keys: Object.keys(object), values: Object.values(object) };
     }
+}
+
+// https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
+// Proof of concept - not crypto secure
+function JoinCode() {
+    var result           = '';
+    var characters       = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < 3; i++ ) {
+       result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
 }
 
 // This is the primary server for rendezvous and bootstrapping. It accepts websocket connections,
@@ -50,39 +59,61 @@ class RoomServer extends EventEmitter{
         new RoomPeer(this, wrapped);
     }
 
+    // Expects args from schema ubiq.rooms.joinargs
     async join(peer, args){
 
         var room = null;
-        if(args.hasOwnProperty("joincode") && args.joincode != ""){
+        if(args.hasOwnProperty("uuid") && args.uuid != ""){
+            // Room join request by uuid
+            if (!Uuid.validate(args.uuid)){
+                console.log(peer.uuid + " attempted to join room with uuid " + args.uuid + " but the we were expecting an RFC4122 v4 uuid.");
+                peer.sendRejected(args,"Could not join room with uuid " + args.uuid + ". We require an RFC4122 v4 uuid.");
+                return;
+            }
+
+            // Not a problem if no such room exists - we'll create one
+            room = this.roomDatabase.uuid(args.uuid);
+        }
+        else if(args.hasOwnProperty("joincode") && args.joincode != ""){
             // Room join request by joincode
             room = this.roomDatabase.joincode(args.joincode);
+
             if (room === null) {
                 Info.log(peer.uuid + " attempted to join room with code " + args.joincode + " but no such room exists");
                 peer.sendRejected(args,"Could not join room with code " + args.joincode + ". No such room exists.");
                 return;
             }
+        }
 
-            if (peer.room.uuid === room.uuid){
-                Info.log(peer.uuid + " attempted to join room with code " + args.joincode + " but peer is already in room");
-                return;
-            }
-        } else {
+        if (room !== null && peer.room.uuid === room.uuid){
+            console.log(peer.uuid + " attempted to join room with code " + args.joincode + " but peer is already in room");
+            return;
+        }
+
+        if (room === null) {
             // Otherwise new room requested
             var uuid = "";
-            while(true){
-                uuid = randString(32);
-                if(this.roomDatabase.uuid(uuid) === null){
-                    break;
+            if(args.hasOwnProperty("uuid") && args.uuid != ""){
+                // Use specified uuid
+                // we're sure it's correctly formatted and isn't already in db
+                uuid = args.uuid;
+            } else {
+                // Create new uuid if none specified
+                while(true){
+                    uuid = Uuid.generate();
+                    if(this.roomDatabase.uuid(uuid) === null){
+                        break;
+                    }
                 }
             }
             var joincode = "";
             while(true){
-                joincode = randString(3);
+                joincode = JoinCode();
                 if (this.roomDatabase.joincode(joincode) === null){
                     break;
                 }
             }
-            var publish = true;
+            var publish = false;
             if (args.hasOwnProperty("publish")) {
                 publish = args.publish;
             }
@@ -113,11 +144,14 @@ class RoomServer extends EventEmitter{
         return this.roomDatabase.all();
     }
 
-    getRoomArgs({publishable = true} = {}){
-        if(publishable){
-            return this.roomDatabase.all().filter(r => r.publish === true).map(r => r.getRoomArgs());
+    // Return requested rooms for publishable rooms
+    // Optionally uses joincode to filter, in which case room need not be publishable
+    // Expects args from schema ubiq.rooms.discoverroomargs
+    discoverRooms(args){
+        if(args.hasOwnProperty("joincode") && args.joincode != "") {
+            return this.roomDatabase.all().filter(r => r.joincode === args.joincode);
         } else {
-            return this.roomDatabase.all().map(r => r.getRoomArgs());
+            return this.roomDatabase.all().filter(r => r.publish === true);
         }
     }
 
@@ -127,6 +161,7 @@ class RoomServer extends EventEmitter{
         Info.log("RoomServer: Deleting empty room " + room.uuid);
     }
 
+    // Expects args from schema ubiq.rooms.setblobargs
     setBlob(args){
         var room = this.roomDatabase.uuid(args.room);
         // only existing rooms may have blobs set
@@ -135,6 +170,7 @@ class RoomServer extends EventEmitter{
         }
     }
 
+    // Expects args from schema ubiq.rooms.getblobargs
     getBlob(args){
         var room = this.roomDatabase.uuid(args.room);
         // only existing rooms may have blobs set
@@ -144,6 +180,7 @@ class RoomServer extends EventEmitter{
     }
 
     updateStatistics(){
+        this.statistics.numRooms = this.roomDatabase.num;
         Performance.logProperties("RoomServerStatistics", this.statistics);
     }
 }
@@ -166,11 +203,12 @@ Schema.add({
     type: "object",
     properties: {
         joincode: {type: "string"},
+        uuid: {type: "string"},
         name: {type: "string"},
         publish: {type: "boolean"},
         peer: {$ref: "/ubiq.rooms.peerinfo"},
     },
-    required: ["joincode","peer"]
+    required: ["peer"]
 });
 
 Schema.add({
@@ -211,14 +249,16 @@ Schema.add({
     type: "object",
     properties: {
         id: { $ref: "/ubiq.messaging.networkid"}
-    } 
+    }
 });
 
 Schema.add({
-    id: "/ubiq.rooms.requestroomargs",
+    id: "/ubiq.rooms.discoverroomsargs",
     type: "object",
     properties: {
-    } 
+        joincode: {type: "string"},
+        networkId: {$ref: "/ubiq.messaging.networkid"},
+    }
 });
 
 Schema.add({
@@ -260,7 +300,7 @@ class RoomPeer{
         this.properties = [];
         this.connection.onMessage.push(this.onMessage.bind(this));
         this.connection.onClose.push(this.onClose.bind(this));
-        this.sessionId = uuid();
+        this.sessionId = Uuid.generate();
         this.server.statistics.numPeers++;
     }
 
@@ -318,11 +358,13 @@ class RoomPeer{
                         this.room.updateRoom(message.args);
                     }
                     break;
-                case "RequestRooms":
-                    if (Schema.validate(message.args, "/ubiq.rooms.requestroomargs", this.onValidationFailure)) {
-                        this.sendRooms({
-                            rooms: this.server.getRoomArgs({publishable:true}),
-                            version: this.server.version
+                case "DiscoverRooms":
+                    if (Schema.validate(message.args, "/ubiq.rooms.discoverroomsargs", this.onValidationFailure)) {
+                        this.objectId = message.args.networkId;
+                        this.sendDiscoveredRooms({
+                            rooms: this.server.discoverRooms(message.args).map(r => r.getRoomArgs()),
+                            version: this.server.version,
+                            request: message.args
                         });
                     }
                     break;
@@ -428,7 +470,7 @@ class RoomPeer{
         );
     }
 
-    sendRooms(rooms){
+    sendDiscoveredRooms(rooms){
         this.send(
             Message.Create(
                 this.objectId,
@@ -609,6 +651,7 @@ class RoomDatabase{
     constructor(){
         this.byUuid = {};
         this.byJoincode = {};
+        this.num = 0;
     }
 
     // Return all room objects in the database
@@ -620,12 +663,14 @@ class RoomDatabase{
     add(room){
         this.byUuid[room.uuid] = room;
         this.byJoincode[room.joincode] = room;
+        this.num++;
     }
 
     // Remove room from the database by uuid
     remove(uuid){
         delete this.byJoincode[this.byUuid[uuid].joincode];
         delete this.byUuid[uuid];
+        this.num--;
     }
 
     // Return room object with given uuid, or null if not present

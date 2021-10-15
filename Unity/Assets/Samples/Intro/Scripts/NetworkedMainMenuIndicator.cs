@@ -7,9 +7,9 @@ using Ubiq.Messaging;
 
 namespace Ubiq.Samples
 {
-    public class NetworkedMainMenuIndicator : MonoBehaviour, IMainMenuBindable, INetworkObject, INetworkComponent, ISpawnable
+    public class NetworkedMainMenuIndicator : MonoBehaviour, ISocialMenuBindable, INetworkObject, INetworkComponent, ISpawnable
     {
-        private MainMenu mainMenu;
+        private SocialMenu mainMenu;
         private NetworkContext context;
         private State[] state = new State[1];
         private Renderer[] renderers;
@@ -36,7 +36,7 @@ namespace Ubiq.Samples
             context = NetworkScene.Register(this);
         }
 
-        public void Bind(MainMenu mainMenu)
+        public void Bind(SocialMenu mainMenu)
         {
             // If we're bound, we're the local version
             // This means we're the authority on position/rotation
@@ -57,12 +57,12 @@ namespace Ubiq.Samples
             }
         }
 
-        private void MainMenu_OnOpen(MainMenu mainMenu)
+        private void MainMenu_OnOpen(SocialMenu mainMenu)
         {
             state[0].opened = true;
         }
 
-        private void MainMenu_OnClose(MainMenu mainMenu)
+        private void MainMenu_OnClose(SocialMenu mainMenu)
         {
             state[0].opened = false;
             notify = true;

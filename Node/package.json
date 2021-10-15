@@ -1,16 +1,15 @@
 {
   "name": "ubiqserver",
-  "version": "0.0.8",
+  "version": "0.1.0",
   "description": "Ubiq Server",
   "main": "app.js",
-  "author": "",
-  "license": "MIT",
+  "author": "UCL VECG",
+  "license": "Apache-2.0",
   "dependencies": {
     "commander": "^7.2.0",
     "jsonschema": "^1.4.0",
     "nconf": "^0.11.3",
-    "uuid-by-string": "^3.0.2",
-    "wrtc": "^0.4.6",
-    "ws": "7.3.0"
+    "ubiq": "file:ubiq",
+    "wrtc": "^0.4.6"
   }
 }

@@ -9,8 +9,7 @@
 // the reference is passed through the tree as it is built and each class only needs to know
 // about its direct ancestor.
 
-const { Message, NetworkId } = require("./messaging.js");
-const { uuid } = require("./uuid.js")
+const { Message, NetworkId, Uuid } = require("./ubiq");
 const { RTCPeerConnection, RTCSessionDescription } = require('wrtc');
 const { RTCAudioSink, RTCAudioSource } = require('wrtc').nonstandard;
 const { TextEncoder } = require("util");
@@ -106,7 +105,7 @@ class RoomClient{
         this.context = parent.scene.register(this);
         this.context.object.objectId = NetworkId.Unique();
         this.peer = new Object();
-        this.peer.uuid = uuid();
+        this.peer.uuid = Uuid.generate();
         this.peer.networkObject = this.context.object.objectId;
         this.peer.component = this.context.component.componentId;
         this.peer.properties = new Object();

@@ -12,18 +12,6 @@ namespace Ubiq.Samples.Minimal.Rooms
     /// </summary>
     public class RoomClientJoinHelper : MonoBehaviour
     {
-        // Start is called before the first frame update
-        void Start()
-        {
-
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
-
         public void JoinAllRoomClients()
         {
             var roomClients = new List<RoomClient>();
@@ -53,8 +41,7 @@ namespace Ubiq.Samples.Minimal.Rooms
                 }
             });
 
-            primary.JoinNew($"Room Client Join Helper {Random.Range(0, 1000)}", false); // we will get the roomcode in the callback, so we dont need to make these public
-
+            primary.Join(name: $"Room Client Join Helper {Random.Range(0, 1000)}", false); // we will get the roomcode in the callback, so we dont need to make these public
         }
     }
 }

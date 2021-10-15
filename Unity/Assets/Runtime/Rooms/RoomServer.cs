@@ -25,11 +25,11 @@ namespace Ubiq.Rooms
         private List<Room> rooms;
         private System.Random random = new System.Random();
 
-        public RoomsResponse AvailableRooms
+        public DiscoverRoomsResponse AvailableRooms
         {
             get
             {
-                RoomsResponse args = new RoomsResponse();
+                DiscoverRoomsResponse args = new DiscoverRoomsResponse();
                 args.rooms = rooms.Select(room => room.GetRoomInfo()).ToList();
                 args.version = "0.0.4";
                 return args;
@@ -62,7 +62,7 @@ namespace Ubiq.Rooms
                 if(peers.Any(p => p.uuid == client.peer.uuid)) // already joined
                 {
                     SendRoomUpdate();
-                    return; 
+                    return;
                 }
 
                 // join the room - for now this just means adding to the locked list
@@ -145,7 +145,7 @@ namespace Ubiq.Rooms
                 Send("UpdatePeer", args);
             }
 
-            public void SendRooms(RoomsResponse args)
+            public void SendRooms(DiscoverRoomsResponse args)
             {
                 Send("Rooms", args);
             }
