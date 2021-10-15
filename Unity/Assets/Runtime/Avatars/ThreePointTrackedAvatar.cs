@@ -50,7 +50,7 @@ namespace Ubiq.Avatars
                 state[0].rightHand = GetHintNode(AvatarHints.NodePosRot.RightHand);
 
                 // Send it through network
-                if ((Time.time - lastTransmitTime) > (1 / avatar.UpdateRate))
+                if ((Time.time - lastTransmitTime) > (1f / avatar.UpdateRate))
                 {
                     Send();
                 }
