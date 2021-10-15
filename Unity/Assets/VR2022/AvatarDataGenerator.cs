@@ -32,13 +32,12 @@ namespace Ubiq.Avatars
         // Update is called once per frame
         void Update()
         {
-            if (BytesPerMessage > 0)
+            if ((Time.time - lastTransmitTime) > (1f / avatar.UpdateRate))
             {
-                if ((Time.time - lastTransmitTime) > (1 / avatar.UpdateRate))
-                {
-                    var message = ReferenceCountedSceneGraphMessage.Rent(BytesPerMessage);
-                    context.Send(message);
-                }
+                lastTransmitTime = Time.time;
+                var message = ReferenceCountedSceneGraphMessage.Rent(BytesPerMessage);
+                context.Send(message);
+                
             }
         }
     }
