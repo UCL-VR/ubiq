@@ -1490,7 +1490,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d61f55a1b9a02064ebf167b08e5b22b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MaxGetRoomsRefreshRate: 2
   servers: []
 --- !u!114 &805875560
 MonoBehaviour:
@@ -2625,7 +2624,7 @@ GameObject:
   - component: {fileID: 1567755671}
   - component: {fileID: 1567755670}
   m_Layer: 0
-  m_Name: Bots Servers
+  m_Name: Bots Config
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2647,14 +2646,15 @@ MonoBehaviour:
     listen_on_ip: 
     listen_on_port: 
     send_to_ip: nexus.cs.ucl.ac.uk
-    send_to_port: 8002
+    send_to_port: 8005
     type: 0
   DefaultBotServer:
     listen_on_ip: 
     listen_on_port: 
     send_to_ip: localhost
-    send_to_port: 8002
+    send_to_port: 8005
     type: 0
+  CommandRoomId: 24452d08-f91c-40ff-ac19-506fc23477b9
 --- !u!4 &1567755671
 Transform:
   m_ObjectHideFlags: 0
@@ -2729,7 +2729,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d61f55a1b9a02064ebf167b08e5b22b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MaxGetRoomsRefreshRate: 2
   servers: []
 --- !u!114 &1617545860
 MonoBehaviour:
@@ -3071,7 +3070,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d61f55a1b9a02064ebf167b08e5b22b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MaxGetRoomsRefreshRate: 2
   servers: []
 --- !u!114 &1934431615
 MonoBehaviour:
@@ -3921,10 +3919,7 @@ PrefabInstance:
       propertyPath: m_Name
       value: Bot Peer 1
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 4904968255251914527, guid: c1a55c9926c8d4843a76621513810efd, type: 3}
-    - {fileID: 4904968254310518585, guid: c1a55c9926c8d4843a76621513810efd, type: 3}
-    - {fileID: 4904968254033397526, guid: c1a55c9926c8d4843a76621513810efd, type: 3}
+    m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c1a55c9926c8d4843a76621513810efd, type: 3}
 --- !u!1001 &7290265296070105307
 PrefabInstance:

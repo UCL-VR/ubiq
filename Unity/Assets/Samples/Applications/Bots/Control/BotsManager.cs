@@ -39,17 +39,13 @@ namespace Ubiq.Samples.Bots
         /// </summary>
         public bool EnableAudio = true;
 
-        /// <summary>
-        /// The default join code to use when joining a command and control room
-        /// </summary>
-        [NonSerialized]
-        public string commandRoomJoinCode;
-
+        
         [NonSerialized]
         public NetworkContext context;
 
         private List<Bot> bots;
         private float lastStatusTime;
+        private string botsRoomJoinCode;
 
         public class BotPeerEvent : UnityEvent<Bot>
         {
@@ -62,10 +58,8 @@ namespace Ubiq.Samples.Bots
             Guid = System.Guid.NewGuid().ToString();
             bots = new List<Bot>();
             bots.AddRange(MonoBehaviourExtensions.GetComponentsInScene<Bot>());
-            commandRoomJoinCode = "";
-            CheckCommandLineConfiguration();
-            bots.ForEach(b => GetRoomClient(b).SetDefaultServer(BotsServers.BotServer));
-            RoomClient.Find(this).SetDefaultServer(BotsServers.CommandServer);
+            bots.ForEach(b => GetRoomClient(b).SetDefaultServer(BotsConfig.BotServer));
+            RoomClient.Find(this).SetDefaultServer(BotsConfig.CommandServer);
             lastStatusTime = Time.time;
         }
 
@@ -75,16 +69,7 @@ namespace Ubiq.Samples.Bots
 
             context = NetworkScene.Register(this);
             var roomClient = context.scene.GetComponent<RoomClient>();
-
-            if(!String.IsNullOrWhiteSpace(commandRoomJoinCode))
-            {
-                roomClient.Join(commandRoomJoinCode);
-            }
-        }
-
-        public void JoinCommandRoom(string JoinCode)
-        {
-            context.scene.GetComponent<RoomClient>().Join(JoinCode);
+            roomClient.Join(BotsConfig.CommandRoomGuid);
         }
 
         private void Update()
@@ -133,10 +118,10 @@ namespace Ubiq.Samples.Bots
 
         public void AddBotsToRoom(Bot bot)
         {
-            var rc = GetRoomClient(bot);
-            if(!string.IsNullOrEmpty(commandRoomJoinCode) && rc.Room.JoinCode != commandRoomJoinCode)
+            var botRoomClient = GetRoomClient(bot);
+            if(!string.IsNullOrEmpty(botsRoomJoinCode) && botRoomClient.Room.JoinCode != botsRoomJoinCode)
             {
-                rc.Join(commandRoomJoinCode);
+                botRoomClient.Join(botsRoomJoinCode);
             }
         }
 
@@ -144,7 +129,7 @@ namespace Ubiq.Samples.Bots
         {
             var rc = GetRoomClient(bot);
             rc.Me["ubiq.botmanager.id"] = Guid;
-            rc.SetDefaultServer(BotsServers.BotServer);
+            rc.SetDefaultServer(BotsConfig.BotServer);
 
             var am = AvatarManager.Find(bot);
             if(am)
@@ -168,9 +153,11 @@ namespace Ubiq.Samples.Bots
 
                     avatar.UpdateRate = AvatarUpdateRate;
 
-                    var adm = avatar.gameObject.AddComponent<AvatarDataGenerator>();
-                    adm.BytesPerMessage = Padding;
-
+                    if (avatar.IsLocal)
+                    {
+                        var adm = avatar.gameObject.AddComponent<AvatarDataGenerator>();
+                        adm.BytesPerMessage = Padding;
+                    }
                 });
             }
 
@@ -202,9 +189,9 @@ namespace Ubiq.Samples.Bots
                         EnableAudio = Message.EnableAudio;
                         AvatarUpdateRate = Message.AvatarUpdateRate;
                         Padding = Message.AvatarDataPadding;
-                        if (commandRoomJoinCode != Message.BotsRoomJoinCode)
+                        if (botsRoomJoinCode != Message.BotsRoomJoinCode)
                         {
-                            commandRoomJoinCode = Message.BotsRoomJoinCode;
+                            botsRoomJoinCode = Message.BotsRoomJoinCode;
                             AddBotsToRoom();
                         }
                     }
@@ -220,20 +207,6 @@ namespace Ubiq.Samples.Bots
                         ClearBots();
                     }
                     break;
-            }
-        }
-
-        private void CheckCommandLineConfiguration()
-        {
-            var args = System.Environment.GetCommandLineArgs();
-            for (int i = 0; i < args.Length; i++)
-            {
-                switch (args[i])
-                {
-                    case "-commandroomjoincode":
-                        commandRoomJoinCode = args[i + 1];
-                        break;
-                }
             }
         }
     }

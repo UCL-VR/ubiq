@@ -27,6 +27,7 @@ public class LatencyMeter : MonoBehaviour, INetworkComponent
     void Start()
     {
         context = NetworkScene.Register(this);
+        UnityEngine.Debug.Assert(context.scene.Id == context.ObjectId); // The LatencyMeter has no way to find other meters other than to send messages to the Peer, so ensure that its GO is always the Peer
         client = context.scene.GetComponentInChildren<RoomClient>();
         latencies = new UserEventLogger(this);
     }

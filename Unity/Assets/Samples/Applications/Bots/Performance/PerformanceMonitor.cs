@@ -65,7 +65,7 @@ namespace Ubiq.Samples.Bots
                     }
                 }
 
-                if (Time.time - lastPingTime > 0.25f)
+                if (Time.time - lastPingTime > 0.1f)
                 {
                     if (peersToPing.Count > 0)
                     {

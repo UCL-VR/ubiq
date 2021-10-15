@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Ubiq.Samples.Bots
 {
-    public class BotsServers : MonoBehaviour
+    public class BotsConfig : MonoBehaviour
     {
         [Header("Command and Control Server")]
         public ConnectionDefinition DefaultCommandServer;
@@ -15,8 +15,11 @@ namespace Ubiq.Samples.Bots
         [Header("Bots Server")]
         public ConnectionDefinition DefaultBotServer;
 
-        private static BotsServers singleton;
-        private static BotsServers Singleton
+        [Header("Rooms")]
+        public string CommandRoomId;
+
+        private static BotsConfig singleton;
+        private static BotsConfig Singleton
         {
             get
             {
@@ -27,7 +30,7 @@ namespace Ubiq.Samples.Bots
                     var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
                     foreach (var item in scene.GetRootGameObjects())
                     {
-                        singleton = item.GetComponentInChildren<BotsServers>();
+                        singleton = item.GetComponentInChildren<BotsConfig>();
                         if (singleton)
                         {
                             break;
@@ -66,6 +69,14 @@ namespace Ubiq.Samples.Bots
             get
             {
                 return Singleton.DefaultBotServer;
+            }
+        }
+
+        public static Guid CommandRoomGuid
+        {
+            get
+            {
+                return new Guid(Singleton.CommandRoomId);
             }
         }
     }

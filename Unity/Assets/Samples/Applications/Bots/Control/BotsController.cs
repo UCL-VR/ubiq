@@ -33,27 +33,27 @@ namespace Ubiq.Samples.Bots
 
         private void Awake()
         {
+            if (Application.isBatchMode)
+            {
+                DestroyImmediate(this);
+                return;
+            }
+
             proxies = new Dictionary<string, BotManagerProxy>();
-            RoomClient.Find(this).SetDefaultServer(BotsServers.CommandServer);
-            BotsRoom.RoomClient.SetDefaultServer(BotsServers.BotServer);
+            RoomClient.Find(this).SetDefaultServer(BotsConfig.CommandServer);
+            BotsRoom.RoomClient.SetDefaultServer(BotsConfig.BotServer);
         }
 
         // Start is called before the first frame update
         void Start()
         {
             Context = NetworkScene.Register(this);
-            var roomClient = Context.scene.GetComponent<RoomClient>();
-            roomClient.OnJoinedRoom.AddListener(OnJoinedCommandRoom);
 
-            var commandRoomJoinCode = CommandLine.GetArgument("commandroomjoincode");
-            if (!string.IsNullOrEmpty(commandRoomJoinCode))
-            {
-                roomClient.Join(commandRoomJoinCode);
-            }
-            else
-            {
-                roomClient.JoinNew("Bots Command and Control Room", false);
-            }
+            var roomClient = Context.scene.GetComponent<RoomClient>();
+            roomClient.OnJoinedRoom.AddListener(Room => {
+                CommandJoinCode = Room.JoinCode;
+            });
+            roomClient.Join(BotsConfig.CommandRoomGuid);
 
             BotsRoom.RoomClient.OnJoinedRoom.AddListener(Room => {
                 AddBotsToRoom(Room.JoinCode);
@@ -72,21 +72,9 @@ namespace Ubiq.Samples.Bots
             }));
         }
 
-        void OnJoinedCommandRoom(IRoom room)
-        {
-            CommandJoinCode = room.JoinCode;
-            foreach (var root in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
-            {
-                foreach (var item in root.GetComponentsInChildren<BotsManager>())
-                {
-                    item.JoinCommandRoom(CommandJoinCode);
-                }
-            }
-        }
-
         public void CreateBotsRoom()
         {
-            BotsRoom.RoomClient.JoinNew("Bots Room", false);
+            BotsRoom.RoomClient.Join("Bots Room", false);
         }
 
         public void ToggleAudio(bool audio)

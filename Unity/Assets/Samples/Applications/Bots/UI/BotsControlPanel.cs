@@ -61,6 +61,11 @@ namespace Ubiq.Samples.Bots.UI
         // Update is called once per frame
         void Update()
         {
+            if(!Controller)
+            {
+                return;
+            }
+
             NumberOfPeersLabel.text = Controller.NumBotsRoomPeers.ToString();
 
             if (!JoinCodeInputField.isFocused)
