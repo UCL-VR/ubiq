@@ -43,7 +43,7 @@ namespace Ubiq.Rooms
         /// <summary>
         /// Emitted when the properties of a Peer change.
         /// </summary>
-        public PeerEvent OnPeerUpdated = new PeerEvent();
+        public PeerUpdatedEvent OnPeerUpdated = new PeerUpdatedEvent();
 
         /// <summary>
         /// Emitted when a Peer goes out of scope (e.g. it leaves the room)
@@ -276,6 +276,7 @@ namespace Ubiq.Rooms
             OnJoinedRoom.AddListener((room) => Debug.Log("Joined Room " + room.Name));
 
             me = new PeerInterfaceFriend(Guid.NewGuid().ToString());
+            OnPeerUpdated.SetExisting(me);
         }
 
         private void Start()

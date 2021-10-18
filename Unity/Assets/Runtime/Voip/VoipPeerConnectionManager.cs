@@ -94,7 +94,7 @@ namespace Ubiq.Voip
         private string prevIceServersString;
         private IceServerDetailsCollection iceServers;
 
-        public class OnPeerConnectionEvent : ListEvent<VoipPeerConnection>
+        public class OnPeerConnectionEvent : ExistingListEvent<VoipPeerConnection>
         {
         }
 
@@ -115,7 +115,7 @@ namespace Ubiq.Voip
             peerConnectionSource = new RTCPeerConnectionSource();
             client = GetComponentInParent<RoomClient>();
             peerUuidToConnection = new Dictionary<string, VoipPeerConnection>();
-            OnPeerConnection.SetList(peerUuidToConnection.Values);
+            OnPeerConnection.SetExisting(peerUuidToConnection.Values);
 
             audioSource = CreateAudioSource();
             audioSource.StartAudio();

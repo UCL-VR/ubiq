@@ -223,6 +223,10 @@ namespace Ubiq.Rooms
     {
     };
 
+    public class PeerUpdatedEvent : ExistingEvent<IPeer>
+    {
+    };
+
     public class RoomEvent : UnityEvent<IRoom>
     {
     };
