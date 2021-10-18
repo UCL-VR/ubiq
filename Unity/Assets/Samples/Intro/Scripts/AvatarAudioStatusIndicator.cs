@@ -14,48 +14,91 @@ namespace Ubiq.Samples
     /// </summary>
     public class AvatarAudioStatusIndicator : MonoBehaviour
     {
-        public Button indicator;
+        public Color attemptingColor = new Color(1.0f,0.4f,0,1.0f); // Orange-ish
+        public Color failedColor = Color.red;
+        public Image indicator;
 
-        /// <summary>
-        /// The Avatar that this Indicator sits underneath. The Indicator must exist under an Avatar.
-        /// </summary>
         private Avatars.Avatar avatar;
-        private Text messageBox;
-
-        private void Awake()
-        {
-            avatar = GetComponentInParent<Avatars.Avatar>();
-            messageBox = indicator.GetComponentInChildren<Text>();
-        }
+        private VoipPeerConnectionManager peerConnectionManager;
+        private VoipPeerConnection peerConnection;
 
         private void Start()
         {
-            if (avatar.IsLocal)
+            avatar = GetComponentInParent<Avatars.Avatar>();
+
+            if (!avatar || avatar.IsLocal)
             {
-                indicator.gameObject.SetActive(false);
+                indicator.enabled = false;
                 return;
             }
 
-            VoipPeerConnectionManager.GetPeerConnectionAsync(this, avatar.Peer.UUID, pc =>
+            peerConnectionManager = GetComponentInParent<NetworkScene>()?.
+                GetComponentInChildren<VoipPeerConnectionManager>();
+
+            if (peerConnectionManager == null || !peerConnectionManager)
             {
-                pc.OnIceConnectionStateChanged.AddListener(OnStateChange);
-            });
+                indicator.enabled = false;
+                return;
+            }
+
+            UpdateIndicator(SIPSorcery.Net.RTCIceConnectionState.disconnected);
+            peerConnectionManager.OnPeerConnection.AddListener(
+                PeerConnectionManager_OnPeerConnection,runExisting:true);
         }
 
-        void OnStateChange(SIPSorcery.Net.RTCIceConnectionState state)
+        private void OnDestroy()
         {
-            if (this)
+            if (peerConnection)
             {
-                switch (state)
-                {
-                    case SIPSorcery.Net.RTCIceConnectionState.connected:
-                        indicator.gameObject.SetActive(false);
-                        break;
-                    default:
-                        messageBox.text = state.ToString();
-                        indicator.gameObject.SetActive(true);
-                        break;
-                }
+                peerConnection.OnIceConnectionStateChanged.RemoveListener(PeerConnection_OnIceConnectionStateChanged);
+            }
+
+            if (peerConnectionManager)
+            {
+                peerConnectionManager.OnPeerConnection.RemoveListener(PeerConnectionManager_OnPeerConnection);
+            }
+        }
+
+        private void PeerConnectionManager_OnPeerConnection(VoipPeerConnection pc)
+        {
+            if (pc == peerConnection || pc.PeerUuid != avatar.Peer.UUID)
+            {
+                return;
+            }
+
+            if (peerConnection)
+            {
+                peerConnection.OnIceConnectionStateChanged.RemoveListener(PeerConnection_OnIceConnectionStateChanged);
+            }
+
+            peerConnection = pc;
+            peerConnection.OnIceConnectionStateChanged.AddListener(PeerConnection_OnIceConnectionStateChanged);
+        }
+
+        private void PeerConnection_OnIceConnectionStateChanged(SIPSorcery.Net.RTCIceConnectionState state)
+        {
+            UpdateIndicator(state);
+        }
+
+        private void UpdateIndicator (SIPSorcery.Net.RTCIceConnectionState state)
+        {
+            switch (state)
+            {
+                case SIPSorcery.Net.RTCIceConnectionState.closed:
+                case SIPSorcery.Net.RTCIceConnectionState.failed:
+                case SIPSorcery.Net.RTCIceConnectionState.disconnected:
+                    indicator.enabled = true;
+                    indicator.color = failedColor;
+                    break;
+                case SIPSorcery.Net.RTCIceConnectionState.@new:
+                case SIPSorcery.Net.RTCIceConnectionState.checking:
+                    indicator.enabled = true;
+                    indicator.color = attemptingColor;
+                    break;
+                case SIPSorcery.Net.RTCIceConnectionState.connected:
+                default:
+                    indicator.enabled = false;
+                    break;
             }
         }
     }

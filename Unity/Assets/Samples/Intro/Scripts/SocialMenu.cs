@@ -73,8 +73,6 @@ namespace Ubiq.Samples
         {
             roomClient.OnJoinedRoom.AddListener(RoomClient_OnJoinedRoom);
             menuRequestHandler.OnRequest.AddListener(MenuRequestHandler_OnMenuRequest);
-
-            Request();
         }
 
         private void OnDestroy()
