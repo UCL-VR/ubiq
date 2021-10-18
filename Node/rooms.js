@@ -1,6 +1,7 @@
 const { Message, NetworkId, Schema, Uuid } = require("./ubiq");
 const { EventEmitter } = require('events');
 const { Info, Performance } = require('./logging');
+const { required } = require("nconf");
 
 const VERSION_STRING = "0.0.4";
 const RoomServerReservedId = 1;
@@ -26,6 +27,13 @@ function JoinCode() {
        result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return result;
+}
+
+function arrayRemove(array,element){
+    const index = array.indexOf(element);
+    if (index > -1) {
+        array.splice(index, 1);
+    }
 }
 
 // This is the primary server for rendezvous and bootstrapping. It accepts websocket connections,
@@ -59,20 +67,33 @@ class RoomServer extends EventEmitter{
         new RoomPeer(this, wrapped);
     }
 
-    // Expects args from schema ubiq.rooms.joinargs
+    async observe(peer, rooms){
+        for(var room of rooms){
+            room = this.findOrCreateRoom({uuid: room});
+            room.addObserver(peer);
+        }
+    }
+
+    async unobserve(peer, rooms){
+        for(var room of rooms){
+            room = this.findOrCreateRoom({uuid: room});
+            room.removeObserver(peer);
+        }
+    }
+
     async join(peer, args){
 
         var room = null;
         if(args.hasOwnProperty("uuid") && args.uuid != ""){
             // Room join request by uuid
             if (!Uuid.validate(args.uuid)){
-                console.log(peer.uuid + " attempted to join room with uuid " + args.uuid + " but the we were expecting an RFC4122 v4 uuid.");
-                peer.sendRejected(args,"Could not join room with uuid " + args.uuid + ". We require an RFC4122 v4 uuid.");
+                console.log(peer.uuid + " attempted to join room with uuid " + args.uuid + " but we were expecting an RFC4122 uuid.");
+                peer.sendRejected(args,"Could not join room with uuid " + args.uuid + ". We require an RFC4122 uuid.");
                 return;
             }
 
             // Not a problem if no such room exists - we'll create one
-            room = this.roomDatabase.uuid(args.uuid);
+            room = this.findOrCreateRoom(args);
         }
         else if(args.hasOwnProperty("joincode") && args.joincode != ""){
             // Room join request by joincode
@@ -90,50 +111,60 @@ class RoomServer extends EventEmitter{
             return;
         }
 
-        if (room === null) {
-            // Otherwise new room requested
-            var uuid = "";
-            if(args.hasOwnProperty("uuid") && args.uuid != ""){
-                // Use specified uuid
-                // we're sure it's correctly formatted and isn't already in db
-                uuid = args.uuid;
-            } else {
-                // Create new uuid if none specified
-                while(true){
-                    uuid = Uuid.generate();
-                    if(this.roomDatabase.uuid(uuid) === null){
-                        break;
-                    }
-                }
-            }
-            var joincode = "";
-            while(true){
-                joincode = JoinCode();
-                if (this.roomDatabase.joincode(joincode) === null){
-                    break;
-                }
-            }
-            var publish = false;
-            if (args.hasOwnProperty("publish")) {
-                publish = args.publish;
-            }
-            var name = "Unnamed Room";
-            if (args.hasOwnProperty("name")) {
-                name = args.name;
-            }
-            room = new Room(this,uuid,joincode,publish,name);
-            this.roomDatabase.add(room);
-            this.emit("create",room);
-
-            Info.log(room.uuid + " created with joincode " + joincode);
-        }
-
         if (peer.room.uuid != null){
             peer.room.removePeer(peer);
         }
         room.addPeer(peer);
+    }
 
-        Info.log(peer.uuid + " joined room " + room.uuid);
+    findOrCreateRoom(args){
+        if(!args.hasOwnProperty("uuid")){
+            throw "findOrCreateRoom can only work with rooms identified by UUIDs";
+        }
+        var room = this.roomDatabase.uuid(args.uuid);
+        if(room === null){
+            room = this.createRoom(args);
+        }
+        return room;
+    }
+
+    createRoom(args){
+        var uuid = "";
+        if(args.hasOwnProperty("uuid") && args.uuid != ""){
+            // Use specified uuid
+            // we're sure it's correctly formatted and isn't already in db
+            uuid = args.uuid;
+        } else {
+            // Create new uuid if none specified
+            while(true){
+                uuid = Uuid.generate();
+                if(this.roomDatabase.uuid(uuid) === null){
+                    break;
+                }
+            }
+        }
+        var joincode = "";
+        while(true){
+            joincode = JoinCode();
+            if (this.roomDatabase.joincode(joincode) === null){
+                break;
+            }
+        }
+        var publish = false;
+        if (args.hasOwnProperty("publish")) {
+            publish = args.publish;
+        }
+        var name = "Unnamed Room";
+        if (args.hasOwnProperty("name")) {
+            name = args.name;
+        }
+        var room = new Room(this,uuid,joincode,publish,name);
+        this.roomDatabase.add(room);
+        this.emit("create",room);
+
+        Info.log(room.uuid + " created with joincode " + joincode);
+
+        return room;
     }
 
     async leave(peer){
@@ -210,6 +241,16 @@ Schema.add({
     },
     required: ["peer"]
 });
+
+Schema.add({
+    id: "/ubiq.rooms.setobserved",
+    type: "object",
+    properties: {
+        rooms: {type:"array"},
+        peer: {$ref: "/ubiq.rooms.peerinfo"},
+    },
+    required: ["rooms","peer"]
+})
 
 Schema.add({
     id: "/ubiq.rooms.leaverequestargs",
@@ -295,6 +336,7 @@ class RoomPeer{
         this.server = server;
         this.connection = connection;
         this.room = new EmptyRoom();
+        this.observed = [];
         this.objectId;
         this.uuid = "";
         this.properties = [];
@@ -345,6 +387,12 @@ class RoomPeer{
                         }else{
                             this.setRoom(new EmptyRoom());
                         }
+                    }
+                    break;
+                case "SetObserved":
+                    if (Schema.validate(message.args, "/ubiq.rooms.setobserved", this.onValidationFailure)){
+                        this.setPeerArgs(message.args.peer);
+                        this.changeObserved(message.args.rooms); // Name collision with the internal api
                     }
                     break;
                 case "UpdatePeer":
@@ -401,6 +449,12 @@ class RoomPeer{
         this.uuid = peer.uuid;
     }
 
+    changeObserved(rooms){
+        
+        this.server.unobserve(this, this.observed.filter(existing => !rooms.includes(existing.uuid)).map(x => x.uuid));
+        this.server.observe(this, rooms);
+    }
+
     getPeerArgs(){
         return {
             uuid: this.uuid,
@@ -423,6 +477,14 @@ class RoomPeer{
     setRoom(room){
         this.room = room;
         this.sendSetRoom();
+    }
+
+    setObserved(room){
+        this.observed.push(room);
+    }
+
+    unsetObserved(room){
+        arrayRemove(this.observed, room);
     }
 
     sendRejected(joinArgs,reason){
@@ -450,7 +512,6 @@ class RoomPeer{
                     type: "SetRoom",
                     args: JSON.stringify({
                         room: this.room.getRoomArgs(),
-                        peers: this.room.getPeersArgs()
                     })
                 }
             )
@@ -483,6 +544,7 @@ class RoomPeer{
         )
     }
 
+    /* Inform this Peer about another Peer that it should be aware of */
     sendPeerUpdate(peer){
         this.send(
             Message.Create(
@@ -496,6 +558,7 @@ class RoomPeer{
         )
     }
 
+    /* Inform this Peer that a Peer it was previously aware of has left the session */
     sendPeerRemoved(peer){
         this.send(
             Message.Create(
@@ -580,35 +643,72 @@ class Room{
         this.publish = publish;
         this.name = name;
         this.peers = [];
+        this.observers = [];
         this.properties = {};
         this.blobs = {};
     }
 
     addPeer(peer){
+        // If the peer is an observer, then upgrade the peer in place...
+        if(this.observers.includes(peer)){
+            arrayRemove(this.observers, peer);
+            peer.unsetObserved(this);
+        }
         this.peers.push(peer);
         peer.setRoom(this);
-        this.updatePeer(peer);
+        
+        for(var existing of this.peers){ // Tell the Peers about eachother
+            if(existing !== peer){
+                existing.sendPeerUpdate(peer); // Tell the existing peer that the new Peer has joined
+                peer.sendPeerUpdate(existing); // And the new Peer about the existing one
+            }
+        };
+        this.observers.forEach(existing =>{
+            existing.sendPeerUpdate(peer); // Tell existing observers about the new Peer
+        })
+        Info.log(peer.uuid + " joined room " + this.name);
     }
 
-    updatePeer(peer){ // The peer arguments are only stored in one place (RoomPeer), so from the rooms point of view, updating the peer is just sending a message
-        this.peers.forEach(otherpeer => {
-            otherpeer.sendPeerUpdate(peer);
-        });
+    addObserver(peer){
+        if(!this.observers.includes(peer)){
+            this.observers.push(peer);
+            peer.setObserved(this);
+            this.peers.forEach(member => {
+                peer.sendPeerUpdate(member); // Tell the new observer about the existing peers
+            })
+            Info.log(peer.uuid + " observed room " + this.uuid);
+        }
     }
 
     removePeer(peer){
-        const index = this.peers.indexOf(peer);
-        if (index > -1) {
-          this.peers.splice(index, 1);
-        }
+        arrayRemove(this.peers, peer);
         peer.setRoom(new EmptyRoom()); // signal that the leave is complete
-        this.peers.forEach(otherpeer => {
-            otherpeer.sendPeerRemoved(peer); // (no check here because peer was already removed from the list)
-        });
-
+        for(var existing of this.peers){
+            existing.sendPeerRemoved(peer); // Tell the remaining peers about the missing peer (no check here because the peer was already removed from the list)
+            peer.sendPeerRemoved(existing);
+        }
+        for(var existing of this.observers) {
+            existing.sendPeerRemoved(peer); // Tell the observers about the missing peer
+        };
         Info.log(peer.uuid + " left room " + this.name);
+        this.checkRoom();
+    }
 
-        if(this.peers.length <= 0){
+    removeObserver(peer){
+        if(this.observers.includes(peer)){
+            arrayRemove(this.observers, peer);
+            peer.unsetObserved(this);
+            this.peers.forEach(existing => {
+                peer.sendPeerRemoved(existing); // Once the Observer is no longer observing the room, it should no longer see the rooms peers
+            });
+            Info.log(peer.uuid + " stopped observing room " + this.uuid);
+        }
+        this.checkRoom();
+    }
+
+    // Every time a peer or observer leaves, check if the room should still exist
+    checkRoom(){
+        if(this.peers.length <= 0 && this.observers.length <= 0){
             this.server.removeRoom(this);
         }
     }
@@ -644,6 +744,11 @@ class Room{
                 peer.send(message);
             }
         })
+        this.observers.forEach(peer =>{ // Observers receive messages emanating from this room, but emit messages from their own room
+            if(peer != source){
+                peer.send(message);
+            }
+        });
     }
 }
 

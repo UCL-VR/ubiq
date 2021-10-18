@@ -301,34 +301,6 @@ namespace Ubiq.Rooms
                     {
                         var args = JsonUtility.FromJson<SetRoom>(container.args);
                         room.Update(args.room);
-
-                        var newPeerUuids = args.peers.Select(x => x.uuid);
-                        var peersToRemove = new List<string>();
-                        foreach (var peer in peers.Keys)
-                        {
-                            if (!newPeerUuids.Contains(peer))
-                            {
-                                peersToRemove.Add(peer);
-                            }
-                        }
-
-                        foreach (var uuid in peersToRemove)
-                        {
-                            var peer = peers[uuid];
-                            peers.Remove(uuid);
-                            OnPeerRemoved.Invoke(peer);
-                        }
-
-                        foreach (var item in args.peers)
-                        {
-                            if(item.uuid == me.UUID)
-                            {
-                                continue;
-                            }
-
-                            UpdatePeer(item);
-                        }
-
                         OnJoinedRoom.Invoke(room);
                         OnRoomUpdated.Invoke(room);
                     }
@@ -476,6 +448,9 @@ namespace Ubiq.Rooms
         /// <summary>
         /// Joins an existing room using a join code.
         /// </summary>
+        /// <remarks>
+        /// This will leave any room that the client is currently a member of.
+        /// </remarks>
         public void Join(Guid guid)
         {
             actions.Add(() =>
@@ -486,6 +461,23 @@ namespace Ubiq.Rooms
                     peer = me.GetPeerInfo()
                 });
                 me.NeedsUpdate();
+            });
+        }
+
+        /// <summary>
+        /// Observes the Rooms with the specified Guids. Stops observing any not in the list, and begins observing any new ones.
+        /// </summary>
+        /// <param name="guids"></param>
+        public void SetObserved(List<Guid> guids)
+        {
+
+            actions.Add(() =>
+            {
+                SendToServer("SetObserved", new SetObservedRequest()
+                {
+                    peer = me.GetPeerInfo(),
+                    rooms = guids.Select(g => g.ToString()).ToList() // todo: GC
+                });
             });
         }
 

@@ -126,6 +126,12 @@ namespace Ubiq.Rooms.Messages
         public PeerInfo peer;
     }
 
+    public struct SetObservedRequest 
+    {
+        public List<string> rooms; 
+        public PeerInfo peer;
+    }
+
     [Serializable]
     public struct RejectedArgs
     {
