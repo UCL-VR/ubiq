@@ -64,7 +64,7 @@ public class HandAnimation : MonoBehaviour, INetworkComponent
             if(Time.time - lastTransmitTime > 1f / avatar.UpdateRate)
             {
                 lastTransmitTime = Time.time;
-                context.SendJson(new Message(gripTargetLeft, gripTargetRight)); // sent every frame currently...put into if() ?
+               // context.SendJson(new Message(gripTargetLeft, gripTargetRight)); // sent every frame currently...put into if() ?
             }
         }
 
