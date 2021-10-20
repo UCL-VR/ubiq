@@ -93,7 +93,11 @@ class RoomServer extends EventEmitter{
             }
 
             // Not a problem if no such room exists - we'll create one
-            room = this.findOrCreateRoom(args);
+            var room = this.roomDatabase.uuid(args.uuid);
+
+            if(room === null){
+                room = this.createRoom(args);
+            }
         }
         else if(args.hasOwnProperty("joincode") && args.joincode != ""){
             // Room join request by joincode
@@ -105,6 +109,9 @@ class RoomServer extends EventEmitter{
                 return;
             }
         }
+        else{
+            room = this.createRoom(args);
+        }
 
         if (room !== null && peer.room.uuid === room.uuid){
             console.log(peer.uuid + " attempted to join room with code " + args.joincode + " but peer is already in room");
@@ -115,17 +122,6 @@ class RoomServer extends EventEmitter{
             peer.room.removePeer(peer);
         }
         room.addPeer(peer);
-    }
-
-    findOrCreateRoom(args){
-        if(!args.hasOwnProperty("uuid")){
-            throw "findOrCreateRoom can only work with rooms identified by UUIDs";
-        }
-        var room = this.roomDatabase.uuid(args.uuid);
-        if(room === null){
-            room = this.createRoom(args);
-        }
-        return room;
     }
 
     createRoom(args){
