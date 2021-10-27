@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using SIPSorceryMedia.Abstractions;
 using UnityEngine;
 
-#if UNITY_ANDROID
+#if UNITY_ANDROID && !UNITY_EDITOR
 using UnityEngine.Android;
 #endif
 
@@ -143,9 +143,13 @@ namespace Ubiq.Voip
         private TaskCompletionSource<bool> allTaskTcs = new TaskCompletionSource<bool>();
         private readonly object taskLock = new object();
 
+#if UNITY_ANDROID && !UNITY_EDITOR
+        private bool microphoneAuthorized = false;
+#endif
+
         private void Awake()
         {
-#if UNITY_ANDROID
+#if UNITY_ANDROID && !UNITY_EDITOR
             if (!Permission.HasUserAuthorizedPermission(Permission.Microphone))
             {
                 Permission.RequestUserPermission(Permission.Microphone);
@@ -168,6 +172,20 @@ namespace Ubiq.Voip
 
         private void Update()
         {
+
+#if UNITY_ANDROID && !UNITY_EDITOR
+            // Wait for microphone permissions before processing any audio
+            if (!microphoneAuthorized)
+            {
+                microphoneAuthorized = Permission.HasUserAuthorizedPermission(Permission.Microphone);
+
+                if (!microphoneAuthorized)
+                {
+                    return;
+                }
+            }
+#endif
+
             // Run queued tasks synchronously
             while (true)
             {
