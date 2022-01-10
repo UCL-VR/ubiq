@@ -1,133 +1,377 @@
 fileFormatVersion: 2
 guid: 13f0bfabe6d79b64cac8e61525eb5253
 ModelImporter:
-  serializedVersion: 23
-  fileIDToRecycleName:
-    100000: Chest
-    100002: Head
-    100004: Head_end
-    100006: Hips
-    100008: HipsCtrl
-    100010: LeftArm
-    100012: LeftFoot
-    100014: LeftFootCtrl
-    100016: LeftFootIK
-    100018: LeftFootIK_end
-    100020: LeftFootRollCtrl
-    100022: LeftFootRollCtrl_end
-    100024: LeftForeArm
-    100026: LeftHand
-    100028: LeftHandIndex1
-    100030: LeftHandIndex2
-    100032: LeftHandIndex3
-    100034: LeftHandIndex3_end
-    100036: LeftHandThumb1
-    100038: LeftHandThumb2
-    100040: LeftHandThumb2_end
-    100042: LeftHeelRoll
-    100044: LeftKneeCtrl
-    100046: LeftKneeCtrl_end
-    100048: LeftLeg
-    100050: LeftShoulder
-    100052: LeftToeRoll
-    100054: LeftToes
-    100056: LeftToes_end
-    100058: LeftUpLeg
-    100060: Neck
-    100062: //RootNode
-    100064: RightArm
-    100066: RightFoot
-    100068: RightFootCtrl
-    100070: RightFootIK
-    100072: RightFootIK_end
-    100074: RightFootRollCtrl
-    100076: RightFootRollCtrl_end
-    100078: RightForeArm
-    100080: RightHand
-    100082: RightHandIndex1
-    100084: RightHandIndex2
-    100086: RightHandIndex3
-    100088: RightHandIndex3_end
-    100090: RightHandThumb1
-    100092: RightHandThumb2
-    100094: RightHandThumb2_end
-    100096: RightHeelRoll
-    100098: RightKneeCtrl
-    100100: RightKneeCtrl_end
-    100102: RightLeg
-    100104: RightShoulder
-    100106: RightToeRoll
-    100108: RightToes
-    100110: RightToes_end
-    100112: RightUpLeg
-    100114: Spine
-    100116: UpperChest
-    400000: Chest
-    400002: Head
-    400004: Head_end
-    400006: Hips
-    400008: HipsCtrl
-    400010: LeftArm
-    400012: LeftFoot
-    400014: LeftFootCtrl
-    400016: LeftFootIK
-    400018: LeftFootIK_end
-    400020: LeftFootRollCtrl
-    400022: LeftFootRollCtrl_end
-    400024: LeftForeArm
-    400026: LeftHand
-    400028: LeftHandIndex1
-    400030: LeftHandIndex2
-    400032: LeftHandIndex3
-    400034: LeftHandIndex3_end
-    400036: LeftHandThumb1
-    400038: LeftHandThumb2
-    400040: LeftHandThumb2_end
-    400042: LeftHeelRoll
-    400044: LeftKneeCtrl
-    400046: LeftKneeCtrl_end
-    400048: LeftLeg
-    400050: LeftShoulder
-    400052: LeftToeRoll
-    400054: LeftToes
-    400056: LeftToes_end
-    400058: LeftUpLeg
-    400060: Neck
-    400062: //RootNode
-    400064: RightArm
-    400066: RightFoot
-    400068: RightFootCtrl
-    400070: RightFootIK
-    400072: RightFootIK_end
-    400074: RightFootRollCtrl
-    400076: RightFootRollCtrl_end
-    400078: RightForeArm
-    400080: RightHand
-    400082: RightHandIndex1
-    400084: RightHandIndex2
-    400086: RightHandIndex3
-    400088: RightHandIndex3_end
-    400090: RightHandThumb1
-    400092: RightHandThumb2
-    400094: RightHandThumb2_end
-    400096: RightHeelRoll
-    400098: RightKneeCtrl
-    400100: RightKneeCtrl_end
-    400102: RightLeg
-    400104: RightShoulder
-    400106: RightToeRoll
-    400108: RightToes
-    400110: RightToes_end
-    400112: RightUpLeg
-    400114: Spine
-    400116: UpperChest
-    7400000: Root|0.Targeting Pose
-    7400002: Root|Punch
-    9500000: //RootNode
-    2186277476908879412: ImportLogs
+  serializedVersion: 19301
+  internalIDToNameTable:
+  - first:
+      1: 100000
+    second: Chest
+  - first:
+      1: 100002
+    second: Head
+  - first:
+      1: 100004
+    second: Head_end
+  - first:
+      1: 100006
+    second: Hips
+  - first:
+      1: 100008
+    second: HipsCtrl
+  - first:
+      1: 100010
+    second: LeftArm
+  - first:
+      1: 100012
+    second: LeftFoot
+  - first:
+      1: 100014
+    second: LeftFootCtrl
+  - first:
+      1: 100016
+    second: LeftFootIK
+  - first:
+      1: 100018
+    second: LeftFootIK_end
+  - first:
+      1: 100020
+    second: LeftFootRollCtrl
+  - first:
+      1: 100022
+    second: LeftFootRollCtrl_end
+  - first:
+      1: 100024
+    second: LeftForeArm
+  - first:
+      1: 100026
+    second: LeftHand
+  - first:
+      1: 100028
+    second: LeftHandIndex1
+  - first:
+      1: 100030
+    second: LeftHandIndex2
+  - first:
+      1: 100032
+    second: LeftHandIndex3
+  - first:
+      1: 100034
+    second: LeftHandIndex3_end
+  - first:
+      1: 100036
+    second: LeftHandThumb1
+  - first:
+      1: 100038
+    second: LeftHandThumb2
+  - first:
+      1: 100040
+    second: LeftHandThumb2_end
+  - first:
+      1: 100042
+    second: LeftHeelRoll
+  - first:
+      1: 100044
+    second: LeftKneeCtrl
+  - first:
+      1: 100046
+    second: LeftKneeCtrl_end
+  - first:
+      1: 100048
+    second: LeftLeg
+  - first:
+      1: 100050
+    second: LeftShoulder
+  - first:
+      1: 100052
+    second: LeftToeRoll
+  - first:
+      1: 100054
+    second: LeftToes
+  - first:
+      1: 100056
+    second: LeftToes_end
+  - first:
+      1: 100058
+    second: LeftUpLeg
+  - first:
+      1: 100060
+    second: Neck
+  - first:
+      1: 100062
+    second: //RootNode
+  - first:
+      1: 100064
+    second: RightArm
+  - first:
+      1: 100066
+    second: RightFoot
+  - first:
+      1: 100068
+    second: RightFootCtrl
+  - first:
+      1: 100070
+    second: RightFootIK
+  - first:
+      1: 100072
+    second: RightFootIK_end
+  - first:
+      1: 100074
+    second: RightFootRollCtrl
+  - first:
+      1: 100076
+    second: RightFootRollCtrl_end
+  - first:
+      1: 100078
+    second: RightForeArm
+  - first:
+      1: 100080
+    second: RightHand
+  - first:
+      1: 100082
+    second: RightHandIndex1
+  - first:
+      1: 100084
+    second: RightHandIndex2
+  - first:
+      1: 100086
+    second: RightHandIndex3
+  - first:
+      1: 100088
+    second: RightHandIndex3_end
+  - first:
+      1: 100090
+    second: RightHandThumb1
+  - first:
+      1: 100092
+    second: RightHandThumb2
+  - first:
+      1: 100094
+    second: RightHandThumb2_end
+  - first:
+      1: 100096
+    second: RightHeelRoll
+  - first:
+      1: 100098
+    second: RightKneeCtrl
+  - first:
+      1: 100100
+    second: RightKneeCtrl_end
+  - first:
+      1: 100102
+    second: RightLeg
+  - first:
+      1: 100104
+    second: RightShoulder
+  - first:
+      1: 100106
+    second: RightToeRoll
+  - first:
+      1: 100108
+    second: RightToes
+  - first:
+      1: 100110
+    second: RightToes_end
+  - first:
+      1: 100112
+    second: RightUpLeg
+  - first:
+      1: 100114
+    second: Spine
+  - first:
+      1: 100116
+    second: UpperChest
+  - first:
+      4: 400000
+    second: Chest
+  - first:
+      4: 400002
+    second: Head
+  - first:
+      4: 400004
+    second: Head_end
+  - first:
+      4: 400006
+    second: Hips
+  - first:
+      4: 400008
+    second: HipsCtrl
+  - first:
+      4: 400010
+    second: LeftArm
+  - first:
+      4: 400012
+    second: LeftFoot
+  - first:
+      4: 400014
+    second: LeftFootCtrl
+  - first:
+      4: 400016
+    second: LeftFootIK
+  - first:
+      4: 400018
+    second: LeftFootIK_end
+  - first:
+      4: 400020
+    second: LeftFootRollCtrl
+  - first:
+      4: 400022
+    second: LeftFootRollCtrl_end
+  - first:
+      4: 400024
+    second: LeftForeArm
+  - first:
+      4: 400026
+    second: LeftHand
+  - first:
+      4: 400028
+    second: LeftHandIndex1
+  - first:
+      4: 400030
+    second: LeftHandIndex2
+  - first:
+      4: 400032
+    second: LeftHandIndex3
+  - first:
+      4: 400034
+    second: LeftHandIndex3_end
+  - first:
+      4: 400036
+    second: LeftHandThumb1
+  - first:
+      4: 400038
+    second: LeftHandThumb2
+  - first:
+      4: 400040
+    second: LeftHandThumb2_end
+  - first:
+      4: 400042
+    second: LeftHeelRoll
+  - first:
+      4: 400044
+    second: LeftKneeCtrl
+  - first:
+      4: 400046
+    second: LeftKneeCtrl_end
+  - first:
+      4: 400048
+    second: LeftLeg
+  - first:
+      4: 400050
+    second: LeftShoulder
+  - first:
+      4: 400052
+    second: LeftToeRoll
+  - first:
+      4: 400054
+    second: LeftToes
+  - first:
+      4: 400056
+    second: LeftToes_end
+  - first:
+      4: 400058
+    second: LeftUpLeg
+  - first:
+      4: 400060
+    second: Neck
+  - first:
+      4: 400062
+    second: //RootNode
+  - first:
+      4: 400064
+    second: RightArm
+  - first:
+      4: 400066
+    second: RightFoot
+  - first:
+      4: 400068
+    second: RightFootCtrl
+  - first:
+      4: 400070
+    second: RightFootIK
+  - first:
+      4: 400072
+    second: RightFootIK_end
+  - first:
+      4: 400074
+    second: RightFootRollCtrl
+  - first:
+      4: 400076
+    second: RightFootRollCtrl_end
+  - first:
+      4: 400078
+    second: RightForeArm
+  - first:
+      4: 400080
+    second: RightHand
+  - first:
+      4: 400082
+    second: RightHandIndex1
+  - first:
+      4: 400084
+    second: RightHandIndex2
+  - first:
+      4: 400086
+    second: RightHandIndex3
+  - first:
+      4: 400088
+    second: RightHandIndex3_end
+  - first:
+      4: 400090
+    second: RightHandThumb1
+  - first:
+      4: 400092
+    second: RightHandThumb2
+  - first:
+      4: 400094
+    second: RightHandThumb2_end
+  - first:
+      4: 400096
+    second: RightHeelRoll
+  - first:
+      4: 400098
+    second: RightKneeCtrl
+  - first:
+      4: 400100
+    second: RightKneeCtrl_end
+  - first:
+      4: 400102
+    second: RightLeg
+  - first:
+      4: 400104
+    second: RightShoulder
+  - first:
+      4: 400106
+    second: RightToeRoll
+  - first:
+      4: 400108
+    second: RightToes
+  - first:
+      4: 400110
+    second: RightToes_end
+  - first:
+      4: 400112
+    second: RightUpLeg
+  - first:
+      4: 400114
+    second: Spine
+  - first:
+      4: 400116
+    second: UpperChest
+  - first:
+      74: 7400000
+    second: Root|0.Targeting Pose
+  - first:
+      74: 7400002
+    second: Root|Punch
+  - first:
+      95: 9500000
+    second: //RootNode
+  - first:
+      41386430: 2186277476908879412
+    second: ImportLogs
   externalObjects: {}
   materials:
-    importMaterials: 1
+    materialImportMode: 1
     materialName: 0
     materialSearch: 1
     materialLocation: 1
@@ -141,9 +385,9 @@ ModelImporter:
     rigImportWarnings: 
     animationImportErrors: 
     animationImportWarnings: "\nClip 'Root|Punch' has import animation warnings that
-      might lower retargeting quality:\nNote: Activate translation DOF on avatar to
-      improve retargeting quality.\n\t'RightArm' has scale animation that will be
-      discarded.\n"
+      might lower retargeting quality:\nNote: Activate translation DOF on avatar
+      to improve retargeting quality.\n\t'RightArm' has scale animation that will
+      be discarded.\n"
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
@@ -159,6 +403,7 @@ ModelImporter:
     - serializedVersion: 16
       name: Root|Punch
       takeName: Root|Punch
+      internalID: 0
       firstFrame: 0
       lastFrame: 24
       wrapMode: 0
@@ -191,25 +436,28 @@ ModelImporter:
     meshCompression: 0
     addColliders: 0
     useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
     importLights: 1
+    fileIdsGeneration: 1
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
-    optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
     preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
-    previousCalculatedGlobalScale: 0.01
-    hasPreviousCalculatedGlobalScale: 1
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
@@ -218,10 +466,10 @@ ModelImporter:
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
-  importAnimation: 1
-  copyAvatar: 0
+  referencedClips: []
+  importAnimation: 0
   humanDescription:
-    serializedVersion: 2
+    serializedVersion: 3
     human:
     - boneName: Hips
       humanName: Hips
@@ -798,13 +1046,16 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
+    globalScale: 1
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 3
   humanoidOversampling: 1
+  avatarSetup: 1
   additionalBone: 0
   userData: 
   assetBundleName: 
