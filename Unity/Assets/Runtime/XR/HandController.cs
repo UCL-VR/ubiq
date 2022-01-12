@@ -31,7 +31,7 @@ namespace Ubiq.XR
         public Vector2 Joystick;
 
         // for smooth hand animation transitions
-        public float GripValue; 
+        public float GripValue;
         public float TriggerValue;
 
         public bool GripState;
@@ -159,6 +159,19 @@ namespace Ubiq.XR
             get
             {
                 return poseDriver.poseSource == TrackedPose.RightPose;
+            }
+        }
+
+        public void Vibrate(float amplitude, float duration) {
+            if (controllers != null)
+            {
+                for (int i = 0; i < controllers.Count; i++)
+                {
+                    if (controllers[i].isValid)
+                    {
+                        controllers[i].SendHapticImpulse(0,amplitude,duration);
+                    }
+                }
             }
         }
 
