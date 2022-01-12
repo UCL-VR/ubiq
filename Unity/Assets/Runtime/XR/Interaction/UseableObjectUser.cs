@@ -27,8 +27,17 @@ namespace Ubiq.XR
         {
             if(state)
             {
-                foreach (var item in contacted)
+                for (int i = 0; i < contacted.Count; i++)
                 {
+                    var item = contacted[i];
+                    if (item == null || !item)
+                    {
+                        // Item was destroyed while in contact - remove it
+                        contacted.RemoveAt(i);
+                        i--;
+                        continue;
+                    }
+
                     foreach (var component in item.GetComponentsInParent<MonoBehaviour>())
                     {
                         if(component is IUseable)
@@ -42,8 +51,15 @@ namespace Ubiq.XR
             }
             else
             {
-                foreach (var item in used)
+                for (int i = 0; i < used.Count; i++)
                 {
+                    var item = used[i];
+                    if (item == null)
+                    {
+                        // Don't need to remove - collection is cleared soon
+                        continue;
+                    }
+
                     item.UnUse(controller);
                 }
                 used.Clear();
