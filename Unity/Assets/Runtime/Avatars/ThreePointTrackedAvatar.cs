@@ -33,6 +33,10 @@ namespace Ubiq.Avatars
         private void Awake ()
         {
             avatar = GetComponent<Avatar>();
+        }
+
+        private void Start ()
+        {
             context = NetworkScene.Register(this);
             networkSceneRoot = context.scene.transform;
         }
