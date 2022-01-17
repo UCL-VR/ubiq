@@ -26191,6 +26191,8 @@ GameObject:
   - component: {fileID: 5514386084912180038}
   - component: {fileID: 5514386084912180039}
   - component: {fileID: 307051098484144013}
+  - component: {fileID: 1176620638}
+  - component: {fileID: 1176620637}
   m_Layer: 0
   m_Name: Menu
   m_TagString: Untagged
@@ -26268,16 +26270,39 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   networkSceneOverride: {fileID: 0}
-  menuRequestHandler: {fileID: 0}
-  networkedIndicatorTemplate: {fileID: 2958351199309153149, guid: 881ec7297142bb644bc5a1d0e1873c0c,
-    type: 3}
   spawnRelativeTransform: {fileID: 1358322899834784834}
-  OnOpen:
+  OnStateChange:
     m_PersistentCalls:
       m_Calls: []
-  OnClose:
-    m_PersistentCalls:
-      m_Calls: []
+--- !u!114 &1176620638
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5514386084912180036}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c6b1b8d164b89c44bc262fd7f6b76c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  socialMenu: {fileID: 307051098484144013}
+  indicatorTemplate: {fileID: 2958351199309153149, guid: 881ec7297142bb644bc5a1d0e1873c0c,
+    type: 3}
+--- !u!114 &1176620637
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5514386084912180036}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a43f37dede1ac74c8f3431e9f649cc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  socialMenu: {fileID: 307051098484144013}
+  source: {fileID: 0}
 --- !u!1 &5514386084939775347
 GameObject:
   m_ObjectHideFlags: 0
@@ -29031,6 +29056,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 279fc3506ef49314aa860cdd22c2b924, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  roomRefreshInterval: 2
   mainMenu: {fileID: 307051098484144013}
   joinedControl: {fileID: 5177997666344481519}
   controlsRoot: {fileID: 5514386086903736480}

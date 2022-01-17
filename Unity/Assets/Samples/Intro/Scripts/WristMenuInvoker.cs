@@ -13,7 +13,7 @@ namespace Ubiq.Samples
 {
     public class WristMenuInvoker : MonoBehaviour, IUseable
     {
-        public MenuRequestHandler menuRequestHandler;
+        public MenuRequestSource source;
 
         public enum Wrist
         {
@@ -24,7 +24,7 @@ namespace Ubiq.Samples
 
         public void Use(Hand controller)
         {
-            menuRequestHandler.Request(gameObject);
+            source.Request(gameObject);
         }
 
         public void UnUse(Hand controller) { }

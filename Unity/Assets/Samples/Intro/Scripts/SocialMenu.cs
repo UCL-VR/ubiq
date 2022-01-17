@@ -16,11 +16,13 @@ namespace Ubiq.Samples
 
     public class SocialMenu : MonoBehaviour
     {
+        public enum State
+        {
+            Open,
+            Closed
+        }
+
         public NetworkScene networkSceneOverride;
-
-        public MenuRequestHandler menuRequestHandler;
-        public GameObject networkedIndicatorTemplate;
-
         public Transform spawnRelativeTransform;
 
         // Provide central access to NetworkScene for the whole UI
@@ -62,74 +64,24 @@ namespace Ubiq.Samples
         }
 
         [Serializable]
-        public class SocialMenuEvent : UnityEvent<SocialMenu> { }
-        public SocialMenuEvent OnOpen;
-        public SocialMenuEvent OnClose;
+        public class SocialMenuEvent : UnityEvent<SocialMenu,State> { }
+        public SocialMenuEvent OnStateChange;
+
+        [System.NonSerialized]
+        public State state;
 
         private GameObject uiIndicator;
-        private string roomUUID;
-
-        private void Start()
-        {
-            roomClient.OnJoinedRoom.AddListener(RoomClient_OnJoinedRoom);
-            menuRequestHandler.OnRequest.AddListener(MenuRequestHandler_OnMenuRequest);
-        }
-
-        private void OnDestroy()
-        {
-            if (roomClient)
-            {
-                roomClient.OnJoinedRoom.RemoveListener(RoomClient_OnJoinedRoom);
-            }
-
-            if (menuRequestHandler)
-            {
-                menuRequestHandler.OnRequest.RemoveListener(MenuRequestHandler_OnMenuRequest);
-            }
-
-            // todo: despawn
-            // todo: cleanup networked obj?
-        }
 
         private void OnEnable()
         {
-            OnOpen.Invoke(this);
+            state = State.Open;
+            OnStateChange.Invoke(this,state);
         }
 
         private void OnDisable()
         {
-            OnClose.Invoke(this);
-        }
-
-        private void MenuRequestHandler_OnMenuRequest(GameObject requester)
-        {
-            Request();
-        }
-
-        private void RoomClient_OnJoinedRoom(IRoom room)
-        {
-            if (roomClient != null &&
-                roomClient.Room != null &&
-                roomClient.Room.UUID != roomUUID)
-            {
-                roomUUID = roomClient.Room.UUID;
-
-                var spawner = NetworkSpawner.FindNetworkSpawner(networkScene);
-                uiIndicator = spawner.SpawnPersistent(networkedIndicatorTemplate);
-                var bindable = uiIndicator.GetComponent<ISocialMenuBindable>();
-                if (bindable != null)
-                {
-                    bindable.Bind(this);
-                    if (enabled)
-                    {
-                        OnOpen.Invoke(this);
-                    }
-                    else
-                    {
-                        OnClose.Invoke(this);
-                    }
-                }
-            }
+            state = State.Closed;
+            OnStateChange.Invoke(this,state);
         }
 
         public void Request ()

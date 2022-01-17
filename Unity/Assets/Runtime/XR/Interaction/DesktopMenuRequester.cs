@@ -7,7 +7,7 @@ namespace Ubiq.XR
 {
     public class DesktopMenuRequester : MonoBehaviour
     {
-        public MenuRequestHandler menuRequestHandler;
+        public MenuRequestSource source;
         public List<KeyCode> buttons;
 
         public void Update()
@@ -16,7 +16,7 @@ namespace Ubiq.XR
             {
                 if (Input.GetKeyDown(buttons[i]))
                 {
-                    menuRequestHandler.Request(gameObject);
+                    source.Request(gameObject);
                 }
             }
         }

@@ -39,8 +39,7 @@ namespace Ubiq.Samples
             }
 
             avatar.OnPeerUpdated.AddListener(Avatar_OnPeerUpdated);
-            socialMenu.OnOpen.AddListener(SocialMenu_OnOpen);
-            socialMenu.OnClose.AddListener(SocialMenu_OnClose);
+            socialMenu.OnStateChange.AddListener(SocialMenu_OnStateChange);
         }
 
         private void OnDestroy()
@@ -52,8 +51,7 @@ namespace Ubiq.Samples
 
             if (socialMenu)
             {
-                socialMenu.OnOpen.RemoveListener(SocialMenu_OnOpen);
-                socialMenu.OnClose.RemoveListener(SocialMenu_OnClose);
+                socialMenu.OnStateChange.RemoveListener(SocialMenu_OnStateChange);
             }
         }
 
@@ -62,14 +60,9 @@ namespace Ubiq.Samples
             UpdateName();
         }
 
-        private void SocialMenu_OnOpen(SocialMenu menu)
+        private void SocialMenu_OnStateChange(SocialMenu menu, SocialMenu.State state)
         {
-            text.enabled = true;
-        }
-
-        private void SocialMenu_OnClose(SocialMenu menu)
-        {
-            text.enabled = false;
+            text.enabled = state == SocialMenu.State.Open;
         }
 
         private void UpdateName()

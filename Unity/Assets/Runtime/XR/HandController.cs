@@ -37,6 +37,7 @@ namespace Ubiq.XR
         public bool GripState;
         public bool TriggerState;
         public bool PrimaryButtonState;
+        public bool MenuButtonState;
 
         private bool initialised;
 
@@ -136,6 +137,11 @@ namespace Ubiq.XR
 
                 foreach (var item in controllers)
                 {
+                    item.TryGetFeatureValue(CommonUsages.menuButton, out MenuButtonState);
+                }
+
+                foreach (var item in controllers)
+                {
                     item.TryGetFeatureValue(CommonUsages.primary2DAxis, out Joystick);
                 }
             }
@@ -143,6 +149,7 @@ namespace Ubiq.XR
             TriggerPress.Update(TriggerState);
             GripPress.Update(GripState);
             PrimaryButtonPress.Update(PrimaryButtonState);
+            MenuButtonPress.Update(MenuButtonState);
             JoystickSwipe.Update(Joystick.x);
         }
 

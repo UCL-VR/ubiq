@@ -41,8 +41,8 @@ namespace Ubiq.Samples
             // If we're bound, we're the local version
             // This means we're the authority on position/rotation
             this.mainMenu = mainMenu;
-            mainMenu.OnOpen.AddListener(MainMenu_OnOpen);
-            mainMenu.OnClose.AddListener(MainMenu_OnClose);
+            mainMenu.OnStateChange.AddListener(MainMenu_OnStateChange);
+            HandleState(mainMenu.state);
 
             // Local user sees the full ui instead
             SetVisibility(visible:false);
@@ -52,20 +52,26 @@ namespace Ubiq.Samples
         {
             if (mainMenu)
             {
-                mainMenu.OnOpen.RemoveListener(MainMenu_OnOpen);
-                mainMenu.OnClose.RemoveListener(MainMenu_OnClose);
+                mainMenu.OnStateChange.RemoveListener(MainMenu_OnStateChange);
             }
         }
 
-        private void MainMenu_OnOpen(SocialMenu mainMenu)
+        private void HandleState(SocialMenu.State state)
         {
-            state[0].opened = true;
+            if (state == SocialMenu.State.Open)
+            {
+                this.state[0].opened = true;
+            }
+            else if (state == SocialMenu.State.Closed)
+            {
+                this.state[0].opened = false;
+                notify = true;
+            }
         }
 
-        private void MainMenu_OnClose(SocialMenu mainMenu)
+        private void MainMenu_OnStateChange(SocialMenu mainMenu, SocialMenu.State state)
         {
-            state[0].opened = false;
-            notify = true;
+            HandleState(state);
         }
 
         private void SetVisibility(bool visible)

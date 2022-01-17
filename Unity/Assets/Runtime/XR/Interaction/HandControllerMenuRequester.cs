@@ -8,7 +8,7 @@ namespace Ubiq.XR
     public class HandControllerMenuRequester : MonoBehaviour
     {
         public HandController handController;
-        public MenuRequestHandler menuRequestHandler;
+        public MenuRequestSource source;
 
         public void OnEnable()
         {
@@ -30,7 +30,7 @@ namespace Ubiq.XR
         {
             if (pressed)
             {
-                menuRequestHandler.Request(gameObject);
+                source.Request(gameObject);
             }
         }
     }
