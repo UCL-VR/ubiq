@@ -116,12 +116,12 @@ public class PuzzleMenu : MonoBehaviour
             avatarHider = avatarManager.LocalAvatar.gameObject.GetComponent<ObjectHider>();
             avatarHider.SetLayer(layer);
 
-            if (uiIndicator != null)
+            if (uiIndicator != null)// uiIndicator is of type NetworkedMainMenuIndicator and is the indicator of the local menu that would be sent to remote peers
             {
+                // menuHider is the ObjectHider from the menu indicator
                 menuHider.SetNetworkedObjectLayer(layer);
             }
         }
-
     }
 
     public void OnMenuIndicatorSpawned(NetworkedMainMenuIndicator uiIndicator)
