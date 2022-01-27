@@ -195,9 +195,12 @@ MonoBehaviour:
       m_Calls: []
     previousvalue: 0
   Joystick: {x: 0, y: 0}
+  GripValue: 0
+  TriggerValue: 0
   GripState: 0
   TriggerState: 0
   PrimaryButtonState: 0
+  MenuButtonState: 0
 --- !u!1 &5160465438105192030
 GameObject:
   m_ObjectHideFlags: 0
@@ -502,7 +505,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3196122283489763816}
   - component: {fileID: 3486961064221345274}
-  - component: {fileID: 8569804625252362432}
   - component: {fileID: 412247795049377664}
   - component: {fileID: 769269739594025376}
   m_Layer: 0
@@ -542,19 +544,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!135 &8569804625252362432
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7207848950391372409}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.03
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &412247795049377664
 MonoBehaviour:
   m_ObjectHideFlags: 0
