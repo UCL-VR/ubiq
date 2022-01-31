@@ -10,24 +10,39 @@ namespace Ubiq.Logging
     {
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
+           // base.OnInspectorGUI();
 
             var component = target as LogCollector;
 
-            GUILayout.Label($"Entries: {component.Count}");
-
-            GUI.enabled = component.NetworkEnabled;
-
-            EditorGUILayout.LabelField("Collecting", component.Collecting.ToString());
-
-            if (GUILayout.Button("Start Collection"))
+            if (Application.isPlaying)
             {
-                component.StartCollection();
+                GUILayout.Label($"Mode: {component.Mode}");
             }
 
-            if (GUILayout.Button("Stop Collection"))
+            var memoryInMb = (float)component.Memory / (1024 * 1024);
+            var maxMemoryInMb = component.MaxMemory / (1024 * 1024);
+            GUILayout.Label($"Memory: {memoryInMb} / {maxMemoryInMb} Mb");
+
+
+            GUILayout.Label($"Written: {component.Written}");
+            GUILayout.Label($"Id : {component.Id.ToString()}");
+
+            GUI.enabled = component.OnNetwork;
+
+            if (!component.isPrimary)
             {
-                component.StopCollection();
+
+                if (GUILayout.Button("Start Collection"))
+                {
+                    component.StartCollection();
+                }
+            }
+            else
+            {
+                if (GUILayout.Button("Stop Collection"))
+                {
+                    component.StopCollection();
+                }
             }
 
             GUI.enabled = true;

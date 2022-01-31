@@ -23,6 +23,15 @@ namespace Ubiq.Extensions
         /// </summary>
         public static List<GameObject> DontDestroyOnLoadGameObjects { get; private set; }
 
+        /// <summary>
+        /// Returns the Component closest to this one in the Scene Graph. This method will first search for descendents of this node, then
+        /// the parents of this node recursively. If that fails, it will begin to search each Scene in a random order, starting with the
+        /// DontDestroyOnLoad scene.
+        /// Use this method to find Components that should be under the same, e.g. NetworkScene, according to the Ubiq rules.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="component"></param>
+        /// <returns></returns>
         public static T GetClosestComponent<T>(this Component component) where T : MonoBehaviour
         {
             do

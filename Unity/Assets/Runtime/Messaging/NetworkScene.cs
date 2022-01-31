@@ -75,7 +75,7 @@ namespace Ubiq.Messaging
         private HashSet<string> existingIdAssignments = new HashSet<string>();
         private List<ObjectProperties> matching = new List<ObjectProperties>();
 
-        private EventLogger events;
+        private LogEmitter events;
 
         public T GetNetworkComponent<T>() where T : class
         {
@@ -132,7 +132,7 @@ namespace Ubiq.Messaging
                 }
             }
 
-            events = new ComponentEventLogger(this);
+            events = new ComponentLogEmitter(this);
             events.Log("Awake", Id, SystemInfo.deviceName, SystemInfo.deviceModel, SystemInfo.deviceUniqueIdentifier);
         }
 

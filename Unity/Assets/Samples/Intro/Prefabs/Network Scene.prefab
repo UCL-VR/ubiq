@@ -241,7 +241,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 995552508608854795}
-  - component: {fileID: 5713774244030680650}
+  - component: {fileID: 1919805387}
   m_Layer: 0
   m_Name: Log Manager
   m_TagString: Untagged
@@ -263,7 +263,7 @@ Transform:
   m_Father: {fileID: 7068762446378101729}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5713774244030680650
+--- !u!114 &1919805387
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -272,10 +272,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 9015508115495883622}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 225323da4818d5f46ad641084486429e, type: 3}
+  m_Script: {fileID: 11500000, guid: 91278953fa39be149b9d63bc52dfdf51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Listen: -1
   Memory: 0
   MaxMemory: 52428800
-  Mode: 1

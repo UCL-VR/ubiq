@@ -241,6 +241,14 @@ namespace Ubiq.Messaging
         {
             return (id.a != 0 || id.b != 0);
         }
+
+        public static NetworkId Null
+        {
+            get
+            {
+                return new NetworkId(0);
+            }
+        }
     }
 
     public interface INetworkObject

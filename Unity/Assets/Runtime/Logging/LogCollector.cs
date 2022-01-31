@@ -1,42 +1,105 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 using Ubiq.Messaging;
+using Ubiq.Logging.Utf8Json;
+using Ubiq.Networking.JmBucknall.Structures;
+using Ubiq.Rooms;
+using Ubiq.Extensions;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Ubiq.Logging
 {
     /// <summary>
-    /// Receives log events from LogManagaers throughout the network and writes them to a native Stream.
-    /// LogCollector will recieve events from local and remote LogManagers automatically; the LogManagers
-    /// however must be configured to transmit. LogCollector can instruct LogManagers to begin transmission.
-    /// The Stream written by the LogCollector is standard-compliant Json - log events are put into a top
-    /// level Json array.
+    /// Receives local and remote log events and writes them to a Stream. Events 
+    /// are collected when StartCollection is called. Once StartCollection has 
+    /// been called, all logs from the Peer group will be sent to that collector.
     /// </summary>
     /// <remarks>
-    /// The LogCollector writes a FileStream internally to the persistent data storage location of the platform.
-    /// This is for convenience (only one Component needed to start with), though it may be desirable to
-    /// re-direct this Stream to another destination.
+    /// The LogCollector writes a FileStream internally to the persistent data 
+    /// storage location of the platform. This is for convenience (only one 
+    /// Component needed to start with), though it may be desirable to re-direct 
+    /// this Stream to another destination.
     /// </remarks>
     [NetworkComponentId(typeof(LogCollector), ComponentId)]
-    public class LogCollector : MonoBehaviour, INetworkObject, INetworkComponent
+    public class LogCollector : MonoBehaviour, INetworkComponent
     {
-        public static NetworkId Id = new NetworkId("fc26-78b8-4498-9953");
-        NetworkId INetworkObject.Id => Id;
+        public const ushort ComponentId = 3;
 
-        public const ushort ComponentId = 0;
+        public enum OperatingMode
+        {
+            Buffering,
+            Forwarding,
+            Writing
+        }
 
-        public int Count { get; private set; }
+        public int Written { get; private set; }
+
+        public int Memory;
+        public int MaxMemory = 1024 * 1024 * 50;
+
+        /// <summary>
+        /// Stores local events until they are written or forwarded
+        /// </summary>
+        private LockFreeQueue<ReferenceCountedSceneGraphMessage> events = new LockFreeQueue<ReferenceCountedSceneGraphMessage>();
 
         private IOutputStream[] outputStreams;
         private NetworkContext context;
-
-        public bool Collecting { get; private set; }
+        private RoomClient roomClient;
 
         /// <summary>
-        /// The LogCollector can operate entirely locally. If this is True it means the Collector has network connectivity and messages will be exchanged with remote LogManagers.
+        /// The NetworkSceneId of the Active collector. If this is null, events should be cached,
+        /// otherwise, they should be forwarded to this Peer.
         /// </summary>
-        public bool NetworkEnabled
+        private NetworkId destinationCollector = new NetworkId(0);
+
+        /// <summary>
+        /// The logical clock that ensures snapshot messages will eventually converge on one peer.
+        /// </summary>
+        private int clock = 0;
+
+        public OperatingMode Mode
+        {
+            get
+            {
+                if(destinationCollector == Id)
+                {
+                    return OperatingMode.Writing;
+                }
+                if (destinationCollector)
+                {
+                    return OperatingMode.Forwarding;
+                }
+                return OperatingMode.Buffering;
+            }
+        }
+
+        public bool isPrimary
+        {
+            get 
+            { 
+                return Mode == OperatingMode.Writing; 
+            }
+        }
+
+        public NetworkId Id
+        {
+            get
+            {
+                if (context != null)
+                {
+                    return context.networkObject.Id;
+                }
+                else
+                {
+                    return NetworkId.Null;
+                }
+            }
+        }
+
+        public bool OnNetwork
         {
             get
             {
@@ -44,76 +107,122 @@ namespace Ubiq.Logging
             }
         }
 
-        /// <summary>
-        /// Instructs all the LogManager instances on the network to begin transmitting their logs (new, and backlogged)
-        /// </summary>
-        public void StartCollection()
+        private struct CC
         {
-            if(context != null)
-            {
-                context.Send(LogManager.Id, LogManager.ComponentId, LogManagerMessage.Rent("StartTransmitting"));
-            }
-            Collecting = true;
+            public int clock;
+            public NetworkId state;
         }
 
         /// <summary>
-        /// Instructs all the LogManager instances on the network to stop transmitting their logs. Any new logs will be cached locally again.
+        /// Registers this Collector as the primary LogCollector for the Peer Group. All cached and new logs will be forwarded
+        /// to this Collector. All new Peers will see this as the active Collector.
+        /// </summary>
+        public void StartCollection()
+        {
+            SendSnapshot(Id);
+        }
+
+        /// <summary>
+        /// Stops collecting and surrenders its position as the primary Collector.
         /// </summary>
         public void StopCollection()
         {
-            if (context != null)
+            SendSnapshot(NetworkId.Null);
+        }
+
+        private void SendSnapshot(NetworkId newDestination)
+        {
+            destinationCollector = newDestination;
+            clock++;
+
+            var msg = new CC();
+            msg.clock = clock;
+            msg.state = Id;
+
+            foreach (var item in roomClient.Peers)
             {
-                context.Send(LogManager.Id, LogManager.ComponentId, LogManagerMessage.Rent("StopTransmitting"));
+                context.Send(item.NetworkObjectId, ComponentId, LogCollectorMessage.RentCommandMessage(msg));
             }
-            Collecting = false;
         }
 
         public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
-            var logmessage = new LogManagerMessage(message);
-            switch (logmessage.Header[0])
+            var logmessage = new LogCollectorMessage(message);
+            switch (logmessage.Type)
             {
-                case 0x1:
+                case LogCollectorMessage.MessageType.Event:
                     {
-                        Push(logmessage.Bytes, logmessage.Header[1]);
+                        message.Acquire();
+                        Push(message);
                     }
                     break;
-                case 0x2:
+                case LogCollectorMessage.MessageType.Command:
                     {
-                        switch (logmessage.ToString())
+                        // Changing the Log Collector is performed using a "Global Snapshot".
+                        // A message is sent with a logical clock value. If it exceeds the current
+                        // shared value, then state is updated.
+                        //
+                        // If two Peers in are in a race condition, there may be clock collisions.
+                        // In this case the initiating Peers will detect this (because they will
+                        // receive eachothers' conflicting messages), and perform resolution
+                        // by each adding a random value to the clock and re-transmitting.
+                        //
+                        // The assumption is that all messages are reliably delivered. If this is
+                        // true, the System will converge to a Common State after all messages
+                        // have been received (the State with the highest overall clock value).
+                        //
+                        // If a LogCollector ever volunteers as the Primary, it must be prepared
+                        // to receive messages until all peers Converge to a new Collector. This
+                        // is an indeterminate amount of time, for which Ubiq does not specify an
+                        // upper bound, so be careful when nominating a LogCollector.
+
+                        var cck = logmessage.FromJson<CC>();
+
+                        if(cck.clock > clock)
                         {
-                            default:
-                                Debug.LogException(new NotSupportedException($"Uknown LogManager message {logmessage.ToString()}"));
-                                break;
+                            // The Initiator has full knowledge, and wishes to change the destination
+
+                            destinationCollector = cck.state;
+                            clock = cck.clock;
+                        }
+                        else
+                        {
+                            if(cck.clock == clock && isPrimary)
+                            {
+                                // Another Initiator has created an update that conflicts with ours, at the same time.
+                                // Re-transmit the state update with a random interval. They will do the same. Whoever
+                                // re-sends with the higher value wins.
+
+                                clock += UnityEngine.Random.Range(0, 10);
+                                SendSnapshot(Id);
+                            }
                         }
                     }
                     break;
                 default:
-                    Debug.LogException(new NotSupportedException($"Uknown LogManager message type {logmessage.Header[0]}"));
+                    Debug.LogException(new NotSupportedException($"Unknown LogManager message type {(int)logmessage.Type}"));
                     break;
             }
         }
 
         private void Awake()
         {
-            Count = 0;
+            Written = 0;
+            roomClient = this.GetClosestComponent<RoomClient>();
 
-            // Right now we only support two tag types; this may change in the future.
-            // We create the FileOutputStreams before we know whether we will recieve events of that type - this is because the JsonFileOutputStream
-            // doesn't create the file until it actually receives an event, so it is cheap to make these objects, and then we can rely on them 
-            // always existing.
+            // We create some FileOutputStreams before we know whether we will recieve events of that type - this is because the JsonFileOutputStream
+            // doesn't create the file until it actually receives an event, so it is cheap to make these objects.
 
-            outputStreams = new IOutputStream[3];
+            outputStreams = new IOutputStream[255];
             outputStreams[(byte)EventType.Application] = new JsonFileOutputStream("Application");
-            outputStreams[(byte)EventType.User] = new JsonFileOutputStream("User");
-
-            Collecting = false;
+            outputStreams[(byte)EventType.Experiment] = new JsonFileOutputStream("Experiment");
+            outputStreams[(byte)EventType.Info] = new JsonFileOutputStream("Info");
+            outputStreams[(byte)EventType.Debug] = new JsonFileOutputStream("Debug");
         }
 
         // Start is called before the first frame update
         void Start()
         {
-            FindLocalManagers();
             try
             {
                 context = NetworkScene.Register(this);
@@ -127,49 +236,65 @@ namespace Ubiq.Logging
             // ensuring all new peers in the room transmit immediately and relieve the user of having to worry about 
             // peer lifetimes once they start collection.
 
-            if(context != null)
+            roomClient.OnPeerAdded.AddListener(Peer =>
             {
-                var roomClient = context.scene.GetComponentInChildren<Rooms.RoomClient>();
-                if(roomClient)
+                if (isPrimary)
                 {
-                    roomClient.OnPeerAdded.AddListener(Peer =>
-                    {
-                        if (Collecting)
-                        {
-                            StartCollection();
-                        }
-                    });
+                    StartCollection();
                 }
-            }
+            });
         }
 
-        // Update is called once per frame
         void Update()
         {
+            if (destinationCollector) // There is an Active Collector
+            {
+                ReferenceCountedSceneGraphMessage message;
+                while (events.Dequeue(out message))
+                {
+                    if (destinationCollector == context.networkObject.Id)
+                    {
+                        // We are the Active Collector, so log the event directly
 
+                        var logEvent = new LogCollectorMessage(message);
+                        ResolveOutputStream(logEvent.Tag).Write(logEvent.Bytes);
+                        Written++;
+                        message.Release();
+                    }
+                    else
+                    {
+                        // The Active Collector is elsewhere, so forward the event
+
+                        message.objectid = destinationCollector;
+                        message.componentid = ComponentId;
+                        context.Send(message);
+                    }
+
+                    Interlocked.Add(ref Memory, -message.length);
+                }
+            }
+
+            // If there is no active collector, continue to cache the events...
         }
 
-        private void FindLocalManagers()
+        private void Push(ReferenceCountedSceneGraphMessage message) // Though we accept a ReferenceCountedSceneGraphMessage its assumed that it will always be a LogCollectorMessage 
         {
-            LogManager[] managers;
-            if (transform.parent == null) // Is at the root of the scene graph.
-            {
-                managers = UnityEngine.Object.FindObjectsOfType<LogManager>();
-            }
-            else
-            {
-                var root = transform;
-                while (root.parent != null)
-                {
-                    root = root.parent;
-                }
-                managers = root.GetComponentsInChildren<LogManager>();
-            }
+            events.Enqueue(message);
+            Interlocked.Add(ref Memory, message.length);
+        }
 
-            foreach (var item in managers)
+        public void Push(ref JsonWriter writer)
+        {
+            Push(LogCollectorMessage.Rent(writer.GetSpan(), writer.Tag)); // Repurpose the message pool functionality to cache log events           
+        }
+
+        private IOutputStream ResolveOutputStream(byte tag)
+        {
+            if(outputStreams[tag] == null)
             {
-                item.Register(this);
+                outputStreams[tag] = new JsonFileOutputStream(tag.ToString());
             }
+            return outputStreams[tag];
         }
 
         private interface IOutputStream : IDisposable
@@ -246,25 +371,6 @@ namespace Ubiq.Logging
             }
         }
 
-        private IOutputStream ResolveOutputStream(byte tag)
-        {
-            return outputStreams[tag];
-        }
-
-        /// <summary>
-        /// Receive a Span containing a structured log message. While the Span is a byte type, this method assumes it is UTF8.
-        /// </summary>
-        /// <remarks>
-        /// This method will take a copy of record before returning, so - as implied by the Span argument - it is safe to call
-        /// with reference counted argumnets. The Span will also prevent this being called across yield or await boundaries, which
-        /// is not supported.
-        /// </remarks>
-        public void Push(ReadOnlySpan<byte> record, byte tag)
-        {
-            ResolveOutputStream(tag).Write(record);
-            Count++;
-        }
-
         private void OnDestroy()
         {
             if (outputStreams != null)
@@ -278,6 +384,16 @@ namespace Ubiq.Logging
                     }
                 }
             }
+        }
+
+        public static LogCollector Find(MonoBehaviour component)
+        {
+            return component.GetClosestComponent<LogCollector>();
+        }
+
+        public void Register(LogEmitter emitter)
+        {
+            emitter.collector = this;
         }
     }
 

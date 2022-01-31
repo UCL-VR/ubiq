@@ -8,12 +8,12 @@ namespace Ubiq.Samples.Single.Questionnaire
 {
     public class Questionnaire : MonoBehaviour
     {
-        EventLogger results;
+        LogEmitter results;
 
         // Start is called before the first frame update
         void Start()
         {
-            results = new UserEventLogger(this);
+            results = new ExperimentLogEmitter(this);
         }
 
         public void Done()
