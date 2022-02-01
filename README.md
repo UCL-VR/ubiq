@@ -35,5 +35,6 @@ You're connected!
 
 For next steps see our Getting Started guide.
 
+## Awards
 
-
+<img src="Documentation/docs/images/8e9dfe00-e9d5-4980-8373-e264c7f4c1e1.png" width=20%/>
