@@ -54,17 +54,17 @@ First, an `ExperimentLogEmitter` is declared. This is the object that will be us
 
 #### Event Types
 
-Events can be given a Type. The type hints at the meaning of the event. For example, `Application` events record how the application itself is working. `Experiment` events could record data for experiments. `Info` events could record simple debugging information.
+Events can be given a Type. The type hints at the meaning of the event. For example, `Info` events record how the application itself is working. `Experiment` events could record data for experiments. `Debug` events could record simple debugging information.
 
-Any code can create any type of event. The type is only used to filter events when collecting and writing logs.
+Any code can create any type of event. The type is used to filter events.
 
-The Event Logger created in the `ButtonLogger` script will generate `Experiment` events.
+The Emitter created in the `ButtonLogger` script will generate `Experiment` events.
 
 #### Log Collector
 
 The default NetworkScene Prefab already contains a `LogCollector`, so there is no need to add this.
 
-Second, a callback is registered with the Button's `OnClick` event. Finally, when this is raised by the user clicking the button, a log event ("Button Pressed") is emitted.
+Second, a callback is registered with the Button's `OnClick` event by the `ButtonLogger` script. Finally, when this is raised by the user clicking the button, a log event ("Button Pressed") is emitted.
 
 Start the Scene and look at the Log Collector in the Inspector. As the Button is clicked the memory usage of the collector will increase, indicating that the Button is generating events.
 
@@ -79,15 +79,16 @@ Click *Start Collection*. The Entries count will increase, and opening the log f
 ![Log Files Created in AppData](images/81afbd3b-42c1-419f-998c-1856f3fb36b3.png)
 
 ```
-[{"ticks":637684411200317851,"event":"Button Pressed"},
-{"ticks":637684411201982783,"event":"Button Pressed"},
-{"ticks":637684411203585606,"event":"Button Pressed"},
-{"ticks":637684411205105584,"event":"Button Pressed"},
-{"ticks":637684411206535592,"event":"Button Pressed"},
-{"ticks":637684411208055613,"event":"Button Pressed"},
-{"ticks":637684411209415586,"event":"Button Pressed"},
-{"ticks":637684411211005613,"event":"Button Pressed"},
-{"ticks":637684411212455585,"event":"Button Pressed"}
+[{"ticks":637795015469208026,"peer":"f6aa7d01-24da1cf2","event":"Button Pressed"},
+{"ticks":637795015470638029,"peer":"f6aa7d01-24da1cf2","event":"Button Pressed"},
+{"ticks":637795015471998382,"peer":"f6aa7d01-24da1cf2","event":"Button Pressed"},
+{"ticks":637795015473438942,"peer":"f6aa7d01-24da1cf2","event":"Button Pressed"},
+{"ticks":637795015474853269,"peer":"f6aa7d01-24da1cf2","event":"Button Pressed"},
+{"ticks":637795015476313220,"peer":"f6aa7d01-24da1cf2","event":"Button Pressed"},
+{"ticks":637795015477743218,"peer":"f6aa7d01-24da1cf2","event":"Button Pressed"},
+{"ticks":637795015479173222,"peer":"f6aa7d01-24da1cf2","event":"Button Pressed"},
+{"ticks":637795015480802962,"peer":"f6aa7d01-24da1cf2","event":"Button Pressed"},
+{"ticks":637795015482232892,"peer":"f6aa7d01-24da1cf2","event":"Button Pressed"}
 ```
 
 # Logging Arguments
@@ -112,10 +113,11 @@ The value of Answer can be set up in the inspector. Duplicate the Button and set
 Now, when looking at the log after pressing the buttons it will show the value of Answer as well.
 
 ```
-[{"ticks":637684423675170428,"event":"Button Pressed","arg1":"Yes"},
-{"ticks":637684423676660455,"event":"Button Pressed","arg1":"Yes"},
-{"ticks":637684423680253262,"event":"Button Pressed","arg1":"No"},
-{"ticks":637684423681853281,"event":"Button Pressed","arg1":"No"}
+[{"ticks":637795019171902297,"peer":"ba742247-1415eb07","event":"Button Pressed","arg1":"Yes"},
+{"ticks":637795019174622297,"peer":"ba742247-1415eb07","event":"Button Pressed","arg1":"Yes"},
+{"ticks":637795019180442303,"peer":"ba742247-1415eb07","event":"Button Pressed","arg1":"No"},
+{"ticks":637795019183882312,"peer":"ba742247-1415eb07","event":"Button Pressed","arg1":"No"},
+{"ticks":637795019201742296,"peer":"ba742247-1415eb07","event":"Button Pressed","arg1":"Yes"}
 ```
 
 Practically any variable that can be turned into a string can be logged this way.

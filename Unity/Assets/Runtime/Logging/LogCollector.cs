@@ -94,10 +94,17 @@ namespace Ubiq.Logging
                 {
                     return context.networkObject.Id;
                 }
-                else
+                
+                // This is because Components may want to Log during Awake, or even before, 
+                // so get the NetworkScene Id directly.
+                // This will be slow, but its only until the context is set.
+                var ns = NetworkScene.FindNetworkScene(this);
+                if (ns)
                 {
-                    return NetworkId.Null;
+                    return ns.Id;
                 }
+
+                return NetworkId.Null;
             }
         }
 

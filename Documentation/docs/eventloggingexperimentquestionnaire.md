@@ -52,10 +52,14 @@ Since no filters were set up on the `LogManager`, a *Debug* log for the session 
 
 ```
 [
-{"ticks":637599759770020997,"type":"Ubiq.Messaging.NetworkScene","event":"Awake","arg1":"a9ac9ce0-5386f227","arg2":"DESKTOP-F1J0MRR","arg3":"System Product Name (ASUS)","arg4":"f73fe01b1e21031d49274a1491d1d6b5714c92e9"},
-{"ticks":637599760035593770,"type":"Ubiq.Voip.VoipPeerConnectionManager","sceneid":"a9ac9ce0-5386f227","objectid":"a9ac9ce0-5386f227","componentid":50,"event":"CreatePeerConnectionForRequest","arg1":"ed04a433-51c8dee5"},
-{"ticks":637599759801422540,"type":"Ubiq.Messaging.NetworkScene","event":"Awake","arg1":"76dc754d-8faf26a5","arg2":"Oculus Quest","arg3":"Oculus Quest","arg4":"b8db4746286db62ecad4c6fa13f17ab6"},
-{"ticks":637599760026272940,"type":"Ubiq.Voip.VoipPeerConnectionManager","sceneid":"76dc754d-8faf26a5","objectid":"76dc754d-8faf26a5","componentid":50,"event":"CreatePeerConnectionForPeer","arg1":"ed04a433-51c8dee5","arg2":"a9ac9ce0-5386f227"},
-{"ticks":637599760026660240,"type":"Ubiq.Voip.VoipPeerConnectionManager","sceneid":"76dc754d-8faf26a5","objectid":"76dc754d-8faf26a5","componentid":50,"event":"RequestPeerConnection","arg1":"ed04a433-51c8dee5","arg2":"a9ac9ce0-5386f227"}
+{"ticks":637795043778071253,"peer":"cbc6f82b-24ec48b3","type":"Ubiq.Messaging.NetworkScene","event":"Awake","arg1":"DESKTOP-F1J0MRR","arg2":"System Product Name (ASUS)","arg3":"f73fe01b1e21031d49274a1491d1d6b5714c92e9"},
+{"ticks":637795044161926844,"peer":"cbc6f82b-24ec48b3","type":"Ubiq.Samples.NetworkSpawner","objectid":"7725a971-a3692643","componentid":49018,"event":"SpawnObject","arg1":2,"arg2":"1e38967c-7a5701a3","arg3":true},
+{"ticks":637795044161966844,"peer":"cbc6f82b-24ec48b3","type":"Ubiq.Voip.VoipPeerConnectionManager","objectid":"cbc6f82b-24ec48b3","componentid":50,"event":"CreatePeerConnectionForPeer","arg1":"2a865340-80169ce2","arg2":"4641730f-148936d7"},
+{"ticks":637795044162026839,"peer":"cbc6f82b-24ec48b3","type":"Ubiq.Voip.VoipPeerConnectionManager","objectid":"cbc6f82b-24ec48b3","componentid":50,"event":"RequestPeerConnection","arg1":"2a865340-80169ce2","arg2":"4641730f-148936d7"},
+{"ticks":637795044162066856,"peer":"cbc6f82b-24ec48b3","type":"Ubiq.Samples.NetworkSpawner","objectid":"7725a971-a3692643","componentid":49018,"event":"SpawnObject","arg1":2,"arg2":"effadbc0-a6beab2b","arg3":false},
+{"ticks":637795043937235620,"peer":"4641730f-148936d7","type":"Ubiq.Messaging.NetworkScene","event":"Awake","arg1":"Oculus Quest","arg2":"Oculus Quest","arg3":"b8db4746286db62ecad4c6fa13f17ab6"},
+{"ticks":637795044080181550,"peer":"4641730f-148936d7","type":"Ubiq.Samples.NetworkSpawner","objectid":"7725a971-a3692643","componentid":49018,"event":"SpawnObject","arg1":2,"arg2":"effadbc0-a6beab2b","arg3":true},
+{"ticks":637795044152929360,"peer":"4641730f-148936d7","type":"Ubiq.Voip.VoipPeerConnectionManager","objectid":"4641730f-148936d7","componentid":50,"event":"CreatePeerConnectionForRequest","arg1":"2a865340-80169ce2"},
+{"ticks":637795044153061850,"peer":"4641730f-148936d7","type":"Ubiq.Samples.NetworkSpawner","objectid":"7725a971-a3692643","componentid":49018,"event":"SpawnObject","arg1":2,"arg2":"1e38967c-7a5701a3","arg3":false}
 ]
 ```

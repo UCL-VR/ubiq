@@ -133,7 +133,7 @@ namespace Ubiq.Messaging
             }
 
             events = new ComponentLogEmitter(this);
-            events.Log("Awake", Id, SystemInfo.deviceName, SystemInfo.deviceModel, SystemInfo.deviceUniqueIdentifier);
+            events.Log("Awake", SystemInfo.deviceName, SystemInfo.deviceModel, SystemInfo.deviceUniqueIdentifier);
         }
 
         /// <summary>
