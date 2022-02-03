@@ -14,6 +14,8 @@ namespace Ubiq.Logging
 
             var component = target as LogCollector;
 
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("EventsFilter"));
+
             if (Application.isPlaying)
             {
                 GUILayout.Label($"Mode: {component.Mode}");

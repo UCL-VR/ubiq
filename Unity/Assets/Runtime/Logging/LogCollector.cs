@@ -28,6 +28,8 @@ namespace Ubiq.Logging
     {
         public const ushort ComponentId = 3;
 
+        public EventType EventsFilter = (EventType)(-1); // -1 in 2's complement will set all bits to 1.
+
         public enum OperatingMode
         {
             Buffering,
@@ -53,7 +55,7 @@ namespace Ubiq.Logging
         /// The NetworkSceneId of the Active collector. If this is null, events should be cached,
         /// otherwise, they should be forwarded to this Peer.
         /// </summary>
-        private NetworkId destinationCollector = new NetworkId(0);
+        private NetworkId destination = new NetworkId(0);
 
         /// <summary>
         /// The logical clock that ensures snapshot messages will eventually converge on one peer.
@@ -64,11 +66,11 @@ namespace Ubiq.Logging
         {
             get
             {
-                if(destinationCollector == Id)
+                if(destination == this.Id)
                 {
                     return OperatingMode.Writing;
                 }
-                if (destinationCollector)
+                if (destination)
                 {
                     return OperatingMode.Forwarding;
                 }
@@ -132,7 +134,7 @@ namespace Ubiq.Logging
 
         private void SendSnapshot(NetworkId newDestination)
         {
-            destinationCollector = newDestination;
+            destination = newDestination;
             clock++;
 
             var msg = new CC();
@@ -182,7 +184,7 @@ namespace Ubiq.Logging
                         {
                             // The Initiator has full knowledge, and wishes to change the destination
 
-                            destinationCollector = cck.state;
+                            destination = cck.state;
                             clock = cck.clock;
                         }
                         else
@@ -243,16 +245,25 @@ namespace Ubiq.Logging
                     StartCollection();
                 }
             });
+
+            roomClient.OnPeerRemoved.AddListener(Peer =>
+            {
+                if (Peer.NetworkObjectId == destination)
+                {
+                    // The Peer that went away was the Active Collector. This is unexpected in a bad way. Stop transmitting logs until someone else volunteers.
+                    destination = NetworkId.Null;
+                }
+            });
         }
 
         void Update()
         {
-            if (destinationCollector) // There is an Active Collector
+            if (destination) // There is an Active Collector
             {
                 ReferenceCountedSceneGraphMessage message;
                 while (events.Dequeue(out message))
                 {
-                    if (destinationCollector == context.networkObject.Id)
+                    if (destination == context.networkObject.Id)
                     {
                         // We are the Active Collector, so log the event directly
 
@@ -265,7 +276,7 @@ namespace Ubiq.Logging
                     {
                         // The Active Collector is elsewhere, so forward the event
 
-                        message.objectid = destinationCollector;
+                        message.objectid = destination;
                         message.componentid = ComponentId;
                         context.Send(message);
                     }
@@ -286,6 +297,11 @@ namespace Ubiq.Logging
         public void Push(ref JsonWriter writer)
         {
             Push(LogCollectorMessage.Rent(writer.GetSpan(), writer.Tag)); // Repurpose the message pool functionality to cache log events           
+        }
+
+        public bool ShouldLog(EventType tag)
+        {
+            return (((sbyte)EventsFilter & (sbyte)tag) > 0);
         }
 
         private IOutputStream ResolveOutputStream(byte tag)

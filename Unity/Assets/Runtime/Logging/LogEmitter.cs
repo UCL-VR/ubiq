@@ -10,14 +10,18 @@ namespace Ubiq.Logging
 {
     /// <summary>
     /// Pre-defined event types that will create log files with names instead of
-    /// the tag value. Other tag values may be used however.
+    /// the tag value. Other tag values may be used.
     /// </summary>
+    /// <remarks>
+    /// This is a Flags enum; make sure any other values are powers of 2.
+    /// </remarks>
+    [Flags]
     public enum EventType : sbyte // sbyte because Unity's 'Everything' option sets the field to all -1 (all 1's in 2's complement)
     {
         Application = 1,
         Experiment = 2,
-        Debug = 3,
-        Info = 4
+        Debug = 4,
+        Info = 8
     }
 
     /// <summary>
@@ -37,27 +41,40 @@ namespace Ubiq.Logging
 
         public EventType EventType { get; set; }
 
-        public LogEmitter(EventType type)
+        private bool IsPowerOf2(sbyte v)
         {
+            return v != 0 && (v & (v - 1)) == 0;
+        }
+
+        public LogEmitter(EventType type, MonoBehaviour component)
+        {
+            if (!IsPowerOf2((sbyte)type))
+            {
+                Debug.LogError($"LogEmitter Type {type} is not a valid combination of flags! If in doubt, use one of the entries in the Ubiq.Logging.EventType enum.");
+            }
+
             EventType = type;
             if (!initialised)
             {
                 CompositeResolver.Register(UbiqResolver.Instance);
                 initialised = true;
             }
+
             mirrorToConsole = false;
+
+            RegisterCollectorBy(component);
         }
 
         private bool ShouldLog()
         {
-            return collector != null && collector.enabled;
+            return collector != null && collector.enabled && collector.ShouldLog(EventType);
         }
 
         /// <summary>
         /// Attempts to Register this emitter using the provided Component as the location to start searching for a Collector
         /// </summary>
         /// <param name="component"></param>
-        protected void RegisterCollectorBy(MonoBehaviour component)
+        private void RegisterCollectorBy(MonoBehaviour component)
         {
             try
             {
@@ -167,6 +184,7 @@ namespace Ubiq.Logging
         protected virtual void WriteHeader(ref JsonWriter writer)
         {
             writer.Write("ticks", DateTime.Now.Ticks);
+            writer.Write("peer", collector.Id);
         }
     }
 
@@ -177,7 +195,7 @@ namespace Ubiq.Logging
     {
         private string Type;
 
-        public TypedLogEmitter(Type type, EventType eventType):base(eventType)
+        public TypedLogEmitter(Type type, EventType eventType, MonoBehaviour component):base(eventType, component)
         {
             Type = type.FullName;
         }
@@ -195,9 +213,8 @@ namespace Ubiq.Logging
     /// </summary>
     public class ComponentLogEmitter : TypedLogEmitter
     {
-        public ComponentLogEmitter(MonoBehaviour component, EventType type = EventType.Debug) : base(component.GetType(), type)
+        public ComponentLogEmitter(MonoBehaviour component, EventType type = EventType.Debug) : base(component.GetType(), type, component)
         {
-            RegisterCollectorBy(component);
         }
     }
 
@@ -208,16 +225,14 @@ namespace Ubiq.Logging
     {
         private NetworkContext context;
 
-        public ContextLogEmitter(NetworkContext context, EventType type = EventType.Debug) : base(context.component.GetType(), type)
+        public ContextLogEmitter(NetworkContext context, EventType type = EventType.Debug) : base(context.component.GetType(), type, context.scene)
         {
             this.context = context;
-            RegisterCollectorBy(context.scene);
         }
 
         protected override void WriteHeader(ref JsonWriter writer)
         {
             base.WriteHeader(ref writer);
-            writer.Write("sceneid", context.scene.Id);
             writer.Write("objectid", context.networkObject.Id);
             writer.Write("componentid", context.componentId);
         }
@@ -228,17 +243,15 @@ namespace Ubiq.Logging
     /// </summary>
     public class ExperimentLogEmitter : LogEmitter
     {
-        public ExperimentLogEmitter(MonoBehaviour component):base(EventType.Experiment)
+        public ExperimentLogEmitter(MonoBehaviour component):base(EventType.Experiment, component)
         {
-            RegisterCollectorBy(component);
         }
     }
 
     public class InfoLogEmitter : LogEmitter
     {
-        public InfoLogEmitter(MonoBehaviour component) : base(EventType.Info)
+        public InfoLogEmitter(MonoBehaviour component) : base(EventType.Info, component)
         {
-            RegisterCollectorBy(component);
         }
     }
 }

@@ -2,17 +2,17 @@
 
 The Questionnaire Sample (Samples/Single/Questionnaire) shows how the Event Logging System may be used to collect questionnaire responses.
 
-This scene contains a panel with an example Component, `Questionnaire` attached to it. The Component iterates over all `Slider` instances under its `GameObject`, and uses a `UserEventLogger` to write their values when the user clicks *Done*.
+This scene contains a panel with an example Component, `Questionnaire` attached to it. The Component iterates over all `Slider` instances under its `GameObject`, and uses an `ExperimentLogEmitter` to write their values when the user clicks *Done*.
 
 ```
 public class Questionnaire : MonoBehaviour
 {
-	EventLogger results;
+	LogEmitter results;
 
 	// Start is called before the first frame update
 	void Start()
 	{
-		results = new UserEventLogger(this);
+		results = new ExperimentLogEmitter(this);
 	}
 
 	public void Done()
@@ -27,28 +27,28 @@ public class Questionnaire : MonoBehaviour
 
 ![The Questionnaire Sample Scene in the Editor](images/3b19e567-c18b-47bb-809f-6276c22a64be.png)
 
-The scene contains a script `LogCreatorCollector` that creates a `LogCollector` if the Scene is running in the Editor, as an experimentor may do. The Questionnaire can be completed locally. Alternatively, the scene can be run remotely, and the experimentor in the Editor can click *Start Collection* on the `LogCollector` to recieve the Questionnaire results. 
+The Questionnaire can be completed locally in Play Mode. Alternatively, the scene can be run remotely, and the experimentor in the Editor can join the same room as the remote copy. In either case, the experimentor in the Editor can click *Start Collection* on the `NetworkScene` > `Log Manager` > `LogCollector` to recieve the Questionnaire results.
 
 The experimentor can click *Start Collection* before or after the questionnaire has been completed, and the participant can complete the Questionnaire before or after joining the room. In all cases the results will be receieved correctly.
 
 ### Sample Output
 
-Below is the resulting *User* log file from an application built with the Questionnaire scene.
+Below is the resulting *Experiment* log file from an application built with the Questionnaire scene.
 
 ```
 [
-{"ticks":637599760103005990,"event":"Answer","arg1":"Slider 1","arg2":0.7987003},
-{"ticks":637599760103292320,"event":"Answer","arg1":"Slider 2","arg2":0.28863412},
-{"ticks":637599760103293850,"event":"Answer","arg1":"Slider 3","arg2":0.7020102}
+{"ticks":637795003787005516,"peer":"f7d98080-7c7b05ca","event":"Answer","arg1":"Slider 1","arg2":0.707253},
+{"ticks":637795003787045512,"peer":"f7d98080-7c7b05ca","event":"Answer","arg1":"Slider 2","arg2":0.30657154},
+{"ticks":637795003787045512,"peer":"f7d98080-7c7b05ca","event":"Answer","arg1":"Slider 3","arg2":0.7034317}
 ]
 ```
 
-The Questionnaire was filled in on an Oculus Quest, after joining the same room as a user running the same scene in the Unity Editor. As soon as the Questionnaire was completed, the Unity Editor user could find the *User* log by clicking the *Open Folder* button of the `LogCollector` Component in the Editor.
+The Questionnaire was filled in on an Oculus Quest, after joining the same room as a user running the same scene in the Unity Editor. As soon as the Questionnaire was completed, the Unity Editor user could find the *Experiment* log by clicking the *Open Folder* button of the `LogCollector` Component in the Editor.
 
 ![Log Collector Inspector at Runtime](images/d7937ef2-069b-40e2-b596-1ceccd749a24.png)
 
 
-Since no filters were set up on the `LogManager`, an *Application* log for the session is also created in the same folder.
+Since no filters were set up on the `LogManager`, a *Debug* log for the session is also created in the same folder.
 
 ```
 [
