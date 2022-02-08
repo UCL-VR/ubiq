@@ -6,17 +6,17 @@ A sample log file is shown below.
 
 ```
 [
-{"ticks":637599657099341295,"type":"Ubiq.Messaging.NetworkScene","event":"Awake","arg1":"0112f691-0c94838b","arg2":"DESKTOP-F1J0MRR","arg3":"System Product Name (ASUS)","arg4":"f73fe01b1e21031d49274a1491d1d6b5714c92e9"},
-{"ticks":637599657429701260,"type":"Ubiq.Voip.VoipPeerConnectionManager","sceneid":"0112f691-0c94838b","objectid":"0112f691-0c94838b","componentid":50,"event":"CreatePeerConnectionForRequest","arg1":"7a577253-a3a38c7f"},
-{"ticks":637599657364232680,"type":"Ubiq.Messaging.NetworkScene","event":"Awake","arg1":"53c9dddd-a62bb937","arg2":"Oculus Quest","arg3":"Oculus Quest","arg4":"b8db4746286db62ecad4c6fa13f17ab6"},
-{"ticks":637599657421868190,"type":"Ubiq.Voip.VoipPeerConnectionManager","sceneid":"53c9dddd-a62bb937","objectid":"53c9dddd-a62bb937","componentid":50,"event":"CreatePeerConnectionForPeer","arg1":"7a577253-a3a38c7f","arg2":"0112f691-0c94838b"},
-{"ticks":637599657422314320,"type":"Ubiq.Voip.VoipPeerConnectionManager","sceneid":"53c9dddd-a62bb937","objectid":"53c9dddd-a62bb937","componentid":50,"event":"RequestPeerConnection","arg1":"7a577253-a3a38c7f","arg2":"0112f691-0c94838b"}
+{"ticks":637799309335620180,"peer":"088edbc1-1d1f09b5","type":"Ubiq.Messaging.NetworkScene","event":"Awake","arg1":"DESKTOP-F1J0MRR","arg2":"System Product Name (ASUS)","arg3":"f73fe01b1e21031d49274a1491d1d6b5714c92e9"},
+{"ticks":637799309384207356,"peer":"088edbc1-1d1f09b5","type":"Ubiq.Voip.VoipPeerConnectionManager","objectid":"088edbc1-1d1f09b5","componentid":50,"event":"CreatePeerConnectionForPeer","arg1":"6c494697-2e79f5e3","arg2":"26a6ee77-3cec71fe"},
+{"ticks":637799309384277353,"peer":"088edbc1-1d1f09b5","type":"Ubiq.Voip.VoipPeerConnectionManager","objectid":"088edbc1-1d1f09b5","componentid":50,"event":"RequestPeerConnection","arg1":"6c494697-2e79f5e3","arg2":"26a6ee77-3cec71fe"},
+{"ticks":637799309087959820,"peer":"26a6ee77-3cec71fe","type":"Ubiq.Messaging.NetworkScene","event":"Awake","arg1":"Oculus Quest","arg2":"Oculus Quest","arg3":"b8db4746286db62ecad4c6fa13f17ab6"},
+{"ticks":637799309303272560,"peer":"26a6ee77-3cec71fe","type":"Ubiq.Voip.VoipPeerConnectionManager","objectid":"26a6ee77-3cec71fe","componentid":50,"event":"CreatePeerConnectionForRequest","arg1":"6c494697-2e79f5e3"}
 ]
 ```
 
-In this example, two peers - a desktop PC (Unity Editor) and an Oculus Quest - join a room. The `NetworkScene` and `VoipPeerConnectionManager` both log events. To collect these logs, a new `LogCollector` was added to a new `GameObject` and the `Start Collection` button pressed.
+In this example, two peers - a desktop PC (Unity Editor) and an Oculus Quest - join a room. The `NetworkScene` and `VoipPeerConnectionManager` both log events.
 
-Some Json members are defined by the `Logger` type. For example, the `ContextLogger` writes the `sceneid` and `objectid` of the context passed to it on creation. The `arg` members correspond to those passed to the `Log()` method.
+Some Json members are defined by the `Emitter` type. For example, the `ContextLogger` writes the `objectid` of the context passed to it on creation. The `arg` members correspond to those passed to the `Log()` method. All entries include a timestamp and the Id of the Peer that generated the log. Timestamps are given in .Net [Ticks](https://docs.microsoft.com/en-us/dotnet/api/system.datetime.ticks).
 
 ## Python
 
@@ -25,8 +25,8 @@ Python can be used to analys logs programmatically. The Jupyter notebook below s
 ![Image of Jupyter Notebook Code](images/e13a146f-7f90-486d-8131-a47d44f8c87c.png)
 
 - [See the Notebook in full](html/b27a1510-38ec-4821-92b1-478dcbcf1ab1.html)
-- [Download Jupyter Notebook](files/Application_Log.ipynb)
-- [Download Example Log File](files/Application_Log.json)
+- [Download Jupyter Notebook](files/Debug_Log.ipynb)
+- [Download Example Log File](files/Debug_Log.json)
 
 
 
@@ -56,23 +56,23 @@ Like Python, Matlab can load Json using the jsondecode function.
 % Read the text file and use jsondecode to produce a cell array of
 % structures.
 
-J = jsondecode(fileread("Application_Log.json"));
+events = jsondecode(fileread("Debug_Log.json"));
 
 % The structures will have different fields, so we must use loops to filter
-% them as they cannot be combined into a single struct array or table.
+% them before they can be combined into a single struct array or table.
 
 % Below, find all the events of type SpawnObject, and combine them into a
 % new array.
 
 spawn = [];
 
-for j = J'
-   % The curly braces access the contents of the cell j, which is the
-   % struct.
-   s = j{1};
-    if categorical(cellstr(s.event)) == categorical("SpawnObject")
-        spawn = [spawn; s];
-    end
+for i = 1:numel(events)
+   % The curly braces access the contents of the cell i, which is the
+   % struct itself.
+   s = events{i};
+   if categorical(cellstr(s.event)) == categorical("SpawnObject")
+       spawn = [spawn; s];
+   end
 end
 
 % Convert the new array into a table
@@ -80,17 +80,18 @@ T = struct2table(spawn);
 
 % Use the table to change the type of the sceneid column so we can easily
 % split the events by which peer they are from.
-T.sceneid = categorical(T.sceneid);
+T.peer = categorical(T.peer);
 
-% Filter the events to keep only those at the spawner
+% Filter the events to keep only those emitted by the Peer that initiated
+% the spawn
 T = T(T.arg3,:);
 
-% Plot the number of objects spawned over time, for each Peer
+% Plot the number of objects spawned over time, by each Peer
 figure;
 hold all;
-peers = unique(T.sceneid);
+peers = unique(T.peer);
 for p = peers'
-   spawned = T(T.sceneid == p,:);
+   spawned = T(T.peer == p,:);
    plot(spawned.ticks,1:size(spawned,1));
 end
 
@@ -99,7 +100,7 @@ ylabel("Number of Objects");
 legend(peers);
 ```
 
-![Matlab Plot](images/9e093fbb-d84f-4f48-ae00-0a7019975d79.png)
+![Matlab Plot](images/9e093fbb-d84f-4f48-ae00-0a7019975d79.svg)
 
-- [Download Matlab Source](files/Application_Log.m)
-- [Download Example Log File](files/Application_Log.json)
+- [Download Matlab Source](files/Debug_Log.m)
+- [Download Example Log File](files/Debug_Log.json)

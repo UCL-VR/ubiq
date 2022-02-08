@@ -188,7 +188,7 @@ If a process that was not the Active Collector fails, then that process will sim
 
 # Analysis
 
-A `LogCollector` outputs a stream of structured logs in standards compliant Json. These logs can be fed to a stack like the ELK, processed with third-party tools like Matlab or Excel, or processed programmatically on platforms such as Python.
+A `LogCollector` outputs a stream of structured logs in compliant Json. These logs can be fed to a stack like the ELK, processed with third-party tools like Matlab or Excel, or processed programmatically on platforms such as Python.
 
 See the [Analysis](eventloganalysis.md) section for examples of how to process the logs.
 
