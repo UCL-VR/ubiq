@@ -14,7 +14,7 @@ namespace Ubiq.Samples.UnitTests.Logging
     /// The events are deterministic, meaning the cumulative log files can be analysed 
     /// afterwards for integrity.
     /// </summary>
-    public class LoggingDiagnostics : MonoBehaviour
+    public class LoggingDiagnostics : MonoBehaviour, INetworkObject, INetworkComponent
     {
         /// <summary>
         /// Each event increments the counter by 1. If the counter does not increment continuously, in order with time, then a log event has been lost.
@@ -26,6 +26,13 @@ namespace Ubiq.Samples.UnitTests.Logging
         /// </summary>
         protected List<LogEmitter> emitters = new List<LogEmitter>();
 
+        protected bool Run = true;
+
+        protected LogCollector Collector;
+
+        public NetworkId Id => new NetworkId("bf63d523-407668a5");
+        private NetworkContext context;
+
         // Start is called before the first frame update
         void Start()
         {
@@ -34,21 +41,61 @@ namespace Ubiq.Samples.UnitTests.Logging
             {
                 emitters.Add(new ExperimentLogEmitter(this));
             }
+            Collector = LogCollector.Find(this);
+            context = NetworkScene.Register(this);
         }
 
         // Update is called once per frame
         void Update()
         {
-            if(UnityEngine.Random.value > 0.7f)
+            if (Run)
             {
-                var emitter = emitters[UnityEngine.Random.Range(0, emitters.Count)];
-                emitter.Log("Counter", Counter++);
-            }
+                if (UnityEngine.Random.value > 0.7f)
+                {
+                    var emitter = emitters[UnityEngine.Random.Range(0, emitters.Count)];
+                    emitter.Log("Counter", Counter++);
+                }
 
-            if(UnityEngine.Random.value > 0.99f)
-            {
-                this.GetClosestComponent<LogCollector>().StartCollection();
+                if (UnityEngine.Random.value > 0.99f)
+                {
+                    Collector.StartCollection();
+                }
             }
+        }
+
+        public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+        {
+            if(message.ToString() == "End")
+            {
+                Shutdown();
+            }
+        }
+
+        public void End()
+        {
+            context.Send("End");
+            Shutdown();
+        }
+
+        private void Shutdown()
+        {
+            Run = false;
+
+            // Wait five seconds for all the logs to be written before quitting
+            StartCoroutine(DelayedQuit());
+        }
+
+        public IEnumerator DelayedQuit() 
+        { 
+            yield return new WaitForSeconds(3f);
+
+#if UNITY_EDITOR
+            // Application.Quit() does not work in the editor so
+            // UnityEditor.EditorApplication.isPlaying need to be set to false to end the game
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+         Application.Quit();
+#endif
         }
 
         struct Ev // Structure for use by JsonUtility

@@ -186,6 +186,26 @@ If the Collector was part of a Room, the Rooms system can detect disconnection i
 
 If a process that was not the Active Collector fails, then that process will simply not emit events. If that process was previously an Active Collector, it is still possible to lose events if the Collector was acting as a relay when the process failed.
 
+# Verification
+
+The `LogCollector` method `GetBufferedEventCount` returns the number of Events currently buffered. As `LogCollector` is multi-threaded, this count may change even while it is being returned. However, if it is known, for example, that an application will not generate any new Events of a particular type, it can be used to check whether all of those events have finished writing.
+
+The `LogCollector` method `Ping` will ping the Active Collector. 
+
+All Log messages are delivered in order. Therefore these mechanisms can be used together to verify that all log messages for a particular application have been delivered successfully before it exits.
+
+To do this, an application could:
+
+1. Write the last Event, e.g. a Questionnaire result.
+2. In the same thread, wait until the number of buffered events of that type is zero.
+3. Ping the Active Collector
+
+When a response is receieved, the Event, and all preceeding it, will have been successfully delivered and the application can safely exit.
+
+This does not protect against process failure of an intermediary `LogCollector`, a condition which is irrecoverable.
+
+
+
 # Analysis
 
 A `LogCollector` outputs a stream of structured logs in compliant Json. These logs can be fed to a stack like the ELK, processed with third-party tools like Matlab or Excel, or processed programmatically on platforms such as Python.

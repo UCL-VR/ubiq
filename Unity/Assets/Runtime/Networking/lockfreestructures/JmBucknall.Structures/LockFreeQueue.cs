@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using Ubiq.Networking.JmBucknall.Threading;
@@ -7,9 +8,8 @@ namespace Ubiq.Networking
 {
     namespace JmBucknall.Structures
     {
-        public class LockFreeQueue<T>
+        public class LockFreeQueue<T> : IEnumerable<T>
         {
-
             SingleLinkNode<T> head;
             SingleLinkNode<T> tail;
 
@@ -86,6 +86,64 @@ namespace Ubiq.Networking
                 Dequeue(out result);
                 return result;
             }
+
+            public IEnumerator<T> GetEnumerator()
+            {
+                return new Enumerator(this);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return new Enumerator(this);
+            }
+
+            /// <summary>
+            /// The Enumerator will walk the Queue from the Head at the time
+            /// the Enumerator was requested. The Enumerator may show items
+            /// that are dequeued during Enumeration.
+            /// Calling Reset() on the Enumerator will reset the Head to the
+            /// Queue's current Head (i.e. calling Reset multiple times will
+            /// not necessarily reset the Enumerator to the same place).
+            /// </summary>
+            /// <remarks>
+            /// The Enumerator uses the Next member. This member is always 
+            /// valid (it does not lead or lag). The operation of the linked
+            /// list means the Next chain is never broken even when dequeueing.
+            /// This means the Enumerator could walk an arbitrarily long number
+            /// of items that are already dequeued. However, it will always
+            /// return to the valid list by the end.
+            /// </remarks>
+            internal struct Enumerator : IEnumerator<T>
+            {
+                public Enumerator(LockFreeQueue<T> queue)
+                {
+                    this.queue = queue;
+                    current = queue.head;
+                }
+
+                LockFreeQueue<T> queue;
+                SingleLinkNode<T> current;
+
+                public T Current { get { return current.Item; } }
+
+                object IEnumerator.Current => Current;
+
+                public void Dispose()
+                {
+                }
+
+                public bool MoveNext()
+                {
+                    current = current.Next;
+                    return (current != null);
+                }
+
+                public void Reset()
+                {
+                    current = queue.head;
+                }
+            }
+
         }
     }
 }

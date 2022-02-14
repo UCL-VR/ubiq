@@ -47,6 +47,23 @@ namespace Ubiq.Logging
                 }
             }
 
+            if (GUILayout.Button("Ping Active Collector"))
+            {
+                component.Ping((response) =>
+                    {
+                        var message = $"Ping Response - Collector: {response.ActiveCollector} RTT: {response.EndTime - response.StartTime} Error: {response.Aborted}";
+                        if(response.Aborted)
+                        {
+                            Debug.LogError(message);
+                        }
+                        else
+                        {
+                            Debug.Log(message);
+                        }
+                    }
+                );
+            }
+
             GUI.enabled = true;
 
             if (GUILayout.Button("Open Folder"))

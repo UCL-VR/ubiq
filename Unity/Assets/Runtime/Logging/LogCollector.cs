@@ -62,6 +62,14 @@ namespace Ubiq.Logging
         /// </summary>
         private int clock = 0;
 
+        private struct PingRequest
+        {
+            public Action<PingResult> callback;
+            public float time;
+        }
+
+        private Dictionary<string, PingRequest> pings = new Dictionary<string, PingRequest>();
+
         public OperatingMode Mode
         {
             get
@@ -120,6 +128,24 @@ namespace Ubiq.Logging
         {
             public int clock;
             public NetworkId state;
+        }
+
+        private struct PingMessage
+        {
+            public NetworkId Source; // Id of the Source of the Request
+            public NetworkId Responder; // Id of the Collector that Responded (usually the Active Collector)
+            public string Token; // Unique Id of this request that should be reflected back
+            public int Written; // Stats of the Active Collector if found
+            public bool Aborted; // True if the responder is not the Active Collector
+        }
+
+        public struct PingResult
+        {
+            public NetworkId ActiveCollector;
+            public float StartTime;
+            public float EndTime;
+            public int Written;
+            public bool Aborted;
         }
 
         /// <summary>
@@ -204,6 +230,62 @@ namespace Ubiq.Logging
 
                                 clock += UnityEngine.Random.Range(0, 10);
                                 SendSnapshot(Id);
+                            }
+                        }
+                    }
+                    break;
+                case LogCollectorMessage.MessageType.Ping:
+                    {
+                        var ping = logmessage.FromJson<PingMessage>();
+                        if (ping.Responder)
+                        {
+                            // The ping is a response to a request that we originated
+
+                            if (pings.ContainsKey(ping.Token))
+                            {
+                                var request = pings[ping.Token];
+                                pings.Remove(ping.Token);
+                                PingResult result;
+                                result.Aborted = ping.Aborted;
+                                result.ActiveCollector = ping.Responder;
+                                result.StartTime = request.time;
+                                result.EndTime = Time.time;
+                                result.Written = ping.Written;
+                                request.callback(result);
+                            }
+                            else
+                            {
+                                Debug.LogError("Received Ping Response with Invalid Token.");
+                            }
+                        }
+                        else // Is a Request...
+                        {
+                            // We have received a Ping. Pings are meant to be replied to by the Active Collector, so
+                            // what happens next depends on where that is..
+
+                            if (isPrimary)
+                            {
+                                // We are the active collector so reply directly.
+
+                                ping.Responder = Id;
+                                ping.Written = Written;
+                                context.Send(ping.Source, LogCollectorMessage.RentPingMessage(ping));
+                            }
+                            else if (destination)
+                            {
+                                // If the active collector has changed since the Ping was created, forward it.
+
+                                message.Acquire();
+                                context.Send(destination, message);
+                            }
+                            else
+                            {
+                                // There is no active collector and yet we've received a ping. This is not good, but could occur where there was 
+                                // an Active Collector but it failed. Return a warning.
+
+                                ping.Responder = Id;
+                                ping.Aborted = true;
+                                context.Send(ping.Source, LogCollectorMessage.RentPingMessage(ping));
                             }
                         }
                     }
@@ -309,6 +391,79 @@ namespace Ubiq.Logging
         public bool ShouldLog(EventType tag)
         {
             return (((sbyte)EventsFilter & (sbyte)tag) > 0);
+        }
+
+        /// <summary>
+        /// Returns the number of Events with Tag in the Buffer. When this is zero, the LogCollector
+        /// has transmitted or written all Events.
+        /// </summary>
+        /// <remarks>
+        /// This method returns the count at a particular moment in time, that may even be the past
+        /// by the time the value is used.
+        /// This method is only useful when leveraged with other information, such as the fact that 
+        /// no new Events of a particular type will be raised.
+        /// </remarks>
+        public int GetBufferedEventCount(EventType tag)
+        {
+            int count = 0;
+            foreach (var item in events)
+            {
+                var logEvent = new LogCollectorMessage(item);
+                if(logEvent.Tag == (byte)tag)
+                {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        /// <summary>
+        /// Pings the Active Collector. When a response is received, response is called with the 
+        /// elapsed local round-trip time.
+        /// If this is the Active Collector, or there is no Active Collector, response is called
+        /// immediately with a time of zero.
+        /// </summary>
+        /// <remarks>
+        /// There are no guarantees on the response times of the Collector.
+        /// </remarks>
+        public void Ping(Action<PingResult> response)
+        {
+            if(isPrimary)
+            {
+                PingResult result;
+                result.Aborted = false;
+                result.ActiveCollector = Id;
+                result.StartTime = Time.time;
+                result.EndTime = Time.time;
+                result.Written = Written;
+                response(result);
+            }
+            else if(!destination)
+            {
+                PingResult result;
+                result.Aborted = true;
+                result.ActiveCollector = NetworkId.Null;
+                result.StartTime = Time.time;
+                result.EndTime = Time.time;
+                result.Written = -1;
+                response(result);
+            }
+            else
+            {
+                PingMessage ping;
+                ping.Source = Id;
+                ping.Responder = NetworkId.Null;
+                ping.Token = Guid.NewGuid().ToString();
+                ping.Written = 0;
+                ping.Aborted = false;
+
+                PingRequest request;
+                request.callback = response;
+                request.time = Time.time;
+                pings.Add(ping.Token, request);
+
+                context.Send(destination, LogCollectorMessage.RentPingMessage(ping));
+            }
         }
 
         private IOutputStream ResolveOutputStream(byte tag)

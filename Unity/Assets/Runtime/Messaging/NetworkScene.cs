@@ -34,6 +34,13 @@ namespace Ubiq.Messaging
             scene.Send(message.buffer);
         }
 
+        public void Send(NetworkId objectid, ReferenceCountedSceneGraphMessage message)
+        {
+            message.objectid = objectid;
+            message.componentid = this.componentId;
+            scene.Send(message.buffer);
+        }
+
         public void Send(NetworkId objectid, ushort componentid, ReferenceCountedSceneGraphMessage message)
         {
             message.objectid = objectid;

@@ -20,7 +20,8 @@ namespace Ubiq.Logging
         public enum MessageType : int 
         { 
             Command = 0x1,
-            Event = 0x2
+            Event = 0x2,
+            Ping = 0x3
         }
 
         public MessageType Type 
@@ -89,14 +90,24 @@ namespace Ubiq.Logging
             return message.buffer;
         }
 
-        public static ReferenceCountedSceneGraphMessage RentCommandMessage<T>(T msg)
+        private static ReferenceCountedSceneGraphMessage RentTypedJsonMessage<T>(T msg, MessageType type)
         {
             var str = JsonUtility.ToJson(msg);
             var strBytes = Encoding.UTF8.GetBytes(str);
             var message = new LogCollectorMessage(ReferenceCountedSceneGraphMessage.Rent(strBytes.Length + headerLength));
-            message.Type = MessageType.Command;
+            message.Type = type;
             new Span<byte>(strBytes).CopyTo(message.Bytes);
             return message.buffer;
+        }
+
+        public static ReferenceCountedSceneGraphMessage RentCommandMessage<T>(T msg)
+        {
+            return RentTypedJsonMessage(msg, MessageType.Command);
+        }
+
+        public static ReferenceCountedSceneGraphMessage RentPingMessage<T>(T msg)
+        {
+            return RentTypedJsonMessage(msg, MessageType.Ping);
         }
     }
 }
