@@ -48,6 +48,17 @@ namespace Ubiq.Samples.UnitTests.Logging
         // Update is called once per frame
         void Update()
         {
+            // The LoggingDiagnostics will generate deterministic events from arbitrary Emitters at random intervals.
+            // Every so often, a Collector will also volunteer as the Active Collector.
+
+            // LoggingDiagnostics is quite simple, and is unable to distinguish between logs lost due to failures, and
+            // logs lost during a typical manual shutdown of all Peers.
+            // Therefore, when ending the tests the Quit button should be used, which will signal all Components to 
+            // stop transmitting, then wait for a grace period for all Events to filter through, before finally exiting.
+
+            // The LogCollector does have the ability to detect when Logs have been successfully transmitted, where
+            // it is known which Peer hosts the Active Collector on shutdown.
+
             if (Run)
             {
                 if (UnityEngine.Random.value > 0.7f)
@@ -90,11 +101,9 @@ namespace Ubiq.Samples.UnitTests.Logging
             yield return new WaitForSeconds(3f);
 
 #if UNITY_EDITOR
-            // Application.Quit() does not work in the editor so
-            // UnityEditor.EditorApplication.isPlaying need to be set to false to end the game
             UnityEditor.EditorApplication.isPlaying = false;
 #else
-         Application.Quit();
+            Application.Quit();
 #endif
         }
 
