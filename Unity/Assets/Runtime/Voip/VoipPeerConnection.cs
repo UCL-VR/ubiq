@@ -118,13 +118,11 @@ namespace Ubiq.Voip
                 }
             };
 
+            
             // Diagnostics.
-            pc.OnReceiveReport += (re, media, rr) => mainThreadActions.Enqueue(
-                () => Debug.Log($"RTCP Receive for {media} from {re}\n{rr.GetDebugSummary()}"));
-            pc.OnSendReport += (media, sr) => mainThreadActions.Enqueue(
-                () => Debug.Log($"RTCP Send for {media}\n{sr.GetDebugSummary()}"));
-            pc.GetRtpChannel().OnStunMessageReceived += (msg, ep, isRelay) => mainThreadActions.Enqueue(
-                () => Debug.Log($"STUN {msg.Header.MessageType} received from {ep}."));
+            //pc.OnReceiveReport += (re, media, rr) => mainThreadActions.Enqueue( () => Debug.Log($"RTCP Receive for {media} from {re}\n{rr.GetDebugSummary()}"));
+            //pc.OnSendReport += (media, sr) => mainThreadActions.Enqueue( () => Debug.Log($"RTCP Send for {media}\n{sr.GetDebugSummary()}"));
+            //pc.GetRtpChannel().OnStunMessageReceived += (msg, ep, isRelay) => mainThreadActions.Enqueue( () => Debug.Log($"STUN {msg.Header.MessageType} received from {ep}."));
             pc.oniceconnectionstatechange += (state) => mainThreadActions.Enqueue(() =>
             {
                 iceConnectionState = state;
