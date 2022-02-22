@@ -5,7 +5,7 @@ class Uuid {
         return uuidv4();
     }
     static validate(str){
-        return validate(str) && version(str) === 4;
+        return validate(str);
     }
 }
 
