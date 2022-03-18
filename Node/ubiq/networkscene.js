@@ -37,7 +37,10 @@ class NetworkContext{
             for(var i = 0; i < arguments.length-1; i++){
                 var arg = arguments[i];
                 if(typeof(arg) == "number"){
-                    componentid = arg;
+                    componentId = arg;
+                }
+                if(typeof(arg) == "object" && arg.hasOwnProperty("a") && arg.hasOwnProperty("b")){
+                    objectId = new NetworkId(arg);
                 }
                 if(typeof(arg) == "networkid"){
                     objectId = arg;

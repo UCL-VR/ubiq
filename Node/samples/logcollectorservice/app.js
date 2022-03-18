@@ -1,18 +1,21 @@
-// This is the main entry point for the Samples
-// The Samples directory contains a set of classes that implmement
-// Ubiq Sample functionality in Node
-// The app shows how to use them.
+// 
+// The LogCollectorService sample creates a programmatic peer that joins a room and records all Experiment log events it encounters.
+//
+// To achieve this, we first create a NetworkScene (the Peer), and create a connection for it to the server (which is specified here as Nexus).
+// Then we add a RoomClient and LogCollector component(s). These join a room and recieve log messages. 
+// 
+// The LogCollector uses the Id of the peers to decide where to write the events. It creates new files on demand, and closes them when
+// the corresponding Peer has left the room.
+//
 
 // Import Ubiq types
-const { NetworkScene, UbiqTcpConnection } = require("../ubiq");
-const { RoomClient } = require("./roomclient");
-const { LogCollector, MyStream } = require("./logcollector");
+const { NetworkScene, RoomClient, LogCollector, UbiqTcpConnection } = require("../../ubiq");
 const fs = require('fs');
 
 // Create a connection to a Server
 const connection = UbiqTcpConnection("nexus.cs.ucl.ac.uk", 8005);
 
-// A NetworKScene
+// A NetworkScene
 const scene = new NetworkScene();
 scene.addConnection(connection);
 
@@ -22,7 +25,7 @@ const logcollector = new LogCollector(scene);
 
 roomclient.addListener("OnJoinedRoom", room => {
     console.log(room.joincode);
-})
+});
 
 // The stream
 var stream = undefined;
@@ -46,8 +49,7 @@ function startNewUserFileStream(){
         }
     })
     stream.on("open", function(){
-        logcollector.userEventStream.unpipe(); // This disconnects all streams (don't use this code as-is if you want to route the events elsewhere too)
-        logcollector.userEventStream.pipe(this); // There is no race condition here because Node is single threaded, so the new pipe will be established before any new messages are processed
+        
     });
 }
 
@@ -72,9 +74,11 @@ roomclient.addListener("OnPeerRemoved", function(){
     }
 })
 
-// Manually start the user stream before creating a log file. This will avoid race conditions between calling logcollector.start()
-// and the first stream being created when peers join the room.
-logcollector.userEventStream.resume();
+// Register for log events from the log collector.
+logcollector.addListener("OnLogMessage", (type,message) =>
+{
+    console.log(JSON.stringify(message));
+});
 
 // Calling startCollection() will start streaming from the LogManagers at existing and
 // and new Peers.

@@ -2,6 +2,7 @@ const { exception } = require('console');
 const { TextDecoder } = require('util');
 const { Schema } = require('./schema');
 const { performance } = require('perf_hooks');
+const { type } = require('os');
 
 const MESSAGE_HEADER_SIZE = 10;
 
@@ -35,6 +36,11 @@ class NetworkId{
             this.b = data.readUInt32LE(4);
             return;
         }
+        if(typeof(data) == 'object' && data.hasOwnProperty("a") && typeof(data.a) == 'number' && data.hasOwnProperty("b") && typeof(data.b) == 'number'){
+            this.a = data.a;
+            this.b = data.b;
+            return;
+        }
         throw exception();
     }
 
@@ -58,6 +64,12 @@ class NetworkId{
         });
         return new NetworkId(id);
     }
+
+    static Valid(x){
+        return x.a != 0 && x.b != 0;
+    }
+
+    static Null = new NetworkId(0);
 }
 
 Buffer.prototype.writeNetworkId = function(networkId, offset){

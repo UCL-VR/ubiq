@@ -22,6 +22,8 @@ nav:
             - Analysis: eventloganalysis.md
             - Examples:
                 - Questionnaire: eventloggingexperimentquestionnaire.md
+                - Unit Tests: eventloggingunittests.md
+                - LogCollector Service: eventloggingcollectorservice.md
             - Serialisation and Memory: eventlogserialisation.md
         - Messaging:
             - Introduction: messaging.md

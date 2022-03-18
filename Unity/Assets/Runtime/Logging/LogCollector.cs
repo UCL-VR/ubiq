@@ -172,7 +172,7 @@ namespace Ubiq.Logging
 
             var msg = new CC();
             msg.clock = clock;
-            msg.state = Id;
+            msg.state = newDestination;
 
             foreach (var item in roomClient.Peers)
             {
@@ -341,6 +341,9 @@ namespace Ubiq.Logging
                 {
                     // The Peer that went away was the Active Collector. This is unexpected in a bad way. Stop transmitting logs until someone else volunteers.
                     destination = NetworkId.Null;
+
+                    // Reset the clock as a fix for now to handle the case where the active collector leaves and rejoins as a new process.
+                    clock = 0;
                 }
             });
         }

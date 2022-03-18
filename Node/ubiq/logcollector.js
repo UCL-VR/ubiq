@@ -1,19 +1,24 @@
-const { Stream, EventEmitter } = require('stream');
-const { NetworkId } = require("../ubiq")
+const { write } = require('fs');
+const { nextTick } = require('process');
+const { Stream, EventEmitter, Writable } = require('stream');
+const { NetworkId } = require("./messaging")
 
 class LogCollectorMessage{
     constructor(message){
         var buffer = message.toBuffer();
-        this.header = buffer[0];
+        this.type = buffer[0];
         this.tag = buffer[1];
         this.data = buffer.slice(2);
     }
 
-    static Create(content){
+    static Create(type, content){
+        if(typeof(content) == "object"){
+            content = JSON.stringify(content);
+        }
         if(typeof(content) == "string"){
             content = Buffer.from(content, 'utf8');
             var buffer = Buffer.alloc(content.length + 2);
-            buffer[0] = 0x2;
+            buffer[0] = type;
             buffer[1] = 0x0;
             content.copy(buffer,2);
             return buffer;
@@ -24,32 +29,9 @@ class LogCollectorMessage{
     toString(){
         return new TextDecoder().decode(this.data);
     }
-}
 
-class LogStream extends Stream.Readable{
-    constructor(){
-        super()
-        this.paused = true;
-    }
-
-    // _read is called to indicate the sink is ready to receive. 
-    // Beware the logging system does not support backpressure - ensure there is enough 
-    // capacity downstream to receive all expected log events or out of memory issues
-    // may occur.
-    // The LogCollector won't write anything until startCollection has been called.
-    _read(size){
-        this.paused = false;
-    }
-
-    push(chunk){
-        if(!this.paused){
-            super.push(chunk);
-        }
-    }
-
-    resume(){
-        this.paused = false;
-        super.resume();
+    fromJson(){
+        return JSON.parse(this.toString());
     }
 }
 
@@ -65,56 +47,129 @@ class LogStream extends Stream.Readable{
 class LogCollector extends EventEmitter{
     constructor(scene){
         super()
-        this.objectId = new NetworkId("fc26-78b8-4498-9953");
-        this.componentId = 0;
+        this.objectId = scene.objectId;
+        this.componentId = 3;
+        this.destinationId = NetworkId.Null;
+        this.clock = 0;
+
+        // The LogCollector Component Js implementation is based on Streams.
+
+        // All incoming events from the network or local emitters go into the 
+        // eventStream. This can then cache, or be piped to a local or remote destination.
+        this._eventStream = new Stream.Readable({
+            objectMode: true,
+            read(){
+            }
+        });
+
+        // A stream that forwards log events to the LogCollector specified by destinationId
+        // The eventStream should be piped to this when destinationId points to another LogCollector
+        // in the Peer Group.
+        this._forwardingStream = new Stream.Writable(
+            {
+                objectMode: true,
+                write: (msg,_,done) =>{
+                    collector.context.send({
+                        objectId: collector.destinationId,
+                        componentId: collector.componentId
+                    },
+                    msg);
+                    done();
+                }
+            }
+        );
+        this._forwardingStream.collector = this;
+
+        // The stream that generates the events to be passed outside the LogCollector.
+        this._writingStream = new Stream.Writable(
+            {
+                objectMode: true,
+                write: (msg,_,done) => {
+                    var eventMessage = new LogCollectorMessage(msg);
+                    this.emit("OnLogMessage",
+                        eventMessage.tag,
+                        eventMessage.fromJson()
+                    );
+                    done();
+                }
+            }
+        );
+        this._writingStream.collector = this;
+
         this.context = scene.register(this);
-        this.collecting = false;
-        this.userEventStream = new LogStream();
-        this.applicationEventStream = new LogStream();
-        this.registerRoomClients();
+        this.registerRoomClientEvents();
     }
 
-    static managerIds = {
-        objectId: new NetworkId("92e9-e831-8281-2761"),
-        componentId: 0
-    }
-
-    registerRoomClients(){
-        var roomclient = this.context.scene.findComponent("RoomClient");
-        if(roomclient == undefined){
+    registerRoomClientEvents(){
+        this.roomClient = this.context.scene.findComponent("RoomClient");
+        if(this.roomClient == undefined){
             throw "RoomClient must be added to the scene before LogCollector";
         }
-        roomclient.addListener("OnPeerAdded", function(){
-            if(this.collecting){
+        this.roomClient.addListener("OnPeerAdded", function(){
+            if(this.isPrimary()){
                 this.startCollection();
             }
         }.bind(this));
     }
 
-    startCollection(){
-        this.collecting = true;
-        this.context.send(LogCollector.managerIds, LogCollectorMessage.Create("StartTransmitting"));
+    isPrimary(){
+        return NetworkId.Compare(this.destinationId, this.objectId);
     }
 
+    // Sets this LogCollector as the Primary Collector, receiving all events from the Peer Group and writing them to the provided Stream.
+    startCollection(){
+        this.sendSnapshot(this.objectId);
+    }
+
+    // Unsets this LogCollector as the Primary Collector and stops writing to the stream.
     stopCollection(){
-        this.context.send(LogCollector.managerIds, LogCollectorMessage.Create("StopTransmitting"));
+        if(this.isPrimary()){
+            this.sendSnapshot(NetworkId.Null);
+        }
+    }
+
+    sendSnapshot(destinationId){
+        this.destinationId = destinationId;
+        this.clock++;
+        this.destinationChanged();
+        for(const peer of this.roomClient.getPeers()){
+            this.context.send(peer.networkId, this.componentId, LogCollectorMessage.Create(0x1, {clock: this.clock, state: destinationId}));
+        };
     }
 
     processMessage(msg){
         var message = new LogCollectorMessage(msg);
-        if(message.header == 0x1){
-            if(this.collecting){
-                if(message.tag == 0x1){
-                    this.applicationEventStream.push(message.data);
+        switch(message.type){
+            case 0x1: //Command
+                var cc = message.fromJson();
+                if(cc.clock > this.clock){
+                    this.clock = cc.clock;
+                    this.destinationId = cc.state;
+                    this.destinationChanged();
+                }else{
+                    if(cc.clock == this.clock && this.isPrimary()){
+                        this.clock += Math.floor(Math.random() * 10);
+                        this.sendSnapshot(this.objectId);
+                    }
                 }
-                if(message.tag == 0x2){
-                    this.userEventStream.push(message.data);
-                }
+                break;
+            case 0x2: //Event
+                this._eventStream.push(msg);
+                break;
+            case 0x3: //Ping
+
+                break;
+        }
+    }
+
+    destinationChanged(){
+        this._eventStream.unpipe();
+        if(NetworkId.Valid(this.destinationId)){
+            if(this.isPrimary()){
+                this._eventStream.pipe(this._writingStream);
+            }else{
+                this._eventStream.pipe(this._forwardingStream);
             }
-        }else if(message.header == 0x2){
-            throw "Unsupported LogCollector String Message " + message.toString();
-        }else{
-            throw "Unsupported LogCollector Message Type " + message.header
         }
     }
 }

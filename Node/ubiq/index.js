@@ -23,7 +23,7 @@ const {
 
 const { 
     Schema
-} = require("./schema")
+} = require("./schema");
 
 const { 
     Uuid,
@@ -36,7 +36,15 @@ const {
 
 const {
     SerialisedDictionary
-} = require("./dictionary")
+} = require("./dictionary");
+
+const{
+    RoomClient
+} = require("./roomclient");
+
+const{
+    LogCollector
+} = require("./logcollector");
 
 module.exports = {
     WebSocketConnectionWrapper,
@@ -47,6 +55,8 @@ module.exports = {
     NetworkId,
     NetworkContext,
     NetworkScene,
+    RoomClient,
+    LogCollector,
     Schema,
     SerialisedDictionary,
     Uuid,

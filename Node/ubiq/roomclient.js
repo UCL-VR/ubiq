@@ -1,5 +1,7 @@
 const { EventEmitter } = require("events");
-const { NetworkId, SerialisedDictionary, Uuid } = require("../ubiq")
+const { NetworkId } = require("./messaging")
+const { Uuid } = require("./uuid")
+const { SerialisedDictionary } = require("./dictionary")
 
 // Implements a RoomClient Network Component. This can be attached to a NetworkScene
 // to have the NetworkScene join a Room.
@@ -50,6 +52,10 @@ class RoomClient extends EventEmitter{
             name: this.room.name,
             properties: SerialisedDictionary.From(this.room.properties)
         }
+    }
+
+    getPeers(){
+        return this.peers.values();
     }
 
     setRoomInfo(roominfo){
