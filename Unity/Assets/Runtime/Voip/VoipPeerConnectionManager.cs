@@ -14,8 +14,7 @@ namespace Ubiq.Voip
     /// <summary>
     /// Manages the lifetime of WebRtc Peer Connection objects with respect to changes in the room
     /// </summary>
-    [NetworkComponentId(typeof(VoipPeerConnectionManager), 50)]
-    public class VoipPeerConnectionManager : MonoBehaviour, INetworkComponent
+    public class VoipPeerConnectionManager : NetworkBehaviour
     {
         // SipSorcery peer connections are slow to instantiate as cert
         // generation seems to take a while. This at least allows that to happen
@@ -86,10 +85,9 @@ namespace Ubiq.Voip
 
         private VoipMicrophoneInput audioSource;
         private RoomClient client;
-        private Dictionary<string, VoipPeerConnection> peerUuidToConnection;
-        private NetworkContext context;
+        private Dictionary<string, VoipPeerConnection> peerUuidToConnection = new Dictionary<string, VoipPeerConnection>();
 
-        private RTCPeerConnectionSource peerConnectionSource;
+        private RTCPeerConnectionSource peerConnectionSource = new RTCPeerConnectionSource();
 
         private string prevIceServersString;
         private IceServerDetailsCollection iceServers;
@@ -112,25 +110,23 @@ namespace Ubiq.Voip
 
         private void Awake()
         {
-            peerConnectionSource = new RTCPeerConnectionSource();
-            client = GetComponentInParent<RoomClient>();
-            peerUuidToConnection = new Dictionary<string, VoipPeerConnection>();
             OnPeerConnection.SetExisting(peerUuidToConnection.Values);
 
             audioSource = CreateAudioSource();
             audioSource.StartAudio();
         }
 
-        private void Start()
+        protected override void Started()
         {
-            context = NetworkScene.Register(this);
-            logger = new ContextEventLogger(context);
+            logger = new NetworkEventLogger(networkId,networkScene,this);
+
+            client = GetComponentInParent<RoomClient>();
             client.OnJoinedRoom.AddListener(OnJoinedRoom);
             client.OnPeerRemoved.AddListener(OnPeerRemoved);
             client.OnRoomUpdated.AddListener(OnRoomUpdated);
         }
 
-        private void OnDestroy()
+        protected override void OnDestroyed()
         {
             if (client)
             {
@@ -178,50 +174,53 @@ namespace Ubiq.Voip
 
             foreach (var peer in client.Peers)
             {
-                if (peer.UUID == client.Me.UUID)
+                if (peer.uuid == client.Me.uuid)
                 {
                     continue; // Don't connect to ones self!
                 }
 
-                if(peerUuidToConnection.ContainsKey(peer.UUID))
+                if(peerUuidToConnection.ContainsKey(peer.uuid))
                 {
                     continue; // This peer existed in the previous room and we already have a connection to it
                 }
 
-                var pcid = NetworkScene.GenerateUniqueId(); //A single audio channel exists between two peers. Each audio channel has its own Id.
+                var pcid = NetworkId.Unique(); //A single audio channel exists between two peers. Each audio channel has its own Id.
 
-                logger.Log("CreatePeerConnectionForPeer", pcid, peer.NetworkObjectId);
+                logger.Log("CreatePeerConnectionForPeer", pcid, peer.uuid);
 
-                var pc = CreatePeerConnection(pcid, peer.UUID, polite: true);
+                var pc = CreatePeerConnection(pcid, peer.uuid, polite: true);
 
                 Message m;
                 m.type = "RequestPeerConnection";
                 m.objectid = pcid; // the shared Id is set by this peer, but it must be chosen so as not to conflict with any other shared id on the network
-                m.uuid = client.Me.UUID; // this is so the other end can identify us if we are removed from the room
-                Send(peer.NetworkObjectId, m);
-                logger.Log("RequestPeerConnection", pcid, peer.NetworkObjectId);
+                m.uuid = client.Me.uuid; // this is so the other end can identify us if we are removed from the room
+                SendJson(m);
+                logger.Log("RequestPeerConnection", pcid, peer.uuid);
             }
         }
 
         private void OnPeerRemoved(IPeer peer)
         {
-            if (peerUuidToConnection.TryGetValue(peer.UUID, out var connection))
+            if (peerUuidToConnection.TryGetValue(peer.uuid, out var connection))
             {
                 // Audiosinks are created per connection
                 Destroy(connection.audioSink.gameObject);
                 Destroy(connection.gameObject);
-                peerUuidToConnection.Remove(peer.UUID);
+                peerUuidToConnection.Remove(peer.uuid);
             }
         }
 
-        public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+        protected override void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
             var msg = JsonUtility.FromJson<Message>(message.ToString());
             switch (msg.type)
             {
                 case "RequestPeerConnection":
-                    logger.Log("CreatePeerConnectionForRequest", msg.objectid);
-                    var pc = CreatePeerConnection(msg.objectid, msg.uuid, polite: false);
+                    if (!peerUuidToConnection.ContainsKey(msg.uuid))
+                    {
+                        logger.Log("CreatePeerConnectionForRequest", msg.objectid);
+                        var pc = CreatePeerConnection(msg.objectid, msg.uuid, polite: false);
+                    }
                     break;
             }
         }
@@ -264,11 +263,6 @@ namespace Ubiq.Voip
             OnPeerConnection.Invoke(pc);
 
             return pc;
-        }
-
-        public void Send(NetworkId sharedId, Message m)
-        {
-            context.SendJson(sharedId, m);
         }
 
         /// <summary>

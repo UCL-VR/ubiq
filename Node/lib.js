@@ -19,24 +19,27 @@ const { parse } = require("path");
 class NetworkContext{
     constructor(scene, object, component){
         this.object = object;
-        this.component = component;
+        // this.component = component;
         this.scene = scene;
         this.encoder = new TextEncoder();
     }
 
     // send to the counterpart of this component
     send1(message){
-        this.scene.send(Message.Create(this.object.objectId, this.component.componentId, message));
+        // this.scene.send(Message.Create(this.object.objectId, this.component.componentId, message));
+        this.scene.send(Message.Create(this.object.objectId, message));
     }
 
     // send to the counterpart of this component on a specific gameobject
     send2(objectId, message){
-        this.scene.send(Message.Create(objectId, this.component.componentId, message));
+        // this.scene.send(Message.Create(objectId, this.component.componentId, message));
+        this.scene.send(Message.Create(objectId, message));
     }
 
     // send to an arbitrary, specific component instance
     send3(objectId, componentId, message){
-        this.scene.send(Message.Create(objectId, componentId, message));
+        // this.scene.send(Message.Create(objectId, componentId, message));
+        this.scene.send(Message.Create(objectId, message));
     }
 }
 
@@ -100,7 +103,7 @@ class NetworkScene{
 
 class RoomClient{
     constructor(parent){
-        this.componentId = 1; // fixed at design time
+        // this.componentId = 1; // fixed at design time
         this.parent = parent;
         this.context = parent.scene.register(this);
         this.context.object.objectId = NetworkId.Unique();
@@ -120,12 +123,14 @@ class RoomClient{
         var args = new Object();
         args.uuid = uuid;
         args.peer = this.peer;
-        this.context.send3(1, 1, { type: "Join", args: JSON.stringify(args) });
+        // this.context.send3(1, 1, { type: "Join", args: JSON.stringify(args) });
+        this.context.send3(1, { type: "Join", args: JSON.stringify(args) });
     }
 
     updatePeer(){
         this.room.peers.map(peer => {
-            this.context.send3(1, 1, {type: "UpdatePeer", args: JSON.stringify(this.peer)});
+            // this.context.send3(1, 1, {type: "UpdatePeer", args: JSON.stringify(this.peer)});
+            this.context.send3(1, {type: "UpdatePeer", args: JSON.stringify(this.peer)});
         })
     }
 

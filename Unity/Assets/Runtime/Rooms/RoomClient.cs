@@ -18,8 +18,7 @@ namespace Ubiq.Rooms
     /// With the use of a server, RoomClient can join a network with other Peers.
     /// </summary>
     [RequireComponent(typeof(NetworkScene))]
-    [NetworkComponentId(typeof(RoomClient), 1)]
-    public class RoomClient : MonoBehaviour, INetworkComponent
+    public class RoomClient : NetworkBehaviour
     {
         public IRoom Room { get => room; }
 
@@ -97,10 +96,7 @@ namespace Ubiq.Rooms
         /// </summary>
         private const string roomClientVersion = "0.0.4";
 
-        private NetworkContext context;
-
-        private NetworkId RoomServerObjectId = new NetworkId(1);
-        private ushort RoomServerComponentId = 1;
+        private NetworkId roomServerObjectId = new NetworkId(1);
         private Dictionary<string, Action<string>> blobCallbacks;
         private float pingSent;
         private float pingReceived;
@@ -200,33 +196,27 @@ namespace Ubiq.Rooms
 
         private class PeerInterfaceFriend : IPeer
         {
-            public virtual string UUID { get; private set; }
-            public NetworkId NetworkObjectId { get; private set; }
+            public NetworkId networkId { get; set; }
+            public virtual string uuid { get; set; }
+            protected SerializableDictionary properties;
 
             public PeerInterfaceFriend(String uuid)
             {
-                UUID = uuid;
+                this.uuid = uuid;
                 properties = new SerializableDictionary();
             }
 
             public PeerInterfaceFriend(PeerInfo info)
             {
-                UUID = info.uuid;
+                uuid = info.uuid;
                 properties = info.properties;
-                NetworkObjectId = info.networkId;
+                networkId = info.networkId;
             }
-
-            protected SerializableDictionary properties;
 
             public virtual string this[string key]
             {
                 get => properties[key];
                 set => properties[key] = value;
-            }
-
-            public void SetNetworkContext(NetworkContext context)
-            {
-                NetworkObjectId = context.networkObject.Id;
             }
 
             public bool NeedsUpdate()
@@ -236,12 +226,22 @@ namespace Ubiq.Rooms
 
             public PeerInfo GetPeerInfo()
             {
-                return new PeerInfo(UUID, NetworkObjectId, properties);
+                return new PeerInfo(uuid, networkId, properties);
             }
 
             public bool Update(PeerInfo info)
             {
                 return properties.Update(info.properties);
+            }
+
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            {
+                return properties.GetEnumerator();
+            }
+
+            public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+            {
+                return properties.GetEnumerator();
             }
         }
 
@@ -279,10 +279,9 @@ namespace Ubiq.Rooms
             OnPeerUpdated.SetExisting(me);
         }
 
-        private void Start()
+        protected override void Started()
         {
-            context = NetworkScene.Register(this);
-            me.SetNetworkContext(context);
+            me.networkId = networkId;
 
             foreach (var item in servers)
             {
@@ -293,7 +292,7 @@ namespace Ubiq.Rooms
         // The room joining process occurs in two steps: id aquisition and then room join. This is to avoid a race condition whereby
         // another peer may be informed of this peer before this peer has updated its id.
 
-        public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+        protected override void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
             var container = JsonUtility.FromJson<Message>(message.ToString());
             switch (container.type)
@@ -322,7 +321,7 @@ namespace Ubiq.Rooms
 
                         foreach (var item in args.peers)
                         {
-                            if(item.uuid == me.UUID)
+                            if(item.uuid == me.uuid)
                             {
                                 continue;
                             }
@@ -414,7 +413,7 @@ namespace Ubiq.Rooms
         {
             PeerInterfaceFriend peer;
 
-            if (item.uuid == me.UUID)
+            if (item.uuid == me.uuid)
             {
                 // We've already sent the event before updating the server
                 return;
@@ -436,7 +435,7 @@ namespace Ubiq.Rooms
 
         private void SendToServer(string type, object argument)
         {
-            context.Send(RoomServerObjectId, RoomServerComponentId, JsonUtility.ToJson(new Message(type, argument)));
+            networkScene.SendJson(roomServerObjectId, new Message(type, argument));
         }
 
         /// <summary>
@@ -515,7 +514,7 @@ namespace Ubiq.Rooms
         /// </remarks>
         public void Connect(ConnectionDefinition connection)
         {
-            context.scene.AddConnection(Connections.Resolve(connection));
+            networkScene.AddConnection(Connections.Resolve(connection));
         }
 
         private void Update()
@@ -553,6 +552,7 @@ namespace Ubiq.Rooms
         public void DiscoverRooms(string joincode = "")
         {
             var request = new DiscoverRoomsRequest();
+            request.networkId = networkId;
             request.joincode = joincode;
             SendToServer("DiscoverRooms", request);
         }
@@ -576,19 +576,28 @@ namespace Ubiq.Rooms
             {
                 blobCallbacks.Add(key, callback);
             }
-            SendToServer("GetBlob", blob);
+            var request = new GetBlobRequest()
+            {
+                networkId = networkId,
+                blob = blob
+            };
+            SendToServer("GetBlob", request);
         }
 
         private void SetBlob(string room, string uuid, string blob) // private because this could encourage re-using uuids, which is not allowed because blobs are meant to be immutable
         {
             if (blob.Length > 0)
             {
-                SendToServer("SetBlob", new Blob()
+                SendToServer("SetBlob", new SetBlobRequest()
                 {
-                    room = room,
-                    uuid = uuid,
-                    blob = blob
+                    blob = new Blob()
+                    {
+                        room = room,
+                        uuid = uuid,
+                        blob = blob
+                    }
                 });
+
             }
         }
 
@@ -607,7 +616,7 @@ namespace Ubiq.Rooms
         public void Ping()
         {
             pingSent = Time.realtimeSinceStartup;
-            SendToServer("Ping", new PingRequest() { id = context.networkObject.Id });
+            SendToServer("Ping", new PingRequest() { networkId = networkId });
         }
 
         private void OnPingResponse(PingResponse ping)

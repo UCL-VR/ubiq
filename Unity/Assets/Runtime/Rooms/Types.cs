@@ -104,6 +104,19 @@ namespace Ubiq.Rooms.Messages
     }
 
     [Serializable]
+    public class SetBlobRequest
+    {
+        public Blob blob;
+    }
+
+    [Serializable]
+    public class GetBlobRequest
+    {
+        public NetworkId networkId;
+        public Blob blob;
+    }
+
+    [Serializable]
     public class Blob
     {
         public string room;
@@ -158,6 +171,7 @@ namespace Ubiq.Rooms.Messages
     [Serializable]
     public class DiscoverRoomsRequest
     {
+        public NetworkId networkId;
         public string joincode;
     }
 
@@ -177,7 +191,7 @@ namespace Ubiq.Rooms.Messages
 
     public struct PingRequest
     {
-        public NetworkId id;
+        public NetworkId networkId;
     }
 }
 
@@ -199,16 +213,15 @@ namespace Ubiq.Rooms
     /// <remarks>
     /// Only the properties of the local Peer can be set. All other peers are read-only.
     /// </remarks>
-    public interface IPeer
+    public interface IPeer : IEnumerable<KeyValuePair<string,string>>
     {
-        string UUID { get; }
-
+        string uuid { get; }
         string this[string key] { get; set; }
 
         /// <summary>
         /// The ObjectId of the NetworkScene that hosts the RoomClient of this Peer
         /// </summary>
-        NetworkId NetworkObjectId { get; }
+        NetworkId networkId { get; }
     }
 
     public class RejectedEvent : UnityEvent<Rejection>

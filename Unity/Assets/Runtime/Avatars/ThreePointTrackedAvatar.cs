@@ -9,7 +9,7 @@ using Ubiq.Messaging;
 namespace Ubiq.Avatars
 {
     [RequireComponent(typeof(Avatar))]
-    public class ThreePointTrackedAvatar : MonoBehaviour, INetworkComponent
+    public class ThreePointTrackedAvatar : NetworkBehaviour
     {
         [Serializable]
         public class TransformUpdateEvent : UnityEvent<Vector3,Quaternion> { }
@@ -17,7 +17,6 @@ namespace Ubiq.Avatars
         public TransformUpdateEvent OnLeftHandUpdate;
         public TransformUpdateEvent OnRightHandUpdate;
 
-        private NetworkContext context;
         private Transform networkSceneRoot;
         private State[] state = new State[1];
         private Avatar avatar;
@@ -35,10 +34,9 @@ namespace Ubiq.Avatars
             avatar = GetComponent<Avatar>();
         }
 
-        private void Start ()
+        protected override void Started ()
         {
-            context = NetworkScene.Register(this);
-            networkSceneRoot = context.scene.transform;
+            networkSceneRoot = networkScene.transform;
         }
 
         private void Update ()
@@ -99,10 +97,10 @@ namespace Ubiq.Avatars
             var message = ReferenceCountedSceneGraphMessage.Rent(transformBytes.Length);
             transformBytes.CopyTo(new Span<byte>(message.bytes, message.start, message.length));
 
-            context.Send(message);
+            networkScene.Send(networkId,message);
         }
 
-        public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+        protected override void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
             MemoryMarshal.Cast<byte, State>(
                 new ReadOnlySpan<byte>(message.bytes, message.start, message.length))

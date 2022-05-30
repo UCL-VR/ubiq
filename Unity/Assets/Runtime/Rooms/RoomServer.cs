@@ -114,7 +114,6 @@ namespace Ubiq.Rooms
             {
                 var msg = ReferenceCountedSceneGraphMessage.Rent(JsonUtility.ToJson(new Message(type, argument)));
                 msg.objectid = peer.networkId;
-                msg.componentid = NetworkScene.GetComponentId<RoomClient>();
                 Send(msg);
             }
 

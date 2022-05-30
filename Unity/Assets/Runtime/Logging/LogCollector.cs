@@ -18,18 +18,14 @@ namespace Ubiq.Logging
     /// This is for convenience (only one Component needed to start with), though it may be desirable to
     /// re-direct this Stream to another destination.
     /// </remarks>
-    [NetworkComponentId(typeof(LogCollector), ComponentId)]
-    public class LogCollector : MonoBehaviour, INetworkObject, INetworkComponent
+    public class LogCollector : MonoBehaviour
     {
         public static NetworkId Id = new NetworkId("fc26-78b8-4498-9953");
-        NetworkId INetworkObject.Id => Id;
-
-        public const ushort ComponentId = 0;
 
         public int Count { get; private set; }
 
         private IOutputStream[] outputStreams;
-        private NetworkContext context;
+        private NetworkScene networkScene;
 
         public bool Collecting { get; private set; }
 
@@ -40,7 +36,7 @@ namespace Ubiq.Logging
         {
             get
             {
-                return context != null;
+                return networkScene != null;
             }
         }
 
@@ -49,9 +45,9 @@ namespace Ubiq.Logging
         /// </summary>
         public void StartCollection()
         {
-            if(context != null)
+            if(networkScene != null)
             {
-                context.Send(LogManager.Id, LogManager.ComponentId, LogManagerMessage.Rent("StartTransmitting"));
+                networkScene.Send(LogManager.Id, LogManagerMessage.Rent("StartTransmitting"));
             }
             Collecting = true;
         }
@@ -61,9 +57,9 @@ namespace Ubiq.Logging
         /// </summary>
         public void StopCollection()
         {
-            if (context != null)
+            if (networkScene != null)
             {
-                context.Send(LogManager.Id, LogManager.ComponentId, LogManagerMessage.Rent("StopTransmitting"));
+                networkScene.Send(LogManager.Id, LogManagerMessage.Rent("StopTransmitting"));
             }
             Collecting = false;
         }
@@ -83,13 +79,13 @@ namespace Ubiq.Logging
                         switch (logmessage.ToString())
                         {
                             default:
-                                Debug.LogException(new NotSupportedException($"Uknown LogManager message {logmessage.ToString()}"));
+                                Debug.LogException(new NotSupportedException($"Unknown LogManager message {logmessage.ToString()}"));
                                 break;
                         }
                     }
                     break;
                 default:
-                    Debug.LogException(new NotSupportedException($"Uknown LogManager message type {logmessage.Header[0]}"));
+                    Debug.LogException(new NotSupportedException($"Unknown LogManager message type {logmessage.Header[0]}"));
                     break;
             }
         }
@@ -100,7 +96,7 @@ namespace Ubiq.Logging
 
             // Right now we only support two tag types; this may change in the future.
             // We create the FileOutputStreams before we know whether we will recieve events of that type - this is because the JsonFileOutputStream
-            // doesn't create the file until it actually receives an event, so it is cheap to make these objects, and then we can rely on them 
+            // doesn't create the file until it actually receives an event, so it is cheap to make these objects, and then we can rely on them
             // always existing.
 
             outputStreams = new IOutputStream[3];
@@ -114,22 +110,20 @@ namespace Ubiq.Logging
         void Start()
         {
             FindLocalManagers();
-            try
-            {
-                context = NetworkScene.Register(this);
-            }
-            catch(NullReferenceException)
+            networkScene = NetworkScene.FindNetworkScene(this);
+            if (networkScene)
             {
                 // The LogCollector does not have to be in a NetworkScene to have some functionality
+                networkScene.AddProcessor(Id,ProcessMessage);
             }
 
             // This snippet listens for new peers so the start transmitting message can be re-transmitted if necessary,
-            // ensuring all new peers in the room transmit immediately and relieve the user of having to worry about 
+            // ensuring all new peers in the room transmit immediately and relieve the user of having to worry about
             // peer lifetimes once they start collection.
 
-            if(context != null)
+            if(networkScene != null)
             {
-                var roomClient = context.scene.GetComponentInChildren<Rooms.RoomClient>();
+                var roomClient = networkScene.GetComponentInChildren<Rooms.RoomClient>();
                 if(roomClient)
                 {
                     roomClient.OnPeerAdded.AddListener(Peer =>
@@ -141,12 +135,6 @@ namespace Ubiq.Logging
                     });
                 }
             }
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-
         }
 
         private void FindLocalManagers()
@@ -277,6 +265,11 @@ namespace Ubiq.Logging
                         outputStreams[i] = null;
                     }
                 }
+            }
+
+            if (networkScene)
+            {
+                networkScene.RemoveProcessor(Id,ProcessMessage);
             }
         }
     }

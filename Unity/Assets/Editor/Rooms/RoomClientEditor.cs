@@ -127,7 +127,7 @@ namespace Ubiq.Rooms
 
             if (component.Me != null)
             {
-                EditorGUILayout.LabelField($"Me {component.Me.UUID}");
+                EditorGUILayout.LabelField($"Me {component.Me.uuid}");
             }
 
             GUI.enabled = true;

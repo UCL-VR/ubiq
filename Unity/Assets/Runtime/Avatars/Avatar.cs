@@ -14,25 +14,13 @@ namespace Ubiq.Avatars
     /// Components can either subclass this type, or be instantiated next to it, to support
     /// their custom behaviours.
     /// </summary>
-    public class Avatar : MonoBehaviour, INetworkObject
+    public class Avatar : MonoBehaviour
     {
-        /// <summary>
-        /// The unique identifier of the Prefab for this Avatar; this is the 'base' of the Avatars representation in the world. The other Components
-        /// attached to this avatar, and the properties of the Peer, will customise its appearance.
-        /// </summary>
-        public string PrefabUuid;
-
         /// <summary>
         /// Whether the Avatar instance represents a local or remote player. This flag is nominal only; child components do not have to use it.
         /// </summary>
         [NonSerialized]
         public bool IsLocal;
-
-        /// <summary>
-        /// The Network Id of this Avatar. All the Avatars in a peer group for one player have the same Id. This must be set externally, for example,
-        /// by the AvatarManager.
-        /// </summary>
-        public NetworkId Id { get; set; } = NetworkId.Unique();
 
         /// <summary>
         /// The Peer that the Avatar represents. Not all Avatar instances necessarily represent live peers - Avatars may be created to implement
@@ -65,9 +53,19 @@ namespace Ubiq.Avatars
                 set => throw new NotImplementedException();
             }
 
-            public string UUID => null;
+            public string uuid => null;
 
-            public NetworkId NetworkObjectId => throw new NotImplementedException();
+            public NetworkId networkId => throw new NotImplementedException();
+
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+
+            public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private void Awake()
@@ -90,11 +88,6 @@ namespace Ubiq.Avatars
         private void Start()
         {
             hasStarted = true;
-        }
-
-        private void Reset()
-        {
-            PrefabUuid = name;
         }
     }
 }

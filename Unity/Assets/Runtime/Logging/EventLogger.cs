@@ -171,11 +171,10 @@ namespace Ubiq.Logging
     {
         public ComponentEventLogger(MonoBehaviour component):base(component.GetType(), EventType.Application)
         {
-            try
+            var logManager = LogManager.Find(component);
+            if (logManager)
             {
-                LogManager.Find(component).Register(this);
-            } catch (NullReferenceException)
-            { 
+                logManager.Register(this);
             }
         }
     }
@@ -183,28 +182,28 @@ namespace Ubiq.Logging
     /// <summary>
     /// An Event Logger for Objects that have a Network Identity
     /// </summary>
-    public class ContextEventLogger : TypedEventLogger
+    public class NetworkEventLogger : TypedEventLogger
     {
-        private NetworkContext context;
+        private NetworkId id;
+        private NetworkScene scene;
 
-        public ContextEventLogger(NetworkContext context) : base(context.component.GetType(), EventType.Application)
+        public NetworkEventLogger(NetworkId id, NetworkScene scene, MonoBehaviour component) : base(component.GetType(), EventType.Application)
         {
-            this.context = context;
-            try
+            this.id = id;
+            this.scene = scene;
+
+            var logManager = LogManager.Find(scene);
+            if (logManager)
             {
-                LogManager.Find(context.scene).Register(this);
-            }
-            catch (NullReferenceException)
-            {
+                logManager.Register(this);
             }
         }
 
         protected override void WriteHeader(ref JsonWriter writer)
         {
             base.WriteHeader(ref writer);
-            writer.Write("sceneid", context.scene.Id);
-            writer.Write("objectid", context.networkObject.Id);
-            writer.Write("componentid", context.componentId);
+            writer.Write("sceneid", scene.Id);
+            writer.Write("objectid", id);
         }
     }
 

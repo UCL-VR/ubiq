@@ -8,16 +8,6 @@ using System.Text.RegularExpressions;
 
 namespace Ubiq.Messaging
 {
-    public interface INetworkComponent
-    {
-        /// <summary>
-        /// Process a message directed at this object. Use the data directly in the implementation. Once the call returns the data in message will be undefined.
-        /// If necessary, Acquire can be called after which message may be stored, and after which Release must be called when it is done with.
-        /// Release does not have to be called if the message is processed entirely within the implementation.
-        /// </summary>
-        void ProcessMessage(ReferenceCountedSceneGraphMessage message);
-    }
-
     /// <summary>
     /// Wraps a reference counted message for when interacting with the scene graph bus
     /// </summary>
@@ -26,7 +16,7 @@ namespace Ubiq.Messaging
     /// </remarks>
     public struct ReferenceCountedSceneGraphMessage : IReferenceCounter
     {
-        internal const int header = 10; // 8 Bytes for the ObjectId and 2 bytes for the ComponentId
+        internal const int header = 8; // 8 Bytes for the ObjectId
         internal ReferenceCountedMessage buffer;
 
         public ReferenceCountedSceneGraphMessage(ReferenceCountedMessage buffer)
@@ -73,18 +63,6 @@ namespace Ubiq.Messaging
             set
             {
                 value.ToBytes(buffer.bytes, buffer.start);
-            }
-        }
-
-        public ushort componentid
-        {
-            get
-            {
-                return System.Buffers.Binary.BinaryPrimitives.ReadUInt16LittleEndian(new Span<byte>(buffer.bytes, buffer.start + NetworkId.Size, 2));
-            }
-            set
-            {
-                System.Buffers.Binary.BinaryPrimitives.WriteUInt16LittleEndian(new Span<byte>(buffer.bytes, buffer.start + NetworkId.Size, 2), value);
             }
         }
 
@@ -241,10 +219,5 @@ namespace Ubiq.Messaging
         {
             return (id.a != 0 || id.b != 0);
         }
-    }
-
-    public interface INetworkObject
-    {
-        NetworkId Id { get; }
     }
 }

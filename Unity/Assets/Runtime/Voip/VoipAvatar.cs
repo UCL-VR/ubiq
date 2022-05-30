@@ -41,7 +41,7 @@ namespace Ubiq.Avatars
 
         private void OnPeerConnection(VoipPeerConnection peerConnection)
         {
-            if (peerConnection.PeerUuid == avatar.Peer.UUID)
+            if (peerConnection.PeerUuid == avatar.Peer.uuid)
             {
                 this.peerConnection = peerConnection;
                 peerConnection.audioSink.unityAudioSource.spatialBlend = 1.0f;

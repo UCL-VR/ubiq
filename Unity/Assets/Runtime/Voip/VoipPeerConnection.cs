@@ -10,12 +10,11 @@ using Ubiq.Messaging;
 
 namespace Ubiq.Voip
 {
-    [NetworkComponentId(typeof(VoipPeerConnection), 78)]
-    public class VoipPeerConnection : MonoBehaviour, INetworkComponent, INetworkObject {
+    public class VoipPeerConnection : MonoBehaviour {
 
         public VoipMicrophoneInput audioSource { get; private set; }
         public VoipAudioSourceOutput audioSink { get; private set; }
-        public NetworkId Id { get; private set; }
+        public NetworkId networkId { get; private set; }
         public string PeerUuid { get; private set; }
 
         public bool isSetup => setupTask != null && setupTask.IsCompleted;
@@ -28,7 +27,7 @@ namespace Ubiq.Voip
         public IceConnectionStateEvent OnIceConnectionStateChanged = new IceConnectionStateEvent();
         public PeerConnectionStateEvent OnPeerConnectionStateChanged = new PeerConnectionStateEvent();
 
-        private NetworkContext context;
+        private NetworkScene networkScene;
         private ConcurrentQueue<Action> mainThreadActions = new ConcurrentQueue<Action>();
         private Queue<Message> messageQueue = new Queue<Message>();
         private Task<RTCPeerConnection> setupTask;
@@ -38,6 +37,11 @@ namespace Ubiq.Voip
 
         private void OnDestroy()
         {
+            if (networkScene)
+            {
+                networkScene.RemoveProcessor(networkId,ProcessMessage);
+            }
+
             Teardown();
         }
 
@@ -51,11 +55,13 @@ namespace Ubiq.Voip
                 return;
             }
 
-            this.Id = objectId;
+            this.networkId = objectId;
             this.PeerUuid = peerUuid;
             this.audioSource = source;
             this.audioSink = sink;
-            this.context = NetworkScene.Register(this);
+            this.networkScene = NetworkScene.FindNetworkScene(this);
+
+            networkScene.AddProcessor(networkId,ProcessMessage);
 
             this.setupTask = Task.Run(() => DoSetup(polite,peerConnectionTask));
         }
@@ -228,11 +234,10 @@ namespace Ubiq.Voip
 
         private void Send(string type, string args)
         {
-            context.SendJson(new Message()
+            if (networkScene)
             {
-                type = type,
-                args = args
-            });
+                networkScene.SendJson(networkId, new Message() { type = type, args = args});
+            }
         }
     }
 }

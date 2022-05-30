@@ -22,11 +22,9 @@ namespace Ubiq.Logging
     /// <remarks>
     /// LogManagers have a static network Id, but have native internal identifiers.
     /// </remarks>
-    [NetworkComponentId(typeof(LogManager), ComponentId)]
-    public class LogManager : MonoBehaviour, INetworkComponent, INetworkObject
+    public class LogManager : MonoBehaviour
     {
         public static NetworkId Id = new NetworkId("92e9-e831-8281-2761");
-        NetworkId INetworkObject.Id => Id;
         public const ushort ComponentId = 0;
 
         public EventType Listen = (EventType)(-1);
@@ -37,7 +35,7 @@ namespace Ubiq.Logging
         private LockFreeQueue<JsonWriter> events;
         private List<LogCollector> localCollectors;
 
-        private NetworkContext context;
+        private NetworkScene networkScene;
 
         public enum LogManagerMode : int
 
@@ -63,10 +61,18 @@ namespace Ubiq.Logging
         public LogManagerMode Mode = LogManagerMode.Buffer;
         private LogManagerMode previousMode;
 
-        // Start is called before the first frame update
-        void Start()
+        private void Start()
         {
-            context = NetworkScene.Register(this);
+            networkScene = NetworkScene.FindNetworkScene(this);
+            networkScene.AddProcessor(Id,ProcessMessage);
+        }
+
+        private void OnDestroy()
+        {
+            if (networkScene)
+            {
+                networkScene.RemoveProcessor(Id,ProcessMessage);
+            }
         }
 
         private void Awake()
@@ -119,8 +125,7 @@ namespace Ubiq.Logging
                         {
                             var message = LogManagerMessage.Rent(writer.GetSpan(), writer.Tag);
                             message.objectid = LogCollector.Id;
-                            message.componentid = LogCollector.ComponentId;
-                            context.Send(message);
+                            networkScene.Send(Id,message);
                         }
 
                         if (transmitLocal)
