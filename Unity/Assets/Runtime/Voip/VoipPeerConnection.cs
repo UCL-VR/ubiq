@@ -36,6 +36,24 @@ namespace Ubiq.Voip
         // SipSorcery Peer Connection
         private RTCPeerConnection rtcPeerConnection;
 
+        public struct SessionStatistics
+        {
+            public uint PacketsSent;
+            public uint BytesSent;
+            public uint PacketsRecieved;
+            public uint BytesReceived;
+        }
+
+        /// <summary>
+        /// Summarises the throughput for different sessions in this connection.
+        /// This is returned when the statistics are polled from this peer connection.
+        /// </summary>
+        public struct Statistics
+        {
+            public SessionStatistics Audio;
+            public SessionStatistics Video;
+        }
+
         private void OnDestroy()
         {
             Teardown();
@@ -233,6 +251,36 @@ namespace Ubiq.Voip
                 type = type,
                 args = args
             });
+        }
+
+        /// <summary>
+        /// Poll this PeerConnection for statistics about its bandwidth usage. 
+        /// </summary>
+        /// <remarks>
+        /// This information is also available through RTCP Reports. This method allows the statistics to be polled, 
+        /// rather than wait for a report. If this method is not never called, there is no performance overhead.
+        /// </remarks>
+        public Statistics GetStatistics()
+        {
+            Statistics report = new Statistics();
+            if (rtcPeerConnection != null)
+            {
+                if (rtcPeerConnection.AudioRtcpSession != null)
+                {
+                    report.Audio.PacketsSent = rtcPeerConnection.AudioRtcpSession.PacketsSentCount;
+                    report.Audio.PacketsRecieved = rtcPeerConnection.AudioRtcpSession.PacketsReceivedCount;
+                    report.Audio.BytesSent = rtcPeerConnection.AudioRtcpSession.OctetsSentCount;
+                    report.Audio.BytesReceived = rtcPeerConnection.AudioRtcpSession.OctetsReceivedCount;
+                }
+                if (rtcPeerConnection.VideoRtcpSession != null)
+                {
+                    report.Video.PacketsSent = rtcPeerConnection.VideoRtcpSession.PacketsSentCount;
+                    report.Video.PacketsRecieved = rtcPeerConnection.VideoRtcpSession.PacketsReceivedCount;
+                    report.Video.BytesSent = rtcPeerConnection.VideoRtcpSession.OctetsSentCount;
+                    report.Video.BytesReceived = rtcPeerConnection.VideoRtcpSession.OctetsReceivedCount;
+                }
+            }
+            return report;
         }
     }
 }

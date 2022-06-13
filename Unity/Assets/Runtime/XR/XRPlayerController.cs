@@ -11,7 +11,12 @@ namespace Ubiq.XR
     {
         public bool dontDestroyOnLoad = true;
 
-        private static GameObject singleton;
+        private static XRPlayerController singleton;
+
+        public static XRPlayerController Singleton
+        {
+           get { return singleton; }
+        }
 
         [NonSerialized]
         public HandController[] handControllers;
@@ -37,7 +42,7 @@ namespace Ubiq.XR
                     return;
                 }
 
-                singleton = gameObject;
+                singleton = this;
                 DontDestroyOnLoad(gameObject);
                 Extensions.MonoBehaviourExtensions.DontDestroyOnLoadGameObjects.Add(gameObject);
             }

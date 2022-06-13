@@ -51,6 +51,11 @@ namespace Ubiq.Avatars
         public PeerUpdatedEvent OnPeerUpdated = new PeerUpdatedEvent();
 
         /// <summary>
+        /// The Update Rate (in Hz) that Components should use. This is suggested only and some Components may decide they need a higher rate.
+        /// </summary>
+        public int UpdateRate = 60;
+
+        /// <summary>
         /// A dummy PeerInterface for local properties.
         /// </summary>
         public class AvatarPeerInterface : IPeer

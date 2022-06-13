@@ -126,6 +126,66 @@ namespace Ubiq.Logging
             }
         }
 
+        public void Log<T1, T2, T3, T4, T5>(string Event, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
+        {
+            if (ShouldLog())
+            {
+                var writer = BeginWriter();
+                writer.Write("event", Event);
+                writer.Write("arg1", arg1);
+                writer.Write("arg2", arg2);
+                writer.Write("arg3", arg3);
+                writer.Write("arg4", arg4);
+                writer.Write("arg5", arg5);
+                EndWriter(ref writer);
+            }
+            if (mirrorToConsole)
+            {
+                Debug.Log(String.Format("{0} {1} {2} {3} {4} {5}", Event, arg1, arg2, arg3, arg4, arg5));
+            }
+        }
+
+        public void Log<T1, T2, T3, T4, T5, T6>(string Event, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
+        {
+            if (ShouldLog())
+            {
+                var writer = BeginWriter();
+                writer.Write("event", Event);
+                writer.Write("arg1", arg1);
+                writer.Write("arg2", arg2);
+                writer.Write("arg3", arg3);
+                writer.Write("arg4", arg4);
+                writer.Write("arg5", arg5);
+                writer.Write("arg6", arg6);
+                EndWriter(ref writer);
+            }
+            if (mirrorToConsole)
+            {
+                Debug.Log(String.Format("{0} {1} {2} {3} {4} {5} {6}", Event, arg1, arg2, arg3, arg4, arg5, arg6));
+            }
+        }
+
+        public void Log<T1, T2, T3, T4, T5, T6, T7>(string Event, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
+        {
+            if (ShouldLog())
+            {
+                var writer = BeginWriter();
+                writer.Write("event", Event);
+                writer.Write("arg1", arg1);
+                writer.Write("arg2", arg2);
+                writer.Write("arg3", arg3);
+                writer.Write("arg4", arg4);
+                writer.Write("arg5", arg5);
+                writer.Write("arg6", arg6);
+                writer.Write("arg7", arg7);
+                EndWriter(ref writer);
+            }
+            if (mirrorToConsole)
+            {
+                Debug.Log(String.Format("{0} {1} {2} {3} {4} {5} {6} {7}", Event, arg1, arg2, arg3, arg4, arg5, arg6, arg7));
+            }
+        }
+
         protected JsonWriter BeginWriter()
         {
             var writer = new JsonWriter();
