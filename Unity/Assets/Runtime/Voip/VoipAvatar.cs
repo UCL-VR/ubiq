@@ -43,6 +43,7 @@ namespace Ubiq.Avatars
         {
             if (peerConnection.PeerUuid == avatar.Peer.UUID)
             {
+                this.peerConnection= peerConnection;
                 var sink = peerConnection.audioSink;
                 if(sink is VoipAudioSourceOutput)
                 {
