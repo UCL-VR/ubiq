@@ -16,7 +16,7 @@ namespace Ubiq.Samples.Bots
         public ConnectionDefinition DefaultBotServer;
 
         [Header("Rooms")]
-        public string CommandRoomId;
+        public string ControlRoomId;
 
         private static BotsConfig singleton;
         private static BotsConfig Singleton
@@ -76,7 +76,7 @@ namespace Ubiq.Samples.Bots
         {
             get
             {
-                return new Guid(Singleton.CommandRoomId);
+                return new Guid(Singleton.ControlRoomId);
             }
         }
     }

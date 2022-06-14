@@ -11,7 +11,7 @@ namespace Ubiq.Voip
     /// <summary>
     /// An Audio Sink that drops all audio data.
     /// </summary>
-    public class VoipNullAudioOutput : MonoBehaviour, IAudioSink
+    public class VoipNullAudioOutput : MonoBehaviour, IAudioSink, IAudioStats
     {
 #pragma warning disable 67
         public event SourceErrorDelegate OnAudioSinkError;
@@ -23,6 +23,9 @@ namespace Ubiq.Voip
                 new AudioFormat(SDPWellKnownMediaFormatsEnum.G722)
             }
         );
+
+        private Stats stats;
+        public Stats lastFrameStats => stats;
 
         public Task CloseAudioSink()
         {

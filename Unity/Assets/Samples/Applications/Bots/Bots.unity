@@ -2268,7 +2268,7 @@ GameObject:
   - component: {fileID: 1089625275}
   - component: {fileID: 1089625276}
   m_Layer: 0
-  m_Name: Controller
+  m_Name: Bots Controller
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2573,7 +2573,7 @@ GameObject:
   - component: {fileID: 1161235698}
   - component: {fileID: 1161235699}
   m_Layer: 0
-  m_Name: Manager
+  m_Name: Bots Manager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2873,7 +2873,7 @@ MonoBehaviour:
     send_to_ip: nexus.cs.ucl.ac.uk
     send_to_port: 8005
     type: 0
-  CommandRoomId: 24452d08-f91c-40ff-ac19-506fc23477b9
+  ControlRoomId: ceae20e0-357e-4ce2-b692-aebfa77dfafb
 --- !u!4 &1567755671
 Transform:
   m_ObjectHideFlags: 0
@@ -3589,7 +3589,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2041814738}
   m_Layer: 0
-  m_Name: Command Room
+  m_Name: Control Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4179,7 +4179,7 @@ PrefabInstance:
     - target: {fileID: 4904968254921343995, guid: c1a55c9926c8d4843a76621513810efd,
         type: 3}
       propertyPath: m_Name
-      value: Bot Peer 1
+      value: Bot Peer
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c1a55c9926c8d4843a76621513810efd, type: 3}

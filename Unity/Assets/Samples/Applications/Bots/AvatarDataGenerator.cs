@@ -37,7 +37,6 @@ namespace Ubiq.Avatars
                 lastTransmitTime = Time.time;
                 var message = ReferenceCountedSceneGraphMessage.Rent(BytesPerMessage);
                 context.Send(message);
-                
             }
         }
     }

@@ -44,10 +44,13 @@ namespace Ubiq.Samples.Bots
         public void Wander()
         {
             NavMeshHit hit;
+
+            int i = 0;
             do
             {
+                i++;
                 destination = transform.position + Random.insideUnitSphere * Radius;
-            } while (!NavMesh.SamplePosition(destination, out hit, float.MaxValue, NavMesh.AllAreas));
+            } while (!NavMesh.SamplePosition(destination, out hit, float.MaxValue, NavMesh.AllAreas) && i < 100);
             destination = hit.position;
             navMeshAgent.destination = destination;
             wanderingTime = 0;

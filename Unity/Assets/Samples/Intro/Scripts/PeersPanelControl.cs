@@ -133,13 +133,18 @@ namespace Ubiq.Samples
                 var peerConnection = peerConnectionManager.GetPeerConnection(peer.UUID);
                 if (peerConnection)
                 {
-                    var volume = peerConnection.audioSink.lastFrameStats.volume;
-                    voipVolumeIndicator.Update(volume);
-                    voipConnectionIndicator.Update((int)peerConnection.peerConnectionState);
+                    var audioSink = peerConnection.audioSink;
 
-                    if (!isMe)
+                    if(audioSink is IAudioStats)
                     {
-                        peerConnection.audioSink.unityAudioSource.volume = voipVolumeSlider.value;
+                        var volume = (audioSink as IAudioStats).lastFrameStats.volume;
+                        voipVolumeIndicator.Update(volume);
+                        voipConnectionIndicator.Update((int)peerConnection.peerConnectionState);
+                    }                 
+
+                    if (!isMe && audioSink is IOutputVolume)
+                    {
+                        (audioSink as IOutputVolume).Volume = voipVolumeSlider.value;
                     }
                     else
                     {
