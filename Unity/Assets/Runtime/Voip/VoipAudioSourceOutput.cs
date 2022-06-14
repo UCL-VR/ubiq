@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Ubiq.Voip
 {
-    public class VoipAudioSourceOutput : MonoBehaviour, IAudioSink
+    public class VoipAudioSourceOutput : MonoBehaviour, IAudioSink, IAudioStats, IOutputVolume
     {
         // IAudioSink implementation starts
         // Thread safe and can be called before Awake() and after OnDestroy()
@@ -224,22 +224,16 @@ namespace Ubiq.Voip
                     lastTimeSamples = timeSamples;
 
                     // Calculate stats for the advance
-                    return new Stats { volume=volume, samples=deltaTimeSamples};
+                    return new Stats { volume=volume, samples=deltaTimeSamples, sampleRate=audioClip.frequency};
                 }
 
-                return new Stats { volume=0, samples=0};
+                return new Stats { volume=0, samples=0, sampleRate=audioClip.frequency};
             }
 
             public void AddRtp (AudioRtp rtp)
             {
                 rtps.Add(rtp);
             }
-        }
-
-        public struct Stats
-        {
-            public float volume;
-            public int samples;
         }
 
         public int sampleRate { get { return 16000; } }
@@ -250,6 +244,7 @@ namespace Ubiq.Voip
         public float gain = 1.0f;
         public AudioSource unityAudioSource { get; private set; }
         public Stats lastFrameStats { get; private set; }
+        public float Volume { get => unityAudioSource.volume; set => unityAudioSource.volume = value; }
 
         private G722AudioDecoder audioDecoder = new G722AudioDecoder();
         private MediaFormatManager<AudioFormat> audioFormatManager = new MediaFormatManager<AudioFormat>(

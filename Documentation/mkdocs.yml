@@ -35,6 +35,7 @@ nav:
             - Server Overview: serveroverview.md
             - Heartbeat and Timeouts: serverheartbeat.md
             - Leaving and Joining: leavingandjoiningrooms.md
+        - Bots: botssample.md
     - Programming:
         - Async Design Patterns: asyncdesignpatterns.md
     - Development:
