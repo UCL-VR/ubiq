@@ -9,6 +9,7 @@ using Ubiq.Rooms;
 using Ubiq.Extensions;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace Ubiq.Logging
 {
@@ -52,13 +53,14 @@ namespace Ubiq.Logging
         private RoomClient roomClient;
 
         /// <summary>
-        /// The NetworkSceneId of the Active collector. If this is null, events should be cached,
-        /// otherwise, they should be forwarded to this Peer.
+        /// The NetworkSceneId of the Active collector. If this is null, events 
+        /// should be cached, otherwise, they should be forwarded to this Peer.
         /// </summary>
         private NetworkId destination = new NetworkId(0);
 
         /// <summary>
-        /// The logical clock that ensures snapshot messages will eventually converge on one peer.
+        /// The logical clock that ensures snapshot messages will eventually 
+        /// converge on one peer.
         /// </summary>
         private int clock = 0;
 
@@ -103,8 +105,8 @@ namespace Ubiq.Logging
                     return context.networkObject.Id;
                 }
                 
-                // This is because Components may want to Log during Awake, or even before, 
-                // so get the NetworkScene Id directly.
+                // This is because Components may want to Log during Awake, or
+                // even before, so get the NetworkScene Id directly.
                 // This will be slow, but its only until the context is set.
                 var ns = NetworkScene.FindNetworkScene(this);
                 if (ns)
@@ -149,8 +151,9 @@ namespace Ubiq.Logging
         }
 
         /// <summary>
-        /// Registers this Collector as the primary LogCollector for the Peer Group. All cached and new logs will be forwarded
-        /// to this Collector. All new Peers will see this as the active Collector.
+        /// Registers this Collector as the primary LogCollector for the Peer 
+        /// Group. All cached and new logs will be forwarded to this Collector. 
+        /// All new Peers will see this as the primary Collector.
         /// </summary>
         public void StartCollection()
         {
@@ -158,8 +161,14 @@ namespace Ubiq.Logging
         }
 
         /// <summary>
-        /// Stops collecting and surrenders its position as the primary Collector.
+        /// Stops collecting and surrenders its position as the primary 
+        /// Collector. 
         /// </summary>
+        /// <remarks>
+        /// It will take time for this message to propagate, during this 
+        /// time this Component should be prepared to receive events 
+        /// otherwise messages may be lost.
+        /// </remarks>
         public void StopCollection()
         {
             SendSnapshot(NetworkId.Null);
@@ -575,6 +584,33 @@ namespace Ubiq.Logging
         public void Register(LogEmitter emitter)
         {
             emitter.collector = this;
+        }
+
+        /// <summary>
+        /// Checks when all events of event type have been successfully 
+        /// transmitted.
+        /// This can be used to check if all, for example, Experiment events 
+        /// have been uploaded before exiting an application. 
+        /// Beware that this method is only accurate when the integrity of
+        /// every LogCollector method is visible. See the Logging documentation
+        /// for more details.
+        /// </summary>
+        public void WaitForTransmitComplete(EventType eventType, Action<bool> callback)
+        {
+            StartCoroutine(WaitForTransmitCompleteCoroutine(eventType, callback));
+        }
+
+        private IEnumerator WaitForTransmitCompleteCoroutine(EventType eventType, Action<bool> callback)
+        {
+            if(GetBufferedEventCount(eventType) > 0)
+            {
+                yield return null;
+            }
+
+            Ping(result =>
+            {
+                callback(!result.Aborted);
+            });
         }
     }
 

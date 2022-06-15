@@ -9,20 +9,25 @@ using UnityEngine;
 namespace Ubiq.Samples.UnitTests.Logging
 {
     /// <summary>
-    /// The LoggingDiagnostics Component is a stress test for the logging framework. 
-    /// The class generates log events, while also exercising the LogCollector options.
-    /// The events are deterministic, meaning the cumulative log files can be analysed 
-    /// afterwards for integrity.
+    /// The LoggingDiagnostics Component is a stress test for the logging 
+    /// framework. 
+    /// The class generates log events, while also exercising the
+    /// LogCollector options.
+    /// The events are deterministic, meaning the cumulative log files can 
+    /// be analysed afterwards for integrity.
     /// </summary>
     public class LoggingDiagnostics : MonoBehaviour, INetworkObject, INetworkComponent
     {
         /// <summary>
-        /// Each event increments the counter by 1. If the counter does not increment continuously, in order with time, then a log event has been lost.
+        /// Each event increments the counter by 1. If the counter does not 
+        /// increment continuously, in order with time, then a log event has 
+        /// been lost.
         /// </summary>
         protected int Counter;
 
         /// <summary>
-        /// This class uses a number of LogEmitters. No matter which emitter is used, events should be written the same.
+        /// This class uses a number of LogEmitters. No matter which emitter is 
+        /// used, events should be written identically.
         /// </summary>
         protected List<LogEmitter> emitters = new List<LogEmitter>();
 
@@ -30,7 +35,7 @@ namespace Ubiq.Samples.UnitTests.Logging
 
         protected LogCollector Collector;
 
-        public NetworkId Id => new NetworkId("bf63d523-407668a5");
+        public NetworkId Id => new NetworkId("bf63d523-407668a5"); // Common Id for this diagnostics Component
         private NetworkContext context;
 
         // Start is called before the first frame update
@@ -45,20 +50,24 @@ namespace Ubiq.Samples.UnitTests.Logging
             context = NetworkScene.Register(this);
         }
 
-        // Update is called once per frame
+        // The LoggingDiagnostics will generate deterministic events from
+        // arbitrary Emitters at random intervals.
+        // Every so often, a Collector will also volunteer as the Active
+        // Collector.
+
+        // After all Peers have had some time to transmit logs and shutdown,
+        // LoggingDiagnostics can check the log files to determine if any
+        // events have gone missing.
+
+        // As any LoggingDiagnostics session may volunteer as the active
+        // collector, the group of processes must shutdown gracefully to
+        // prevent missing events.
+        // A brief timeout is added when the shutdown is requested to 
+        // allow all Components to finish transmitting before all existing
+        // together.
+
         void Update()
         {
-            // The LoggingDiagnostics will generate deterministic events from arbitrary Emitters at random intervals.
-            // Every so often, a Collector will also volunteer as the Active Collector.
-
-            // LoggingDiagnostics is quite simple, and is unable to distinguish between logs lost due to failures, and
-            // logs lost during a typical manual shutdown of all Peers.
-            // Therefore, when ending the tests the Quit button should be used, which will signal all Components to 
-            // stop transmitting, then wait for a grace period for all Events to filter through, before finally exiting.
-
-            // The LogCollector does have the ability to detect when Logs have been successfully transmitted, where
-            // it is known which Peer hosts the Active Collector on shutdown.
-
             if (Run)
             {
                 if (UnityEngine.Random.value > 0.7f)
@@ -92,8 +101,17 @@ namespace Ubiq.Samples.UnitTests.Logging
         {
             Run = false;
 
-            // Wait five seconds for all the logs to be written before quitting
-            StartCoroutine(DelayedQuit());
+            Collector.WaitForTransmitComplete(Ubiq.Logging.EventType.Experiment, success =>
+            {
+                // Check if we succeessfully checked in with the active collector
+                if(!success)
+                {
+                    Debug.LogError("Failed to check successful receipt of last logs before shutting down.");
+                }
+
+                // Wait five seconds for all the logs to be written before quitting
+                StartCoroutine(DelayedQuit());
+            });
         }
 
         public IEnumerator DelayedQuit() 

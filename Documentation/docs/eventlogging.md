@@ -166,6 +166,8 @@ If a message is received with a greater clock value, it updates its own State as
 This algorithm assumes that Peers are fully connected, and message passing is reliable, which is true in Ubiq. 
 The logical clock ensures that all Peers converge on the same State, regardless of the order the messages were recieved in. The Peers have converged when all messages have been delivered.
 
+When the Active Collector leaves the Peer Group, the Clock is reset.
+
 
 ## Limitations
 
@@ -186,6 +188,8 @@ If the Collector was part of a Room, the Rooms system can detect disconnection i
 
 If a process that was not the Active Collector fails, then that process will simply not emit events. If that process was previously an Active Collector, it is still possible to lose events if the Collector was acting as a relay when the process failed.
 
+For collecting data such as experimental logs, it is recommended to only ever have one collector on a process that can be monitored. For example, the `logcollectorservice`.
+
 # Verification
 
 The `LogCollector` method `GetBufferedEventCount` returns the number of Events currently buffered. As `LogCollector` is multi-threaded, this count may change even while it is being returned. However, if it is known, for example, that an application will not generate any new Events of a particular type, it can be used to check whether all of those events have finished writing.
@@ -202,9 +206,15 @@ To do this, an application could:
 
 When a response is receieved, the Event, and all preceeding it, will have been successfully delivered and the application can safely exit.
 
-This does not protect against process failure of an intermediary `LogCollector`, a condition which is irrecoverable.
+This protocol is implemented in the `WaitForTransmitComplete` method.
 
+This does not protect against process failure of an intermediary `LogCollector` however, a condition which is irrecoverable.
 
+## Reliability
+
+In order for `WaitForTransmitComplete` to confirm that an event has been successfully delivered, the integrity of the LogCollector processes must be fully visible. One way to achieve this is to ensure only one LogCollector is ever active, and that that LogCollector never forwards. In this case, if the Ping is received, then the logs must also be successfully delivered as they cannot have taken any other path to the collector.
+
+`LogCollector` will keep track of this by default, and warn any caller of `WaitForTransmitComplete` if this is the case.
 
 # Analysis
 

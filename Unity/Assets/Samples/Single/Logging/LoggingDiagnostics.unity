@@ -780,7 +780,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73070efaa1016fc47a3b4023d9a33be2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  readme: This sample scene is the entry point to the logging unit tests.
+  readme: 'This sample scene is the entry point to the logging unit tests.
+
+
+'
 --- !u!4 &1504244797
 Transform:
   m_ObjectHideFlags: 0
