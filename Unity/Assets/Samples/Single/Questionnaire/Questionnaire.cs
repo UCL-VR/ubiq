@@ -8,12 +8,12 @@ namespace Ubiq.Samples.Single.Questionnaire
 {
     public class Questionnaire : MonoBehaviour
     {
-        EventLogger results;
+        LogEmitter results;
 
         // Start is called before the first frame update
         void Start()
         {
-            results = new UserEventLogger(this);
+            results = new ExperimentLogEmitter(this);
         }
 
         public void Done()
@@ -22,6 +22,23 @@ namespace Ubiq.Samples.Single.Questionnaire
             {
                 results.Log("Answer", item.name, item.value);
             }
+        }
+
+        public void Quit()
+        {
+            LogCollector.Find(this).WaitForTransmitComplete(results.EventType, ready =>
+            {
+                if(!ready)
+                {
+                    // Here it may be desirable to to save the logs another way
+                    Debug.LogWarning("ActiveCollector changed or went away: cannot confirm logs have been delivered!");
+                }
+#if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+#else
+                Application.Quit();
+#endif
+            });
         }
     }
 }

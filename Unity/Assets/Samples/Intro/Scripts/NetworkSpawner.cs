@@ -25,7 +25,7 @@ namespace Ubiq.Samples
 
         private NetworkContext context;
         private Dictionary<NetworkId, GameObject> spawned;
-        private EventLogger events;
+        private LogEmitter events;
 
         [Serializable]
         public struct Message // public to avoid warning 0649
@@ -65,7 +65,7 @@ namespace Ubiq.Samples
         void Start()
         {
             context = NetworkScene.Register(this);
-            events = new ContextEventLogger(context);
+            events = new ContextLogEmitter(context);
             roomClient.OnRoomUpdated.AddListener(OnRoomUpdated);
         }
 

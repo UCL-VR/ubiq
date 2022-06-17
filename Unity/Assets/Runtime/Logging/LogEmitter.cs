@@ -8,42 +8,82 @@ using Ubiq.Logging.Utf8Json.Resolvers;
 
 namespace Ubiq.Logging
 {
+    /// <summary>
+    /// Pre-defined event types that will create log files with names instead of
+    /// the tag value. Other tag values may be used.
+    /// </summary>
+    /// <remarks>
+    /// This is a Flags enum; make sure any other values are powers of 2.
+    /// </remarks>
     [Flags]
     public enum EventType : sbyte // sbyte because Unity's 'Everything' option sets the field to all -1 (all 1's in 2's complement)
     {
         Application = 1,
-        User = 2
+        Experiment = 2,
+        Debug = 4,
+        Info = 8
     }
 
     /// <summary>
-    /// EventLoggers are used to create events and send them to LogManager instances. The LogManager then ensures they
-    /// are delivered to the appropriate endpoint.
-    /// EventLoggers are cheap, and it is expected that a single component may have multiple loggers for different types
-    /// of event or different levels.
+    /// LogEmitters are used to create events and send them to LogCollector 
+    /// instances. The LogCollector then ensures they are delivered to the 
+    /// appropriate endpoint.
+    /// LogEmitters are cheap, and it is expected that a single component may
+    /// have multiple loggers for different types of event or for different 
+    /// levels.
     /// </summary>
-    public abstract class EventLogger
+    public abstract class LogEmitter
     {
-        internal LogManager manager;
+        internal LogCollector collector;
         private static bool initialised;
 
         public bool mirrorToConsole;
 
         public EventType EventType { get; set; }
 
-        public EventLogger(EventType type)
+        private bool IsPowerOf2(sbyte v)
         {
+            return v != 0 && (v & (v - 1)) == 0;
+        }
+
+        public LogEmitter(EventType type, MonoBehaviour component)
+        {
+            if (!IsPowerOf2((sbyte)type))
+            {
+                Debug.LogError($"LogEmitter Type {type} is not a valid combination of flags! If in doubt, use one of the entries in the Ubiq.Logging.EventType enum.");
+            }
+
             EventType = type;
             if (!initialised)
             {
                 CompositeResolver.Register(UbiqResolver.Instance);
                 initialised = true;
             }
+
             mirrorToConsole = false;
+
+            RegisterCollectorBy(component);
         }
 
         private bool ShouldLog()
         {
-            return manager != null && (manager.Listen & EventType) > 0;
+            return collector != null && collector.enabled && collector.ShouldLog(EventType);
+        }
+
+        /// <summary>
+        /// Attempts to Register this emitter using the provided Component as the location to start searching for a Collector
+        /// </summary>
+        /// <param name="component"></param>
+        private void RegisterCollectorBy(MonoBehaviour component)
+        {
+            try
+            {
+                LogCollector.Find(component).Register(this);
+            }
+            catch (NullReferenceException)
+            {
+                Debug.LogWarning($"{GetType()} could not find a LogManager: any logs generated will be lost!");
+            }
         }
 
         public void Log(string Event)
@@ -198,20 +238,24 @@ namespace Ubiq.Logging
         protected void EndWriter(ref JsonWriter writer)
         {
             writer.End();
-            manager.Push(ref writer);
+            collector.Push(ref writer);
         }
 
         protected virtual void WriteHeader(ref JsonWriter writer)
         {
             writer.Write("ticks", DateTime.Now.Ticks);
+            writer.Write("peer", collector.Id);
         }
     }
 
-    public abstract class TypedEventLogger : EventLogger
+    /// <summary>
+    /// A LogEmitter that includes a field "type" with the name of the class that emitted the log (the one the emitter itself is a member of).
+    /// </summary>
+    public abstract class TypedLogEmitter : LogEmitter
     {
         private string Type;
 
-        public TypedEventLogger(Type type, EventType eventType):base(eventType)
+        public TypedLogEmitter(Type type, EventType eventType, MonoBehaviour component):base(eventType, component)
         {
             Type = type.FullName;
         }
@@ -225,44 +269,30 @@ namespace Ubiq.Logging
 
 
     /// <summary>
-    /// The most common event logger that is designed to operate with Ubiq Network or Component MonoBehaviours.
+    /// The most common event logger that is designed to operate with Unity MonoBehaviours.
     /// </summary>
-    public class ComponentEventLogger : TypedEventLogger
+    public class ComponentLogEmitter : TypedLogEmitter
     {
-        public ComponentEventLogger(MonoBehaviour component):base(component.GetType(), EventType.Application)
+        public ComponentLogEmitter(MonoBehaviour component, EventType type = EventType.Debug) : base(component.GetType(), type, component)
         {
-            try
-            {
-                LogManager.Find(component).Register(this);
-            } catch (NullReferenceException)
-            { 
-            }
         }
     }
 
     /// <summary>
     /// An Event Logger for Objects that have a Network Identity
     /// </summary>
-    public class ContextEventLogger : TypedEventLogger
+    public class ContextLogEmitter : TypedLogEmitter
     {
         private NetworkContext context;
 
-        public ContextEventLogger(NetworkContext context) : base(context.component.GetType(), EventType.Application)
+        public ContextLogEmitter(NetworkContext context, EventType type = EventType.Debug) : base(context.component.GetType(), type, context.scene)
         {
             this.context = context;
-            try
-            {
-                LogManager.Find(context.scene).Register(this);
-            }
-            catch (NullReferenceException)
-            {
-            }
         }
 
         protected override void WriteHeader(ref JsonWriter writer)
         {
             base.WriteHeader(ref writer);
-            writer.Write("sceneid", context.scene.Id);
             writer.Write("objectid", context.networkObject.Id);
             writer.Write("componentid", context.componentId);
         }
@@ -271,19 +301,17 @@ namespace Ubiq.Logging
     /// <summary>
     /// An Event Logger for user-defined events such as measurements in an experiment. (This still requires a MonoBehaviour refrence from which to find the LogManager).
     /// </summary>
-    public class UserEventLogger : EventLogger
+    public class ExperimentLogEmitter : LogEmitter
     {
-        public UserEventLogger(MonoBehaviour component):base(EventType.User)
+        public ExperimentLogEmitter(MonoBehaviour component):base(EventType.Experiment, component)
         {
-            try
-            {
-                LogManager.Find(component).Register(this);
-            }
-            catch (NullReferenceException)
-            {
-                Debug.LogWarning("UserEventLogger could not find a LogManager: any logs generated will be lost!");
-            }
         }
     }
 
+    public class InfoLogEmitter : LogEmitter
+    {
+        public InfoLogEmitter(MonoBehaviour component) : base(EventType.Info, component)
+        {
+        }
+    }
 }

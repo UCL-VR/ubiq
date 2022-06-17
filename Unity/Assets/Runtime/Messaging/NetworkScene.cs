@@ -39,6 +39,13 @@ namespace Ubiq.Messaging
             scene.Send(message.buffer);
         }
 
+        public void Send(NetworkId objectid, ReferenceCountedSceneGraphMessage message)
+        {
+            message.objectid = objectid;
+            message.componentid = this.componentId;
+            scene.Send(message.buffer);
+        }
+
         public void Send(NetworkId objectid, ushort componentid, ReferenceCountedSceneGraphMessage message)
         {
             message.objectid = objectid;
@@ -85,7 +92,7 @@ namespace Ubiq.Messaging
         private HashSet<string> existingIdAssignments = new HashSet<string>();
         private List<ObjectProperties> matching = new List<ObjectProperties>();
 
-        private EventLogger events;
+        private LogEmitter events;
 
         public struct MessageStatistics
         {
@@ -163,8 +170,8 @@ namespace Ubiq.Messaging
                 }
             }
 
-            events = new ComponentEventLogger(this);
-            events.Log("Awake", Id, SystemInfo.deviceName, SystemInfo.deviceModel, SystemInfo.deviceUniqueIdentifier);
+            events = new ComponentLogEmitter(this);
+            events.Log("Awake", SystemInfo.deviceName, SystemInfo.deviceModel, SystemInfo.deviceUniqueIdentifier);
         }
 
         /// <summary>

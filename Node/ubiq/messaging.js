@@ -1,6 +1,8 @@
 const { exception } = require('console');
 const { TextDecoder } = require('util');
 const { Schema } = require('./schema');
+const { performance } = require('perf_hooks');
+const { type } = require('os');
 
 const MESSAGE_HEADER_SIZE = 10;
 
@@ -17,11 +19,11 @@ Schema.add({
 class NetworkId{
     constructor(data){
         if(typeof(data) == 'string'){
-            data = data.replace("-","");
-            a = data.substring(0, 8);
-            b = data.substring(8, 8);
-            a = parseInt(a, 16);
-            b = parseInt(b, 16);
+            data = data.replace(/-/g,'');
+            this.a = data.substring(0, 8);
+            this.b = data.substring(8, 16);
+            this.a = parseInt(this.a, 16);
+            this.b = parseInt(this.b, 16);
             return;
         }
         if(typeof(data) == 'number'){
@@ -32,6 +34,11 @@ class NetworkId{
         if(Buffer.isBuffer(data)){
             this.a = data.readUInt32LE(0);
             this.b = data.readUInt32LE(4);
+            return;
+        }
+        if(typeof(data) == 'object' && data.hasOwnProperty("a") && typeof(data.a) == 'number' && data.hasOwnProperty("b") && typeof(data.b) == 'number'){
+            this.a = data.a;
+            this.b = data.b;
             return;
         }
         throw exception();
@@ -57,6 +64,12 @@ class NetworkId{
         });
         return new NetworkId(id);
     }
+
+    static Valid(x){
+        return x.a != 0 && x.b != 0;
+    }
+
+    static Null = new NetworkId(0);
 }
 
 Buffer.prototype.writeNetworkId = function(networkId, offset){
@@ -83,16 +96,22 @@ class Message{
 
     static Create(objectId, componentId, message){
         var msg = new Message();
-
-        if(typeof(message) == 'object'){
-            message = JSON.stringify(message);
-        }
-        if(typeof(message) == 'string'){
-            message = Buffer.from(message, 'utf8');
+        
+        if(!Buffer.isBuffer(message)){
+            if(typeof(message) == 'object'){
+                message = JSON.stringify(message);
+            }
+            if(typeof(message) == 'string'){
+                message = Buffer.from(message, 'utf8');
+            }
         }
 
         var length = message.length + MESSAGE_HEADER_SIZE;
         var buffer = Buffer.alloc(length + 4);
+
+        if(typeof(objectId) == "string"){
+            objectId = new NetworkId(objectId);
+        }
 
         buffer.writeInt32LE(length, 0);
         buffer.writeNetworkId(objectId, 4);
@@ -115,6 +134,10 @@ class Message{
 
     toObject(){
         return JSON.parse(this.toString());
+    }
+    
+    toBuffer(){
+        return this.message;
     }
 }
 

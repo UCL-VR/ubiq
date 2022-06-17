@@ -10,24 +10,58 @@ namespace Ubiq.Logging
     {
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
+           // base.OnInspectorGUI();
 
             var component = target as LogCollector;
 
-            GUILayout.Label($"Entries: {component.Count}");
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("EventsFilter"));
 
-            GUI.enabled = component.NetworkEnabled;
-
-            EditorGUILayout.LabelField("Collecting", component.Collecting.ToString());
-
-            if (GUILayout.Button("Start Collection"))
+            if (Application.isPlaying)
             {
-                component.StartCollection();
+                GUILayout.Label($"Mode: {component.Mode}");
             }
 
-            if (GUILayout.Button("Stop Collection"))
+            var memoryInMb = (float)component.Memory / (1024 * 1024);
+            var maxMemoryInMb = component.MaxMemory / (1024 * 1024);
+            GUILayout.Label($"Memory: {memoryInMb} / {maxMemoryInMb} Mb");
+
+
+            GUILayout.Label($"Written: {component.Written}");
+            GUILayout.Label($"Id : {component.Id.ToString()}");
+
+            GUI.enabled = component.OnNetwork;
+
+            if (!component.isPrimary)
             {
-                component.StopCollection();
+
+                if (GUILayout.Button("Start Collection"))
+                {
+                    component.StartCollection();
+                }
+            }
+            else
+            {
+                if (GUILayout.Button("Stop Collection"))
+                {
+                    component.StopCollection();
+                }
+            }
+
+            if (GUILayout.Button("Ping Active Collector"))
+            {
+                component.Ping((response) =>
+                    {
+                        var message = $"Ping Response - Collector: {response.ActiveCollector} RTT: {response.EndTime - response.StartTime} Error: {response.Aborted}";
+                        if(response.Aborted)
+                        {
+                            Debug.LogError(message);
+                        }
+                        else
+                        {
+                            Debug.Log(message);
+                        }
+                    }
+                );
             }
 
             GUI.enabled = true;

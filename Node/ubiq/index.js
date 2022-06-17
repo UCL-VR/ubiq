@@ -12,7 +12,8 @@ const {
     WrappedWebSocketServer,
     WrappedTcpServer,
     WebSocketConnectionWrapper,
-    TcpConnectionWrapper 
+    TcpConnectionWrapper,
+    UbiqTcpConnection
 } = require("./connections")
 
 const { 
@@ -22,12 +23,28 @@ const {
 
 const { 
     Schema
-} = require("./schema")
+} = require("./schema");
 
 const { 
     Uuid,
-    JoinCode
-} = require("./uids");
+} = require("./uuid");
+
+const {
+    NetworkContext,
+    NetworkScene
+} = require("./networkscene");
+
+const {
+    SerialisedDictionary
+} = require("./dictionary");
+
+const{
+    RoomClient
+} = require("./roomclient");
+
+const{
+    LogCollector
+} = require("./logcollector");
 
 module.exports = {
     WebSocketConnectionWrapper,
@@ -36,7 +53,12 @@ module.exports = {
     WrappedTcpServer,
     Message,
     NetworkId,
+    NetworkContext,
+    NetworkScene,
+    RoomClient,
+    LogCollector,
     Schema,
+    SerialisedDictionary,
     Uuid,
-    JoinCode
+    UbiqTcpConnection    
 }

@@ -112,7 +112,7 @@ namespace Ubiq.Voip
         /// </remarks>
         public OnPeerConnectionEvent OnPeerConnection = new OnPeerConnectionEvent();
 
-        private EventLogger logger;
+        private LogEmitter logger;
 
         private void Awake()
         {
@@ -134,7 +134,7 @@ namespace Ubiq.Voip
         private void Start()
         {
             context = NetworkScene.Register(this);
-            logger = new ContextEventLogger(context);
+            logger = new ContextLogEmitter(context);
             client.OnJoinedRoom.AddListener(OnJoinedRoom);
             client.OnPeerRemoved.AddListener(OnPeerRemoved);
             client.OnRoomUpdated.AddListener(OnRoomUpdated);

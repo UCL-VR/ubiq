@@ -55,6 +55,6 @@ That is, the generic FormatterCache<T> type is replaced in the MSIL and the form
 
 The Utf8Json namespace manages its own global memory pools to minimise GC allocations. It does not track memory usage directly however. 
 
-Instead, `LogManager` instances track how many bytes of pooled memory they have in their queues at any time, and use this to control whether new events are buffered or dropped.
+Instead, `LogCollector` instances track how many bytes of pooled memory they have in their queues at any time, and use this to control whether new events are buffered or dropped.
 
-Memory is rented from the pool on demand by JsonWriter objects created by `EventLogger` instances. Outstanding memory is returned to the pool when a JsonWriter is disposed. JsonWriters are disposed by the `LogManager` they are fed to, either after being copied for transmission or discarded when the buffer reaches capacity. `EventLogger` instances only create JsonWriters if a `LogManager` has been registered to recieve (and dispose of) the completed object.
+Memory is rented from the pool on demand by JsonWriter objects created by `LogEmitter` instances. Outstanding memory is returned to the pool when a JsonWriter is disposed. JsonWriters are disposed by the `LogCollector` they are fed to, either after being copied for transmission or discarded when the buffer reaches capacity. `LogEmitter` instances only create JsonWriters if a `LogCollector` has been registered to recieve (and dispose of) the completed object.
