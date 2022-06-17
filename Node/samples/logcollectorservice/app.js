@@ -14,6 +14,10 @@
 const { NetworkScene, RoomClient, LogCollector, UbiqTcpConnection } = require("../../ubiq");
 const fs = require('fs');
 
+// Configuration
+eventType = 2;
+roomGuid = "6765c52b-3ad6-4fb0-9030-2c9a05dc4731";
+
 // Create a connection to a Server
 const connection = UbiqTcpConnection("nexus.cs.ucl.ac.uk", 8005);
 
@@ -53,7 +57,7 @@ roomclient.addListener("OnPeerRemoved", peer =>{
 
 // Register for log events from the log collector.
 logcollector.addListener("OnLogMessage", (type,message) => {
-    if(type == 2){ // Experiment
+    if(type == eventType){ // Experiment
         peer = message.peer; // All log messages include the emitting peer
         writeEventToPeerFile(peer,message);
     }
@@ -63,4 +67,4 @@ logcollector.addListener("OnLogMessage", (type,message) => {
 // and new Peers. Call this before joining a new room.
 logcollector.startCollection();
 
-roomclient.join("6765c52b-3ad6-4fb0-9030-2c9a05dc4731"); // Join by UUID. Use an online generator to create a new one for your experiment.
+roomclient.join(roomGuid); // Join by UUID. Use an online generator to create a new one for your experiment.
