@@ -22,6 +22,7 @@ public class Questionnaire : MonoBehaviour
 			results.Log("Answer", item.name, item.value);
 		}
 	}
+	
 }
 ```
 
@@ -63,3 +64,39 @@ Since no filters were set up on the `LogManager`, a *Debug* log for the session 
 {"ticks":637795044153061850,"peer":"4641730f-148936d7","type":"Ubiq.Samples.NetworkSpawner","objectid":"7725a971-a3692643","componentid":49018,"event":"SpawnObject","arg1":2,"arg2":"1e38967c-7a5701a3","arg3":false}
 ]
 ```
+
+### Graceful Exit
+
+The Questionnaire Panel also has a Quit button. This button makes use of the LogCollector WaitForTransmitComplete method to quit the application, but only when the questionnaire results have been successfully delivered.
+
+```
+        public void Quit()
+        {
+            LogCollector.Find(this).WaitForTransmitComplete(results.EventType, ready =>
+            {
+                if(!ready)
+                {
+                    // Here it may be desirable to to save the logs another way
+                    Debug.LogWarning("ActiveCollector changed or went away: cannot confirm logs have been delivered!");
+                }
+#if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+#else
+                Application.Quit();
+#endif
+            });
+        }
+```
+
+The callback will only be called once the Experiment logs have left the local LogCollector.
+
+Enter Play Mode, click Done, then click Quit. 
+
+Since the LogCollector is buffering, the application won't exit because the Log Events are still in Memory. Click Start Collection and the application will immediately write the logs and exit.
+
+![Log Collector Showing Events in Buffer](images/8e10788d-eca6-4009-b673-d4c34ad7f6a0.png)
+
+Try as well again entering Play Mode, and clicking Done and Quit. This time however join a Room with a LogCollector on another Peer. As soon as that Peer's LogCollector is Started, the Questionnaire will quit. 
+
+If the LogCollector on the other Peer is already active (e.g. in the case of a running logcollectorservice), the application will quit almost as soon as it joins the Room.
+
