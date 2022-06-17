@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using Ubiq.Messaging;
 using UnityEngine;
 
-public class IdGenerator 
+public class IdGenerator
 {
     private static System.Random random = new System.Random();
 
@@ -47,6 +47,7 @@ public class IdGenerator
             using (var writer = new StreamWriter(stream))
             {
                 writer.Write(name);
+                writer.Flush();
                 using (var sha1 = new SHA1Managed())
                 {
                     return new NetworkId(sha1.ComputeHash(stream.ToArray()), 0);

@@ -271,7 +271,7 @@ class RoomPeer{
         this.server = server;
         this.connection = connection;
         this.room = new EmptyRoom();
-        this.objectId;
+        this.objectId = new NetworkId(Math.floor(Math.random()*2147483648),Math.floor(Math.random()*2147483648));
         this.uuid = "";
         this.properties = [];
         this.connection.onMessage.push(this.onMessage.bind(this));

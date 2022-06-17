@@ -19,6 +19,11 @@ namespace Ubiq.Messaging
         public ushort componentId;
         public INetworkComponent component;
 
+        public NetworkId ObjectId
+        {
+            get { return networkObject.Id; }
+        }
+
         /// <summary>
         /// Sends the message to the network. If the objectid is uninitialised, the message will be sent
         /// to the context address (i.e. the objects with the same object and component ids).
@@ -70,6 +75,11 @@ namespace Ubiq.Messaging
         {
             SendJson(networkObject.Id, message);
         }
+
+        public void SendJson<T>(NetworkId objectid, ushort componentid, T message)
+        {
+            Send(objectid, componentid, JsonUtility.ToJson(message));
+        }
     }
 
     /// <summary>
@@ -83,6 +93,27 @@ namespace Ubiq.Messaging
         private List<ObjectProperties> matching = new List<ObjectProperties>();
 
         private LogEmitter events;
+
+        public struct MessageStatistics
+        {
+            public uint BytesSent;
+            public uint BytesReceived;
+            public uint MessagesSent;
+            public uint MessagesReceived;
+        }
+
+        private MessageStatistics statistics;
+
+        /// <summary>
+        /// Statistics on the number of messages and bytes sent and received by this NetworkScene.
+        /// </summary>
+        /// <remarks>
+        /// The statistics are before network fanout (i.e. one message from one component counts
+        /// as one message here, even if it is duplicated across two or more connections).
+        /// Byte counts include the Message Headers (Object and Component Ids) but not connection 
+        /// protocol headers or prefixes.
+        /// </remarks>
+        public MessageStatistics Statistics { get => statistics; }
 
         public T GetNetworkComponent<T>() where T : class
         {

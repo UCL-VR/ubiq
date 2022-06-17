@@ -619,5 +619,21 @@ namespace Ubiq.Rooms
 
             SessionId = ping.sessionId;
         }
+
+        /// <summary>
+        /// Sets the default Server this should connect to on Start.
+        /// </summary>
+        /// <remarks>
+        /// Replaces the existing setting, if any. Must be called before Start; will have no effect after Start.
+        /// </remarks>
+        public void SetDefaultServer(ConnectionDefinition definition)
+        {
+            servers = new ConnectionDefinition[] { definition };
+        }
+
+        public static RoomClient Find(MonoBehaviour Component)
+        {
+            return NetworkScene.FindNetworkScene(Component).GetComponent<RoomClient>();
+        }
     }
 }

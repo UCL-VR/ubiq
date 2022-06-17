@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -67,6 +67,99 @@ namespace Ubiq.Extensions
             }
 
             return null;
+        }
+
+        public static T GetClosestPredicate<T>(this Component component, Func<T, bool> predicate) where T : class
+        {
+            do
+            {
+                var behaviours = component.GetComponentsInChildren<MonoBehaviour>();
+                foreach (var behaviour in behaviours)
+                {
+                    if (behaviour is T)
+                    {
+                        if (predicate(behaviour as T))
+                        {
+                            return behaviour as T;
+                        }
+                    }
+                }
+                component = component.transform.parent;
+            } while (component != null);
+
+            foreach (var root in DontDestroyOnLoadGameObjects)
+            {
+                var behaviours = root.GetComponentsInChildren<MonoBehaviour>();
+                foreach (var behaviour in behaviours)
+                {
+                    if (behaviour is T)
+                    {
+                        if (predicate(behaviour as T))
+                        {
+                            return behaviour as T;
+                        }
+                    }
+                }
+            }
+
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var scene = SceneManager.GetSceneAt(i);
+                foreach (var root in scene.GetRootGameObjects())
+                {
+                    var behaviours = root.GetComponentsInChildren<MonoBehaviour>();
+                    foreach (var behaviour in behaviours)
+                    {
+                        if (behaviour is T)
+                        {
+                            if (predicate(behaviour as T))
+                            {
+                                return behaviour as T;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public static IEnumerable<T> GetInterfaces<T>(this Component component) where T : class
+        {
+            foreach (var item in component.GetComponents<MonoBehaviour>())
+            {
+                if (item is T)
+                {
+                    yield return item as T;
+                }
+            }
+        }
+
+        public static T GetInterface<T>(this MonoBehaviour component) where T : class
+        {
+            foreach (var item in component.GetComponents<MonoBehaviour>())
+            {
+                if (item is T)
+                {
+                    return item as T;
+                }
+            }
+            return null;
+        }
+
+        public static IEnumerable<T> GetComponentsInScene<T>() where T : Component
+        {
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var scene = SceneManager.GetSceneAt(i);
+                foreach (var root in scene.GetRootGameObjects())
+                {
+                    foreach (var item in root.GetComponentsInChildren<T>())
+                    {
+                        yield return item;
+                    }
+                }
+            }
         }
     }
 }

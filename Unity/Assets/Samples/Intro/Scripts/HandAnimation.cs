@@ -23,6 +23,7 @@ public class HandAnimation : MonoBehaviour, INetworkComponent
 
     private NetworkContext context;
     private Avatar avatar;
+    private float lastTransmitTime;
 
     public struct Message
     {
@@ -43,7 +44,7 @@ public class HandAnimation : MonoBehaviour, INetworkComponent
     {
         context = NetworkScene.Register(this);
         avatar = GetComponent<Avatar>();
-
+        lastTransmitTime = Time.time;
     }
 
     // Update is called once per frame
@@ -59,8 +60,11 @@ public class HandAnimation : MonoBehaviour, INetworkComponent
             gripTargetLeft = GetHintNode(AvatarHints.NodeFloat.LeftHandGrip);
             gripTargetRight = GetHintNode(AvatarHints.NodeFloat.RightHandGrip);
 
-            context.SendJson(new Message(gripTargetLeft, gripTargetRight)); // sent every frame currently...put into if() ?
-            //Debug.Log("Anim: " + gripCurrent + " " + gripTarget);
+            if ((Time.time - lastTransmitTime) > 1f / avatar.UpdateRate)
+            {
+                lastTransmitTime = Time.time;
+                context.SendJson(new Message(gripTargetLeft, gripTargetRight));
+            }
         }
 
         if (gripCurrentLeft != gripTargetLeft)

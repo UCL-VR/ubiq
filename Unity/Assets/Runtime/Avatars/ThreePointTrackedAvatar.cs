@@ -21,6 +21,7 @@ namespace Ubiq.Avatars
         private Transform networkSceneRoot;
         private State[] state = new State[1];
         private Avatar avatar;
+        private float lastTransmitTime;
 
         [Serializable]
         private struct State
@@ -39,6 +40,7 @@ namespace Ubiq.Avatars
         {
             context = NetworkScene.Register(this);
             networkSceneRoot = context.scene.transform;
+            lastTransmitTime = Time.time;
         }
 
         private void Update ()
@@ -51,7 +53,11 @@ namespace Ubiq.Avatars
                 state[0].rightHand = GetHintNode(AvatarHints.NodePosRot.RightHand);
 
                 // Send it through network
-                Send();
+                if ((Time.time - lastTransmitTime) > (1f / avatar.UpdateRate))
+                {
+                    lastTransmitTime = Time.time;
+                    Send();
+                }
 
                 // Update local listeners
                 OnRecv();
@@ -78,7 +84,7 @@ namespace Ubiq.Avatars
 
         private PositionRotation GetHintNode (AvatarHints.NodePosRot node)
         {
-            if (AvatarHints.TryGet(node,out PositionRotation nodePosRot))
+            if (AvatarHints.TryGet(node, avatar, out PositionRotation nodePosRot))
             {
                 return new PositionRotation
                 {

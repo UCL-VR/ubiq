@@ -43,9 +43,14 @@ namespace Ubiq.Avatars
         {
             if (peerConnection.PeerUuid == avatar.Peer.UUID)
             {
-                this.peerConnection = peerConnection;
-                peerConnection.audioSink.unityAudioSource.spatialBlend = 1.0f;
-                sinkTransform = peerConnection.audioSink.transform;
+                this.peerConnection= peerConnection;
+                var sink = peerConnection.audioSink;
+                if(sink is VoipAudioSourceOutput)
+                {
+                    var voipOutput = sink as VoipAudioSourceOutput;
+                    voipOutput.unityAudioSource.spatialBlend = 1.0f;
+                    sinkTransform = voipOutput.transform;
+                }
             }
         }
 

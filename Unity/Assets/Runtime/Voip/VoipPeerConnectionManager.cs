@@ -4,10 +4,13 @@ using UnityEngine;
 using Ubiq.Rooms;
 using Ubiq.Messaging;
 using Ubiq.Logging;
+using Ubiq.Extensions;
 using UnityEngine.Events;
 using SIPSorcery.Net;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using SIPSorceryMedia.Abstractions;
+
 
 namespace Ubiq.Voip
 {
@@ -84,7 +87,8 @@ namespace Ubiq.Voip
             public List<IceServerDetails> servers = new List<IceServerDetails>();
         }
 
-        private VoipMicrophoneInput audioSource;
+        private IAudioSource defaultAudioSource;
+        private IAudioSink defaultAudioSink;
         private RoomClient client;
         private Dictionary<string, VoipPeerConnection> peerUuidToConnection;
         private NetworkContext context;
@@ -117,8 +121,14 @@ namespace Ubiq.Voip
             peerUuidToConnection = new Dictionary<string, VoipPeerConnection>();
             OnPeerConnection.SetExisting(peerUuidToConnection.Values);
 
-            audioSource = CreateAudioSource();
-            audioSource.StartAudio();
+            defaultAudioSource = this.GetInterface<IAudioSource>();
+            if (defaultAudioSource == null)
+            {
+                defaultAudioSource = CreateAudioSource();
+            }
+            defaultAudioSource.StartAudio();
+
+            defaultAudioSink = this.GetInterface<IAudioSink>();
         }
 
         private void Start()
@@ -208,7 +218,7 @@ namespace Ubiq.Voip
             if (peerUuidToConnection.TryGetValue(peer.UUID, out var connection))
             {
                 // Audiosinks are created per connection
-                Destroy(connection.audioSink.gameObject);
+                
                 Destroy(connection.gameObject);
                 peerUuidToConnection.Remove(peer.UUID);
             }
@@ -246,19 +256,30 @@ namespace Ubiq.Voip
         private VoipPeerConnection CreatePeerConnection(NetworkId objectid,
             string peerUuid, bool polite)
         {
-            var audioSink = new GameObject("Voip Audio Output + " + peerUuid)
-                .AddComponent<VoipAudioSourceOutput>();
-
             var pc = new GameObject("Voip Peer Connection " + peerUuid)
                 .AddComponent<VoipPeerConnection>();
-
             pc.transform.SetParent(transform);
 
-            // The audiosink can be made 3d and moved around by event listeners
-            // but here make it a child to avoid cluttering scene graph
-            audioSink.transform.SetParent(pc.transform);
+            // Each network audio sink is a Unity Audio Source. Where sources are created on demand (where none
+            // is specified), there should be one source per peer-connection, so that it can be spatialised.
 
-            pc.Setup(objectid,peerUuid,polite,audioSource,audioSink,peerConnectionSource.Acquire());
+            var pcSink = defaultAudioSink; 
+            if (pcSink == null)
+            {
+                var audioSourceOutputGo = new GameObject("Voip Audio Output + " + peerUuid)
+                    .AddComponent<VoipAudioSourceOutput>();
+
+                // The audiosink can be made 3d and moved around by event listeners
+                // but for now, make it a child to avoid cluttering scene graph
+                audioSourceOutputGo.transform.SetParent(pc.transform);
+                pcSink = audioSourceOutputGo;
+            }
+
+            // The default audio source will always be valid - for now, either the specified source, or the system wide microphone.
+
+            var pcSource = defaultAudioSource; 
+
+            pc.Setup(objectid,peerUuid,polite, pcSource, pcSink, peerConnectionSource.Acquire());
 
             peerUuidToConnection.Add(peerUuid, pc);
             OnPeerConnection.Invoke(pc);
