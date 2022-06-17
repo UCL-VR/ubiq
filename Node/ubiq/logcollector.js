@@ -90,14 +90,20 @@ class LogCollector extends EventEmitter{
                         eventMessage.tag,
                         eventMessage.fromJson()
                     );
+                    this.count = this.count + 1;
                     done();
-                }
+                },
+                count: 0
             }
         );
         this._writingStream.collector = this;
 
         this.context = scene.register(this);
         this.registerRoomClientEvents();
+    }
+
+    written(){
+        return this._writingStream.count;
     }
 
     registerRoomClientEvents(){
@@ -157,7 +163,24 @@ class LogCollector extends EventEmitter{
                 this._eventStream.push(msg);
                 break;
             case 0x3: //Ping
-
+                var ping = message.fromJson();
+                if(NetworkId.Valid(ping.Responder)){
+                    // The ping is a respones to our request (we don't send requests at the moment so there is nothing to do here...)
+                }
+                else{
+                    // The ping is a request
+                    if(this.isPrimary()){
+                        ping.Responder = this.objectId;
+                        ping.Written = this.written();
+                        this.context.send(ping.Source, this.componentId, LogCollectorMessage.Create(0x3, ping));
+                    }else if(NetworkId.Valid(this.destinationId)){
+                        this._eventStream.push(msg);
+                    }else{
+                        ping.Responder = this.objectId;
+                        ping.Aborted = true;
+                        this.context.send(ping.Source, this.componentId, LogCollectorMessage.Create(0x3, ping));
+                    }
+                }
                 break;
         }
     }
