@@ -602,7 +602,7 @@ namespace Ubiq.Logging
 
         private IEnumerator WaitForTransmitCompleteCoroutine(EventType eventType, Action<bool> callback)
         {
-            if(GetBufferedEventCount(eventType) > 0)
+            while(GetBufferedEventCount(eventType) > 0)
             {
                 yield return null;
             }
