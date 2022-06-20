@@ -29,7 +29,7 @@ namespace Ubiq.Samples.Bots
 
         private Dictionary<string, BotManagerProxy> proxies;
 
-        private UserEventLogger Info;
+        private InfoLogEmitter Info;
 
         private void Awake()
         {
@@ -59,7 +59,7 @@ namespace Ubiq.Samples.Bots
                 AddBotsToRoom(Room.JoinCode);
             });
 
-            Info = new UserEventLogger(this);
+            Info = new InfoLogEmitter(this);
 
             StartCoroutine(Coroutines.Update(0.5f, () =>
             {

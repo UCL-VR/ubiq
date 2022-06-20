@@ -16,7 +16,7 @@ public class LatencyMeter : MonoBehaviour, INetworkComponent
     private NetworkContext context;
     private RoomClient client;
     private Dictionary<string, Stopwatch> transmissionTimes;
-    private EventLogger latencies;
+    private LogEmitter latencies;
 
     private void Awake()
     {
@@ -29,7 +29,7 @@ public class LatencyMeter : MonoBehaviour, INetworkComponent
         context = NetworkScene.Register(this);
         UnityEngine.Debug.Assert(context.scene.Id == context.networkObject.Id); // The LatencyMeter has no way to find other meters other than to send messages to the Peer, so ensure that its GO is always the Peer
         client = context.scene.GetComponentInChildren<RoomClient>();
-        latencies = new UserEventLogger(this);
+        latencies = new ExperimentLogEmitter(this);
     }
 
     private struct Message
