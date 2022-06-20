@@ -31,7 +31,7 @@ namespace Ubiq.Samples.Single.Questionnaire
                 if(!ready)
                 {
                     // Here it may be desirable to to save the logs another way
-                    Debug.LogWarning("ActiveCollector changed or went away: cannot confirm logs have been delivered!");
+                    Debug.LogWarning("ActiveCollector at some point changed or did not respond. We cannot say for sure that the logs have been delivered!");
                 }
 #if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;

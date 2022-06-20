@@ -15,7 +15,7 @@ namespace Ubiq.Samples.Bots
     /// </summary>
     public class ThroughputMonitor : MonoBehaviour
     {
-        private UserEventLogger info;
+        private InfoLogEmitter info;
         private NetworkScene scene;
         private List<VoipPeerConnection> openVoipConnections;
         private List<VoipPeerConnection> toRemove;
@@ -44,7 +44,7 @@ namespace Ubiq.Samples.Bots
         void Start()
         {
             scene = NetworkScene.FindNetworkScene(this);
-            info = new UserEventLogger(this);
+            info = new InfoLogEmitter(this);
 
             var voipManager = scene.GetComponentInChildren<VoipPeerConnectionManager>();
             if(voipManager)

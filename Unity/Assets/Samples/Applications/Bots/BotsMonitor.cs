@@ -11,7 +11,7 @@ namespace Ubiq.Samples.Bots
     public class BotsMonitor : MonoBehaviour
     {
         //Even if attached to the top level BotsManager this will find the first Bot's LogManager to feedback through
-        private UserEventLogger Info;
+        private LogEmitter Info;
         private BotsManager Manager;
         private float lastTime;
 
@@ -23,7 +23,7 @@ namespace Ubiq.Samples.Bots
         // Start is called before the first frame update
         void Start()
         {
-            Info = new UserEventLogger(this);
+            Info = new InfoLogEmitter(this);
         }
 
         // Update is called once per frame

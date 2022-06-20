@@ -18,7 +18,7 @@ namespace Ubiq.Samples.Bots
         private Queue<IPeer> peersToPing;
 
         // Local event logger
-        private UserEventLogger info;
+        private ExperimentLogEmitter info;
 
         public bool Measure;
         private float lastPingTime;
@@ -46,7 +46,7 @@ namespace Ubiq.Samples.Bots
         // Start is called before the first frame update
         void Start()
         {
-            info = new UserEventLogger(this);
+            info = new ExperimentLogEmitter(this);
             info.Log("Sync", DateTime.Now.Second + DateTime.Now.Hour * 60);
             collector.StartCollection();
         }

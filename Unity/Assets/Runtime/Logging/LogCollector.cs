@@ -53,6 +53,14 @@ namespace Ubiq.Logging
         private RoomClient roomClient;
 
         /// <summary>
+        /// Stores whether the Active Collector has at some point changed 
+        /// between one live Collector and another. If there has only ever been 
+        /// one Active Collector, we can say we have full visibility on all the
+        /// events that flow to it.
+        /// </summary>
+        private bool activeCollectorChanged = false;
+
+        /// <summary>
         /// The NetworkSceneId of the Active collector. If this is null, events 
         /// should be cached, otherwise, they should be forwarded to this Peer.
         /// </summary>
@@ -176,7 +184,7 @@ namespace Ubiq.Logging
 
         private void SendSnapshot(NetworkId newDestination)
         {
-            destination = newDestination;
+            SetDestination(newDestination);
             clock++;
 
             var msg = new CC();
@@ -226,7 +234,7 @@ namespace Ubiq.Logging
                         {
                             // The Initiator has full knowledge, and wishes to change the destination
 
-                            destination = cck.state;
+                            SetDestination(cck.state);
                             clock = cck.clock;
                         }
                         else
@@ -305,6 +313,15 @@ namespace Ubiq.Logging
             }
         }
 
+        private void SetDestination(NetworkId newDestination)
+        {
+            if(destination && destination != newDestination)
+            {
+                activeCollectorChanged = true;
+            }
+            destination = newDestination;
+        }
+
         private void Awake()
         {
             Written = 0;
@@ -349,7 +366,7 @@ namespace Ubiq.Logging
                 if (Peer.NetworkObjectId == destination)
                 {
                     // The Peer that went away was the Active Collector. This is unexpected in a bad way. Stop transmitting logs until someone else volunteers.
-                    destination = NetworkId.Null;
+                    SetDestination(NetworkId.Null);
 
                     // Reset the clock as a fix for now to handle the case where the active collector leaves and rejoins as a new process.
                     clock = 0;
@@ -609,7 +626,7 @@ namespace Ubiq.Logging
 
             Ping(result =>
             {
-                callback(!result.Aborted);
+                callback(!result.Aborted && !activeCollectorChanged);
             });
         }
     }
