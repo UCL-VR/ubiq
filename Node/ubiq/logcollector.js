@@ -52,6 +52,9 @@ class LogCollector extends EventEmitter{
         this.destinationId = NetworkId.Null;
         this.clock = 0;
 
+        // When set, this LogCollector will always try to maintain its position as the Primary collector.
+        this.lock = false;
+
         // The LogCollector Component Js implementation is based on Streams.
 
         // All incoming events from the network or local emitters go into the 
@@ -134,6 +137,12 @@ class LogCollector extends EventEmitter{
         }
     }
 
+    // Locks this LogCollector as the Primary collector.
+    lockCollection(){
+        this.lock = true;
+        this.startCollection();
+    }
+
     sendSnapshot(destinationId){
         this.destinationId = destinationId;
         this.clock++;
@@ -148,6 +157,9 @@ class LogCollector extends EventEmitter{
         switch(message.type){
             case 0x1: //Command
                 var cc = message.fromJson();
+                if(this.lock){
+                    this.clock = cc.clock; // In locked mode, any attempts to change the state externally are immediately counteracted
+                }
                 if(cc.clock > this.clock){
                     this.clock = cc.clock;
                     this.destinationId = cc.state;

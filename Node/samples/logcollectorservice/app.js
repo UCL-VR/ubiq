@@ -63,8 +63,10 @@ logcollector.addListener("OnLogMessage", (type,message) => {
     }
 });
 
-// Calling startCollection() will start streaming from the LogManagers at existing and
+// Calling startCollection()/lockCollection() will start streaming from the LogManagers at existing and
 // and new Peers. Call this before joining a new room.
-logcollector.startCollection();
+// lockCollection() is like startCollection(), but the Collector will automatically maintain its status
+// as the primary collector for as long as it runs.
+logcollector.lockCollection();
 
 roomclient.join(roomGuid); // Join by UUID. Use an online generator to create a new one for your experiment.
