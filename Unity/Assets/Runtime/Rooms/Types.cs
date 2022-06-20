@@ -193,6 +193,13 @@ namespace Ubiq.Rooms.Messages
     {
         public NetworkId networkId;
     }
+
+    [Serializable]
+    public class SetPropertiesRequest
+    {
+        public List<string> keys = new List<string>();
+        public List<string> values = new List<string>();
+    }
 }
 
 namespace Ubiq.Rooms
@@ -201,7 +208,7 @@ namespace Ubiq.Rooms
     {
         string Name { get; }
         string UUID { get; }
-        string JoinCode { get;  }
+        string JoinCode { get; }
         bool Publish { get; }
         string this[string key] { get; set; }
     }
@@ -216,12 +223,17 @@ namespace Ubiq.Rooms
     public interface IPeer : IEnumerable<KeyValuePair<string,string>>
     {
         string uuid { get; }
-        string this[string key] { get; set; }
+        string this[string key] { get; }
 
         /// <summary>
         /// The ObjectId of the NetworkScene that hosts the RoomClient of this Peer
         /// </summary>
         NetworkId networkId { get; }
+    }
+
+    public interface ILocalPeer : IPeer
+    {
+        new string this[string key] { get; set; }
     }
 
     public class RejectedEvent : UnityEvent<Rejection>

@@ -20,13 +20,53 @@ namespace Ubiq.Rooms
     [RequireComponent(typeof(NetworkScene))]
     public class RoomClient : NetworkBehaviour
     {
+        [Serializable]
+        private class Property
+        {
+            public string key;
+            public string value;
+        }
+
+        [Serializable]
+        private class PeerArgs
+        {
+            public string uuid;
+            public NetworkId networkId;
+            public Property[] properties;
+        }
+
+        [Serializable]
+        private class PeerAddedArgs : PeerArgs { }
+
+        [Serializable]
+        private class PeerRemovedArgs
+        {
+            public string uuid;
+        }
+
+        [Serializable]
+        private class RoomPropertySetArgs
+        {
+            public string[] keys;
+            public string[] values;
+        }
+
+        [Serializable]
+        private class PeerPropertySetArgs
+        {
+            public string uuid;
+            public string[] keys;
+            public string[] values;
+        }
+
+
         public IRoom Room { get => room; }
 
         /// <summary>
         /// A reference to the Peer that represents this local player. Me will be the same reference through the life of the RoomClient.
         /// It is valid after Awake() (can be used in Start()).
         /// </summary>
-        public IPeer Me { get => me; }
+        public ILocalPeer Me { get => me; }
 
         /// <summary>
         /// The Session Id identifies a persistent connection to a RoomServer. If the Session Id returned by the Room Server changes,
@@ -135,6 +175,35 @@ namespace Ubiq.Rooms
 
         private TimeoutNotification notification;
 
+        private class PropertyLog
+        {
+            private List<string> keys = new List<string>();
+            private List<string> values = new List<string>();
+
+            public void Add (string key, string value)
+            {
+                keys.Add(key);
+                values.Add(value);
+            }
+
+            public bool TryPop (out string key, out string value)
+            {
+                if (Count > 0)
+                {
+                    key = keys[keys.Count-1];
+                    value = values[values.Count-1];
+                    keys.RemoveAt(keys.Count-1);
+                    values.RemoveAt(values.Count-1);
+                    return true;
+                }
+                key = string.Empty;
+                value = string.Empty;
+                return false;
+            }
+
+            public int Count => keys.Count;
+        }
+
         private class RoomInterfaceFriend : IRoom
         {
             public string Name { get; protected set; }
@@ -142,41 +211,54 @@ namespace Ubiq.Rooms
             public string JoinCode { get; protected set; }
             public bool Publish { get; protected set; }
 
-            protected SerializableDictionary properties;
+            private PropertyLog log = new PropertyLog();
+            public int PropertyLogCount => log.Count;
 
-            public RoomInterfaceFriend()
-            {
-                properties = new SerializableDictionary();
-            }
+            private PropertyCollection properties = new PropertyCollection();
 
             public string this[string key]
             {
                 get => properties[key];
-                set => properties[key] = value;
-            }
-
-            // The IsUpdated() method has side effects (in that the flag will be cleared) so only allow calling it from inside RoomClient
-            public bool NeedsUpdate()
-            {
-                if (properties != null)
+                set
                 {
-                    return properties.IsUpdated();
-                }
-                else
-                {
-                    return false;
+                    // Record that the request was made but do not update
+                    // properties until we hear back from the server
+                    log.Add(key,value);
                 }
             }
 
-            public bool Update(RoomInfo args)
+            public bool TryPopPropertyLog (out string key, out string value)
             {
-                Name = args.Name;
-                UUID = args.UUID;
-                JoinCode = args.JoinCode;
-                Publish = args.Publish;
-                properties = new SerializableDictionary(args); // todo: merge the dictionaries properly
-                return true;
+                return log.TryPop(out key, out value);
             }
+
+            public void ForceSetProperty(string key, string value)
+            {
+                properties[key] = value;
+            }
+
+            // // The IsUpdated() method has side effects (in that the flag will be cleared) so only allow calling it from inside RoomClient
+            // public bool NeedsUpdate()
+            // {
+            //     if (properties != null)
+            //     {
+            //         return properties.IsUpdated();
+            //     }
+            //     else
+            //     {
+            //         return false;
+            //     }
+            // }
+
+            // public bool Update(RoomInfo args)
+            // {
+            //     Name = args.Name;
+            //     UUID = args.UUID;
+            //     JoinCode = args.JoinCode;
+            //     Publish = args.Publish;
+            //     properties = new SerializableDictionary(args); // todo: merge the dictionaries properly
+            //     return true;
+            // }
 
             System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             {
@@ -188,51 +270,78 @@ namespace Ubiq.Rooms
                 return properties.GetEnumerator();
             }
 
-            public RoomInfo GetRoomInfo()
-            {
-                return new RoomInfo(Name, UUID, JoinCode, Publish, properties);
-            }
+            // public RoomInfo GetRoomInfo()
+            // {
+            //     return new RoomInfo(Name, UUID, JoinCode, Publish, properties);
+            // }
         }
 
-        private class PeerInterfaceFriend : IPeer
+        /// <summary>
+        /// Internal peer interface, used for all types of peers. When peer
+        /// objects leave this class they are cast to the correct subclass.
+        /// </summary>
+        private interface IInternalPeer : ILocalPeer {}
+
+        private class PeerInterfaceFriend : IInternalPeer
         {
             public NetworkId networkId { get; set; }
-            public virtual string uuid { get; set; }
-            protected SerializableDictionary properties;
+            public string uuid { get; set; }
 
-            public PeerInterfaceFriend(String uuid)
+            public event Action<string,string> propertySet = delegate {};
+            private PropertyLog log = new PropertyLog();
+
+            private PropertyCollection properties = new PropertyCollection();
+
+            public PeerInterfaceFriend(string uuid)
             {
                 this.uuid = uuid;
-                properties = new SerializableDictionary();
             }
 
             public PeerInterfaceFriend(PeerInfo info)
             {
                 uuid = info.uuid;
-                properties = info.properties;
+                // properties = info.properties;
                 networkId = info.networkId;
             }
 
-            public virtual string this[string key]
+            public string this[string key]
             {
                 get => properties[key];
-                set => properties[key] = value;
+                set
+                {
+                    properties[key] = value;
+                    propertySet(key,value);
+                    log.Add(key,value);
+                }
             }
 
-            public bool NeedsUpdate()
+            public int PropertyLogCount => log.Count;
+
+            public bool TryPopPropertyLog (out string key, out string value)
             {
-                return properties.IsUpdated();
+                return log.TryPop(out key, out value);
             }
 
-            public PeerInfo GetPeerInfo()
+
+            public void SetPropertySuppressEvent(string key, string value)
             {
-                return new PeerInfo(uuid, networkId, properties);
+                properties[key] = value;
             }
 
-            public bool Update(PeerInfo info)
-            {
-                return properties.Update(info.properties);
-            }
+            // public bool NeedsUpdate()
+            // {
+            //     return properties.IsUpdated();
+            // }
+
+            // public PeerInfo GetPeerInfo()
+            // {
+            //     return new PeerInfo(uuid, networkId, properties);
+            // }
+
+            // public bool Update(PeerInfo info)
+            // {
+            //     return properties.Update(info.properties);
+            // }
 
             System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             {
@@ -289,14 +398,24 @@ namespace Ubiq.Rooms
             }
         }
 
-        // The room joining process occurs in two steps: id aquisition and then room join. This is to avoid a race condition whereby
-        // another peer may be informed of this peer before this peer has updated its id.
-
         protected override void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
             var container = JsonUtility.FromJson<Message>(message.ToString());
             switch (container.type)
             {
+                case "Rejected":
+                    {
+                        var args = JsonUtility.FromJson<RejectedArgs>(container.args);
+                        OnJoinRejected.Invoke(new Rejection()
+                        {
+                            reason = args.reason,
+                            uuid = args.joinArgs.uuid,
+                            joincode = args.joinArgs.joincode,
+                            name = args.joinArgs.name,
+                            publish = args.joinArgs.publish
+                        });
+                    }
+                    break;
                 case "SetRoom":
                     {
                         var args = JsonUtility.FromJson<SetRoom>(container.args);
@@ -333,42 +452,6 @@ namespace Ubiq.Rooms
                         OnRoomUpdated.Invoke(room);
                     }
                     break;
-                case "Rejected":
-                    {
-                        var args = JsonUtility.FromJson<RejectedArgs>(container.args);
-                        OnJoinRejected.Invoke(new Rejection()
-                        {
-                            reason = args.reason,
-                            uuid = args.joinArgs.uuid,
-                            joincode = args.joinArgs.joincode,
-                            name = args.joinArgs.name,
-                            publish = args.joinArgs.publish
-                        });
-                    }
-                    break;
-                case "UpdateRoom":
-                    {
-                        var args = JsonUtility.FromJson<RoomInfo>(container.args);
-                        if (room.Update(args))
-                        {
-                            OnRoomUpdated.Invoke(room);
-                        }
-                    }
-                    break;
-                case "UpdatePeer":
-                    {
-                        var peerInfo = JsonUtility.FromJson<PeerInfo>(container.args);
-                        UpdatePeer(peerInfo);
-                    }
-                    break;
-                case "RemovedPeer":
-                    {
-                        var peerInfo = JsonUtility.FromJson<PeerInfo>(container.args);
-                        var peerInterface = peers[peerInfo.uuid];
-                        peers.Remove(peerInfo.uuid);
-                        OnPeerRemoved.Invoke(peerInterface);
-                    }
-                    break;
                 case "Rooms":
                     {
                         var response = JsonUtility.FromJson<DiscoverRoomsResponse>(container.args);
@@ -385,6 +468,51 @@ namespace Ubiq.Rooms
                         request.joincode = response.request.joincode;
 
                         OnRoomsDiscovered.Invoke(rooms,request);
+                    }
+                    break;
+                case "PeerAdded":
+                    {
+                        var args = JsonUtility.FromJson<PeerAddedArgs>(container.args);
+                        if (!peers.ContainsKey(args.peer.uuid))
+                        {
+                            var peer = new PeerInterfaceFriend(args.peer);
+                            peers.Add(peer.uuid, peer);
+                            OnPeerAdded.Invoke(peer);
+                        }
+                    }
+                    break;
+                case "PeerRemoved":
+                    {
+                        var args = JsonUtility.FromJson<PeerRemovedArgs>(container.args);
+                        if (peers.TryGetValue(args.uuid,out var peer))
+                        {
+                            peers.Remove(args.uuid);
+                            OnPeerRemoved.Invoke(peer);
+                        }
+                    }
+                    break;
+                case "RoomPropertySet":
+                    {
+                        var args = JsonUtility.FromJson<RoomPropertySetArgs>(container.args);
+                        for (int i = 0; i < args.keys.Count; i++)
+                        {
+                            room.ForceSetProperty(args.keys[i],args.values[i]);
+                        }
+                        OnRoomUpdated.Invoke(room);
+                    }
+                    break;
+                case "PeerPropertySet":
+                    {
+                        var args = JsonUtility.FromJson<PeerPropertySetArgs>(container.args);
+                        if (peers.TryGetValue(args.peerUuid,out var peer))
+                        {
+                            for (int i = 0; i < args.keys.Count; i++)
+                            {
+                                peer.SetPropertySuppressEvent(args.keys[i],args.values[i]);
+                            }
+                        }
+
+                        OnPeerUpdated.Invoke(peer);
                     }
                     break;
                 case "Blob":
@@ -490,23 +618,6 @@ namespace Ubiq.Rooms
         }
 
         /// <summary>
-        /// Leaves the current room
-        /// </summary>
-        /// <remarks>
-        /// Can be called even before a client joins a room, though OnLeftRoom is not guaranteed to be called if there was no existing room
-        /// </remarks>
-        public void Leave()
-        {
-            actions.Add(() =>
-            {
-                SendToServer("Leave", new LeaveRequest()
-                {
-                    peer = me.GetPeerInfo()
-                });
-            });
-        }
-
-        /// <summary>
         /// Creates a new connection on the Network Scene
         /// </summary>
         /// <remarks>
@@ -517,20 +628,37 @@ namespace Ubiq.Rooms
             networkScene.AddConnection(Connections.Resolve(connection));
         }
 
+        private SetPropertiesRequest setPropertiesRequest = new SetPropertiesRequest();
+
         private void Update()
         {
             actions.ForEach(a => a());
             actions.Clear();
 
-            if (me.NeedsUpdate())
+            if (me.PropertyLogCount > 0)
             {
-                SendToServer("UpdatePeer", me.GetPeerInfo());
-                OnPeerUpdated.Invoke(me);
+                setPropertiesRequest.keys.Clear();
+                setPropertiesRequest.values.Clear();
+                while (me.TryPopPropertyLog(out var key, out var value))
+                {
+                    setPropertiesRequest.keys.Add(key);
+                    setPropertiesRequest.values.Add(value);
+                }
+
+                SendToServer("SetPeerProperty", setPropertiesRequest);
             }
 
-            if (room.NeedsUpdate())
+            if (room.PropertyLogCount > 0)
             {
-                SendToServer("UpdateRoom", room.GetRoomInfo());
+                setPropertiesRequest.keys.Clear();
+                setPropertiesRequest.values.Clear();
+                while (room.TryPopPropertyLog(out var key, out var value))
+                {
+                    setPropertiesRequest.keys.Add(key);
+                    setPropertiesRequest.values.Add(value);
+                }
+
+                SendToServer("SetRoomProperty", setPropertiesRequest);
             }
 
             if (heartbeatSent > HeartbeatInterval)

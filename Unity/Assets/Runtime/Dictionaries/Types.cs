@@ -5,6 +5,59 @@ using UnityEngine;
 
 namespace Ubiq.Dictionaries
 {
+    // on local client set:
+    // for remote peer dicts, no sets allowed, ever
+    // for local peer dict, add to log, apply immediately
+    // for room dict, add to log, but never apply
+
+    // listen to network - on recv remote sets:
+    // for remote peer dict, apply
+    // for local peer dict, ignore (should never recv)
+    // for room dict, apply
+
+    public class PropertyCollection : IEnumerable<KeyValuePair<string,string>>
+    {
+        private Dictionary<string,string> dict = new Dictionary<string, string>();
+
+        public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+        {
+            return ((IEnumerable<KeyValuePair<string, string>>)dict).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return ((IEnumerable)dict).GetEnumerator();
+        }
+
+        public string this[string key]
+        {
+            get
+            {
+                if (dict.TryGetValue(key,out var value))
+                {
+                    return value;
+                }
+                return string.Empty;
+            }
+            set
+            {
+                if (value == null || value == string.Empty)
+                {
+                    // Remove key
+                    if (dict.ContainsKey(key))
+                    {
+                        dict.Remove(key);
+                    }
+                    return;
+                }
+
+                if (this[key] != value)
+                {
+                    dict[key] = value;
+                }
+            }
+        }
+    }
     /// <summary>
     /// An observable string dictionary that can be serialised to Json by the in-built Unity serialisation.
     /// </summary>

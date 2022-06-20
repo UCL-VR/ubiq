@@ -5,6 +5,42 @@ const { args } = require("commander");
 const VERSION_STRING = "0.0.4";
 const RoomServerReservedId = 1;
 
+class PropertyDictionary{
+    constructor(){
+        this.dict = {};
+    }
+
+    set(key,value){
+        if (value === ""){
+            // Attempting to remove
+            if (this.dict.hasOwnProperty(key)){
+                delete this.dict.key;
+                return true;
+            }
+
+            return false;
+        }
+
+        if (this.dict.hasOwnProperty(key) && this.dict[key] === value){
+            return false;
+        }
+
+        this.dict[key] = value;
+        return true;
+    }
+
+    get(key){
+        if (this.dict.hasOwnProperty(key)){
+            return this.dict[key];
+        }
+        return "";
+    }
+
+    toObject(){
+        return { keys: Object.keys(object), values: Object.values(object) };
+    }
+}
+
 class SerialisedDictionary{
     static From(dictionary){
         return Object.assign(...dictionary.keys.map((k,i) => ({[k]: dictionary.values[i]})));
@@ -197,15 +233,6 @@ Schema.add({
 });
 
 Schema.add({
-    id: "/ubiq.rooms.leaverequestargs",
-    type: "object",
-    properties: {
-        peer: {$ref: "/ubiq.rooms.peerinfo"},
-    },
-    required: ["peer"]
-});
-
-Schema.add({
     id: "/ubiq.rooms.peerinfo",
     type: "object",
     properties: {
@@ -298,7 +325,7 @@ class RoomPeer{
         this.room = new EmptyRoom();
         this.objectId = new NetworkId(Math.floor(Math.random()*2147483648),Math.floor(Math.random()*2147483648));
         this.uuid = "";
-        this.properties = [];
+        this.properties = new PropertyDictionary();
         this.connection.onMessage.push(this.onMessage.bind(this));
         this.connection.onClose.push(this.onClose.bind(this));
         this.sessionId = Uuid.generate();
@@ -331,34 +358,31 @@ class RoomPeer{
             switch(message.type){
                 case "Join":
                     if (Schema.validate(message.args, "/ubiq.rooms.joinargs", this.onValidationFailure)) {
-                        this.setPeerArgs(message.args.peer);    // a join message always includes an update of the peer properties
+                        this.objectId = message.args.peer.networkId; // Join message always includes peer uuid and object id
+                        this.uuid = message.args.peer.uuid;
                         this.server.join(this, message.args);
                     }
                     break;
-                case "Leave":
-                    if (Schema.validate(message.args, "/ubiq.rooms.leaverequestargs", this.onValidationFailure)) {
-                        this.setPeerArgs(message.args.peer);
-                        if(this.room.uuid != null){
-                            this.server.leave(this);
-                        }else{
-                            this.setRoom(new EmptyRoom());
+                case "SetPeerProperty":
+                    if (Schema.validate(message.args, "/ubiq.rooms.setpeerpropertyargs", this.onValidationFailure)) {
+                        message.args.key.forEach(otherpeer => {
+                            if (otherpeer !== peer){
+                                otherpeer.sendPeerPropertySet(peer,key,value);
+                            }
+                        });
+                        if (this.properties.set(message.args.key,message.args.value)){
+                            this.room.broadcastPeerProperty(this,message.args.key);
                         }
                     }
                     break;
-                case "UpdatePeer":
-                    if (Schema.validate(message.args, "/ubiq.rooms.updatepeerargs", this.onValidationFailure)) {
-                        this.setPeerArgs(message.args);
-                        this.room.updatePeer(this);
-                    }
-                    break;
-                case "UpdateRoom":
-                    if (Schema.validate(message.args, "/ubiq.rooms.updateroomargs", this.onValidationFailure)) {
-                        this.room.updateRoom(message.args);
+                case "SetRoomProperty":
+                    if (Schema.validate(message.args, "/ubiq.rooms.setroompropertyargs", this.onValidationFailure)) {
+                        this.room.setProperty(message.args.key,message.args.value);
                     }
                     break;
                 case "DiscoverRooms":
                     if (Schema.validate(message.args, "/ubiq.rooms.discoverroomsargs", this.onValidationFailure)) {
-                        this.setPeerId(message.args.networkId); // DiscoverRooms needs a response: send network id in case not yet set
+                        this.objectId = message.args.networkId; // Needs a response: send network id in case not yet set
                         this.sendDiscoveredRooms({
                             rooms: this.server.discoverRooms(message.args).map(r => r.getRoomArgs()),
                             version: this.server.version,
@@ -373,14 +397,14 @@ class RoomPeer{
                     break;
                 case "GetBlob":
                     if (Schema.validate(message.args, "/ubiq.rooms.getblobargs", this.onValidationFailure)) {
-                        this.setPeerId(message.args.networkId); // GetBlob needs a response: send network id in case not yet set
+                        this.objectId = message.args.networkId; // Needs a response: send network id in case not yet set
                         this.server.getBlob(message.args.blob);
                         this.sendBlob(message.args.blob);
                     }
                     break;
                 case "Ping":
                     if(Schema.validate(message.args,"/ubiq.rooms.ping",this.onValidationFailure)){
-                        this.setPeerId(message.args.networkId); // Ping needs a response: send network id in case not yet set
+                        this.objectId = message.args.networkId; // Needs a response: send network id in case not yet set
                         this.sendPing();
                     }
                     break;
@@ -395,21 +419,11 @@ class RoomPeer{
         console.log(error.validation.message);
     }
 
-    setPeerArgs(peer){
-        this.objectId = peer.networkId;
-        this.properties = peer.properties;
-        this.uuid = peer.uuid;
-    }
-
-    setPeerId(networkId){
-        this.objectId = networkId;
-    }
-
     getPeerArgs(){
         return {
             uuid: this.uuid,
             networkId: this.objectId,
-            properties: this.properties
+            properties: this.properties.toObject()
         }
     }
 
@@ -429,105 +443,92 @@ class RoomPeer{
     }
 
     sendRejected(joinArgs,reason){
-        this.send(
-            Message.Create(
-                this.objectId,
-                {
-                    type: "Rejected",
-                    args: JSON.stringify({
-                        reason: reason,
-                        joinArgs: joinArgs
-                    })
-                }
-            )
-        );
+        this.send(Message.Create(this.objectId,
+        {
+            type: "Rejected",
+            args: JSON.stringify({
+                reason: reason,
+                joinArgs: joinArgs
+            })
+        }));
     }
 
     sendSetRoom(){
-        this.send(
-            Message.Create(
-                this.objectId,
-                {
-                    type: "SetRoom",
-                    args: JSON.stringify({
-                        room: this.room.getRoomArgs(),
-                        peers: this.room.getPeersArgs()
-                    })
-                }
-            )
-        );
-    }
-
-    sendRoomUpdate(){
-        this.send(
-            Message.Create(
-                this.objectId,
-                {
-                    type: "UpdateRoom",
-                    args: JSON.stringify(this.room.getRoomArgs())
-                }
-            )
-        );
+        this.send(Message.Create(this.objectId,
+        {
+            type: "SetRoom",
+            args: JSON.stringify({
+                room: this.room.getRoomArgs(),
+                peers: this.room.getPeersArgs()
+            })
+        }));
     }
 
     sendDiscoveredRooms(rooms){
-        this.send(
-            Message.Create(
-                this.objectId,
-                {
-                    type: "Rooms",
-                    args: JSON.stringify(rooms)
-                }
-            )
-        )
+        this.send(Message.Create(this.objectId,
+        {
+            type: "Rooms",
+            args: JSON.stringify(rooms)
+        }));
     }
 
-    sendPeerUpdate(peer){
-        this.send(
-            Message.Create(
-                this.objectId,
-                {
-                    type: "UpdatePeer",
-                    args: JSON.stringify(peer.getPeerArgs())
-                }
-            )
-        )
+    sendPeerAdded(peer){
+        this.send(Message.Create(this.objectId,
+        {
+            type: "PeerAdded",
+            args: JSON.stringify({
+                uuid:peer.uuid,
+                networkId:peer.networkId,
+
+            })
+        }));
     }
 
     sendPeerRemoved(peer){
-        this.send(
-            Message.Create(
-                this.objectId,
-                {
-                    type: "RemovedPeer",
-                    args: JSON.stringify(peer.getPeerArgs())
-                }
-            )
-        )
+        this.send(Message.Create(this.objectId,
+        {
+            type: "PeerRemoved",
+            args: JSON.stringify(peer.getPeerArgs())
+        }));
+    }
+
+    sendRoomPropertySet(properties){
+        this.send(Message.Create(this.objectId,
+        {
+            type: "RoomPropertySet",
+            args: JSON.stringify({
+                keys:Object.keys(properties),
+                values:Object.values(properties)
+            })
+        }));
+    }
+
+    sendPeerPropertySet(peer,properties){
+        this.send(Message.Create(this.objectId,
+        {
+            type: "PeerPropertySet",
+            args: JSON.stringify({
+                uuid: peer.uuid,
+                keys:Object.keys(properties),
+                values:Object.values(properties)
+            })
+        }));
     }
 
     sendBlob(blobArgs){
-        this.send(
-            Message.Create(
-                this.objectId,
-                {
-                    type: "Blob",
-                    args: JSON.stringify(blobArgs)
-                }
-            )
-        )
+        this.send(Message.Create(this.objectId,
+        {
+            type: "Blob",
+            args: JSON.stringify(blobArgs)
+        }));
     }
 
     sendPing(){
-        this.send(
-            Message.Create(
-                this.objectId,
-                {
-                    type: "Ping",
-                    args: JSON.stringify(this.getPingArgs())
-                }
-            )
-        )
+        this.send(Message.Create(this.objectId,
+        {
+            type: "Ping",
+            args: JSON.stringify(this.getPingArgs())
+        }));
     }
 
     send(message){
@@ -544,15 +545,15 @@ class EmptyRoom{
 
     removePeer(peer){}
 
-    updatePeer(peer){}
+    addPeer(peer){}
+
+    broadcastPeerProperty(peer,key){}
+
+    setProperty(key,value){}
 
     processMessage(peer, message){}
 
     getPeersArgs(){}
-
-    updateRoom(roomargs){
-        this.roomargs = roomargs;
-    }
 
     getRoomArgs(){
         return {
@@ -573,20 +574,33 @@ class Room{
         this.publish = publish;
         this.name = name;
         this.peers = [];
+        this.properties = new PropertyDictionary();
         this.properties = {};
         this.blobs = {};
     }
 
     addPeer(peer){
-        this.peers.push(peer);
         peer.setRoom(this);
-        this.updatePeer(peer);
+        this.peers.forEach(otherpeer => {
+            otherpeer.sendPeerAdded(peer,peer.properties);
+        });
+        this.peers.push(peer);
     }
 
-    updatePeer(peer){ // The peer arguments are only stored in one place (RoomPeer), so from the rooms point of view, updating the peer is just sending a message
+    broadcastPeerProperty(peer,key,value){
         this.peers.forEach(otherpeer => {
-            otherpeer.sendPeerUpdate(peer);
+            if (otherpeer !== peer){
+                otherpeer.sendPeerPropertySet(peer,key,value);
+            }
         });
+    }
+
+    setProperty(key,value){
+        if (this.properties.set(key,value)){
+            this.peers.forEach(peer => {
+                peer.sendRoomPropertySet(key,value);
+            });
+        }
     }
 
     removePeer(peer){
@@ -614,17 +628,6 @@ class Room{
             name: this.name,
             properties : SerialisedDictionary.To(this.properties)
         };
-    }
-
-    updateRoom(args){
-        if(args.uuid != this.uuid){
-            console.log("Attempt to update room outside membership.");
-        }
-        this.name = args.name;
-        Object.assign(this.properties, SerialisedDictionary.From(args.properties));  // This line converts the key/value properties array into a JS object, and merges it with the existing properties.
-        this.peers.forEach(peer =>{
-            peer.sendRoomUpdate();
-        });
     }
 
     getPeersArgs(){
