@@ -465,6 +465,21 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3130174346742382869, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
+        type: 3}
+      propertyPath: networkId.a
+      value: 3567065202
+      objectReference: {fileID: 0}
+    - target: {fileID: 3130174346742382869, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
+        type: 3}
+      propertyPath: networkId.b
+      value: 2962609092
+      objectReference: {fileID: 0}
+    - target: {fileID: 3130174346742382869, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
+        type: 3}
+      propertyPath: __serializedGoid
+      value: GlobalObjectId_V1-2-78f31cacdfa29a84ba48a53ea43dc606-3130174346742382869-999818504
+      objectReference: {fileID: 0}
     - target: {fileID: 3367109844150072685, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -818,12 +833,12 @@ PrefabInstance:
     - target: {fileID: 7068762446378101730, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
         type: 3}
       propertyPath: networkId.a
-      value: 2777326887
+      value: 127751672
       objectReference: {fileID: 0}
     - target: {fileID: 7068762446378101730, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
         type: 3}
       propertyPath: networkId.b
-      value: 3924585559
+      value: 1828129308
       objectReference: {fileID: 0}
     - target: {fileID: 7068762446378101730, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
         type: 3}
@@ -1101,6 +1116,21 @@ PrefabInstance:
       value: 'Scene
 
 '
+      objectReference: {fileID: 0}
+    - target: {fileID: 3130174346742382869, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
+        type: 3}
+      propertyPath: networkId.a
+      value: 2495036620
+      objectReference: {fileID: 0}
+    - target: {fileID: 3130174346742382869, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
+        type: 3}
+      propertyPath: networkId.b
+      value: 1271844051
+      objectReference: {fileID: 0}
+    - target: {fileID: 3130174346742382869, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
+        type: 3}
+      propertyPath: __serializedGoid
+      value: GlobalObjectId_V1-2-78f31cacdfa29a84ba48a53ea43dc606-3130174346742382869-7068762447081937015
       objectReference: {fileID: 0}
     - target: {fileID: 3367109844150072685, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
         type: 3}
@@ -1562,12 +1592,12 @@ PrefabInstance:
     - target: {fileID: 7068762446378101730, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
         type: 3}
       propertyPath: networkId.a
-      value: 2934912821
+      value: 2428946150
       objectReference: {fileID: 0}
     - target: {fileID: 7068762446378101730, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
         type: 3}
       propertyPath: networkId.b
-      value: 858974516
+      value: 983882903
       objectReference: {fileID: 0}
     - target: {fileID: 7068762446378101730, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
         type: 3}
