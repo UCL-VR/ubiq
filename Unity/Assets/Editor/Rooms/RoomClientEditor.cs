@@ -93,9 +93,9 @@ namespace Ubiq.Rooms
 
             if (available != null)
             {
-                if (available.Count > 0)
+                for(int i = 0; i < Math.Min(available.Count, 5); i++)
                 {
-                    var room = available.First();
+                    var room = available[i];
                     if (GUILayout.Button($"Join Room {room.Name}"))
                     {
                         component.Join(joincode: room.JoinCode);
