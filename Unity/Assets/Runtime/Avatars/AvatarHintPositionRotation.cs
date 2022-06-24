@@ -24,21 +24,6 @@ namespace Ubiq.Avatars
 
         public Vector3 position;
         public Quaternion rotation;
-
-        public PositionRotation(Transform transform, bool local = false)
-        {
-            if (local)
-            {
-                this.position = transform.localPosition;
-                this.rotation = transform.localRotation;
-            }
-            else
-            {
-                this.position = transform.position;
-                this.rotation = transform.rotation;
-            }
-        }
-
     }
 
     public interface IAvatarHintProvider<T>
@@ -46,11 +31,20 @@ namespace Ubiq.Avatars
         T Provide ();
     }
 
-    // Provides static access to body part positions and input to guide avatar
-    // position/rotation and animation.
+    /// <summary>
+    /// Provides static access to body part positions and input to guide avatar
+    /// position/rotation and animation.
+    /// The transform is what should be applied to the Avatar itself. It is in 
+    /// the local space of the Peer (not the world, or VR tracking space).
+    /// </summary>
     public class AvatarHintPositionRotation : MonoBehaviour, IAvatarHintProvider<PositionRotation>
     {
         public AvatarHints.NodePosRot node;
+
+        /// <summary>
+        /// If set, the transform is provided relative to this.
+        /// </summary>
+        public Transform Root;
 
         void OnEnable ()
         {
@@ -64,7 +58,17 @@ namespace Ubiq.Avatars
 
         public PositionRotation Provide()
         {
-            return new PositionRotation (transform);
+            PositionRotation result;
+            result.position = transform.position;
+            result.rotation = transform.rotation;
+
+            if (Root)
+            {
+                result.position = Root.InverseTransformPoint(result.position);
+                result.rotation = Quaternion.Inverse(Root.rotation) * result.rotation;
+            }
+            
+            return result;
         }
     }
 
