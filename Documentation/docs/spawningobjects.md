@@ -1,15 +1,28 @@
 ## Spawning Objects
 
-To spawn an object in the local and all remote clients at the same time, there is a NetworkSpawner.
+You can create objects at runtime on all Peers using the NetworkSpawner.
 
-There are two ways to spawn objects:
+![Network Spawner](images/e8cae779-d00b-47ac-81f2-28f14e6b8fd8.png)
 
-1. NetworkSpawner.Spawn(…)
- Use this for objects that are not meant to be persistent. Objects spawned through this function can only be seen by players that are already connected. A new player that joins later will not see them.
-2. NetworkSpawner.SpawnPersistent(…)
- Use this for objects that are meant to be persistent. Objects spawned through this function will be stored by the server and the client of any new player receives a copy of this list to make sure the new player sees all the persistent objects already in the world.
 
-**Note:**
+Objects are spawned by calling Spawn() or SpawnPersistent(). These are static methods so are accessible anywhere in the code. However, they need a Unity GameObject to find the NetworkScene in which to spawn the object.
 
-The new object prefab needs to be known to the environment! For that, add it to the PrefabCatalogue of the SceneManager. If the scene manager does not have a catalogue yet, you can create one in the project window by right-clicking-\&gt;create-\&gt;Prefab catalogue
- You then have to drag it into the scene manager to use it.
+```
+Spawn(
+	behaviour,  // A Component in the Scene, e.g. the Component calling Spawn
+	prefab 		// The Prefab to Spawn
+)
+```	
+	
+There are two Spawn methods: Spawn and SpawnPersistent.
+
+Spawn is used for objects  that are not meant to be persistent. Objects spawned through this function can only be seen by players that are already connected. A new player that joins later will not see them.
+
+SpawnPersistent will spawn objects that are stored by the server and the client of any new player receives a copy of this list to make sure the new player sees all the persistent objects already in the world.
+
+
+Before a GameObject can be Spawned, it must be added to the PrefabCatalogue of the SceneManager.
+
+Do this by adding a new entry to the Catalogue in the Inspector. Once the Prefab GameObject has been added it can be spawned by passing the same reference to Spawn or SpawnPersistent.
+
+![Prefab Catalogue](images/740061ba-7bfe-4832-9c97-d75e85b9e26c.png)
