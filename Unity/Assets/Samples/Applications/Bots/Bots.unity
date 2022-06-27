@@ -2973,6 +2973,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91278953fa39be149b9d63bc52dfdf51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  EventsFilter: -1
+  Memory: 0
+  MaxMemory: 52428800
 --- !u!114 &1617545859
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3024,10 +3027,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 225323da4818d5f46ad641084486429e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Listen: -1
-  Memory: 0
-  MaxMemory: 52428800
-  Mode: 1
 --- !u!114 &1617545863
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3351,10 +3350,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 225323da4818d5f46ad641084486429e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Listen: -1
-  Memory: 0
-  MaxMemory: 52428800
-  Mode: 1
 --- !u!1 &1950966753
 GameObject:
   m_ObjectHideFlags: 0
