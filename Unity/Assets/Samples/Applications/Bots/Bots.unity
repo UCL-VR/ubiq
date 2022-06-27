@@ -2873,7 +2873,7 @@ MonoBehaviour:
     send_to_ip: nexus.cs.ucl.ac.uk
     send_to_port: 8005
     type: 0
-  ControlRoomId: ceae20e0-357e-4ce2-b692-aebfa77dfafb
+  ControlRoomId: 
 --- !u!4 &1567755671
 Transform:
   m_ObjectHideFlags: 0
@@ -2938,7 +2938,6 @@ GameObject:
   - component: {fileID: 1617545859}
   - component: {fileID: 1617545861}
   - component: {fileID: 1617545863}
-  - component: {fileID: 1617545862}
   - component: {fileID: 1617545858}
   m_Layer: 0
   m_Name: Peer
@@ -3015,18 +3014,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   RoomClient: {fileID: 1617545859}
   Measure: 1
---- !u!114 &1617545862
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1617545856}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 225323da4818d5f46ad641084486429e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1617545863
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3286,7 +3273,6 @@ GameObject:
   - component: {fileID: 1934431613}
   - component: {fileID: 1934431615}
   - component: {fileID: 1934431614}
-  - component: {fileID: 1934431616}
   m_Layer: 0
   m_Name: Peer
   m_TagString: Untagged
@@ -3336,18 +3322,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fddd4936b870f084aa3cf82b0e18125f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1934431616
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1934431612}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 225323da4818d5f46ad641084486429e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1950966753

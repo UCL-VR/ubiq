@@ -79,5 +79,13 @@ namespace Ubiq.Samples.Bots
                 return new Guid(Singleton.ControlRoomId);
             }
         }
+
+        private void OnValidate()
+        {
+            if (string.IsNullOrEmpty(ControlRoomId))
+            {
+                ControlRoomId = Guid.NewGuid().ToString();
+            }
+        }
     }
 }
