@@ -21,22 +21,106 @@ namespace Ubiq.Rooms
     public class RoomClient : NetworkBehaviour
     {
         [Serializable]
-        private class Property
-        {
-            public string key;
-            public string value;
-        }
-
-        [Serializable]
-        private class PeerArgs
+        private class PeerInfo
         {
             public string uuid;
             public NetworkId networkId;
-            public Property[] properties;
+            public List<string> keys = new List<string>();
+            public List<string> values = new List<string>();
         }
 
         [Serializable]
-        private class PeerAddedArgs : PeerArgs { }
+        private class RoomInfo
+        {
+            public string uuid;
+            public string joincode;
+            public bool publish;
+            public string name;
+            public List<string> keys = new List<string>();
+            public List<string> values = new List<string>();
+        }
+
+#region Send to Server
+        [Serializable]
+        private class JoinArgs
+        {
+            public string joincode;
+            public string uuid;
+            public string name;
+            public bool publish;
+            public PeerInfo peer;
+        }
+
+        [Serializable]
+        private class AppendPeerPropertiesArgs
+        {
+            public List<string> keys = new List<string>();
+            public List<string> values = new List<string>();
+        }
+
+        [Serializable]
+        private class AppendRoomPropertiesArgs
+        {
+            public List<string> keys = new List<string>();
+            public List<string> values = new List<string>();
+        }
+
+        [Serializable]
+        private class DiscoverRoomsArgs
+        {
+            public NetworkId networkId;
+            public string joincode;
+        }
+
+        [Serializable]
+        private class SetBlobArgs
+        {
+            public string uuid;
+            public string blob;
+        }
+
+        [Serializable]
+        private class GetBlobArgs
+        {
+            public NetworkId networkId;
+            public string uuid;
+        }
+
+        [Serializable]
+        private struct PingArgs
+        {
+            public NetworkId networkId;
+        }
+#endregion
+
+#region Recv from Server
+        [Serializable]
+        private class RejectedArgs
+        {
+            public string reason;
+            public JoinArgs joinArgs;
+        }
+
+        [Serializable]
+        private class SetRoomArgs
+        {
+            public RoomInfo room;
+            public PeerInfo[] peers;
+        }
+
+        [Serializable]
+        private class RoomsArgs
+        {
+            public List<RoomInfo> rooms;
+            public string version;
+            public DiscoverRoomsArgs request;
+        }
+
+        [Serializable]
+        private class PeerAddedArgs
+        {
+            public PeerInfo peer;
+        }
 
         [Serializable]
         private class PeerRemovedArgs
@@ -45,20 +129,35 @@ namespace Ubiq.Rooms
         }
 
         [Serializable]
-        private class RoomPropertySetArgs
+        private class RoomPropertiesAppendedArgs
         {
-            public string[] keys;
-            public string[] values;
+            public List<string> keys = new List<string>();
+            public List<string> values = new List<string>();
         }
 
         [Serializable]
-        private class PeerPropertySetArgs
+        private class PeerPropertiesAppendedArgs
         {
             public string uuid;
-            public string[] keys;
-            public string[] values;
+            public List<string> keys = new List<string>();
+            public List<string> values = new List<string>();
         }
 
+        private class BlobArgs
+        {
+            public string uuid;
+            public string blob;
+        }
+
+        private class PingResponseArgs
+        {
+            public string sessionId;
+        }
+#endregion
+
+        // Avoid garbage by re-using the lists in these messages
+        private AppendPeerPropertiesArgs _appendPeerPropertiesArgs = new AppendPeerPropertiesArgs();
+        private AppendRoomPropertiesArgs _appendRoomPropertiesArgs = new AppendRoomPropertiesArgs();
 
         public IRoom Room { get => room; }
 
@@ -110,7 +209,7 @@ namespace Ubiq.Rooms
         /// <summary>
         /// Emitted in response to a discovery request
         /// </summary>
-        public RoomsDiscoveredEvent OnRoomsDiscovered = new RoomsDiscoveredEvent();
+        public RoomsEvent OnRooms = new RoomsEvent();
 
         /// <summary>
         /// A list of all the Peers in the Room. This does not include the local Peer, Me.
@@ -137,7 +236,7 @@ namespace Ubiq.Rooms
         private const string roomClientVersion = "0.0.4";
 
         private NetworkId roomServerObjectId = new NetworkId(1);
-        private Dictionary<string, Action<string>> blobCallbacks;
+        private Dictionary<string, Action<string>> blobCallbacks = new Dictionary<string, Action<string>>();
         private float pingSent;
         private float pingReceived;
         private float heartbeatReceived => Time.realtimeSinceStartup - pingReceived;
@@ -145,15 +244,12 @@ namespace Ubiq.Rooms
         public static float HeartbeatTimeout = 5f;
         public static float HeartbeatInterval = 1f;
         private float lastGetRoomsTime;
-        private PeerInterfaceFriend me;
-        private RoomInterfaceFriend room;
+        private PeerInterfaceFriend me = new PeerInterfaceFriend(Guid.NewGuid().ToString());
+        private RoomInterfaceFriend room = new RoomInterfaceFriend();
 
-        private List<Action> actions;
+        private List<Action> actions = new List<Action>();
 
-        /// <summary>
-        /// Contains the current Peers, indexed by UUID
-        /// </summary>
-        private Dictionary<string, PeerInterfaceFriend> peers;
+        private Dictionary<string, PeerInterfaceFriend> peers = new Dictionary<string, PeerInterfaceFriend>();
 
         public class TimeoutNotification : Notification
         {
@@ -175,15 +271,24 @@ namespace Ubiq.Rooms
 
         private TimeoutNotification notification;
 
-        private class PropertyLog
+        private class AppendPropertyLog : PropertyLog
         {
-            private List<string> keys = new List<string>();
-            private List<string> values = new List<string>();
-
-            public void Add (string key, string value)
+            public void Append (string key, string value)
             {
                 keys.Add(key);
                 values.Add(value);
+            }
+        }
+
+        private class PropertyLog
+        {
+            protected List<string> keys = new List<string>();
+            protected List<string> values = new List<string>();
+
+            public void Clear ()
+            {
+                keys.Clear();
+                values.Clear();
             }
 
             public bool TryPop (out string key, out string value)
@@ -210,12 +315,6 @@ namespace Ubiq.Rooms
             public string UUID { get; protected set; }
             public string JoinCode { get; protected set; }
             public bool Publish { get; protected set; }
-
-            private PropertyLog log = new PropertyLog();
-            public int PropertyLogCount => log.Count;
-
-            private PropertyCollection properties = new PropertyCollection();
-
             public string this[string key]
             {
                 get => properties[key];
@@ -223,42 +322,23 @@ namespace Ubiq.Rooms
                 {
                     // Record that the request was made but do not update
                     // properties until we hear back from the server
-                    log.Add(key,value);
+                    _log.Append(key,value);
                 }
             }
 
-            public bool TryPopPropertyLog (out string key, out string value)
+            public PropertyLog log => _log;
+            public PropertyCollection properties = new PropertyCollection();
+
+            private AppendPropertyLog _log = new AppendPropertyLog();
+
+            public void Set(RoomInfo info)
             {
-                return log.TryPop(out key, out value);
+                Name = info.name;
+                UUID = info.uuid;
+                JoinCode = info.joincode;
+                Publish = info.publish;
+                properties.Set(info.keys,info.values);
             }
-
-            public void ForceSetProperty(string key, string value)
-            {
-                properties[key] = value;
-            }
-
-            // // The IsUpdated() method has side effects (in that the flag will be cleared) so only allow calling it from inside RoomClient
-            // public bool NeedsUpdate()
-            // {
-            //     if (properties != null)
-            //     {
-            //         return properties.IsUpdated();
-            //     }
-            //     else
-            //     {
-            //         return false;
-            //     }
-            // }
-
-            // public bool Update(RoomInfo args)
-            // {
-            //     Name = args.Name;
-            //     UUID = args.UUID;
-            //     JoinCode = args.JoinCode;
-            //     Publish = args.Publish;
-            //     properties = new SerializableDictionary(args); // todo: merge the dictionaries properly
-            //     return true;
-            // }
 
             System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             {
@@ -269,11 +349,6 @@ namespace Ubiq.Rooms
             {
                 return properties.GetEnumerator();
             }
-
-            // public RoomInfo GetRoomInfo()
-            // {
-            //     return new RoomInfo(Name, UUID, JoinCode, Publish, properties);
-            // }
         }
 
         /// <summary>
@@ -286,11 +361,22 @@ namespace Ubiq.Rooms
         {
             public NetworkId networkId { get; set; }
             public string uuid { get; set; }
+            public string this[string key]
+            {
+                get => properties[key];
+                set
+                {
+                    if (properties.Set(key,value))
+                    {
+                        _log.Append(key,value);
+                    }
+                }
+            }
 
-            public event Action<string,string> propertySet = delegate {};
-            private PropertyLog log = new PropertyLog();
+            public PropertyLog log => _log;
+            public PropertyCollection properties = new PropertyCollection();
 
-            private PropertyCollection properties = new PropertyCollection();
+            private AppendPropertyLog _log = new AppendPropertyLog();
 
             public PeerInterfaceFriend(string uuid)
             {
@@ -299,49 +385,20 @@ namespace Ubiq.Rooms
 
             public PeerInterfaceFriend(PeerInfo info)
             {
-                uuid = info.uuid;
-                // properties = info.properties;
                 networkId = info.networkId;
+                uuid = info.uuid;
+                properties.Set(info.keys,info.values);
             }
 
-            public string this[string key]
+            public PeerInfo GetPeerInfo()
             {
-                get => properties[key];
-                set
-                {
-                    properties[key] = value;
-                    propertySet(key,value);
-                    log.Add(key,value);
-                }
+                var peerInfo = new PeerInfo();
+                peerInfo.networkId = networkId;
+                peerInfo.uuid = uuid;
+                peerInfo.keys = new List<string>(properties.keys);
+                peerInfo.values = new List<string>(properties.values);
+                return peerInfo;
             }
-
-            public int PropertyLogCount => log.Count;
-
-            public bool TryPopPropertyLog (out string key, out string value)
-            {
-                return log.TryPop(out key, out value);
-            }
-
-
-            public void SetPropertySuppressEvent(string key, string value)
-            {
-                properties[key] = value;
-            }
-
-            // public bool NeedsUpdate()
-            // {
-            //     return properties.IsUpdated();
-            // }
-
-            // public PeerInfo GetPeerInfo()
-            // {
-            //     return new PeerInfo(uuid, networkId, properties);
-            // }
-
-            // public bool Update(PeerInfo info)
-            // {
-            //     return properties.Update(info.properties);
-            // }
 
             System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             {
@@ -377,14 +434,7 @@ namespace Ubiq.Rooms
 
         private void Awake()
         {
-            blobCallbacks = new Dictionary<string, Action<string>>();
-            room = new RoomInterfaceFriend();
-            peers = new Dictionary<string, PeerInterfaceFriend>();
-            actions = new List<Action>();
-
             OnJoinedRoom.AddListener((room) => Debug.Log("Joined Room " + room.Name));
-
-            me = new PeerInterfaceFriend(Guid.NewGuid().ToString());
             OnPeerUpdated.SetExisting(me);
         }
 
@@ -418,19 +468,20 @@ namespace Ubiq.Rooms
                     break;
                 case "SetRoom":
                     {
-                        var args = JsonUtility.FromJson<SetRoom>(container.args);
-                        room.Update(args.room);
+                        var args = JsonUtility.FromJson<SetRoomArgs>(container.args);
+                        room.Set(args.room);
 
                         var newPeerUuids = args.peers.Select(x => x.uuid);
                         var peersToRemove = new List<string>();
-                        foreach (var peer in peers.Keys)
+
+                        // Remove existing peers that are not in the current room
+                        foreach (var existingPeer in peers.Keys)
                         {
-                            if (!newPeerUuids.Contains(peer))
+                            if (!newPeerUuids.Contains(existingPeer))
                             {
-                                peersToRemove.Add(peer);
+                                peersToRemove.Add(existingPeer);
                             }
                         }
-
                         foreach (var uuid in peersToRemove)
                         {
                             var peer = peers[uuid];
@@ -438,14 +489,31 @@ namespace Ubiq.Rooms
                             OnPeerRemoved.Invoke(peer);
                         }
 
-                        foreach (var item in args.peers)
+                        // Potentially update properties for existing peers
+                        foreach (var newPeer in args.peers)
                         {
-                            if(item.uuid == me.uuid)
+                            if (peers.TryGetValue(newPeer.uuid,out var peer) &&
+                                peer.properties.Set(newPeer.keys,newPeer.values))
+                            {
+                                OnPeerUpdated.Invoke(peer);
+                            }
+                        }
+
+                        // Add room peers which are not yet existing peers
+                        foreach (var newPeer in args.peers)
+                        {
+                            if (newPeer.uuid == me.uuid)
                             {
                                 continue;
                             }
 
-                            UpdatePeer(item);
+                            if (!peers.ContainsKey(newPeer.uuid))
+                            {
+                                var peer = new PeerInterfaceFriend(newPeer);
+                                peers.Add(newPeer.uuid,peer);
+                                OnPeerAdded.Invoke(peer);
+                                OnPeerUpdated.Invoke(peer);
+                            }
                         }
 
                         OnJoinedRoom.Invoke(room);
@@ -454,20 +522,21 @@ namespace Ubiq.Rooms
                     break;
                 case "Rooms":
                     {
-                        var response = JsonUtility.FromJson<DiscoverRoomsResponse>(container.args);
-                        if (roomClientVersion != response.version)
+                        var args = JsonUtility.FromJson<RoomsArgs>(container.args);
+                        if (roomClientVersion != args.version)
                         {
-                            Debug.LogError($"Your version {roomClientVersion} of Ubiq doesn't match the server version {response.version}.");
+                            Debug.LogError($"Your version {roomClientVersion} of Ubiq doesn't match the server version {args.version}.");
                         }
                         var rooms = new List<IRoom>();
-                        for (int i = 0; i < response.rooms.Count; i++)
+                        for (int i = 0; i < args.rooms.Count; i++)
                         {
-                            rooms.Add((IRoom)response.rooms[i]);
+                            rooms.Add((IRoom)args.rooms[i]);
                         }
-                        var request = new RoomsDiscoveredRequest();
-                        request.joincode = response.request.joincode;
 
-                        OnRoomsDiscovered.Invoke(rooms,request);
+                        var request = new RoomsDiscoveredRequest();
+                        request.joincode = args.request.joincode;
+
+                        OnRooms.Invoke(rooms,request);
                     }
                     break;
                 case "PeerAdded":
@@ -478,6 +547,7 @@ namespace Ubiq.Rooms
                             var peer = new PeerInterfaceFriend(args.peer);
                             peers.Add(peer.uuid, peer);
                             OnPeerAdded.Invoke(peer);
+                            OnPeerUpdated.Invoke(peer);
                         }
                     }
                     break;
@@ -491,38 +561,32 @@ namespace Ubiq.Rooms
                         }
                     }
                     break;
-                case "RoomPropertySet":
+                case "RoomPropertiesAppended":
                     {
-                        var args = JsonUtility.FromJson<RoomPropertySetArgs>(container.args);
-                        for (int i = 0; i < args.keys.Count; i++)
+                        var args = JsonUtility.FromJson<RoomPropertiesAppendedArgs>(container.args);
+                        if (room.properties.Append(args.keys,args.values))
                         {
-                            room.ForceSetProperty(args.keys[i],args.values[i]);
+                            OnRoomUpdated.Invoke(room);
                         }
-                        OnRoomUpdated.Invoke(room);
                     }
                     break;
-                case "PeerPropertySet":
+                case "PeerPropertiesAppended":
                     {
-                        var args = JsonUtility.FromJson<PeerPropertySetArgs>(container.args);
-                        if (peers.TryGetValue(args.peerUuid,out var peer))
+                        var args = JsonUtility.FromJson<PeerPropertiesAppendedArgs>(container.args);
+                        if (peers.TryGetValue(args.uuid,out var peer) &&
+                            peer.properties.Append(args.keys,args.values))
                         {
-                            for (int i = 0; i < args.keys.Count; i++)
-                            {
-                                peer.SetPropertySuppressEvent(args.keys[i],args.values[i]);
-                            }
+                            OnPeerUpdated.Invoke(peer);
                         }
-
-                        OnPeerUpdated.Invoke(peer);
                     }
                     break;
                 case "Blob":
                     {
-                        var blob = JsonUtility.FromJson<Blob>(container.args);
-                        var key = blob.GetKey();
-                        if(blobCallbacks.ContainsKey(key))
+                        var args = JsonUtility.FromJson<BlobArgs>(container.args);
+                        if(blobCallbacks.TryGetValue(args.uuid,out var callback))
                         {
-                            blobCallbacks[key](blob.blob);
-                            blobCallbacks.Remove(key);
+                            callback(args.blob);
+                            blobCallbacks.Remove(args.uuid);
                         }
                     }
                     break;
@@ -530,34 +594,10 @@ namespace Ubiq.Rooms
                     {
                         pingReceived = Time.realtimeSinceStartup;
                         PlayerNotifications.Delete(ref notification);
-                        var response = JsonUtility.FromJson<PingResponse>(container.args);
+                        var response = JsonUtility.FromJson<PingResponseArgs>(container.args);
                         OnPingResponse(response);
                     }
                     break;
-            }
-        }
-
-        private void UpdatePeer(PeerInfo item)
-        {
-            PeerInterfaceFriend peer;
-
-            if (item.uuid == me.uuid)
-            {
-                // We've already sent the event before updating the server
-                return;
-            }
-            else if (peers.TryGetValue(item.uuid, out peer))
-            {
-                if (peer.Update(item))
-                {
-                    OnPeerUpdated.Invoke(peer);
-                }
-            }
-            else
-            {
-                peer = new PeerInterfaceFriend(item);
-                peers.Add(item.uuid, peer);
-                OnPeerAdded.Invoke(peer);
             }
         }
 
@@ -575,13 +615,13 @@ namespace Ubiq.Rooms
         {
             actions.Add(() =>
             {
-                SendToServer("Join", new JoinRequest()
+                SendToServer("Join", new JoinArgs()
                 {
                     name = name,
                     publish = publish,
                     peer = me.GetPeerInfo()
                 });
-                me.NeedsUpdate(); // This will clear the updated needed flag
+                me.log.Clear(); // Already sent server up-to-date properties
             });
         }
 
@@ -592,12 +632,12 @@ namespace Ubiq.Rooms
         {
             actions.Add(() =>
             {
-                SendToServer("Join", new JoinRequest()
+                SendToServer("Join", new JoinArgs()
                 {
                     joincode = joincode,
                     peer = me.GetPeerInfo()
                 });
-                me.NeedsUpdate();
+                me.log.Clear(); // Already sent server up-to-date properties
             });
         }
 
@@ -608,12 +648,12 @@ namespace Ubiq.Rooms
         {
             actions.Add(() =>
             {
-                SendToServer("Join", new JoinRequest()
+                SendToServer("Join", new JoinArgs()
                 {
                     uuid = guid.ToString(),
                     peer = me.GetPeerInfo()
                 });
-                me.NeedsUpdate();
+                me.log.Clear(); // Already sent server up-to-date properties
             });
         }
 
@@ -628,37 +668,36 @@ namespace Ubiq.Rooms
             networkScene.AddConnection(Connections.Resolve(connection));
         }
 
-        private SetPropertiesRequest setPropertiesRequest = new SetPropertiesRequest();
-
         private void Update()
         {
             actions.ForEach(a => a());
             actions.Clear();
 
-            if (me.PropertyLogCount > 0)
+            if (me.log.Count > 0)
             {
-                setPropertiesRequest.keys.Clear();
-                setPropertiesRequest.values.Clear();
-                while (me.TryPopPropertyLog(out var key, out var value))
+                _appendPeerPropertiesArgs.keys.Clear();
+                _appendPeerPropertiesArgs.values.Clear();
+                while (me.log.TryPop(out var key, out var value))
                 {
-                    setPropertiesRequest.keys.Add(key);
-                    setPropertiesRequest.values.Add(value);
+                    _appendPeerPropertiesArgs.keys.Add(key);
+                    _appendPeerPropertiesArgs.values.Add(value);
                 }
 
-                SendToServer("SetPeerProperty", setPropertiesRequest);
+                SendToServer("AppendPeerProperties", _appendPeerPropertiesArgs);
+                OnPeerUpdated.Invoke(me);
             }
 
-            if (room.PropertyLogCount > 0)
+            if (room.log.Count > 0)
             {
-                setPropertiesRequest.keys.Clear();
-                setPropertiesRequest.values.Clear();
-                while (room.TryPopPropertyLog(out var key, out var value))
+                _appendRoomPropertiesArgs.keys.Clear();
+                _appendRoomPropertiesArgs.values.Clear();
+                while (room.log.TryPop(out var key, out var value))
                 {
-                    setPropertiesRequest.keys.Add(key);
-                    setPropertiesRequest.values.Add(value);
+                    _appendRoomPropertiesArgs.keys.Add(key);
+                    _appendRoomPropertiesArgs.values.Add(value);
                 }
 
-                SendToServer("SetRoomProperty", setPropertiesRequest);
+                SendToServer("AppendRoomProperties", _appendRoomPropertiesArgs);
             }
 
             if (heartbeatSent > HeartbeatInterval)
@@ -679,10 +718,10 @@ namespace Ubiq.Rooms
         /// </summary>
         public void DiscoverRooms(string joincode = "")
         {
-            var request = new DiscoverRoomsRequest();
-            request.networkId = networkId;
-            request.joincode = joincode;
-            SendToServer("DiscoverRooms", request);
+            var args = new DiscoverRoomsArgs();
+            args.networkId = networkId;
+            args.joincode = joincode;
+            SendToServer("DiscoverRooms", args);
         }
 
         /// <summary>
@@ -744,17 +783,17 @@ namespace Ubiq.Rooms
         public void Ping()
         {
             pingSent = Time.realtimeSinceStartup;
-            SendToServer("Ping", new PingRequest() { networkId = networkId });
+            SendToServer("Ping", new PingArgs() { networkId = networkId });
         }
 
-        private void OnPingResponse(PingResponse ping)
+        private void OnPingResponse(PingResponseArgs args)
         {
-            if(SessionId != ping.sessionId && SessionId != null)
+            if(SessionId != args.sessionId && SessionId != null)
             {
-                Leave(); // The RoomClient has re-established connectivity with the RoomServer, but under a different state. So, leave the room and let the user code re-establish any state.
+                Join(name:"",publish:false); // The RoomClient has re-established connectivity with the RoomServer, but under a different state. So, leave the room and let the user code re-establish any state.
             }
 
-            SessionId = ping.sessionId;
+            SessionId = args.sessionId;
         }
     }
 }

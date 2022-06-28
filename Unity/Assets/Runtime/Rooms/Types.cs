@@ -24,84 +24,84 @@ namespace Ubiq.Rooms.Messages
     /// <summary>
     /// An immutable description of a remote peer that is used as a Data Transfer Object by the RoomClient & RoomServer.
     /// </summary>
-    [Serializable]
-    public struct PeerInfo
-    {
-        public string uuid;
-        public NetworkId networkId;
-        public SerializableDictionary properties;
+    // [Serializable]
+    // public struct PeerInfo
+    // {
+    //     public string uuid;
+    //     public NetworkId networkId;
+    //     public SerializableDictionary properties;
 
-        public PeerInfo(string uuid, NetworkId networkId, SerializableDictionary properties)
-        {
-            this.uuid = uuid;
-            this.networkId = networkId;
-            this.properties = properties;
-        }
-    }
+    //     public PeerInfo(string uuid, NetworkId networkId, SerializableDictionary properties)
+    //     {
+    //         this.uuid = uuid;
+    //         this.networkId = networkId;
+    //         this.properties = properties;
+    //     }
+    // }
 
     /// <summary>
     /// An immutable description of a Room. This type is used by RoomClient as a Data Transfer Object. It can also pass it via
     /// events in the guise of an IRoom.
     /// </summary>
-    [Serializable]
-    public struct RoomInfo : IRoom
-    {
-        [SerializeField]
-        private string name;
-        [SerializeField]
-        private string uuid;
-        [SerializeField]
-        private string joincode;
-        [SerializeField]
-        private bool publish;
-        [SerializeField]
-        private SerializableDictionary properties;
+    // [Serializable]
+    // public struct RoomInfo : IRoom
+    // {
+    //     [SerializeField]
+    //     private string name;
+    //     [SerializeField]
+    //     private string uuid;
+    //     [SerializeField]
+    //     private string joincode;
+    //     [SerializeField]
+    //     private bool publish;
+    //     [SerializeField]
+    //     private SerializableDictionary properties;
 
-        public string Name
-        {
-            get => name;
-        }
+    //     public string Name
+    //     {
+    //         get => name;
+    //     }
 
-        public string UUID
-        {
-            get => uuid;
-        }
+    //     public string UUID
+    //     {
+    //         get => uuid;
+    //     }
 
-        public string JoinCode
-        {
-            get => joincode;
-        }
+    //     public string JoinCode
+    //     {
+    //         get => joincode;
+    //     }
 
-        public bool Publish
-        {
-            get => publish;
-        }
+    //     public bool Publish
+    //     {
+    //         get => publish;
+    //     }
 
-        public string this[string key]
-        {
-            get => properties != null ? properties[key] : null;
-            set => Debug.LogError("Cannot set properties on a read-only room");
-        }
+    //     public string this[string key]
+    //     {
+    //         get => properties != null ? properties[key] : null;
+    //         set => Debug.LogError("Cannot set properties on a read-only room");
+    //     }
 
-        public RoomInfo(string name, string uuid, string joincode, bool publish, SerializableDictionary properties)
-        {
-            this.name = name;
-            this.uuid = uuid;
-            this.joincode = joincode;
-            this.publish = publish;
-            this.properties = properties;
-        }
+    //     public RoomInfo(string name, string uuid, string joincode, bool publish, SerializableDictionary properties)
+    //     {
+    //         this.name = name;
+    //         this.uuid = uuid;
+    //         this.joincode = joincode;
+    //         this.publish = publish;
+    //         this.properties = properties;
+    //     }
 
-        public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
-        {
-            return properties.GetEnumerator();
-        }
+    //     public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+    //     {
+    //         return properties.GetEnumerator();
+    //     }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return properties.GetEnumerator();
-        }
-    }
+    //     IEnumerator IEnumerable.GetEnumerator()
+    //     {
+    //         return properties.GetEnumerator();
+    //     }
+    // }
 
     [Serializable]
     public class SetBlobRequest
@@ -129,44 +129,44 @@ namespace Ubiq.Rooms.Messages
         }
     }
 
-    [Serializable]
-    public struct JoinRequest
-    {
-        public string uuid;
-        public string joincode;
-        public string name;
-        public bool publish;
-        public PeerInfo peer;
-    }
+    // [Serializable]
+    // public struct JoinRequest
+    // {
+    //     public string uuid;
+    //     public string joincode;
+    //     public string name;
+    //     public bool publish;
+    //     public PeerInfo peer;
+    // }
 
-    [Serializable]
-    public struct RejectedArgs
-    {
-        public string reason;
-        public JoinRequest joinArgs;
-    }
+    // [Serializable]
+    // public struct RejectedArgs
+    // {
+    //     public string reason;
+    //     public JoinRequest joinArgs;
+    // }
 
-    [Serializable]
-    public struct LeaveRequest
-    {
-        public PeerInfo peer;
-    }
+    // [Serializable]
+    // public struct LeaveRequest
+    // {
+    //     public PeerInfo peer;
+    // }
 
     /// <summary>
     /// The room and peers members contain the state of the room when the join occured on the server
     /// </summary>
-    [Serializable]
-    public class SetRoom
-    {
-        public RoomInfo room;
-        public List<PeerInfo> peers;
+    // [Serializable]
+    // public class SetRoom
+    // {
+    //     public RoomInfo room;
+    //     public List<PeerInfo> peers;
 
-        public SetRoom()
-        {
-            room = new RoomInfo();
-            peers = new List<PeerInfo>();
-        }
-    }
+    //     public SetRoom()
+    //     {
+    //         room = new RoomInfo();
+    //         peers = new List<PeerInfo>();
+    //     }
+    // }
 
     [Serializable]
     public class DiscoverRoomsRequest
@@ -175,13 +175,13 @@ namespace Ubiq.Rooms.Messages
         public string joincode;
     }
 
-    [Serializable]
-    public class DiscoverRoomsResponse
-    {
-        public string version;
-        public List<RoomInfo> rooms;
-        public DiscoverRoomsRequest request;
-    }
+    // [Serializable]
+    // public class DiscoverRoomsResponse
+    // {
+    //     public string version;
+    //     public List<RoomInfo> rooms;
+    //     public DiscoverRoomsRequest request;
+    // }
 
     [Serializable]
     public struct PingResponse
@@ -240,21 +240,10 @@ namespace Ubiq.Rooms
     {
     };
 
-    public class RoomsDiscoveredEvent : UnityEvent<List<IRoom>,RoomsDiscoveredRequest>
-    {
-    };
-
-    public class PeerEvent : UnityEvent<IPeer>
-    {
-    };
-
-    public class PeerUpdatedEvent : ExistingEvent<IPeer>
-    {
-    };
-
-    public class RoomEvent : UnityEvent<IRoom>
-    {
-    };
+    public class PeerEvent : UnityEvent<IPeer>{};
+    public class PeerUpdatedEvent : ExistingEvent<IPeer>{};
+    public class RoomEvent : UnityEvent<IRoom> {};
+    public class RoomsEvent : UnityEvent<List<IRoom>,RoomsDiscoveredRequest> {};
 
     public struct RoomsDiscoveredRequest
     {

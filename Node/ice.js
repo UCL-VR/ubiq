@@ -144,18 +144,15 @@ function generateSha1Hmac(secret,msg){
 // If changes would be made to room properties, push new room args
 function link(room, uri, username, password) {
     console.log("IceServerProvider: Linking room " + room.uuid + " to ice server " + uri + "[" + username + ":" + password + "]");
-    var args = room.getRoomArgs();
 
-    // Find ice-servers property
-    var propI = args.properties.keys.indexOf("ice-servers");
-    if (propI < 0) {
-        args.properties.keys.push("ice-servers");
-        args.properties.values.push("{\"servers\":[]}");
-        propI = args.properties.keys.length-1;
+    var prop = room.properties.get("ice-servers");
+    if (prop === "") {
+        prop = "{\"servers\":[]}";
+        room.properties.append(prop);
     }
 
     // Find ice-server object in property
-    var iceServerProperty = JSON.parse(args.properties.values[propI]);
+    var iceServerProperty = JSON.parse(prop);
     var iceServers = iceServerProperty.servers;
     var serverI = 0;
     var present = iceServers.some((iceServer, i) => { serverI = i; return iceServer.uri === uri; });
@@ -173,8 +170,7 @@ function link(room, uri, username, password) {
         server.uri = uri;
         server.username = username;
         server.password = password;
-        args.properties.values[propI] = JSON.stringify(iceServerProperty);
-        room.updateRoom(args);
+        room.appendProperties("ice-servers",JSON.stringify(iceServerProperty));
     }
 }
 
@@ -186,13 +182,13 @@ function unlink(room, uri) {
     var args = room.getRoomArgs();
 
     // Find ice-servers property
-    var propI = args.properties.keys.indexOf("ice-servers");
+    var propI = args.keys.indexOf("ice-servers");
     if (propI < 0) {
         return;
     }
 
     // Remove all ice servers with matching uri
-    var iceServers = JSON.parse(args.properties.values[propI]);
+    var iceServers = JSON.parse(args.values[propI]);
     while (true) {
         var serverI = 0;
         var present = iceServers.some((iceServer, i) => { serverI = i; return iceServer.uri === uri; });

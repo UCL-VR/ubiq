@@ -20,12 +20,12 @@ namespace Ubiq.Rooms
 
         private void Awake()
         {
-            (target as RoomClient).OnRoomsDiscovered.AddListener(RoomClient_OnRoomsDiscovered);
+            (target as RoomClient).OnRooms.AddListener(RoomClient_OnRoomsDiscovered);
         }
 
         private void OnDestroy()
         {
-            (target as RoomClient).OnRoomsDiscovered.RemoveListener(RoomClient_OnRoomsDiscovered);
+            (target as RoomClient).OnRooms.RemoveListener(RoomClient_OnRoomsDiscovered);
         }
 
         private void OnEnable()
@@ -115,7 +115,7 @@ namespace Ubiq.Rooms
 
             if(GUILayout.Button("Leave Room"))
             {
-                component.Leave();
+                component.Join("",false);
             }
 
             if (GUILayout.Button("Refresh"))

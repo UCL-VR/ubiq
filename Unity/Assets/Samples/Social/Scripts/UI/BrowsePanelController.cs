@@ -20,7 +20,7 @@ namespace Ubiq.Samples
 
         private void OnEnable()
         {
-            mainMenu.roomClient.OnRoomsDiscovered.AddListener(RoomClient_OnRoomsDiscovered);
+            mainMenu.roomClient.OnRooms.AddListener(RoomClient_OnRoomsDiscovered);
             mainMenu.roomClient.OnJoinedRoom.AddListener(RoomClient_OnJoinedRoom);
             UpdateAvailableRooms();
         }
@@ -29,7 +29,7 @@ namespace Ubiq.Samples
         {
             if (mainMenu.roomClient)
             {
-                mainMenu.roomClient.OnRoomsDiscovered.RemoveListener(RoomClient_OnRoomsDiscovered);
+                mainMenu.roomClient.OnRooms.RemoveListener(RoomClient_OnRoomsDiscovered);
                 mainMenu.roomClient.OnJoinedRoom.RemoveListener(RoomClient_OnJoinedRoom);
             }
         }

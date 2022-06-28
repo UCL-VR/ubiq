@@ -13,7 +13,7 @@ namespace Ubiq.Samples
         {
             if (mainMenu && mainMenu.roomClient)
             {
-                mainMenu.roomClient.Leave();
+                mainMenu.roomClient.Join("",false);
             }
         }
     }

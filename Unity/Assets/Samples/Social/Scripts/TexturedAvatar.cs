@@ -7,6 +7,7 @@ using UnityEngine.Events;
 using UnityEngine;
 using Avatar = Ubiq.Avatars.Avatar;
 using Ubiq.Rooms;
+using Ubiq.Messaging;
 
 namespace Ubiq.Samples
 {
@@ -23,6 +24,7 @@ namespace Ubiq.Samples
 
         private Avatar avatar;
         private string uuid;
+        private RoomClient roomClient;
 
         private Texture2D cached; // Cache for GetTexture. Do not do anything else with this; use the uuid
 
@@ -34,6 +36,8 @@ namespace Ubiq.Samples
 
         private void Start()
         {
+            roomClient = NetworkScene.FindNetworkScene(this).GetComponentInChildren<RoomClient>();
+
             if (avatar.IsLocal)
             {
                 var hasSavedSettings = false;
@@ -79,7 +83,7 @@ namespace Ubiq.Samples
 
                 if(avatar.IsLocal)
                 {
-                    avatar.Peer["ubiq.avatar.texture.uuid"] = this.uuid;
+                    roomClient.Me["ubiq.avatar.texture.uuid"] = this.uuid;
                 }
 
                 if (avatar.IsLocal && SaveTextureSetting)

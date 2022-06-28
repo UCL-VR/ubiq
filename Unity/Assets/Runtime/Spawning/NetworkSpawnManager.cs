@@ -123,7 +123,7 @@ namespace Ubiq.Spawning
             tmpStrings.Clear();
             foreach(var item in spawnedForRoom)
             {
-                if (room[item.Key] == null)
+                if (room[item.Key] == string.Empty)
                 {
                     tmpStrings.Add(item.Key);
                 }
@@ -242,7 +242,7 @@ namespace Ubiq.Spawning
             // For room scope objects, despawn when we hear back from server
             if (key != null)
             {
-                roomClient.Room[key] = null;
+                roomClient.Room[key] = string.Empty;
                 return;
             }
 

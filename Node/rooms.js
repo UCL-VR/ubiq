@@ -10,23 +10,71 @@ class PropertyDictionary{
         this.dict = {};
     }
 
-    set(key,value){
-        if (value === ""){
-            // Attempting to remove
-            if (this.dict.hasOwnProperty(key)){
-                delete this.dict.key;
-                return true;
+    append(keys,values){
+        var response = {
+            keys: [],
+            values: []
+        };
+
+        if (keys === undefined || values === undefined){
+            return response;
+        }
+
+        var set = function (key,value,dict) {
+            if (value === ""){
+                // Attempting to remove
+                if (dict.hasOwnProperty(key)){
+                    delete dict.key;
+                    return true;
+                }
+
+                return false;
             }
 
-            return false;
+            if (dict.hasOwnProperty(key) && dict[key] === value){
+                return false;
+            }
+
+            dict[key] = value;
+            return true;
         }
 
-        if (this.dict.hasOwnProperty(key) && this.dict[key] === value){
-            return false;
+        if ((typeof keys === 'string' || keys instanceof String)
+            && (typeof values === 'string' || values instanceof String)) {
+
+            if (set(keys,values,this.dict)){
+                response.keys = [keys],
+                response.values = [values]
+            }
+            return response;
         }
 
-        this.dict[key] = value;
-        return true;
+        if (!Array.isArray(keys) || !Array.isArray(values)){
+            return response;
+        }
+
+        // Set for uniqueness - if modified multiple times, last value is used
+        var modified = new Set();
+        var dict = this.dict;
+        keys.forEach(function(key,i){
+            if (values.length <= i){
+                return;
+            }
+
+            var value = values[i];
+            if (set(key,value,dict)){
+                modified.add(key);
+            }
+        });
+
+        response.keys = Array.from(modified);
+        response.values = response.keys.map((key) => this.get(key));
+        return response;
+    }
+
+    set(keys,values){
+        this.dict = {};
+        append(keys,values);
     }
 
     get(key){
@@ -36,18 +84,12 @@ class PropertyDictionary{
         return "";
     }
 
-    toObject(){
-        return { keys: Object.keys(object), values: Object.values(object) };
-    }
-}
-
-class SerialisedDictionary{
-    static From(dictionary){
-        return Object.assign(...dictionary.keys.map((k,i) => ({[k]: dictionary.values[i]})));
+    keys(){
+        return Object.keys(this.dict);
     }
 
-    static To(object){
-        return { keys: Object.keys(object), values: Object.values(object) };
+    values(){
+        return Object.values(this.dict);
     }
 }
 
@@ -186,27 +228,10 @@ class RoomServer extends EventEmitter{
         this.roomDatabase.remove(room.uuid);
         console.log("RoomServer: Deleting empty room " + room.uuid);
     }
-
-    // Expects a blob from schema ubiq.rooms.blob
-    setBlob(blob){
-        var room = this.roomDatabase.uuid(blob.room);
-        // only existing rooms may have blobs set
-        if(room !== null) {
-            room.blobs[blob.uuid] = blob.blob;
-        }
-    }
-
-    // Expects a blob from schema ubiq.rooms.blob
-    getBlob(blob){
-        var room = this.roomDatabase.uuid(blob.room);
-        // only existing rooms may have blobs set
-        if(room !== null && room.blobs.hasOwnProperty(blob.uuid)){
-            blob.blob = room.blobs[blob.uuid];
-        }
-    }
 }
 
-// Beware that while jsonschema can resolve forward declared references, initialisation is order dependent, and "alias" schemas must be defined after
+// Be aware that while jsonschema can resolve forward declared references,
+// initialisation is order dependent, and "alias" schemas must be defined after
 // their concrete counterpart.
 
 Schema.add({
@@ -238,9 +263,10 @@ Schema.add({
     properties: {
         uuid: {type: "string"},
         networkId: {$ref: "/ubiq.messaging.networkid"},
-        properties: {type: "object"}
+        keys: {type: "array", items: {type: "string"}},
+        values: {type: "array", items: {type: "string"}},
     },
-    required: ["uuid","networkId","properties"]
+    required: ["uuid","networkId","keys","values"]
 });
 
 Schema.add({
@@ -251,16 +277,37 @@ Schema.add({
         joincode: {type: "string"},
         publish: {type: "boolean"},
         name: {type: "string"},
-        properties: {type: "object"}
+        keys: {type: "array", items: {type: "string"}},
+        values: {type: "array", items: {type: "string"}},
     },
-    required: ["uuid","joincode","publish","name","properties"]
+    required: ["uuid","joincode","publish","name","keys","values"]
+});
+
+Schema.add({
+    id: "/ubiq.rooms.appendpeerpropertiesargs",
+    type: "object",
+    properties: {
+        keys: {type: "array", items: {type: "string"}},
+        values: {type: "array", items: {type: "string"}}
+    },
+    required: ["keys","values"]
+});
+
+Schema.add({
+    id: "/ubiq.rooms.appendroompropertiesargs",
+    type: "object",
+    properties: {
+        keys: {type: "array", items: {type: "string"}},
+        values: {type: "array", items: {type: "string"}}
+    },
+    required: ["keys","values"]
 });
 
 Schema.add({
     id: "/ubiq.rooms.ping",
     type: "object",
     properties: {
-        networkId: { $ref: "/ubiq.messaging.networkid"}
+        networkId: { $ref: "/ubiq.messaging.networkid"} // required because this needs a response
     },
     required: ["networkId"]
 });
@@ -269,7 +316,7 @@ Schema.add({
     id: "/ubiq.rooms.discoverroomsargs",
     type: "object",
     properties: {
-        networkId: { $ref: "/ubiq.messaging.networkid"},
+        networkId: { $ref: "/ubiq.messaging.networkid"}, // required because this needs a response
         joincode: {type: "string"}
     },
     required: ["networkId"]
@@ -279,30 +326,20 @@ Schema.add({
     id: "/ubiq.rooms.setblobargs",
     type: "object",
     properties: {
-        blob: { $ref: "/ubiq.rooms.blob"}
+        uuid: { type: "string"},
+        blob: { type: "string"}
     },
-    required: ["blob"]
+    required: ["uuid","blob"]
 });
 
 Schema.add({
     id: "/ubiq.rooms.getblobargs",
     type: "object",
     properties: {
-        networkId: { $ref: "/ubiq.messaging.networkid"},
-        blob: { $ref: "/ubiq.rooms.blob"}
+        networkId: { $ref: "/ubiq.messaging.networkid"}, // required because this needs a response
+        uuid: { type: "string"}
     },
-    required: ["networkId","blob"]
-});
-
-Schema.add({
-    id: '/ubiq.rooms.blob',
-    type: "object",
-    properties: {
-        room: {type: "string"}, //room uuid
-        uuid: {type: "string"}, //blob uuid
-        blob: {type: "string"}  //blob contents
-    },
-    required: ["room","uuid","blob"]
+    required: ["networkId","uuid"]
 });
 
 Schema.add({
@@ -363,21 +400,17 @@ class RoomPeer{
                         this.server.join(this, message.args);
                     }
                     break;
-                case "SetPeerProperty":
-                    if (Schema.validate(message.args, "/ubiq.rooms.setpeerpropertyargs", this.onValidationFailure)) {
-                        message.args.key.forEach(otherpeer => {
-                            if (otherpeer !== peer){
-                                otherpeer.sendPeerPropertySet(peer,key,value);
-                            }
-                        });
-                        if (this.properties.set(message.args.key,message.args.value)){
-                            this.room.broadcastPeerProperty(this,message.args.key);
+                case "AppendPeerProperties":
+                    if (Schema.validate(message.args, "/ubiq.rooms.appendpeerpropertiesargs", this.onValidationFailure)) {
+                        var modified = this.properties.append(message.args.keys,message.args.values);
+                        if (modified.keys.length > 0){
+                            this.room.broadcastPeerProperties(this,modified.keys,modified.values);
                         }
                     }
                     break;
-                case "SetRoomProperty":
-                    if (Schema.validate(message.args, "/ubiq.rooms.setroompropertyargs", this.onValidationFailure)) {
-                        this.room.setProperty(message.args.key,message.args.value);
+                case "AppendRoomProperties":
+                    if (Schema.validate(message.args, "/ubiq.rooms.appendroompropertiesargs", this.onValidationFailure)) {
+                        this.room.appendProperties(message.args.keys,message.args.values);
                     }
                     break;
                 case "DiscoverRooms":
@@ -392,14 +425,13 @@ class RoomPeer{
                     break;
                 case "SetBlob":
                     if (Schema.validate(message.args, "/ubiq.rooms.setblobargs", this.onValidationFailure)) {
-                        this.server.setBlob(message.args.blob);
+                        this.server.setBlob(message.args.uuid,message.args.blob);
                     }
                     break;
                 case "GetBlob":
                     if (Schema.validate(message.args, "/ubiq.rooms.getblobargs", this.onValidationFailure)) {
                         this.objectId = message.args.networkId; // Needs a response: send network id in case not yet set
-                        this.server.getBlob(message.args.blob);
-                        this.sendBlob(message.args.blob);
+                        this.sendBlob(this.room.getBlob(message.args.uuid));
                     }
                     break;
                 case "Ping":
@@ -423,13 +455,8 @@ class RoomPeer{
         return {
             uuid: this.uuid,
             networkId: this.objectId,
-            properties: this.properties.toObject()
-        }
-    }
-
-    getPingArgs(){
-        return {
-            sessionId: this.sessionId
+            keys: this.properties.keys(),
+            values: this.properties.values()
         }
     }
 
@@ -464,11 +491,11 @@ class RoomPeer{
         }));
     }
 
-    sendDiscoveredRooms(rooms){
+    sendDiscoveredRooms(args){
         this.send(Message.Create(this.objectId,
         {
             type: "Rooms",
-            args: JSON.stringify(rooms)
+            args: JSON.stringify(args)
         }));
     }
 
@@ -477,9 +504,7 @@ class RoomPeer{
         {
             type: "PeerAdded",
             args: JSON.stringify({
-                uuid:peer.uuid,
-                networkId:peer.networkId,
-
+                peer: peer.getPeerArgs()
             })
         }));
     }
@@ -488,38 +513,43 @@ class RoomPeer{
         this.send(Message.Create(this.objectId,
         {
             type: "PeerRemoved",
-            args: JSON.stringify(peer.getPeerArgs())
-        }));
-    }
-
-    sendRoomPropertySet(properties){
-        this.send(Message.Create(this.objectId,
-        {
-            type: "RoomPropertySet",
             args: JSON.stringify({
-                keys:Object.keys(properties),
-                values:Object.values(properties)
+                uuid: peer.uuid
             })
         }));
     }
 
-    sendPeerPropertySet(peer,properties){
+    sendRoomPropertiesAppended(keys,values){
         this.send(Message.Create(this.objectId,
         {
-            type: "PeerPropertySet",
+            type: "RoomPropertiesAppended",
+            args: JSON.stringify({
+                keys: keys,
+                values: values
+            })
+        }));
+    }
+
+    sendPeerPropertiesAppended(peer,keys,values){
+        this.send(Message.Create(this.objectId,
+        {
+            type: "PeerPropertiesAppended",
             args: JSON.stringify({
                 uuid: peer.uuid,
-                keys:Object.keys(properties),
-                values:Object.values(properties)
+                keys: keys,
+                values: values
             })
         }));
     }
 
-    sendBlob(blobArgs){
+    sendBlob(uuid,blob){
         this.send(Message.Create(this.objectId,
         {
             type: "Blob",
-            args: JSON.stringify(blobArgs)
+            args: JSON.stringify({
+                uuid: uuid,
+                blob: blob
+            })
         }));
     }
 
@@ -527,7 +557,9 @@ class RoomPeer{
         this.send(Message.Create(this.objectId,
         {
             type: "Ping",
-            args: JSON.stringify(this.getPingArgs())
+            args: JSON.stringify({
+                sessionId: this.sessionId
+            })
         }));
     }
 
@@ -547,9 +579,9 @@ class EmptyRoom{
 
     addPeer(peer){}
 
-    broadcastPeerProperty(peer,key){}
+    broadcastPeerProperties(peer,keys){}
 
-    setProperty(key,value){}
+    appendProperties(key,value){}
 
     processMessage(peer, message){}
 
@@ -561,7 +593,8 @@ class EmptyRoom{
             joincode: "",
             publish: false,
             name: "",
-            properties: []
+            keys: [],
+            values: []
         }
     }
 }
@@ -575,7 +608,6 @@ class Room{
         this.name = name;
         this.peers = [];
         this.properties = new PropertyDictionary();
-        this.properties = {};
         this.blobs = {};
     }
 
@@ -587,20 +619,19 @@ class Room{
         this.peers.push(peer);
     }
 
-    broadcastPeerProperty(peer,key,value){
+    broadcastPeerProperties(peer,keys,values){
         this.peers.forEach(otherpeer => {
             if (otherpeer !== peer){
-                otherpeer.sendPeerPropertySet(peer,key,value);
+                otherpeer.sendPeerPropertiesAppended(peer,keys,values);
             }
         });
     }
 
-    setProperty(key,value){
-        if (this.properties.set(key,value)){
-            this.peers.forEach(peer => {
-                peer.sendRoomPropertySet(key,value);
-            });
-        }
+    appendProperties(keys,values){
+        var modified = this.properties.append(keys,values);
+        this.peers.forEach(peer => {
+            peer.sendRoomPropertiesAppended(modified.keys,modified.values);
+        });
     }
 
     removePeer(peer){
@@ -620,13 +651,25 @@ class Room{
         }
     }
 
+    setBlob(uuid,blob){
+        this.blobs[uuid] = blob;
+    }
+
+    getBlob(uuid){
+        if(this.blobs.hasOwnProperty(uuid)){
+            return this.blobs[uuid];
+        }
+        return "";
+    }
+
     getRoomArgs(){
         return {
             uuid: this.uuid,
             joincode: this.joincode,
             publish: this.publish,
             name: this.name,
-            properties : SerialisedDictionary.To(this.properties)
+            keys: this.properties.keys(),
+            values: this.properties.values()
         };
     }
 

@@ -143,7 +143,7 @@ namespace Ubiq.Voip
             var iceServersString = room["ice-servers"];
 
             // We're only interested if ice servers has changed
-            if (iceServersString != null
+            if (iceServersString != string.Empty
                 && iceServersString != prevIceServersString)
             {
                 // Allocates, but this shouldn't happen frequently

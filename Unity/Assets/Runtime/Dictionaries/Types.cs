@@ -17,7 +17,10 @@ namespace Ubiq.Dictionaries
 
     public class PropertyCollection : IEnumerable<KeyValuePair<string,string>>
     {
+        private Dictionary<string,string> _tmpDict = new Dictionary<string, string>();
         private Dictionary<string,string> dict = new Dictionary<string, string>();
+        public IEnumerable<string> keys => dict.Keys;
+        public IEnumerable<string> values => dict.Values;
 
         public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
         {
@@ -39,23 +42,71 @@ namespace Ubiq.Dictionaries
                 }
                 return string.Empty;
             }
-            set
-            {
-                if (value == null || value == string.Empty)
-                {
-                    // Remove key
-                    if (dict.ContainsKey(key))
-                    {
-                        dict.Remove(key);
-                    }
-                    return;
-                }
+        }
 
-                if (this[key] != value)
+        public void Clear()
+        {
+            dict.Clear();
+        }
+
+        public bool Set (string key, string value)
+        {
+            if (value == null || value == string.Empty)
+            {
+                // Remove key
+                if (dict.ContainsKey(key))
                 {
-                    dict[key] = value;
+                    dict.Remove(key);
+                    return true;
                 }
             }
+
+            if (dict.TryGetValue(key, out var existing)
+                && existing == value)
+            {
+                return false;
+            }
+
+            dict[key] = value;
+            return true;
+        }
+
+        public bool Set (List<string> keys, List<string> values)
+        {
+            _tmpDict.Clear();
+            for(int i = 0; i < keys.Count; i++)
+            {
+                if (i >= values.Count)
+                {
+                    break;
+                }
+
+                _tmpDict.Add(keys[i],values[i]);
+            }
+
+            if (!_tmpDict.Equals(dict))
+            {
+                var swap = dict;
+                dict = _tmpDict;
+                _tmpDict = swap;
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool Append (List<string> keys, List<string> values)
+        {
+            var modified = false;
+            for (int i = 0; i < keys.Count; i++)
+            {
+                if (i >= values.Count)
+                {
+                    break;
+                }
+                modified = modified || Set(keys[i],values[i]);
+            }
+            return modified;
         }
     }
     /// <summary>
