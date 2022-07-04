@@ -1,10 +1,10 @@
 The Samples folder demonstrates how to use Ubiq.
 
-The Intro folder is where to start. It contains the Hello World room, and environments showing off what Ubiq can do.
+The Social folder is where to start. It contains a fully functional social application showing off what Ubiq can do.
 
-The Single folder contains single-purpose minimal working examples. These show how to achieve specific goals (such as spawning objects) in isolation, so you can see how they work without being confused by extraneous functionality.
+The Boids folder contains an example of a networked application without the additional functionality in the social sample (Avatars, UI, etc).
 
-The Applications folder contains fully working games and experiments showing how the parts can be put together to make a complete experience.
+The MinimalExamples folder contains single-purpose minimal working examples. These show how to achieve specific goals (such as spawning objects) in isolation, so you can see how they work.
 
-The Assets folder contains various assets used by the samples. All of the assets are CC0, meaning you can re-use them as you wish, including in closed source & commercial products.
+All of the assets in the samples are CC0, meaning you can re-use them as you wish, including in closed source & commercial products.
 

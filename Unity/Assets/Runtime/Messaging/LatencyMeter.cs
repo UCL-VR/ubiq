@@ -4,89 +4,90 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Ubiq.Logging;
-using Ubiq.Messaging;
 using Ubiq.Rooms;
 using UnityEngine;
 
-/// <summary>
-/// Works with a counterpart on other Peers to measure the Round Trip Time to that Peer and write them to an Event Log.
-/// </summary>
-public class LatencyMeter : MonoBehaviour, INetworkComponent
+namespace Ubiq.Messaging
 {
-    private NetworkContext context;
-    private RoomClient client;
-    private Dictionary<string, Stopwatch> transmissionTimes;
-    private LogEmitter latencies;
-
-    private void Awake()
+    /// <summary>
+    /// Works with a counterpart on other Peers to measure the Round Trip Time to that Peer and write them to an Event Log.
+    /// </summary>
+    public class LatencyMeter : NetworkBehaviour
     {
-        transmissionTimes = new Dictionary<string, Stopwatch>();
-    }
+        private RoomClient client;
+        private LogEmitter latencies;
+        private Dictionary<string, Stopwatch> transmissionTimes = new Dictionary<string, Stopwatch>();
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        context = NetworkScene.Register(this);
-        UnityEngine.Debug.Assert(context.scene.Id == context.networkObject.Id); // The LatencyMeter has no way to find other meters other than to send messages to the Peer, so ensure that its GO is always the Peer
-        client = context.scene.GetComponentInChildren<RoomClient>();
-        latencies = new ExperimentLogEmitter(this);
-    }
-
-    private struct Message
-    {
-        public NetworkId source;
-        public string token;
-        public bool reply;
-        public float deltaTime; // This is the frame interval at the remote PC; the RTT will be dependent on this so it is useful to have it too.
-    }
-
-    public void MeasurePeerLatencies(IPeer peer)
-    {
-        if (peer.UUID == client.Me.UUID)
+        // Start is called before the first frame update
+        protected override void Started()
         {
-            return;
+            latencies = new ExperimentLogEmitter(this);
+            client = networkScene.GetComponentInChildren<RoomClient>();
         }
 
-        Message message;
-        message.source = context.scene.Id;
-        message.token = Guid.NewGuid().ToString();
-        message.reply = false;
-        message.deltaTime = 0;
-        var stopwatch = new Stopwatch();
-        stopwatch.Start();
-        transmissionTimes[message.token] = stopwatch;
-        context.SendJson(peer.NetworkObjectId, message);
-    }
-
-    public void MeasurePeerLatencies()
-    {
-        foreach (var peer in client.Peers)
+        private struct Message
         {
-            MeasurePeerLatencies(peer);
+            public string srcPeer;
+            public string dstPeer;
+            public string token;
+            public bool reply;
+            public float deltaTime; // This is the frame interval at the remote PC; the RTT will be dependent on this so it is useful to have it too.
         }
-    }
 
-    public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
-    {
-        var msg = message.FromJson<Message>();
-        var source = msg.source;
-
-        if (msg.reply)
+        public void MeasurePeerLatencies(IPeer peer)
         {
-            Stopwatch stopwatch;
-            if (transmissionTimes.TryGetValue(msg.token, out stopwatch))
+            if (peer.uuid == client.Me.uuid)
             {
-                stopwatch.Stop();
-                latencies.Log("RTT", context.scene.Id, source, stopwatch.ElapsedMilliseconds, msg.deltaTime);
+                return;
             }
-            transmissionTimes.Remove(msg.token);
+
+            Message message;
+            message.srcPeer = client.Me.uuid;
+            message.dstPeer = peer.uuid;
+            message.token = Guid.NewGuid().ToString();
+            message.reply = false;
+            message.deltaTime = 0;
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            transmissionTimes[message.token] = stopwatch;
+            SendJson(message);
         }
-        else
+
+        public void MeasurePeerLatencies()
         {
-            msg.source = context.scene.Id;
-            msg.reply = true;
-            msg.deltaTime = Time.deltaTime;
-            context.SendJson(source, msg);
+            foreach (var peer in client.Peers)
+            {
+                MeasurePeerLatencies(peer);
+            }
+        }
+
+        protected override void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+        {
+            var msg = message.FromJson<Message>();
+
+            if (!client || msg.dstPeer != client.Me.uuid)
+            {
+                return;
+            }
+
+            if (msg.reply)
+            {
+                if (transmissionTimes.TryGetValue(msg.token, out var stopwatch))
+                {
+                    stopwatch.Stop();
+                    latencies.Log("RTT", msg.dstPeer, msg.srcPeer, stopwatch.ElapsedMilliseconds, msg.deltaTime);
+                }
+                transmissionTimes.Remove(msg.token);
+            }
+            else
+            {
+                var src = msg.srcPeer;
+                msg.srcPeer = msg.dstPeer;
+                msg.dstPeer = src;
+                msg.reply = true;
+                msg.deltaTime = Time.deltaTime;
+                SendJson(msg);
+            }
         }
     }
 }

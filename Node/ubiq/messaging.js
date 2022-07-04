@@ -4,7 +4,7 @@ const { Schema } = require('./schema');
 const { performance } = require('perf_hooks');
 const { type } = require('os');
 
-const MESSAGE_HEADER_SIZE = 10;
+const MESSAGE_HEADER_SIZE = 8;
 
 Schema.add({
     id: '/ubiq.messaging.networkid',
@@ -89,12 +89,11 @@ class Message{
         msg.buffer = data;
         msg.length = data.readInt32LE(0)
         msg.objectId = new NetworkId(data.slice(4));
-        msg.componentId = data.readUInt16LE(12)
-        msg.message = data.slice(14);
+        msg.message = data.slice(12);
         return msg;
     }
 
-    static Create(objectId, componentId, message){
+    static Create(objectId, message){
         var msg = new Message();
         
         if(!Buffer.isBuffer(message)){
@@ -115,13 +114,11 @@ class Message{
 
         buffer.writeInt32LE(length, 0);
         buffer.writeNetworkId(objectId, 4);
-        buffer.writeInt32LE(componentId, 12);
-        message.copy(buffer, 14);
+        message.copy(buffer, 12);
 
         var msg = new Message();
         msg.buffer = buffer;
         msg.length = length;
-        msg.componentId = componentId;
         msg.objectId = objectId;
         msg.message = message;
 

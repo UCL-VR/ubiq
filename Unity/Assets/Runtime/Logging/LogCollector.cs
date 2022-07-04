@@ -14,21 +14,19 @@ using System.Collections;
 namespace Ubiq.Logging
 {
     /// <summary>
-    /// Receives local and remote log events and writes them to a Stream. Events 
-    /// are collected when StartCollection is called. Once StartCollection has 
+    /// Receives local and remote log events and writes them to a Stream. Events
+    /// are collected when StartCollection is called. Once StartCollection has
     /// been called, all logs from the Peer group will be sent to that collector.
     /// </summary>
     /// <remarks>
-    /// The LogCollector writes a FileStream internally to the persistent data 
-    /// storage location of the platform. This is for convenience (only one 
-    /// Component needed to start with), though it may be desirable to re-direct 
+    /// The LogCollector writes a FileStream internally to the persistent data
+    /// storage location of the platform. This is for convenience (only one
+    /// Component needed to start with), though it may be desirable to re-direct
     /// this Stream to another destination.
     /// </remarks>
-    [NetworkComponentId(typeof(LogCollector), ComponentId)]
-    public class LogCollector : MonoBehaviour, INetworkComponent
+    public class LogCollector : MonoBehaviour
     {
-        public const ushort ComponentId = 3;
-
+        public static NetworkId Id = new NetworkId("fc26-78b8-4498-9953");
         public EventType EventsFilter = (EventType)(-1); // -1 in 2's complement will set all bits to 1.
 
         public enum OperatingMode
@@ -49,25 +47,38 @@ namespace Ubiq.Logging
         private LockFreeQueue<ReferenceCountedSceneGraphMessage> events = new LockFreeQueue<ReferenceCountedSceneGraphMessage>();
 
         private IOutputStream[] outputStreams;
-        private NetworkContext context;
         private RoomClient roomClient;
 
+        private NetworkScene _networkScene;
+        private NetworkScene networkScene
+        {
+            get
+            {
+                if (!_networkScene)
+                {
+                    _networkScene = NetworkScene.FindNetworkScene(this);
+                }
+
+                return _networkScene;
+            }
+        }
+
         /// <summary>
-        /// Stores whether the Active Collector has at some point changed 
-        /// between one live Collector and another. If there has only ever been 
+        /// Stores whether the Active Collector has at some point changed
+        /// between one live Collector and another. If there has only ever been
         /// one Active Collector, we can say we have full visibility on all the
         /// events that flow to it.
         /// </summary>
         private bool activeCollectorChanged = false;
 
         /// <summary>
-        /// The NetworkSceneId of the Active collector. If this is null, events 
+        /// The NetworkSceneId of the Active collector. If this is null, events
         /// should be cached, otherwise, they should be forwarded to this Peer.
         /// </summary>
         private NetworkId destination = new NetworkId(0);
 
         /// <summary>
-        /// The logical clock that ensures snapshot messages will eventually 
+        /// The logical clock that ensures snapshot messages will eventually
         /// converge on one peer.
         /// </summary>
         private int clock = 0;
@@ -84,7 +95,7 @@ namespace Ubiq.Logging
         {
             get
             {
-                if(destination == this.Id)
+                if(destination == Id)
                 {
                     return OperatingMode.Writing;
                 }
@@ -98,31 +109,9 @@ namespace Ubiq.Logging
 
         public bool isPrimary
         {
-            get 
-            { 
-                return Mode == OperatingMode.Writing; 
-            }
-        }
-
-        public NetworkId Id
-        {
             get
             {
-                if (context != null)
-                {
-                    return context.networkObject.Id;
-                }
-                
-                // This is because Components may want to Log during Awake, or
-                // even before, so get the NetworkScene Id directly.
-                // This will be slow, but its only until the context is set.
-                var ns = NetworkScene.FindNetworkScene(this);
-                if (ns)
-                {
-                    return ns.Id;
-                }
-
-                return NetworkId.Null;
+                return Mode == OperatingMode.Writing;
             }
         }
 
@@ -130,7 +119,7 @@ namespace Ubiq.Logging
         {
             get
             {
-                return context != null;
+                return networkScene != null;
             }
         }
 
@@ -159,8 +148,8 @@ namespace Ubiq.Logging
         }
 
         /// <summary>
-        /// Registers this Collector as the primary LogCollector for the Peer 
-        /// Group. All cached and new logs will be forwarded to this Collector. 
+        /// Registers this Collector as the primary LogCollector for the Peer
+        /// Group. All cached and new logs will be forwarded to this Collector.
         /// All new Peers will see this as the primary Collector.
         /// </summary>
         public void StartCollection()
@@ -169,12 +158,12 @@ namespace Ubiq.Logging
         }
 
         /// <summary>
-        /// Stops collecting and surrenders its position as the primary 
-        /// Collector. 
+        /// Stops collecting and surrenders its position as the primary
+        /// Collector.
         /// </summary>
         /// <remarks>
-        /// It will take time for this message to propagate, during this 
-        /// time this Component should be prepared to receive events 
+        /// It will take time for this message to propagate, during this
+        /// time this Component should be prepared to receive events
         /// otherwise messages may be lost.
         /// </remarks>
         public void StopCollection()
@@ -191,15 +180,47 @@ namespace Ubiq.Logging
             msg.clock = clock;
             msg.state = newDestination;
 
-            foreach (var item in roomClient.Peers)
+            Send(msg);
+        }
+
+        private void Send(CC msg)
+        {
+            // Command messages are sent to everyone
+            Send(NetworkId.Null,LogCollectorMessage.RentCommandMessage(msg));
+        }
+
+        private void Send(NetworkId target, PingMessage msg)
+        {
+            Send(target,LogCollectorMessage.RentPingMessage(msg));
+        }
+
+        private void Send(NetworkId target, ReferenceCountedSceneGraphMessage msg)
+        {
+            var lcm = new LogCollectorMessage(msg);
+            lcm.Target = target;
+            Send(msg);
+        }
+
+        private void Send(ReferenceCountedSceneGraphMessage msg)
+        {
+            if (networkScene)
             {
-                context.Send(item.NetworkObjectId, ComponentId, LogCollectorMessage.RentCommandMessage(msg));
+                // Actually send everything to our networkId
+                // Target is used to separate out certain types of message
+                networkScene.Send(networkScene.Id,msg);
             }
         }
 
         public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
             var logmessage = new LogCollectorMessage(message);
+
+            if (logmessage.Target != NetworkId.Null &&
+                logmessage.Target != networkScene.Id)
+            {
+                return;
+            }
+
             switch (logmessage.Type)
             {
                 case LogCollectorMessage.MessageType.Event:
@@ -286,23 +307,23 @@ namespace Ubiq.Logging
 
                                 ping.Responder = Id;
                                 ping.Written = Written;
-                                context.Send(ping.Source, LogCollectorMessage.RentPingMessage(ping));
+                                Send(ping.Source,ping);
                             }
                             else if (destination)
                             {
                                 // If the active collector has changed since the Ping was created, forward it.
 
                                 message.Acquire();
-                                context.Send(destination, message);
+                                Send(destination,message);
                             }
                             else
                             {
-                                // There is no active collector and yet we've received a ping. This is not good, but could occur where there was 
+                                // There is no active collector and yet we've received a ping. This is not good, but could occur where there was
                                 // an Active Collector but it failed. Return a warning.
 
                                 ping.Responder = Id;
                                 ping.Aborted = true;
-                                context.Send(ping.Source, LogCollectorMessage.RentPingMessage(ping));
+                                Send(ping.Source,ping);
                             }
                         }
                     }
@@ -340,48 +361,50 @@ namespace Ubiq.Logging
         // Start is called before the first frame update
         void Start()
         {
-            try
-            {
-                context = NetworkScene.Register(this);
-            }
-            catch(NullReferenceException)
+            if (networkScene)
             {
                 // The LogCollector does not have to be in a NetworkScene to have some functionality
+                networkScene.AddProcessor(Id,ProcessMessage);
             }
 
+            roomClient = networkScene.GetComponentInChildren<RoomClient>();
+
             // This snippet listens for new peers so the start transmitting message can be re-transmitted if necessary,
-            // ensuring all new peers in the room transmit immediately and relieve the user of having to worry about 
+            // ensuring all new peers in the room transmit immediately and relieve the user of having to worry about
             // peer lifetimes once they start collection.
 
-            roomClient.OnPeerAdded.AddListener(Peer =>
+            if (roomClient)
             {
-                if (isPrimary)
+                roomClient.OnPeerAdded.AddListener(peer =>
                 {
-                    StartCollection();
-                }
-            });
+                    if (isPrimary)
+                    {
+                        StartCollection();
+                    }
+                });
 
-            roomClient.OnPeerRemoved.AddListener(Peer =>
-            {
-                if (Peer.NetworkObjectId == destination)
+                roomClient.OnPeerRemoved.AddListener(peer =>
                 {
-                    // The Peer that went away was the Active Collector. This is unexpected in a bad way. Stop transmitting logs until someone else volunteers.
-                    SetDestination(NetworkId.Null);
+                    if (peer.networkId == destination)
+                    {
+                        // The Peer that went away was the Active Collector. This is unexpected in a bad way. Stop transmitting logs until someone else volunteers.
+                        SetDestination(NetworkId.Null);
 
-                    // Reset the clock as a fix for now to handle the case where the active collector leaves and rejoins as a new process.
-                    clock = 0;
-                }
-            });
+                        // Reset the clock as a fix for now to handle the case where the active collector leaves and rejoins as a new process.
+                        clock = 0;
+                    }
+                });
+            }
         }
 
-        void Update()
+        private void Update()
         {
             if (destination) // There is an Active Collector
             {
                 ReferenceCountedSceneGraphMessage message;
                 while (events.Dequeue(out message))
                 {
-                    if (destination == context.networkObject.Id)
+                    if (destination == networkScene.Id)
                     {
                         // We are the Active Collector, so log the event directly
 
@@ -394,9 +417,7 @@ namespace Ubiq.Logging
                     {
                         // The Active Collector is elsewhere, so forward the event
 
-                        message.objectid = destination;
-                        message.componentid = ComponentId;
-                        context.Send(message);
+                        Send(destination,message);
                     }
 
                     Interlocked.Add(ref Memory, -message.length);
@@ -406,7 +427,7 @@ namespace Ubiq.Logging
             // If there is no active collector, continue to cache the events...
         }
 
-        private void Push(ReferenceCountedSceneGraphMessage message) // Though we accept a ReferenceCountedSceneGraphMessage its assumed that it will always be a LogCollectorMessage 
+        private void Push(ReferenceCountedSceneGraphMessage message) // Though we accept a ReferenceCountedSceneGraphMessage its assumed that it will always be a LogCollectorMessage
         {
             events.Enqueue(message);
             Interlocked.Add(ref Memory, message.length);
@@ -414,7 +435,7 @@ namespace Ubiq.Logging
 
         public void Push(ref JsonWriter writer)
         {
-            Push(LogCollectorMessage.Rent(writer.GetSpan(), writer.Tag)); // Repurpose the message pool functionality to cache log events           
+            Push(LogCollectorMessage.Rent(writer.GetSpan(), writer.Tag)); // Repurpose the message pool functionality to cache log events
         }
 
         public bool ShouldLog(EventType tag)
@@ -429,7 +450,7 @@ namespace Ubiq.Logging
         /// <remarks>
         /// This method returns the count at a particular moment in time, that may even be the past
         /// by the time the value is used.
-        /// This method is only useful when leveraged with other information, such as the fact that 
+        /// This method is only useful when leveraged with other information, such as the fact that
         /// no new Events of a particular type will be raised.
         /// </remarks>
         public int GetBufferedEventCount(EventType tag)
@@ -447,7 +468,7 @@ namespace Ubiq.Logging
         }
 
         /// <summary>
-        /// Pings the Active Collector. When a response is received, response is called with the 
+        /// Pings the Active Collector. When a response is received, response is called with the
         /// elapsed local round-trip time.
         /// If this is the Active Collector, or there is no Active Collector, response is called
         /// immediately with a time of zero.
@@ -491,7 +512,7 @@ namespace Ubiq.Logging
                 request.time = Time.time;
                 pings.Add(ping.Token, request);
 
-                context.Send(destination, LogCollectorMessage.RentPingMessage(ping));
+                Send(destination, ping);
             }
         }
 
@@ -591,6 +612,11 @@ namespace Ubiq.Logging
                     }
                 }
             }
+
+            if (networkScene)
+            {
+                networkScene.RemoveProcessor(Id,ProcessMessage);
+            }
         }
 
         public static LogCollector Find(MonoBehaviour component)
@@ -604,10 +630,10 @@ namespace Ubiq.Logging
         }
 
         /// <summary>
-        /// Checks when all events of event type have been successfully 
+        /// Checks when all events of event type have been successfully
         /// transmitted.
-        /// This can be used to check if all, for example, Experiment events 
-        /// have been uploaded before exiting an application. 
+        /// This can be used to check if all, for example, Experiment events
+        /// have been uploaded before exiting an application.
         /// Beware that this method is only accurate when the integrity of
         /// every LogCollector method is visible. See the Logging documentation
         /// for more details.

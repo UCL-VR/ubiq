@@ -25,11 +25,11 @@ namespace Ubiq.Logging
     }
 
     /// <summary>
-    /// LogEmitters are used to create events and send them to LogCollector 
-    /// instances. The LogCollector then ensures they are delivered to the 
+    /// LogEmitters are used to create events and send them to LogCollector
+    /// instances. The LogCollector then ensures they are delivered to the
     /// appropriate endpoint.
     /// LogEmitters are cheap, and it is expected that a single component may
-    /// have multiple loggers for different types of event or for different 
+    /// have multiple loggers for different types of event or for different
     /// levels.
     /// </summary>
     public abstract class LogEmitter
@@ -244,7 +244,7 @@ namespace Ubiq.Logging
         protected virtual void WriteHeader(ref JsonWriter writer)
         {
             writer.Write("ticks", DateTime.Now.Ticks);
-            writer.Write("peer", collector.Id);
+            writer.Write("peer", LogCollector.Id);
         }
     }
 
@@ -281,20 +281,22 @@ namespace Ubiq.Logging
     /// <summary>
     /// An Event Logger for Objects that have a Network Identity
     /// </summary>
-    public class ContextLogEmitter : TypedLogEmitter
+    public class NetworkEventLogger : TypedLogEmitter
     {
-        private NetworkContext context;
+        private NetworkId id;
+        private NetworkScene scene;
 
-        public ContextLogEmitter(NetworkContext context, EventType type = EventType.Debug) : base(context.component.GetType(), type, context.scene)
+        public NetworkEventLogger(NetworkId id, NetworkScene scene, MonoBehaviour component, EventType type = EventType.Debug) : base(component.GetType(), type, component)
         {
-            this.context = context;
+            this.id = id;
+            this.scene = scene;
         }
 
         protected override void WriteHeader(ref JsonWriter writer)
         {
             base.WriteHeader(ref writer);
-            writer.Write("objectid", context.networkObject.Id);
-            writer.Write("componentid", context.componentId);
+            writer.Write("sceneid", scene.Id);
+            writer.Write("objectid", id);
         }
     }
 

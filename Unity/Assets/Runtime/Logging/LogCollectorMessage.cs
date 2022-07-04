@@ -15,17 +15,17 @@ namespace Ubiq.Logging
         }
 
         private ReferenceCountedSceneGraphMessage buffer;
-        private const int headerLength = 2;
+        private const int headerLength = 2 + NetworkId.Size;
 
-        public enum MessageType : int 
-        { 
+        public enum MessageType : int
+        {
             Command = 0x1,
             Event = 0x2,
             Ping = 0x3
         }
 
-        public MessageType Type 
-        { 
+        public MessageType Type
+        {
             get
             {
                 return (MessageType)Header[0];
@@ -33,7 +33,7 @@ namespace Ubiq.Logging
             set
             {
                 Header[0] = (byte)value;
-             }
+            }
         }
 
         public byte Tag
@@ -45,6 +45,18 @@ namespace Ubiq.Logging
             set
             {
                 Header[1] = value;
+            }
+        }
+
+        public NetworkId Target
+        {
+            get
+            {
+                return new NetworkId(buffer.bytes,buffer.start+2);
+            }
+            set
+            {
+                value.ToBytes(buffer.bytes,buffer.start+2);
             }
         }
 
