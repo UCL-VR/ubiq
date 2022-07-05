@@ -38,12 +38,12 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 11
+  serializedVersion: 12
   m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
@@ -98,7 +98,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_UseShadowmask: 1
+  m_LightingSettings: {fileID: 0}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -118,6 +118,8 @@ NavMeshSettings:
     manualTileSize: 0
     tileSize: 256
     accuratePlacement: 0
+    maxJobWorkers: 0
+    preserveTilesOutsideBounds: 0
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
@@ -152,6 +154,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b2346f9c785cc340a6beef9156a190d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  networkId:
+    a: 3170332095
+    b: 2920543515
+  __serializedGoid: GlobalObjectId_V1-2-46aa52ac73da70b48bed41695d8e30d4-11526151-0
   messagesPerFrame: 10
   maxMessageSize: 36000
   totalMessages: 2147483647
@@ -183,28 +189,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d61f55a1b9a02064ebf167b08e5b22b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Available: []
+  networkId:
+    a: 1984878628
+    b: 332876026
+  __serializedGoid: GlobalObjectId_V1-2-46aa52ac73da70b48bed41695d8e30d4-11526153-0
   servers:
   - listen_on_ip: 
     listen_on_port: 
     send_to_ip: nexus.cs.ucl.ac.uk
-    send_to_port: 8004
+    send_to_port: 8005
     type: 0
-  me:
-    uuid: 
-    networkObject:
-      a: 0
-      b: 0
-    component: 0
-    properties:
-      keys: []
-      values: []
-  OnJoinedRoom:
-    m_PersistentCalls:
-      m_Calls: []
-  OnRoom:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!4 &11526154
 Transform:
   m_ObjectHideFlags: 0
@@ -262,28 +256,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d61f55a1b9a02064ebf167b08e5b22b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Available: []
+  networkId:
+    a: 1388568228
+    b: 4076773944
+  __serializedGoid: GlobalObjectId_V1-2-46aa52ac73da70b48bed41695d8e30d4-67153291-0
   servers:
   - listen_on_ip: 
     listen_on_port: 
     send_to_ip: nexus.cs.ucl.ac.uk
-    send_to_port: 8004
+    send_to_port: 8005
     type: 0
-  me:
-    uuid: 
-    networkObject:
-      a: 0
-      b: 0
-    component: 0
-    properties:
-      keys: []
-      values: []
-  OnJoinedRoom:
-    m_PersistentCalls:
-      m_Calls: []
-  OnRoom:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!4 &67153292
 Transform:
   m_ObjectHideFlags: 0
@@ -310,6 +292,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b2346f9c785cc340a6beef9156a190d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  networkId:
+    a: 4174723588
+    b: 1656854770
+  __serializedGoid: GlobalObjectId_V1-2-46aa52ac73da70b48bed41695d8e30d4-67153293-0
   messagesPerFrame: 10
   maxMessageSize: 36000
   totalMessages: 2147483647
@@ -424,6 +410,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!4 &388926243
