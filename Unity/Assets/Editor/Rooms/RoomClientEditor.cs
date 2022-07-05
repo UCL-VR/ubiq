@@ -50,6 +50,10 @@ namespace Ubiq.Rooms
 
         float ElementHeightCallbackDelegate(int index)
         {
+            if (index >= serversProperty.arraySize)
+            {
+                return 0;
+            }
             float propertyHeight = EditorGUI.GetPropertyHeight(serversProperty.GetArrayElementAtIndex(index), true);
             float spacing = EditorGUIUtility.singleLineHeight / 2;
             return propertyHeight + spacing;
