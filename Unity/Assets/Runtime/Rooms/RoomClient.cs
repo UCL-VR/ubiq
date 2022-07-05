@@ -530,7 +530,9 @@ namespace Ubiq.Rooms
                         var rooms = new List<IRoom>();
                         for (int i = 0; i < args.rooms.Count; i++)
                         {
-                            rooms.Add((IRoom)args.rooms[i]);
+                            var rif = new RoomInterfaceFriend();
+                            rif.Set(args.rooms[i]);
+                            rooms.Add(rif);
                         }
 
                         var request = new RoomsDiscoveredRequest();
