@@ -3,8 +3,8 @@
     {
         "ports":
         {
-            "tcp": 8005,
-            "ws": 8006
+            "tcp": 8007,
+            "ws": 8008
         }
     },
     "iceservers":
