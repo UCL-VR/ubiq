@@ -204,10 +204,6 @@ class RoomServer extends EventEmitter{
         console.log(peer.uuid + " joined room " + room.uuid);
     }
 
-    async leave(peer){
-        peer.room.removePeer(peer);
-    }
-
     getRooms(){
         return this.roomDatabase.all();
     }
@@ -585,7 +581,9 @@ class EmptyRoom{
 
     processMessage(peer, message){}
 
-    getPeersArgs(){}
+    getPeersArgs(){
+        return [];
+    }
 
     getRoomArgs(){
         return {
@@ -614,7 +612,7 @@ class Room{
     addPeer(peer){
         peer.setRoom(this);
         this.peers.forEach(otherpeer => {
-            otherpeer.sendPeerAdded(peer,peer.properties);
+            otherpeer.sendPeerAdded(peer);
         });
         this.peers.push(peer);
     }
