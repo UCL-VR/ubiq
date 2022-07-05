@@ -165,12 +165,6 @@ namespace Ubiq.Spawning
                     var msg = JsonUtility.FromJson<Message>(item.Value);
                     var go = InstantiateAndSetIds(msg.catalogueIndex,msg.networkIds);
 
-                    Debug.Log("spawned: " + item.Key);
-                    for (int i = 0; i < msg.networkIds.Count; i++)
-                    {
-                        Debug.Log("nid: " +msg.networkIds[i]);
-                    }
-
                     if (!spawnedForPeers.ContainsKey(peer))
                     {
                         spawned = new Dictionary<string,GameObject>();
@@ -298,12 +292,6 @@ namespace Ubiq.Spawning
                 catalogueIndex = catalogueIdx,
                 networkIds = tmpNetworkIds
             });
-
-            Debug.Log("spawned: " + key);
-            for (int i = 0; i < tmpNetworkIds.Count; i++)
-            {
-                Debug.Log("nid: " +tmpNetworkIds[i]);
-            }
 
             return go;
         }
