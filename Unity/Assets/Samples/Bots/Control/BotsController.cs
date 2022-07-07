@@ -54,6 +54,11 @@ namespace Ubiq.Samples.Bots
             });
             roomClient.Join(BotsConfig.CommandRoomGuid);
 
+            roomClient.OnPeerRemoved.AddListener(peer =>
+            {
+                proxies.Remove(peer.uuid);
+            });
+
             BotsRoom.RoomClient.OnJoinedRoom.AddListener(Room => {
                 AddBotsToRoom(Room.JoinCode);
             });
@@ -99,6 +104,14 @@ namespace Ubiq.Samples.Bots
             {
                 BotsJoinCode = JoinCode;
                 UpdateProxies();
+            }
+        }
+
+        public void TerminateProcesses()
+        {
+            foreach (var item in proxies.Values)
+            {
+                item.Quit();
             }
         }
 
@@ -188,6 +201,14 @@ namespace Ubiq.Samples.Bots
             }
         }
 
+        public void Quit()
+        {
+            if (networkScene)
+            {
+                networkScene.SendJson(Id, new Quit());
+            }
+        }
+
         private NetworkScene networkScene;
         private BotsController controller;
 
@@ -198,5 +219,6 @@ namespace Ubiq.Samples.Bots
         public int NumBots;
         public float Fps;
         public float LastMessageTime;
+        public NetworkId Peer;
     }
 }

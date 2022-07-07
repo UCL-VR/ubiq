@@ -9,6 +9,10 @@ using Ubiq.Messaging;
 
 namespace Ubiq.Samples.Bots
 {
+    /// <summary>
+    /// The performance monitor records information about the bots and their 
+    /// room to an Experiment log.
+    /// </summary>
     [RequireComponent(typeof(LogCollector))]
     [RequireComponent(typeof(LatencyMeter))]
     public class PerformanceMonitor : MonoBehaviour
@@ -26,8 +30,15 @@ namespace Ubiq.Samples.Bots
 
         private void Awake()
         {
-            if(Application.isBatchMode) // The performance monitor should only run in headed builds
+            if(Application.isBatchMode) 
             {
+                Destroy(this);
+                return;
+            }
+
+            if(!Application.isEditor)
+            {
+                Debug.LogWarning("Running Bots Sample in a headed build - the Performance Monitor is disabled to avoid confusion."); // The confusion being the *bots* will join the bots room, but not this entity, meaning there will be duplicate log files
                 Destroy(this);
                 return;
             }

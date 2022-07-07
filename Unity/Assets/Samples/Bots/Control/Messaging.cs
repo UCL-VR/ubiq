@@ -44,6 +44,14 @@ namespace Ubiq.Samples.Bots.Messaging
         }
     }
 
+    public class Quit : Message
+    {
+        public Quit():base("Quit")
+        {
+        }
+    }
+
+
     public class BotManagerStatus : Message
     {
         public NetworkId NetworkId;

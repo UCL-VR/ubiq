@@ -43,6 +43,8 @@ namespace Ubiq.Samples.Bots
         private float lastStatusTime;
         private string botsRoomJoinCode;
         private NetworkScene networkScene;
+        private RoomClient roomClient;
+
 
         public class BotPeerEvent : UnityEvent<Bot>
         {
@@ -52,11 +54,12 @@ namespace Ubiq.Samples.Bots
 
         private void Awake()
         {
-            Guid = System.Guid.NewGuid().ToString();
+            
             bots = new List<Bot>();
             bots.AddRange(MonoBehaviourExtensions.GetComponentsInScene<Bot>());
             bots.ForEach(b => GetRoomClient(b).SetDefaultServer(BotsConfig.BotServer));
-            RoomClient.Find(this).SetDefaultServer(BotsConfig.CommandServer);
+            roomClient = RoomClient.Find(this);
+            roomClient.SetDefaultServer(BotsConfig.CommandServer);
             lastStatusTime = Time.time;
             Pid = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
         }
@@ -71,7 +74,7 @@ namespace Ubiq.Samples.Bots
                 networkScene.AddProcessor(Id,ProcessMessage);
             }
 
-            var roomClient = networkScene.GetComponent<RoomClient>();
+            Guid = roomClient.Me.uuid;
             roomClient.Join(BotsConfig.CommandRoomGuid);
         }
 
@@ -216,6 +219,14 @@ namespace Ubiq.Samples.Bots
                 case "ClearBots":
                     {
                         ClearBots();
+                    }
+                    break;
+                case "Quit":
+                    {
+                        if(!Application.isEditor)
+                        {
+                            Application.Quit();
+                        }
                     }
                     break;
             }

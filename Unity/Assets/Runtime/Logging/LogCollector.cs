@@ -28,6 +28,7 @@ namespace Ubiq.Logging
     {
         public NetworkId Id { get; private set; }
         public NetworkId BroadcastId { get; private set; } = new NetworkId("685a5b84-fec057d0");
+        public NetworkId Destination { get { return destination; } }
 
         public EventType EventsFilter = (EventType)(-1); // -1 in 2's complement will set all bits to 1.
 
@@ -367,9 +368,9 @@ namespace Ubiq.Logging
                         }
                     });
 
-                    roomClient.OnPeerRemoved.AddListener((UnityEngine.Events.UnityAction<IPeer>)(peer =>
+                    roomClient.OnPeerRemoved.AddListener(peer =>
                     {
-                        if (destination == this.CollectorId((IPeer)peer))
+                        if (destination == this.CollectorId(peer))
                         {
                             // The Peer that went away was the Active Collector. This is unexpected in a bad way. Stop transmitting logs until someone else volunteers.
                             SetDestination(NetworkId.Null);
@@ -377,7 +378,7 @@ namespace Ubiq.Logging
                             // Reset the clock as a fix for now to handle the case where the active collector leaves and rejoins as a new process.
                             clock = 0;
                         }
-                    }));
+                    });
                 }
             }
         }

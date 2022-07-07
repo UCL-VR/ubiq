@@ -27,6 +27,7 @@ namespace Ubiq.Logging
 
             GUILayout.Label($"Written: {component.Written}");
             GUILayout.Label($"Id : {component.Id.ToString()}");
+            GUILayout.Label($"Destination: {component.Destination.ToString()}");
 
             GUI.enabled = component.OnNetwork;
 
