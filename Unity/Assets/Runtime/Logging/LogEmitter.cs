@@ -244,7 +244,7 @@ namespace Ubiq.Logging
         protected virtual void WriteHeader(ref JsonWriter writer)
         {
             writer.Write("ticks", DateTime.Now.Ticks);
-            writer.Write("peer", LogCollector.Id);
+            writer.Write("peer", collector.NetworkScene.Id);
         }
     }
 

@@ -26,7 +26,9 @@ namespace Ubiq.Logging
     /// </remarks>
     public class LogCollector : MonoBehaviour
     {
-        public static NetworkId Id = new NetworkId("fc26-78b8-4498-9953");
+        public NetworkId Id { get; private set; }
+        public NetworkId BroadcastId { get; private set; } = new NetworkId("685a5b84-fec057d0");
+
         public EventType EventsFilter = (EventType)(-1); // -1 in 2's complement will set all bits to 1.
 
         public enum OperatingMode
@@ -47,19 +49,18 @@ namespace Ubiq.Logging
         private LockFreeQueue<ReferenceCountedSceneGraphMessage> events = new LockFreeQueue<ReferenceCountedSceneGraphMessage>();
 
         private IOutputStream[] outputStreams;
-        private RoomClient roomClient;
-
-        private NetworkScene _networkScene;
-        private NetworkScene networkScene
+       
+        private NetworkScene networkScene;
+        public NetworkScene NetworkScene
         {
             get
             {
-                if (!_networkScene)
+                if (!networkScene)
                 {
-                    _networkScene = NetworkScene.FindNetworkScene(this);
+                    networkScene = NetworkScene.FindNetworkScene(this);
                 }
 
-                return _networkScene;
+                return networkScene;
             }
         }
 
@@ -119,7 +120,7 @@ namespace Ubiq.Logging
         {
             get
             {
-                return networkScene != null;
+                return NetworkScene != null;
             }
         }
 
@@ -186,41 +187,25 @@ namespace Ubiq.Logging
         private void Send(CC msg)
         {
             // Command messages are sent to everyone
-            Send(NetworkId.Null,LogCollectorMessage.RentCommandMessage(msg));
+            Send(BroadcastId, LogCollectorMessage.RentCommandMessage(msg));
         }
 
         private void Send(NetworkId target, PingMessage msg)
         {
-            Send(target,LogCollectorMessage.RentPingMessage(msg));
+            Send(target, LogCollectorMessage.RentPingMessage(msg));
         }
 
-        private void Send(NetworkId target, ReferenceCountedSceneGraphMessage msg)
+        private void Send(NetworkId destination, ReferenceCountedSceneGraphMessage msg)
         {
-            var lcm = new LogCollectorMessage(msg);
-            lcm.Target = target;
-            Send(msg);
-        }
-
-        private void Send(ReferenceCountedSceneGraphMessage msg)
-        {
-            if (networkScene)
+            if (NetworkScene)
             {
-                // Actually send everything to our networkId
-                // Target is used to separate out certain types of message
-                networkScene.Send(networkScene.Id,msg);
+                NetworkScene.Send(destination, msg);
             }
         }
 
         public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
             var logmessage = new LogCollectorMessage(message);
-
-            if (logmessage.Target != NetworkId.Null &&
-                logmessage.Target != networkScene.Id)
-            {
-                return;
-            }
-
             switch (logmessage.Type)
             {
                 case LogCollectorMessage.MessageType.Event:
@@ -346,7 +331,6 @@ namespace Ubiq.Logging
         private void Awake()
         {
             Written = 0;
-            roomClient = this.GetClosestComponent<RoomClient>();
 
             // We create some FileOutputStreams before we know whether we will recieve events of that type - this is because the JsonFileOutputStream
             // doesn't create the file until it actually receives an event, so it is cheap to make these objects.
@@ -361,40 +345,51 @@ namespace Ubiq.Logging
         // Start is called before the first frame update
         void Start()
         {
-            if (networkScene)
+            if (NetworkScene) // The LogCollector does not have to be in a NetworkScene to have some functionality
             {
-                // The LogCollector does not have to be in a NetworkScene to have some functionality
-                networkScene.AddProcessor(Id,ProcessMessage);
-            }
+                Id = CollectorId(NetworkScene);
+                NetworkScene.AddProcessor(Id, ProcessMessage);
+                NetworkScene.AddProcessor(BroadcastId, ProcessMessage);
 
-            roomClient = networkScene.GetComponentInChildren<RoomClient>();
+                var roomClient = NetworkScene.GetComponentInChildren<RoomClient>();
 
-            // This snippet listens for new peers so the start transmitting message can be re-transmitted if necessary,
-            // ensuring all new peers in the room transmit immediately and relieve the user of having to worry about
-            // peer lifetimes once they start collection.
+                // This snippet listens for new peers so the start transmitting message can be re-transmitted if necessary,
+                // ensuring all new peers in the room transmit immediately and relieve the user of having to worry about
+                // peer lifetimes once they start collection.
 
-            if (roomClient)
-            {
-                roomClient.OnPeerAdded.AddListener(peer =>
+                if (roomClient)
                 {
-                    if (isPrimary)
+                    roomClient.OnPeerAdded.AddListener(peer =>
                     {
-                        StartCollection();
-                    }
-                });
+                        if (isPrimary)
+                        {
+                            StartCollection();
+                        }
+                    });
 
-                roomClient.OnPeerRemoved.AddListener(peer =>
-                {
-                    if (peer.networkId == destination)
+                    roomClient.OnPeerRemoved.AddListener((UnityEngine.Events.UnityAction<IPeer>)(peer =>
                     {
-                        // The Peer that went away was the Active Collector. This is unexpected in a bad way. Stop transmitting logs until someone else volunteers.
-                        SetDestination(NetworkId.Null);
+                        if (destination == this.CollectorId((IPeer)peer))
+                        {
+                            // The Peer that went away was the Active Collector. This is unexpected in a bad way. Stop transmitting logs until someone else volunteers.
+                            SetDestination(NetworkId.Null);
 
-                        // Reset the clock as a fix for now to handle the case where the active collector leaves and rejoins as a new process.
-                        clock = 0;
-                    }
-                });
+                            // Reset the clock as a fix for now to handle the case where the active collector leaves and rejoins as a new process.
+                            clock = 0;
+                        }
+                    }));
+                }
             }
+        }
+
+        private NetworkId CollectorId(IPeer peer)
+        {
+            return NetworkId.Create(peer.networkId, "LogCollector");
+        }
+
+        private NetworkId CollectorId(NetworkScene peer)
+        {
+            return NetworkId.Create(peer.Id, "LogCollector");
         }
 
         private void Update()
@@ -404,7 +399,7 @@ namespace Ubiq.Logging
                 ReferenceCountedSceneGraphMessage message;
                 while (events.Dequeue(out message))
                 {
-                    if (destination == networkScene.Id)
+                    if (destination == Id)
                     {
                         // We are the Active Collector, so log the event directly
 
@@ -613,9 +608,9 @@ namespace Ubiq.Logging
                 }
             }
 
-            if (networkScene)
+            if (NetworkScene)
             {
-                networkScene.RemoveProcessor(Id,ProcessMessage);
+                NetworkScene.RemoveProcessor(Id, ProcessMessage);
             }
         }
 

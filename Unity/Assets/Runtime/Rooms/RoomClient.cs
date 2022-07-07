@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using Ubiq.Networking;
-using Ubiq.Messaging;
-using UnityEngine;
-using UnityEngine.Events;
-using Ubiq.Dictionaries;
-using Ubiq.XR.Notifications;
 using System.Linq;
+using Ubiq.Dictionaries;
+using Ubiq.Messaging;
+using Ubiq.Networking;
 using Ubiq.Rooms.Messages;
+using Ubiq.XR.Notifications;
+using UnityEngine;
 
 namespace Ubiq.Rooms
 {
@@ -18,13 +17,17 @@ namespace Ubiq.Rooms
     /// With the use of a server, RoomClient can join a network with other Peers.
     /// </summary>
     [RequireComponent(typeof(NetworkScene))]
-    public class RoomClient : NetworkBehaviour
+    public class RoomClient : MonoBehaviour
     {
+        // These are the messages defined by the RoomClient/RoomServer pair.
+        // These should match exactly the schema in the RoomServer.
+
         [Serializable]
         private class PeerInfo
         {
             public string uuid;
-            public NetworkId networkId;
+            public NetworkId sceneid;
+            public NetworkId clientid;
             public List<string> keys = new List<string>();
             public List<string> values = new List<string>();
         }
@@ -68,7 +71,7 @@ namespace Ubiq.Rooms
         [Serializable]
         private class DiscoverRoomsArgs
         {
-            public NetworkId networkId;
+            public NetworkId clientid;
             public string joincode;
         }
 
@@ -82,14 +85,14 @@ namespace Ubiq.Rooms
         [Serializable]
         private class GetBlobArgs
         {
-            public NetworkId networkId;
+            public NetworkId clientid;
             public string uuid;
         }
 
         [Serializable]
         private struct PingArgs
         {
-            public NetworkId networkId;
+            public NetworkId clientid;
         }
 #endregion
 
@@ -243,9 +246,10 @@ namespace Ubiq.Rooms
         private float heartbeatSent => Time.realtimeSinceStartup - pingSent;
         public static float HeartbeatTimeout = 5f;
         public static float HeartbeatInterval = 1f;
-        private float lastGetRoomsTime;
         private PeerInterfaceFriend me = new PeerInterfaceFriend(Guid.NewGuid().ToString());
         private RoomInterfaceFriend room = new RoomInterfaceFriend();
+        private NetworkScene scene;
+        private NetworkId objectid; // The Id of the RoomClient object itself
 
         private List<Action> actions = new List<Action>();
 
@@ -385,7 +389,7 @@ namespace Ubiq.Rooms
 
             public PeerInterfaceFriend(PeerInfo info)
             {
-                networkId = info.networkId;
+                networkId = info.sceneid;
                 uuid = info.uuid;
                 properties.Set(info.keys,info.values);
             }
@@ -393,7 +397,8 @@ namespace Ubiq.Rooms
             public PeerInfo GetPeerInfo()
             {
                 var peerInfo = new PeerInfo();
-                peerInfo.networkId = networkId;
+                peerInfo.sceneid = networkId;
+                peerInfo.clientid = NetworkId.Create(networkId, "RoomClient");
                 peerInfo.uuid = uuid;
                 peerInfo.keys = new List<string>(properties.keys);
                 peerInfo.values = new List<string>(properties.values);
@@ -438,17 +443,19 @@ namespace Ubiq.Rooms
             OnPeerUpdated.SetExisting(me);
         }
 
-        protected override void Started()
+        protected void Start()
         {
-            me.networkId = networkId;
-
+            scene = NetworkScene.FindNetworkScene(this);
+            me.networkId = scene.Id;
+            objectid = NetworkId.Create(scene.Id, "RoomClient");
+            scene.AddProcessor(objectid, ProcessMessage);
             foreach (var item in servers)
             {
                 Connect(item);
             }
         }
 
-        protected override void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+        protected void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
             var container = JsonUtility.FromJson<Message>(message.ToString());
             switch (container.type)
@@ -605,7 +612,7 @@ namespace Ubiq.Rooms
 
         private void SendToServer(string type, object argument)
         {
-            networkScene.SendJson(roomServerObjectId, new Message(type, argument));
+            scene.SendJson(roomServerObjectId, new Message(type, argument));
         }
 
         /// <summary>
@@ -667,7 +674,7 @@ namespace Ubiq.Rooms
         /// </remarks>
         public void Connect(ConnectionDefinition connection)
         {
-            networkScene.AddConnection(Connections.Resolve(connection));
+            scene.AddConnection(Connections.Resolve(connection));
         }
 
         private void Update()
@@ -720,10 +727,13 @@ namespace Ubiq.Rooms
         /// </summary>
         public void DiscoverRooms(string joincode = "")
         {
-            var args = new DiscoverRoomsArgs();
-            args.networkId = networkId;
-            args.joincode = joincode;
-            SendToServer("DiscoverRooms", args);
+            actions.Add(() =>
+            {
+                var args = new DiscoverRoomsArgs();
+                args.clientid = objectid;
+                args.joincode = joincode;
+                SendToServer("DiscoverRooms", args);
+            });
         }
 
         /// <summary>
@@ -747,7 +757,7 @@ namespace Ubiq.Rooms
             }
             var request = new GetBlobRequest()
             {
-                networkId = networkId,
+                networkId = objectid,
                 blob = blob
             };
             SendToServer("GetBlob", request);
@@ -785,7 +795,7 @@ namespace Ubiq.Rooms
         public void Ping()
         {
             pingSent = Time.realtimeSinceStartup;
-            SendToServer("Ping", new PingArgs() { networkId = networkId });
+            SendToServer("Ping", new PingArgs() { clientid = objectid });
         }
 
         private void OnPingResponse(PingResponseArgs args)

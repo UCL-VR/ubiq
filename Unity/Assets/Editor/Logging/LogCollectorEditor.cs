@@ -25,9 +25,8 @@ namespace Ubiq.Logging
             var maxMemoryInMb = component.MaxMemory / (1024 * 1024);
             GUILayout.Label($"Memory: {memoryInMb} / {maxMemoryInMb} Mb");
 
-
             GUILayout.Label($"Written: {component.Written}");
-            GUILayout.Label($"Id : {LogCollector.Id.ToString()}");
+            GUILayout.Label($"Id : {component.Id.ToString()}");
 
             GUI.enabled = component.OnNetwork;
 

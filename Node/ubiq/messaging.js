@@ -1,4 +1,4 @@
-const { exception } = require('console');
+const { exception, assert } = require('console');
 const { TextDecoder } = require('util');
 const { Schema } = require('./schema');
 const { performance } = require('perf_hooks');
@@ -45,10 +45,15 @@ class NetworkId{
     }
 
     static Compare(x, y){
+        assert(x !== undefined && y !== undefined);
         return(x.a == y.a && x.b == y.b);
     }
 
     static WriteBuffer(networkId, buffer, offset){
+        if(networkId == undefined){
+            console.error("Undefined networkId when writing " + (new Error().stack));
+            return;
+        }
         buffer.writeUInt32LE(networkId.a, offset + 0);
         buffer.writeUInt32LE(networkId.b, offset + 4);
     }
@@ -67,6 +72,20 @@ class NetworkId{
 
     static Valid(x){
         return x.a != 0 && x.b != 0;
+    }
+
+    static Create(namespace, service){
+        var bytes = Buffer.from(service,'utf8');
+        var order = false;
+        var id = new NetworkId(namespace);
+        for(var i = 0; i < bytes._length_; i++){
+            if(i % 2 == 0){
+                id.a = id.a * bytes[i] + id.b;
+            }else{
+                id.b = id.b * bytes[i] + id.a;
+            }
+        }
+        return id;
     }
 
     static Null = new NetworkId(0);

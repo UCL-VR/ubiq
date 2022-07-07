@@ -158,7 +158,7 @@ namespace Ubiq.Messaging
 
         public override string ToString()
         {
-            return b.ToString("x8") + "-" + a.ToString("x8");
+            return a.ToString("x8") + "-" + b.ToString("x8");
         }
 
         public void ToBytes(byte[] buffer, int offset)
@@ -226,6 +226,29 @@ namespace Ubiq.Messaging
             {
                 return new NetworkId(0);
             }
+        }
+
+        public static NetworkId Create(NetworkId nameSpace, string service)
+        {
+            // Quick Hash..
+
+            NetworkId id;
+            id.a = nameSpace.a;
+            id.b = nameSpace.b;
+            var bytes = Encoding.UTF8.GetBytes(service);
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                if (i % 2 != 0)
+                {
+                    id.a = id.a * bytes[i] + id.b;
+                }
+                else
+                {
+                    id.b = id.b * bytes[i] + id.a;
+                }
+            }
+
+            return id;
         }
     }
 }

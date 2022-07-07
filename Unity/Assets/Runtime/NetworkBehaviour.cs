@@ -17,6 +17,7 @@ namespace Ubiq
     /// </summary>
     public class NetworkBehaviour : MonoBehaviour, INetworkSpawnable
     {
+        [HideInInspector]
         public NetworkId networkId = NetworkId.Unique();
         protected NetworkScene networkScene { get; private set; }
 

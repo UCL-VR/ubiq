@@ -71,7 +71,7 @@ namespace Ubiq.Samples.Bots
                     if (peersToPing.Count > 0)
                     {
                         var peer = peersToPing.Dequeue();
-                        meter.MeasurePeerLatencies(peer);
+                        meter.MeasurePeerLatency(peer);
                     }
 
                     lastPingTime = Time.time;

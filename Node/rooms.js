@@ -258,11 +258,12 @@ Schema.add({
     type: "object",
     properties: {
         uuid: {type: "string"},
-        networkId: {$ref: "/ubiq.messaging.networkid"},
+        sceneid: {$ref: "/ubiq.messaging.networkid"},
+        clientid: {$ref: "/ubiq.messaging.networkid"},
         keys: {type: "array", items: {type: "string"}},
         values: {type: "array", items: {type: "string"}},
     },
-    required: ["uuid","networkId","keys","values"]
+    required: ["uuid","sceneid","clientid","keys","values"]
 });
 
 Schema.add({
@@ -303,19 +304,19 @@ Schema.add({
     id: "/ubiq.rooms.ping",
     type: "object",
     properties: {
-        networkId: { $ref: "/ubiq.messaging.networkid"} // required because this needs a response
+        clientid: { $ref: "/ubiq.messaging.networkid"} // required because this needs a response
     },
-    required: ["networkId"]
+    required: ["clientid"]
 });
 
 Schema.add({
     id: "/ubiq.rooms.discoverroomsargs",
     type: "object",
     properties: {
-        networkId: { $ref: "/ubiq.messaging.networkid"}, // required because this needs a response
+        clientid: { $ref: "/ubiq.messaging.networkid"}, // required because this needs a response
         joincode: {type: "string"}
     },
-    required: ["networkId"]
+    required: ["clientid"]
 });
 
 Schema.add({
@@ -332,10 +333,10 @@ Schema.add({
     id: "/ubiq.rooms.getblobargs",
     type: "object",
     properties: {
-        networkId: { $ref: "/ubiq.messaging.networkid"}, // required because this needs a response
+        clientid: { $ref: "/ubiq.messaging.networkid"}, // required because this needs a response
         uuid: { type: "string"}
     },
-    required: ["networkId","uuid"]
+    required: ["clientid","uuid"]
 });
 
 Schema.add({
@@ -356,7 +357,8 @@ class RoomPeer{
         this.server = server;
         this.connection = connection;
         this.room = new EmptyRoom();
-        this.objectId = new NetworkId(Math.floor(Math.random()*2147483648),Math.floor(Math.random()*2147483648));
+        this.networkSceneId = new NetworkId(Math.floor(Math.random()*2147483648),Math.floor(Math.random()*2147483648));
+        this.clientid;
         this.uuid = "";
         this.properties = new PropertyDictionary();
         this.connection.onMessage.push(this.onMessage.bind(this));
@@ -391,7 +393,8 @@ class RoomPeer{
             switch(message.type){
                 case "Join":
                     if (Schema.validate(message.args, "/ubiq.rooms.joinargs", this.onValidationFailure)) {
-                        this.objectId = message.args.peer.networkId; // Join message always includes peer uuid and object id
+                        this.networkSceneId = message.args.peer.sceneid; // Join message always includes peer uuid and object id
+                        this.clientid = message.args.peer.clientid;
                         this.uuid = message.args.peer.uuid;
                         this.server.join(this, message.args);
                     }
@@ -411,7 +414,7 @@ class RoomPeer{
                     break;
                 case "DiscoverRooms":
                     if (Schema.validate(message.args, "/ubiq.rooms.discoverroomsargs", this.onValidationFailure)) {
-                        this.objectId = message.args.networkId; // Needs a response: send network id in case not yet set
+                        this.clientid = message.args.clientid; // Needs a response: send network id in case not yet set
                         this.sendDiscoveredRooms({
                             rooms: this.server.discoverRooms(message.args).map(r => r.getRoomArgs()),
                             version: this.server.version,
@@ -426,13 +429,13 @@ class RoomPeer{
                     break;
                 case "GetBlob":
                     if (Schema.validate(message.args, "/ubiq.rooms.getblobargs", this.onValidationFailure)) {
-                        this.objectId = message.args.networkId; // Needs a response: send network id in case not yet set
+                        this.clientid = message.args.clientid; // Needs a response: send network id in case not yet set
                         this.sendBlob(this.room.getBlob(message.args.uuid));
                     }
                     break;
                 case "Ping":
                     if(Schema.validate(message.args,"/ubiq.rooms.ping",this.onValidationFailure)){
-                        this.objectId = message.args.networkId; // Needs a response: send network id in case not yet set
+                        this.clientid = message.args.clientid; // Needs a response: send network id in case not yet set
                         this.sendPing();
                     }
                     break;
@@ -443,14 +446,17 @@ class RoomPeer{
     }
 
     onValidationFailure(error){
-        console.log(error.json);
-        console.log(error.validation.message);
+        error.validation.errors.forEach(error => {
+            console.error("Validation error in " + error.schema + "; " + error.message);
+        });
+        console.error("Message Json: " +  JSON.stringify(error.json));
     }
 
     getPeerArgs(){
         return {
             uuid: this.uuid,
-            networkId: this.objectId,
+            sceneid: this.networkSceneId,
+            clientid: this.clientid,
             keys: this.properties.keys(),
             values: this.properties.values()
         }
@@ -465,8 +471,12 @@ class RoomPeer{
         this.sendSetRoom();
     }
 
+    getObjectId(){
+        return this.clientid;
+    }
+
     sendRejected(joinArgs,reason){
-        this.send(Message.Create(this.objectId,
+        this.send(Message.Create(this.getObjectId(),
         {
             type: "Rejected",
             args: JSON.stringify({
@@ -477,7 +487,7 @@ class RoomPeer{
     }
 
     sendSetRoom(){
-        this.send(Message.Create(this.objectId,
+        this.send(Message.Create(this.getObjectId(),
         {
             type: "SetRoom",
             args: JSON.stringify({
@@ -488,7 +498,7 @@ class RoomPeer{
     }
 
     sendDiscoveredRooms(args){
-        this.send(Message.Create(this.objectId,
+        this.send(Message.Create(this.getObjectId(),
         {
             type: "Rooms",
             args: JSON.stringify(args)
@@ -496,7 +506,7 @@ class RoomPeer{
     }
 
     sendPeerAdded(peer){
-        this.send(Message.Create(this.objectId,
+        this.send(Message.Create(this.getObjectId(),
         {
             type: "PeerAdded",
             args: JSON.stringify({
@@ -506,7 +516,7 @@ class RoomPeer{
     }
 
     sendPeerRemoved(peer){
-        this.send(Message.Create(this.objectId,
+        this.send(Message.Create(this.getObjectId(),
         {
             type: "PeerRemoved",
             args: JSON.stringify({
@@ -516,7 +526,7 @@ class RoomPeer{
     }
 
     sendRoomPropertiesAppended(keys,values){
-        this.send(Message.Create(this.objectId,
+        this.send(Message.Create(this.getObjectId(),
         {
             type: "RoomPropertiesAppended",
             args: JSON.stringify({
@@ -527,7 +537,7 @@ class RoomPeer{
     }
 
     sendPeerPropertiesAppended(peer,keys,values){
-        this.send(Message.Create(this.objectId,
+        this.send(Message.Create(this.getObjectId(),
         {
             type: "PeerPropertiesAppended",
             args: JSON.stringify({
@@ -539,7 +549,7 @@ class RoomPeer{
     }
 
     sendBlob(uuid,blob){
-        this.send(Message.Create(this.objectId,
+        this.send(Message.Create(this.getObjectId(),
         {
             type: "Blob",
             args: JSON.stringify({
@@ -550,7 +560,7 @@ class RoomPeer{
     }
 
     sendPing(){
-        this.send(Message.Create(this.objectId,
+        this.send(Message.Create(this.getObjectId(),
         {
             type: "Ping",
             args: JSON.stringify({
