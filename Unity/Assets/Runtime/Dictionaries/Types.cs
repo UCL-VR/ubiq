@@ -104,7 +104,10 @@ namespace Ubiq.Dictionaries
                 {
                     break;
                 }
-                modified = modified || Set(keys[i],values[i]);
+                if(Set(keys[i], values[i]))
+                {
+                    modified = true;
+                }
             }
             return modified;
         }

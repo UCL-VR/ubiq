@@ -35,6 +35,11 @@ namespace Ubiq.Samples.Bots
         public int Padding = 0;
 
         /// <summary>
+        /// When set (not null) this is passed to new bots.
+        /// </summary>
+        public string BotMessage { get; private set; }
+
+        /// <summary>
         /// When True, Bots are created with synthetic audio sources and sinks, and transmit and receive audio. When false, no Voip connections are made.
         /// </summary>
         public bool EnableAudio = true;
@@ -45,7 +50,6 @@ namespace Ubiq.Samples.Bots
         private NetworkScene networkScene;
         private RoomClient roomClient;
 
-
         public class BotPeerEvent : UnityEvent<Bot>
         {
         }
@@ -54,7 +58,6 @@ namespace Ubiq.Samples.Bots
 
         private void Awake()
         {
-            
             bots = new List<Bot>();
             bots.AddRange(MonoBehaviourExtensions.GetComponentsInScene<Bot>());
             bots.ForEach(b => GetRoomClient(b).SetDefaultServer(BotsConfig.BotServer));
@@ -139,6 +142,18 @@ namespace Ubiq.Samples.Bots
             }
         }
 
+        public void SendBotsMessage(string methodName)
+        {
+            BotMessage = methodName;
+            if (!String.IsNullOrWhiteSpace(BotMessage))
+            {
+                foreach (var bot in bots)
+                {
+                    bot.gameObject.SendMessage(BotMessage);
+                }
+            }
+        }
+
         private void InitialiseBot(Bot bot)
         {
             var rc = GetRoomClient(bot);
@@ -184,6 +199,11 @@ namespace Ubiq.Samples.Bots
                 }
             }
 
+            if (!String.IsNullOrWhiteSpace(BotMessage))
+            {
+                bot.gameObject.SendMessage(BotMessage);
+            }
+
             OnBot.Invoke(bot);
         }
 
@@ -207,6 +227,10 @@ namespace Ubiq.Samples.Bots
                         {
                             botsRoomJoinCode = Message.BotsRoomJoinCode;
                             AddBotsToRoom();
+                        }
+                        if(BotMessage != Message.Message)
+                        {
+                            SendBotsMessage(Message.Message);
                         }
                     }
                     break;

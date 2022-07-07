@@ -1,10 +1,12 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Ubiq.Messaging;
 using UnityEngine;
 
 namespace Ubiq.Samples.Bots.Messaging
 {
+    [Serializable]
     public class Message
     {
         public string Type;
@@ -15,18 +17,21 @@ namespace Ubiq.Samples.Bots.Messaging
         }
     }
 
+    [Serializable]
     public class BotManagerSettings : Message 
     {
         public bool EnableAudio;
         public string BotsRoomJoinCode;
         public int AvatarUpdateRate;
         public int AvatarDataPadding;
+        public string Message;
 
         public BotManagerSettings():base("UpdateBotManagerSettings")
         {
         }
     }
 
+    [Serializable]
     public class AddBots : Message
     {
         public int NumBots;
@@ -37,6 +42,7 @@ namespace Ubiq.Samples.Bots.Messaging
         }
     }
 
+    [Serializable]
     public class ClearBots : Message
     {
         public ClearBots():base("ClearBots")
@@ -44,6 +50,7 @@ namespace Ubiq.Samples.Bots.Messaging
         }
     }
 
+    [Serializable]
     public class Quit : Message
     {
         public Quit():base("Quit")
@@ -51,11 +58,9 @@ namespace Ubiq.Samples.Bots.Messaging
         }
     }
 
-
     public class BotManagerStatus : Message
     {
         public NetworkId NetworkId;
-        public ushort ComponentId;
         public string Guid;
         public float Fps;
         public int NumBots;
@@ -64,7 +69,6 @@ namespace Ubiq.Samples.Bots.Messaging
         public BotManagerStatus(BotsManager manager):base("BotManagerStatus")
         {
             NetworkId = manager.Id;
-            ComponentId = 1;
             Guid = manager.Guid;
             Fps = manager.Fps;
             NumBots = manager.NumBots;

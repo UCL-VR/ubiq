@@ -396,6 +396,7 @@ class RoomPeer{
                         this.networkSceneId = message.args.peer.sceneid; // Join message always includes peer uuid and object id
                         this.clientid = message.args.peer.clientid;
                         this.uuid = message.args.peer.uuid;
+                        this.properties.append(message.args.peer.keys, message.args.peer.values);
                         this.server.join(this, message.args);
                     }
                     break;

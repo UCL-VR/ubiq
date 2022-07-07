@@ -28,6 +28,7 @@ namespace Ubiq.Logging
     {
         public NetworkId Id { get; private set; }
         public NetworkId BroadcastId { get; private set; } = new NetworkId("685a5b84-fec057d0");
+
         public NetworkId Destination { get { return destination; } }
 
         public EventType EventsFilter = (EventType)(-1); // -1 in 2's complement will set all bits to 1.
@@ -332,7 +333,11 @@ namespace Ubiq.Logging
         private void Awake()
         {
             Written = 0;
+            CreateFileOutputStreams();
+        }
 
+        public void CreateFileOutputStreams()
+        {
             // We create some FileOutputStreams before we know whether we will recieve events of that type - this is because the JsonFileOutputStream
             // doesn't create the file until it actually receives an event, so it is cheap to make these objects.
 

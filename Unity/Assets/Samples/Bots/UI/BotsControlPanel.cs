@@ -49,8 +49,6 @@ namespace Ubiq.Samples.Bots.UI
             BotManagerControls = new List<BotsManagerControl>();
             BotManagerControlPrototype = BotManagerControlList.transform.GetChild(0).gameObject;
             BotManagerControlPrototype.SetActive(false);
-
-            Controller.EnableAudio = EnableAudioToggle.isOn;
         }
 
         // Update is called once per frame
