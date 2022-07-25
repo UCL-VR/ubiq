@@ -12,14 +12,17 @@ namespace Ubiq.Rooms
     {
         public string Guid;
 
-        // Start is called before the first frame update
-        void Start()
+        private void Start()
         {
             if (Guid.Length > 0)
             {
                 try
                 {
-                    GetComponent<RoomClient>().Join(new Guid(Guid));
+                    RoomClient.Find(this).Join(new Guid(Guid));
+                }
+                catch (NullReferenceException)
+                {
+                    Debug.LogWarning("No RoomClient found");
                 }
                 catch (FormatException)
                 {
@@ -30,12 +33,6 @@ namespace Ubiq.Rooms
                     Debug.LogError($"The Room Guid {Guid} is not in the correct format");
                 }
             }
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-
         }
     }
 }
