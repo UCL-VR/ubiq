@@ -59,7 +59,7 @@ namespace Ubiq.Logging
             {
                 if (!networkScene)
                 {
-                    networkScene = NetworkScene.FindNetworkScene(this);
+                    networkScene = NetworkScene.Find(this);
                 }
 
                 return networkScene;

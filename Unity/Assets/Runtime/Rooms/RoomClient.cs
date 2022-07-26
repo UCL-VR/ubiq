@@ -43,7 +43,7 @@ namespace Ubiq.Rooms
             public List<string> values = new List<string>();
         }
 
-#region Send to Server
+        #region Send to Server
         [Serializable]
         private class JoinArgs
         {
@@ -94,9 +94,15 @@ namespace Ubiq.Rooms
         {
             public NetworkId clientid;
         }
-#endregion
 
-#region Recv from Server
+        private struct SetObservedRequest
+        {
+            public List<string> rooms;
+            public PeerInfo peer;
+        }
+        #endregion
+
+        #region Recv from Server
         [Serializable]
         private class RejectedArgs
         {
@@ -231,12 +237,6 @@ namespace Ubiq.Rooms
         /// </summary>
         [SerializeField]
         private ConnectionDefinition[] servers;
-
-        /// <summary>
-        /// The version the client defines which message schema it supports. Servers must match that schema
-        /// in order to be able to communicate with it.
-        /// </summary>
-        private const string roomClientVersion = "0.0.4";
 
         private NetworkId roomServerObjectId = new NetworkId(1);
         private Dictionary<string, Action<string>> blobCallbacks = new Dictionary<string, Action<string>>();
@@ -445,7 +445,7 @@ namespace Ubiq.Rooms
 
         protected void Start()
         {
-            scene = NetworkScene.FindNetworkScene(this);
+            scene = NetworkScene.Find(this);
             me.networkId = scene.Id;
             objectid = NetworkId.Create(scene.Id, "RoomClient");
             scene.AddProcessor(objectid, ProcessMessage);
@@ -477,52 +477,7 @@ namespace Ubiq.Rooms
                     {
                         var args = JsonUtility.FromJson<SetRoomArgs>(container.args);
                         room.Set(args.room);
-
-                        var newPeerUuids = args.peers.Select(x => x.uuid);
-                        var peersToRemove = new List<string>();
-
-                        // Remove existing peers that are not in the current room
-                        foreach (var existingPeer in peers.Keys)
-                        {
-                            if (!newPeerUuids.Contains(existingPeer))
-                            {
-                                peersToRemove.Add(existingPeer);
-                            }
-                        }
-                        foreach (var uuid in peersToRemove)
-                        {
-                            var peer = peers[uuid];
-                            peers.Remove(uuid);
-                            OnPeerRemoved.Invoke(peer);
-                        }
-
-                        // Potentially update properties for existing peers
-                        foreach (var newPeer in args.peers)
-                        {
-                            if (peers.TryGetValue(newPeer.uuid,out var peer) &&
-                                peer.properties.Set(newPeer.keys,newPeer.values))
-                            {
-                                OnPeerUpdated.Invoke(peer);
-                            }
-                        }
-
-                        // Add room peers which are not yet existing peers
-                        foreach (var newPeer in args.peers)
-                        {
-                            if (newPeer.uuid == me.uuid)
-                            {
-                                continue;
-                            }
-
-                            if (!peers.ContainsKey(newPeer.uuid))
-                            {
-                                var peer = new PeerInterfaceFriend(newPeer);
-                                peers.Add(newPeer.uuid,peer);
-                                OnPeerAdded.Invoke(peer);
-                                OnPeerUpdated.Invoke(peer);
-                            }
-                        }
-
+                        Me["ubiq.rooms.roomid"] = room.UUID; // Updates where this Peer thinks its a member of for the sake of other peers. Local Components should use the Room member.
                         OnJoinedRoom.Invoke(room);
                         OnRoomUpdated.Invoke(room);
                     }
@@ -530,10 +485,6 @@ namespace Ubiq.Rooms
                 case "Rooms":
                     {
                         var args = JsonUtility.FromJson<RoomsArgs>(container.args);
-                        if (roomClientVersion != args.version)
-                        {
-                            Debug.LogError($"Your version {roomClientVersion} of Ubiq doesn't match the server version {args.version}.");
-                        }
                         var rooms = new List<IRoom>();
                         for (int i = 0; i < args.rooms.Count; i++)
                         {
@@ -545,7 +496,7 @@ namespace Ubiq.Rooms
                         var request = new RoomsDiscoveredRequest();
                         request.joincode = args.request.joincode;
 
-                        OnRooms.Invoke(rooms,request);
+                        OnRooms.Invoke(rooms, request);
                     }
                     break;
                 case "PeerAdded":
@@ -792,6 +743,22 @@ namespace Ubiq.Rooms
             return uuid;
         }
 
+        /// <summary>
+        /// Observes the Rooms with the specified Guids. Stops observing any not in the list, and begins observing any new ones.
+        /// </summary>
+        /// <param name="guids"></param>
+        public void SetObserved(List<Guid> guids)
+        {
+            actions.Add(() =>
+            {
+                SendToServer("SetObserved", new SetObservedRequest()
+                {
+                    peer = me.GetPeerInfo(),
+                    rooms = guids.Select(g => g.ToString()).ToList() // todo: GC
+                });
+            });
+        }
+
         public void Ping()
         {
             pingSent = Time.realtimeSinceStartup;
@@ -821,7 +788,7 @@ namespace Ubiq.Rooms
 
         public static RoomClient Find(MonoBehaviour Component)
         {
-            return NetworkScene.FindNetworkScene(Component).GetComponent<RoomClient>();
+            return NetworkScene.Find(Component).GetComponent<RoomClient>();
         }
     }
 }

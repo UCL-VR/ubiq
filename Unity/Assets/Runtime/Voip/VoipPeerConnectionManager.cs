@@ -354,7 +354,7 @@ namespace Ubiq.Voip
         {
             try
             {
-                return NetworkScene.FindNetworkScene(Component).GetComponentInChildren<VoipPeerConnectionManager>();
+                return NetworkScene.Find(Component).GetComponentInChildren<VoipPeerConnectionManager>();
             }
             catch
             {

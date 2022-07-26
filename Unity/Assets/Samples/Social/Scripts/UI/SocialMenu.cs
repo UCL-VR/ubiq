@@ -38,7 +38,7 @@ namespace Ubiq.Samples
 
                 if (!_networkScene)
                 {
-                    _networkScene = NetworkScene.FindNetworkScene(this);
+                    _networkScene = NetworkScene.Find(this);
                 }
 
                 return _networkScene;

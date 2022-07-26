@@ -56,6 +56,16 @@ namespace Ubiq.Samples.Bots
 
         public BotPeerEvent OnBot = new BotPeerEvent();
 
+        public class SendMessageArguments
+        {
+            public string parameter;
+
+            /// <summary>
+            /// Sends a message back to the Controller that initiated this call.
+            /// </summary>
+            public Action<string, string> SendMessageBack;
+        }
+
         private void Awake()
         {
             bots = new List<Bot>();
@@ -71,7 +81,7 @@ namespace Ubiq.Samples.Bots
         {
             bots.ForEach(b => InitialiseBot(b));
 
-            networkScene = NetworkScene.FindNetworkScene(this);
+            networkScene = NetworkScene.Find(this);
             if (networkScene)
             {
                 networkScene.AddProcessor(Id,ProcessMessage);
@@ -131,6 +141,18 @@ namespace Ubiq.Samples.Bots
                 GameObject.Destroy(bot.transform.parent.gameObject);
             }
             bots.Clear();
+        }
+
+        /// <summary>
+        /// Sends a a message to the Bot Controller of this Bot Manager.
+        /// </summary>
+        public void SendMessageBack(string methodName, string parameter)
+        {
+            networkScene.SendJson(BotsController.Id, new SendMessage()
+            {
+                MethodName = methodName,
+                Parameter = parameter
+            });
         }
 
         public void AddBotsToRoom(Bot bot)
@@ -228,10 +250,6 @@ namespace Ubiq.Samples.Bots
                             botsRoomJoinCode = Message.BotsRoomJoinCode;
                             AddBotsToRoom();
                         }
-                        if(BotMessage != Message.Message)
-                        {
-                            SendBotsMessage(Message.Message);
-                        }
                     }
                     break;
                 case "AddBots":
@@ -253,7 +271,21 @@ namespace Ubiq.Samples.Bots
                         }
                     }
                     break;
+                case "SendMessage":
+                    {
+                        var request = message.FromJson<SendMessage>();
+                        foreach (var bot in bots)
+                        {
+                            bot.SendMessage(request.MethodName, request.Parameter, SendMessageOptions.DontRequireReceiver);
+                        }
+                    }
+                    break;
             }
+        }
+
+        public static BotsManager Find(MonoBehaviour bot)
+        {
+            return bot.GetClosestComponent<BotsManager>();
         }
     }
 }

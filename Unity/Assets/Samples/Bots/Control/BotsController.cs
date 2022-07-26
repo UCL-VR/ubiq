@@ -1,11 +1,14 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Ubiq.Logging;
 using Ubiq.Messaging;
 using Ubiq.Rooms;
 using Ubiq.Samples.Bots.Messaging;
 using Ubiq.Utilities.Coroutines;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Ubiq.Samples.Bots
 {
@@ -18,16 +21,24 @@ namespace Ubiq.Samples.Bots
         public bool EnableAudio { get; set; }
         public int UpdateRate { get; set; }
         public int Padding { get; set; }
-        public string Message { get; set; } // A message sent to each new bot (using Unity's SendMessage).
 
-        public int NumBotsRoomPeers => BotsRoom.NumPeers;
-        public PerformanceMonitor BotsRoom;
+        public int NumBots => BotManagers.Select(x => x.NumBots).Sum();
+
+        public int NumBotsRoomPeers => BotsRoom.Peers.Count();
+        public RoomClient BotsRoom;
         public ICollection<BotManagerProxy> BotManagers => proxies.Values;
 
         private Dictionary<string, BotManagerProxy> proxies = new Dictionary<string, BotManagerProxy>();
 
         private InfoLogEmitter Info;
         private NetworkScene networkScene;
+
+        private Dictionary<string, Action<string>> sendMessageFunctions = new Dictionary<string, Action<string>>();
+
+        public void OnMessage(string methodName, Action<string> callback)
+        {
+            sendMessageFunctions[methodName] = callback;
+        }
 
         private void Awake()
         {
@@ -38,20 +49,20 @@ namespace Ubiq.Samples.Bots
             }
 
             RoomClient.Find(this).SetDefaultServer(BotsConfig.CommandServer);
-            BotsRoom.RoomClient.SetDefaultServer(BotsConfig.BotServer);
+            BotsRoom.SetDefaultServer(BotsConfig.BotServer);
         }
 
         private void Start()
         {
-            networkScene = NetworkScene.FindNetworkScene(this);
+            networkScene = NetworkScene.Find(this);
             if (networkScene)
             {
                 networkScene.AddProcessor(Id,ProcessMessage);
             }
 
             var roomClient = networkScene.GetComponent<RoomClient>();
-            roomClient.OnJoinedRoom.AddListener(Room => {
-                CommandJoinCode = Room.JoinCode;
+            roomClient.OnJoinedRoom.AddListener(room => {
+                CommandJoinCode = room.JoinCode;
             });
             roomClient.Join(BotsConfig.CommandRoomGuid);
 
@@ -60,8 +71,8 @@ namespace Ubiq.Samples.Bots
                 proxies.Remove(peer.uuid);
             });
 
-            BotsRoom.RoomClient.OnJoinedRoom.AddListener(Room => {
-                AddBotsToRoom(Room.JoinCode);
+            BotsRoom.OnJoinedRoom.AddListener((room) => {
+                AddBotsToRoom(room.JoinCode);
             });
 
             Info = new InfoLogEmitter(this);
@@ -87,7 +98,7 @@ namespace Ubiq.Samples.Bots
 
         public void CreateBotsRoom()
         {
-            BotsRoom.RoomClient.Join("Bots Room", false);
+            BotsRoom.Join("Bots Room", false);
         }
 
         public void ToggleAudio(bool audio)
@@ -99,20 +110,11 @@ namespace Ubiq.Samples.Bots
             }
         }
 
-        public void AddBotsToRoom(string JoinCode)
+        public void AddBotsToRoom(string joinCode)
         {
-            if(BotsJoinCode != JoinCode)
+            if(BotsJoinCode != joinCode)
             {
-                BotsJoinCode = JoinCode;
-                UpdateProxies();
-            }
-        }
-
-        public new void SendMessage(string methodName)
-        {
-            if (Message != methodName)
-            {
-                Message = methodName;
+                BotsJoinCode = joinCode;
                 UpdateProxies();
             }
         }
@@ -138,6 +140,18 @@ namespace Ubiq.Samples.Bots
             foreach (var item in proxies.Values)
             {
                 item.UpdateSettings();
+            }
+        }
+
+        /// <summary>
+        /// Issues a SendMessage to the specified methodName on all Bots on all
+        /// BotManagers known to this controller.
+        /// </summary>
+        public void SendBotMessage(string methodName, string parameters)
+        {
+            foreach (var item in proxies.Values)
+            {
+                item.SendMessage(methodName, parameters);
             }
         }
 
@@ -167,6 +181,15 @@ namespace Ubiq.Samples.Bots
                         }
                     }
                     break;
+                case "SendMessage":
+                    {
+                        var Message = message.FromJson<SendMessage>();
+                        if (sendMessageFunctions.ContainsKey(Message.MethodName))
+                        {
+                            sendMessageFunctions[Message.MethodName].Invoke(Message.Parameter);
+                        }
+                    }
+                    break;
             }
         }
     }
@@ -190,7 +213,6 @@ namespace Ubiq.Samples.Bots
                     EnableAudio = controller.EnableAudio,
                     AvatarDataPadding = controller.Padding,
                     AvatarUpdateRate = controller.UpdateRate,
-                    Message = controller.Message
                 });
             }
         }
@@ -219,9 +241,16 @@ namespace Ubiq.Samples.Bots
             }
         }
 
-        public void SetBotState(string botState)
+        /// <summary>
+        /// Issues a SendMessage call to each Bot run by the Bot Manager. The 
+        /// SendMessage arguments are a Json,
+        /// </summary>
+        public void SendMessage(string methodName, string parameters)
         {
-
+            if(networkScene)
+            {
+                networkScene.SendJson(Id, new SendMessage() { MethodName = methodName, Parameter = parameters });
+            }
         }
 
         private NetworkScene networkScene;

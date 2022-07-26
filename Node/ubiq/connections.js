@@ -73,16 +73,23 @@ class TcpConnectionWrapper{
         this.header = Buffer.alloc(this.headersize);
         this.header.read = 0;
         this.data = null;
+        this.closed = false;
         
         this.socket.on("data", 
             this.onData.bind(this));
         
         this.socket.on("close", function(event){
-            this.onClose.map(callback => callback());
+            if(!this.closed){
+                this.onClose.map(callback => callback());
+                this.closed = true;
+            }
         }.bind(this));
 
-        this.socket.on("error", function(evet){
-            this.onClose.map(callback => callback());
+        this.socket.on("error", function(event){
+            if(!this.closed){
+                this.onClose.map(callback => callback());
+                this.closed = true;
+            }
         }.bind(this));
     }
 

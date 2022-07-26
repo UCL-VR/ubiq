@@ -33,19 +33,35 @@ namespace Ubiq.Samples.Bots.UI
         private void Awake()
         {
             CreateRoomButton.onClick.AddListener(Controller.CreateBotsRoom);
-
             JoinRoomButton.onClick.AddListener(() =>
             {
                 Controller.AddBotsToRoom(JoinCodeInputField.text);
             });
-
             ClearButton.onClick.AddListener(Controller.ClearBots);
             QuitBotProcessesButton.onClick.AddListener(Controller.TerminateProcesses);
-
             ToggleCameraButton.onClick.AddListener(ToggleCamera);
-            
+            EnableAudioToggle.isOn = Controller.EnableAudio;
             EnableAudioToggle.onValueChanged.AddListener(Controller.ToggleAudio);
-
+            UpdateRateField.onValueChanged.AddListener((e) =>
+            {
+                try
+                {
+                    Controller.UpdateRate = int.Parse(UpdateRateField.text);
+                }
+                catch
+                {
+                }
+            });
+            PaddingField.onValueChanged.AddListener((e) =>
+            {
+                try
+                {
+                    Controller.Padding = int.Parse(PaddingField.text);
+                }
+                catch
+                {
+                }
+            });
             BotManagerControls = new List<BotsManagerControl>();
             BotManagerControlPrototype = BotManagerControlList.transform.GetChild(0).gameObject;
             BotManagerControlPrototype.SetActive(false);
@@ -88,28 +104,11 @@ namespace Ubiq.Samples.Bots.UI
                 BotManagerControls[i].gameObject.SetActive(false);
             }
 
-            try
-            {
-                Controller.UpdateRate = int.Parse(UpdateRateField.text);
-            }
-            catch
-            {
-            }
-
-            try
-            {
-                Controller.Padding = int.Parse(PaddingField.text);
-            }
-            catch
-            {
-            }
-
             UpdateRateField.text = Controller.UpdateRate.ToString();
             PaddingField.text = Controller.Padding.ToString();
-            EnableAudioToggle.isOn = Controller.EnableAudio;
         }
 
-            public void ToggleCamera()
+        public void ToggleCamera()
         {
             Camera.cullingMask ^= 1 << LayerMask.NameToLayer("Default");
         }

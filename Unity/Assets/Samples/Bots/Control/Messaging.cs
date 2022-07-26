@@ -24,7 +24,6 @@ namespace Ubiq.Samples.Bots.Messaging
         public string BotsRoomJoinCode;
         public int AvatarUpdateRate;
         public int AvatarDataPadding;
-        public string Message;
 
         public BotManagerSettings():base("UpdateBotManagerSettings")
         {
@@ -54,6 +53,17 @@ namespace Ubiq.Samples.Bots.Messaging
     public class Quit : Message
     {
         public Quit():base("Quit")
+        {
+        }
+    }
+
+    [Serializable]
+    public class SendMessage : Message
+    {
+        public string MethodName;
+        public string Parameter;
+
+        public SendMessage():base("SendMessage")
         {
         }
     }

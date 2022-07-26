@@ -36,7 +36,7 @@ namespace Ubiq
 
         protected void Start ()
         {
-            networkScene = NetworkScene.FindNetworkScene(this);
+            networkScene = NetworkScene.Find(this);
             if (networkScene)
             {
                 networkScene.AddProcessor(networkId,ProcessMessage);

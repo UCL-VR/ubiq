@@ -23,7 +23,7 @@ namespace Ubiq.Avatars
 
         private void Start()
         {
-            peerConnectionManager = NetworkScene.FindNetworkScene(this).
+            peerConnectionManager = NetworkScene.Find(this).
                 GetComponentInChildren<VoipPeerConnectionManager>();
             if (peerConnectionManager)
             {

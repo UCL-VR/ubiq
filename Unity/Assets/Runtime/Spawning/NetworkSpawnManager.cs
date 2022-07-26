@@ -411,7 +411,7 @@ namespace Ubiq.Spawning
 
         private void Start()
         {
-            spawner = new NetworkSpawner(NetworkScene.FindNetworkScene(this),roomClient,catalogue);
+            spawner = new NetworkSpawner(NetworkScene.Find(this),roomClient,catalogue);
             spawner.OnSpawned += Spawner_OnSpawned;
         }
 
@@ -464,7 +464,7 @@ namespace Ubiq.Spawning
 
         public static NetworkSpawnManager Find(MonoBehaviour component)
         {
-            var scene = NetworkScene.FindNetworkScene(component);
+            var scene = NetworkScene.Find(component);
             if (scene)
             {
                 return scene.GetComponentInChildren<NetworkSpawnManager>();

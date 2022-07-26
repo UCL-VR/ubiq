@@ -102,7 +102,7 @@ namespace Ubiq.Messaging
             }
         }
 
-        public static NetworkScene FindNetworkScene(MonoBehaviour component)
+        public static NetworkScene Find(MonoBehaviour component)
         {
             return FindNetworkScene(component.transform);
         }

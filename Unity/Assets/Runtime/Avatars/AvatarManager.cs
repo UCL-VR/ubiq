@@ -70,7 +70,7 @@ namespace Ubiq.Avatars
 
         private void Start()
         {
-            spawner = new NetworkSpawner(NetworkScene.FindNetworkScene(this),
+            spawner = new NetworkSpawner(NetworkScene.Find(this),
                 RoomClient,avatarCatalogue,"ubiq.avatars.");
             spawner.OnSpawned += OnSpawned;
             spawner.OnDespawned += OnDespawned;
@@ -169,7 +169,7 @@ namespace Ubiq.Avatars
         /// </summary>
         public static AvatarManager Find(MonoBehaviour Component)
         {
-            var scene = NetworkScene.FindNetworkScene(Component);
+            var scene = NetworkScene.Find(Component);
             if (scene)
             {
                 return scene.GetComponentInChildren<AvatarManager>();
