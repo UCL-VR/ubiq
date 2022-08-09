@@ -1,6 +1,6 @@
 The Samples folder demonstrates how to use Ubiq.
 
-The Social folder is where to start. It contains a fully functional social application showing off what Ubiq can do.
+The Social scene is where to start. It contains a social application which uses all of Ubiq's features.
 
 The Boids folder contains an example of a networked application without the additional functionality in the social sample (Avatars, UI, etc).
 
