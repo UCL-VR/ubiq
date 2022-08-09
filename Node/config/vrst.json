@@ -6,7 +6,7 @@
             "tcp": 8009,
             "ws": 8010
         },
-        "statusLogFile":"C:/Users/Sebastian/AppData/LocalLow/UCL/ubiq/server.log"
+        "statusLogFile":"./server.log"
     },
     "iceservers":
     [

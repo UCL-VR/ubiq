@@ -131,12 +131,13 @@ class RoomServer extends EventEmitter{
             bytesOut: 0,
             time: 0
         }
+        this.intervals = [];
     }
 
     addStatusStream(filename){
         if(filename != undefined){
             this.statusStream = fs.createWriteStream(filename);
-            setInterval(this.updateStatus.bind(this), 100)
+            this.intervals.push(setInterval(this.updateStatus.bind(this), 100));
         }
     }
 
@@ -290,6 +291,20 @@ class RoomServer extends EventEmitter{
         for(var room of rooms){
             room = this.findOrCreateRoom({uuid: room});
             room.removeObserver(peer);
+        }
+    }
+
+    exit(callback){
+        for(var id of this.intervals){
+            clearInterval(id);
+        }
+        if(this.statusStream != undefined){
+            this.statusStream.on("finish", callback);
+            this.statusStream.end();
+        }
+        else
+        {
+            callback();
         }
     }
 }

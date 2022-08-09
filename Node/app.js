@@ -31,3 +31,11 @@ if (iceServers){
             iceServer.password);
     }
 }
+
+process.on('SIGINT', function() {
+
+    // Registering for SIGINT allows various modules to shutdown gracefully
+    roomServer.exit(()=>{
+        process.exit(0);
+    });
+ })
