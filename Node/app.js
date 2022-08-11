@@ -36,6 +36,7 @@ process.on('SIGINT', function() {
 
     // Registering for SIGINT allows various modules to shutdown gracefully
     roomServer.exit(()=>{
+        console.log("Shutdown");
         process.exit(0);
     });
  })

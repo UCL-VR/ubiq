@@ -299,6 +299,7 @@ class RoomServer extends EventEmitter{
             clearInterval(id);
         }
         if(this.statusStream != undefined){
+            console.log("Closing status stream...");
             this.statusStream.on("finish", callback);
             this.statusStream.end();
         }
