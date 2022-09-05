@@ -129,15 +129,17 @@ class RoomServer extends EventEmitter{
             messages: 0,
             bytesIn: 0,
             bytesOut: 0,
-            time: 0
+            time: 0,
         }
+        this.statusStream = undefined;
+        this.statusStreamTime = 0;
         this.intervals = [];
     }
 
     addStatusStream(filename){
         if(filename != undefined){
             this.statusStream = fs.createWriteStream(filename);
-            this.intervals.push(setInterval(this.updateStatus.bind(this), 100));
+            this.intervals.push(setInterval(this.statusPoll.bind(this), 100));
         }
     }
 
@@ -148,6 +150,19 @@ class RoomServer extends EventEmitter{
             typeof value === "bigint" ? value.toString() : value
         );
         this.statusStream.write(structuredLog + "\n");
+    }
+
+    // Called by onMessage to see if we need to update the status log.
+    // The status should be updated every 100 ms or so.
+    statusPoll(){
+        if(this.statusStream != undefined){
+            var time = Date.now();
+            var interval = time - this.statusStreamTime;
+            if(interval > 100){
+                this.statusStreamTime = time;
+                this.updateStatus();
+            }
+        }
     }
 
     addServer(server){
@@ -452,6 +467,7 @@ class RoomPeer{
         this.server.status.connections += 1;
         this.connection = connection;
         this.room = new EmptyRoom();
+        this.peers = {};
         this.networkSceneId = new NetworkId(Math.floor(Math.random()*2147483648),Math.floor(Math.random()*2147483648));
         this.clientid;
         this.uuid = "";
@@ -465,6 +481,7 @@ class RoomPeer{
     onMessage(message){
         this.server.status.messages += 1;
         this.server.status.bytesIn += message.length;
+        this.server.statusPoll();
         if(NetworkId.Compare(message.objectId, this.server.objectId)){
             try {
                 message.object = message.toObject();
