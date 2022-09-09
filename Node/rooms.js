@@ -7,6 +7,25 @@ const fs = require('fs');
 const VERSION_STRING = "0.0.4";
 const RoomServerReservedId = 1;
 
+// https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
+// Proof of concept - not crypto secure
+function JoinCode() {
+    var result           = '';
+    var characters       = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < 3; i++ ) {
+       result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
+
+function arrayRemove(array,element){
+    const index = array.indexOf(element);
+    if (index > -1) {
+        array.splice(index, 1);
+    }
+}
+
 class PropertyDictionary{
     constructor(){
         this.dict = {};
@@ -95,22 +114,43 @@ class PropertyDictionary{
     }
 }
 
-// https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
-// Proof of concept - not crypto secure
-function JoinCode() {
-    var result           = '';
-    var characters       = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    var charactersLength = characters.length;
-    for ( var i = 0; i < 3; i++ ) {
-       result += characters.charAt(Math.floor(Math.random() * charactersLength));
+class RoomDatabase{
+    constructor(){
+        this.byUuid = {};
+        this.byJoincode = {};
     }
-    return result;
-}
 
-function arrayRemove(array,element){
-    const index = array.indexOf(element);
-    if (index > -1) {
-        array.splice(index, 1);
+    // Return all room objects in the database
+    all(){
+        return Object.keys(this.byUuid).map(k => this.byUuid[k]);
+    }
+
+    // Add room to the database
+    add(room){
+        this.byUuid[room.uuid] = room;
+        this.byJoincode[room.joincode] = room;
+    }
+
+    // Remove room from the database by uuid
+    remove(uuid){
+        delete this.byJoincode[this.byUuid[uuid].joincode];
+        delete this.byUuid[uuid];
+    }
+
+    // Return room object with given uuid, or null if not present
+    uuid(uuid) {
+        if (this.byUuid.hasOwnProperty(uuid)) {
+            return this.byUuid[uuid];
+        }
+        return null;
+    }
+
+    // Return room object with given joincode, or null if not present
+    joincode(joincode) {
+        if (this.byJoincode.hasOwnProperty(joincode)) {
+            return this.byJoincode[joincode];
+        }
+        return null;
     }
 }
 
@@ -134,6 +174,7 @@ class RoomServer extends EventEmitter{
         this.statusStream = undefined;
         this.statusStreamTime = 0;
         this.intervals = [];
+        this.T = Room;
     }
 
     addStatusStream(filename){
@@ -237,7 +278,11 @@ class RoomServer extends EventEmitter{
             if (args.hasOwnProperty("name")) {
                 name = args.name;
             }
-            room = new Room(this,uuid,joincode,publish,name);
+            room = new this.T(this);
+            room.uuid = uuid;
+            room.joincode = joincode;
+            room.publish = publish;
+            room.name = name;
             this.roomDatabase.add(room);
             this.emit("create",room);
 
@@ -265,7 +310,11 @@ class RoomServer extends EventEmitter{
             var publish = false;
             var name = args.uuid;
             var uuid = args.uuid;
-            room = new Room(this,uuid,joincode,publish,name);
+            room = new this.T(this);
+            room.uuid = uuid;
+            room.joincode = joincode;
+            room.publish = publish;
+            room.name = name;
             this.roomDatabase.add(room);
             this.emit("create",room);
 
@@ -324,139 +373,6 @@ class RoomServer extends EventEmitter{
         }
     }
 }
-
-// Be aware that while jsonschema can resolve forward declared references,
-// initialisation is order dependent, and "alias" schemas must be defined after
-// their concrete counterpart.
-
-Schema.add({
-    id: "/ubiq.rooms.servermessage",
-    type: "object",
-    properties: {
-        type: {"type": "string"},
-        args: {"type": "string"}
-    },
-    required: ["type","args"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.joinargs",
-    type: "object",
-    properties: {
-        joincode: {type: "string"},
-        uuid: {type: "string"},
-        name: {type: "string"},
-        publish: {type: "boolean"},
-        peer: {$ref: "/ubiq.rooms.peerinfo"},
-    },
-    required: ["peer"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.peerinfo",
-    type: "object",
-    properties: {
-        uuid: {type: "string"},
-        sceneid: {$ref: "/ubiq.messaging.networkid"},
-        clientid: {$ref: "/ubiq.messaging.networkid"},
-        keys: {type: "array", items: {type: "string"}},
-        values: {type: "array", items: {type: "string"}},
-    },
-    required: ["uuid","sceneid","clientid","keys","values"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.roominfo",
-    type: "object",
-    properties: {
-        uuid: {type: "string"},
-        joincode: {type: "string"},
-        publish: {type: "boolean"},
-        name: {type: "string"},
-        keys: {type: "array", items: {type: "string"}},
-        values: {type: "array", items: {type: "string"}},
-    },
-    required: ["uuid","joincode","publish","name","keys","values"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.appendpeerpropertiesargs",
-    type: "object",
-    properties: {
-        keys: {type: "array", items: {type: "string"}},
-        values: {type: "array", items: {type: "string"}}
-    },
-    required: ["keys","values"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.appendroompropertiesargs",
-    type: "object",
-    properties: {
-        keys: {type: "array", items: {type: "string"}},
-        values: {type: "array", items: {type: "string"}}
-    },
-    required: ["keys","values"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.ping",
-    type: "object",
-    properties: {
-        clientid: { $ref: "/ubiq.messaging.networkid"} // required because this needs a response
-    },
-    required: ["clientid"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.discoverroomsargs",
-    type: "object",
-    properties: {
-        clientid: { $ref: "/ubiq.messaging.networkid"}, // required because this needs a response
-        joincode: {type: "string"}
-    },
-    required: ["clientid"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.setblobargs",
-    type: "object",
-    properties: {
-        uuid: { type: "string"},
-        blob: { type: "string"}
-    },
-    required: ["uuid","blob"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.getblobargs",
-    type: "object",
-    properties: {
-        clientid: { $ref: "/ubiq.messaging.networkid"}, // required because this needs a response
-        uuid: { type: "string"}
-    },
-    required: ["clientid","uuid"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.updateroomargs",
-    $ref: "/ubiq.rooms.roominfo"
-});
-
-Schema.add({
-    id: "/ubiq.rooms.updatepeerargs",
-    $ref: "/ubiq.rooms.peerinfo"
-});
-
-Schema.add({
-    id: "/ubiq.rooms.setobserved",
-    type: "object",
-    properties: {
-        rooms: {type:"array"},
-        peer: {$ref: "/ubiq.rooms.peerinfo"},
-    },
-    required: ["rooms","peer"]
-})
 
 // The RoomPeer class manages a Connection to a RoomClient. This class
 // interacts with the connection, formatting and parsing messages and calling the
@@ -594,6 +510,10 @@ class RoomPeer{
         this.sendSetRoom();
     }
 
+    clearRoom(){
+        this.setRoom(new EmptyRoom());
+    }
+
     getObjectId(){
         return this.clientid;
     }
@@ -635,7 +555,6 @@ class RoomPeer{
             type: "SetRoom",
             args: JSON.stringify({
                 room: this.room.getRoomArgs(),
-                peers: this.room.getPeersArgs()
             })
         }));
     }
@@ -752,12 +671,12 @@ class EmptyRoom{
 }
 
 class Room{
-    constructor(server, uuid, joincode, publish, name){
+    constructor(server){
         this.server = server;
-        this.uuid = uuid;
-        this.joincode = joincode;
-        this.publish = publish;
-        this.name = name;
+        this.uuid = null;
+        this.name = "(Unnamed Room)";
+        this.publish = false;
+        this.joincode = "";
         this.peers = [];
         this.properties = new PropertyDictionary();
         this.blobs = {};
@@ -891,46 +810,140 @@ class Room{
     }
 }
 
-class RoomDatabase{
-    constructor(){
-        this.byUuid = {};
-        this.byJoincode = {};
-    }
+// Be aware that while jsonschema can resolve forward declared references,
+// initialisation is order dependent, and "alias" schemas must be defined after
+// their concrete counterpart.
 
-    // Return all room objects in the database
-    all(){
-        return Object.keys(this.byUuid).map(k => this.byUuid[k]);
-    }
+Schema.add({
+    id: "/ubiq.rooms.servermessage",
+    type: "object",
+    properties: {
+        type: {"type": "string"},
+        args: {"type": "string"}
+    },
+    required: ["type","args"]
+});
 
-    // Add room to the database
-    add(room){
-        this.byUuid[room.uuid] = room;
-        this.byJoincode[room.joincode] = room;
-    }
+Schema.add({
+    id: "/ubiq.rooms.joinargs",
+    type: "object",
+    properties: {
+        joincode: {type: "string"},
+        uuid: {type: "string"},
+        name: {type: "string"},
+        publish: {type: "boolean"},
+        peer: {$ref: "/ubiq.rooms.peerinfo"},
+    },
+    required: ["peer"]
+});
 
-    // Remove room from the database by uuid
-    remove(uuid){
-        delete this.byJoincode[this.byUuid[uuid].joincode];
-        delete this.byUuid[uuid];
-    }
+Schema.add({
+    id: "/ubiq.rooms.peerinfo",
+    type: "object",
+    properties: {
+        uuid: {type: "string"},
+        sceneid: {$ref: "/ubiq.messaging.networkid"},
+        clientid: {$ref: "/ubiq.messaging.networkid"},
+        keys: {type: "array", items: {type: "string"}},
+        values: {type: "array", items: {type: "string"}},
+    },
+    required: ["uuid","sceneid","clientid","keys","values"]
+});
 
-    // Return room object with given uuid, or null if not present
-    uuid(uuid) {
-        if (this.byUuid.hasOwnProperty(uuid)) {
-            return this.byUuid[uuid];
-        }
-        return null;
-    }
+Schema.add({
+    id: "/ubiq.rooms.roominfo",
+    type: "object",
+    properties: {
+        uuid: {type: "string"},
+        joincode: {type: "string"},
+        publish: {type: "boolean"},
+        name: {type: "string"},
+        keys: {type: "array", items: {type: "string"}},
+        values: {type: "array", items: {type: "string"}},
+    },
+    required: ["uuid","joincode","publish","name","keys","values"]
+});
 
-    // Return room object with given joincode, or null if not present
-    joincode(joincode) {
-        if (this.byJoincode.hasOwnProperty(joincode)) {
-            return this.byJoincode[joincode];
-        }
-        return null;
-    }
-}
+Schema.add({
+    id: "/ubiq.rooms.appendpeerpropertiesargs",
+    type: "object",
+    properties: {
+        keys: {type: "array", items: {type: "string"}},
+        values: {type: "array", items: {type: "string"}}
+    },
+    required: ["keys","values"]
+});
+
+Schema.add({
+    id: "/ubiq.rooms.appendroompropertiesargs",
+    type: "object",
+    properties: {
+        keys: {type: "array", items: {type: "string"}},
+        values: {type: "array", items: {type: "string"}}
+    },
+    required: ["keys","values"]
+});
+
+Schema.add({
+    id: "/ubiq.rooms.ping",
+    type: "object",
+    properties: {
+        clientid: { $ref: "/ubiq.messaging.networkid"} // required because this needs a response
+    },
+    required: ["clientid"]
+});
+
+Schema.add({
+    id: "/ubiq.rooms.discoverroomsargs",
+    type: "object",
+    properties: {
+        clientid: { $ref: "/ubiq.messaging.networkid"}, // required because this needs a response
+        joincode: {type: "string"}
+    },
+    required: ["clientid"]
+});
+
+Schema.add({
+    id: "/ubiq.rooms.setblobargs",
+    type: "object",
+    properties: {
+        uuid: { type: "string"},
+        blob: { type: "string"}
+    },
+    required: ["uuid","blob"]
+});
+
+Schema.add({
+    id: "/ubiq.rooms.getblobargs",
+    type: "object",
+    properties: {
+        clientid: { $ref: "/ubiq.messaging.networkid"}, // required because this needs a response
+        uuid: { type: "string"}
+    },
+    required: ["clientid","uuid"]
+});
+
+Schema.add({
+    id: "/ubiq.rooms.updateroomargs",
+    $ref: "/ubiq.rooms.roominfo"
+});
+
+Schema.add({
+    id: "/ubiq.rooms.updatepeerargs",
+    $ref: "/ubiq.rooms.peerinfo"
+});
+
+Schema.add({
+    id: "/ubiq.rooms.setobserved",
+    type: "object",
+    properties: {
+        rooms: {type:"array"},
+        peer: {$ref: "/ubiq.rooms.peerinfo"},
+    },
+    required: ["rooms","peer"]
+})
 
 module.exports = {
-    RoomServer
+    RoomServer,
+    Room
 }

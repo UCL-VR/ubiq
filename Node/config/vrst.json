@@ -6,7 +6,8 @@
             "tcp": 8009,
             "ws": 8010
         },
-        "statusLogFile":"./server.log"
+        "statusLogFile":"./server.log",
+        "roomType":"KnnRoom"
     },
     "iceservers":
     [

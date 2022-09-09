@@ -3,10 +3,11 @@ const { RoomServer } = require("./rooms");
 const { IceServerProvider } = require("./ice");
 const nconf = require('nconf');
 
-// nconf loads the configuration hierarchically; default.json contains most of
-// the rarely changing configuration properties, stored with the branch.
-// Additional configuration files - where present - add or override parameters,
-// such as pre-shared secrets, that should not be in source control.
+// nconf loads the configuration hierarchically - settings that load *first* 
+// take priority. default.json contains most of the rarely changing 
+// configuration properties, stored with the branch. Additional configuration 
+// files - where present - add or override parameters, such as pre-shared 
+// secrets, that should not be in source control.
 process.argv.slice(2).forEach(element => {
     nconf.file(element,element);
 });
@@ -30,6 +31,14 @@ if (iceServers){
             iceServer.username,
             iceServer.password);
     }
+}
+
+// Set the type of room this Server should use
+const { KnnRoom } = require("./knnroom");
+
+var roomTypeName = nconf.get("roomserver:roomType");
+if(roomTypeName != undefined){
+    roomServer.T = eval(roomTypeName);
 }
 
 process.on('SIGINT', function() {
