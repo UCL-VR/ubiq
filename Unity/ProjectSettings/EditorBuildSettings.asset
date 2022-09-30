@@ -21,7 +21,7 @@ EditorBuildSettings:
     path: Assets/Samples/Bots/Bots.unity
     guid: 775a5366984e5bf418fe14f12fd14a6f
   - enabled: 1
-    path: Assets/Experiment/VR22/HexGrid.unity
+    path: Assets/Experiment/VR22/Hex.unity
     guid: 001a7a5a52ef97b41a6f88fdfd341501
   - enabled: 0
     path: Assets/Experiment/VR22/Baseline.unity

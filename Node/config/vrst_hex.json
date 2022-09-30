@@ -7,6 +7,7 @@
             "ws": 8010
         },
         "statusLogFile":"./server.log",
+        "roomType":"HexRoom"
     },
     "iceservers":
     [

@@ -274,8 +274,8 @@ class RoomServer extends EventEmitter{
             if (args.hasOwnProperty("publish")) {
                 publish = args.publish;
             }
-            var name = "Unnamed Room";
-            if (args.hasOwnProperty("name")) {
+            var name = uuid;
+            if (args.hasOwnProperty("name") && args.name.length != 0) {
                 name = args.name;
             }
             room = new this.T(this);
@@ -293,8 +293,6 @@ class RoomServer extends EventEmitter{
             peer.room.removePeer(peer);
         }
         room.addPeer(peer);
-
-        console.log(peer.uuid + " joined room " + room.uuid);
     }
 
     findOrCreateRoom(args){
@@ -342,20 +340,6 @@ class RoomServer extends EventEmitter{
         this.emit("destroy",room);
         this.roomDatabase.remove(room.uuid);
         console.log("RoomServer: Deleting empty room " + room.uuid);
-    }
-
-    async observe(peer, rooms){
-        for(var room of rooms){
-            room = this.findOrCreateRoom({uuid: room});
-            room.addObserver(peer);
-        }
-    }
-
-    async unobserve(peer, rooms){
-        for(var room of rooms){
-            room = this.findOrCreateRoom({uuid: room});
-            room.removeObserver(peer);
-        }
     }
 
     exit(callback){
@@ -468,14 +452,8 @@ class RoomPeer{
                         this.sendPing();
                     }
                     break;
-                case "SetObserved":
-                    if (Schema.validate(message.args, "/ubiq.rooms.setobserved", this.onValidationFailure)){
-                        this.networkSceneId = message.args.peer.sceneid;
-                        this.clientid = message.args.peer.clientid;
-                        this.uuid = message.args.peer.uuid;
-                        this.changeObserved(message.args.rooms); // Name collision with the internal api
-                    }
-                    break;
+                default:
+                    this.room.processRoomMessage(this, message);
             };
         }else{
             this.room.processMessage(this, message);
@@ -518,24 +496,11 @@ class RoomPeer{
         return this.clientid;
     }
 
-    setObserved(room){
-        this.observed.push(room);
-    }
-
     appendProperties(keys,values){
         var modified = this.properties.append(keys,values);
         if (modified.keys.length > 0){
             this.room.broadcastPeerProperties(this,modified.keys,modified.values);
         }
-    }
-
-    unsetObserved(room){
-        arrayRemove(this.observed, room);
-    }
-
-    changeObserved(rooms){
-        this.server.unobserve(this, this.observed.filter(existing => !rooms.includes(existing.uuid)).map(x => x.uuid));
-        this.server.observe(this, rooms);
     }
 
     sendRejected(joinArgs,reason){
@@ -704,45 +669,31 @@ class Room{
     }
 
     addPeer(peer){
-        // If the peer is an observer, then upgrade the peer in place...
-        if(this.observers.includes(peer)){
-            arrayRemove(this.observers, peer);
-            peer.unsetObserved(this);
-        }
         this.peers.push(peer);
         peer.setRoom(this);
-
         for(var existing of this.peers){ // Tell the Peers about eachother
             if(existing !== peer){
                 existing.sendPeerAdded(peer); // Tell the existing peer that the new Peer has joined
                 peer.sendPeerAdded(existing); // And the new Peer about the existing one
             }
         };
-        this.observers.forEach(existing =>{
-            existing.sendPeerAdded(peer); // Tell existing observers about the new Peer
-        })
+        console.log(peer.uuid + " joined room " + this.name);
     }
 
     removePeer(peer){
-        const index = this.peers.indexOf(peer);
-        if (index > -1) {
-          this.peers.splice(index, 1);
-        }
+        arrayRemove(this.peers, peer);
         peer.setRoom(new EmptyRoom()); // signal that the leave is complete
         for(var existing of this.peers){
             existing.sendPeerRemoved(peer); // Tell the remaining peers about the missing peer (no check here because the peer was already removed from the list)
             peer.sendPeerRemoved(existing);
         }
-        for(var existing of this.observers) {
-            existing.sendPeerRemoved(peer); // Tell the observers about the missing peer
-        };
         console.log(peer.uuid + " left room " + this.name);
         this.checkRoom();
     }
 
     // Every time a peer or observer leaves, check if the room should still exist
     checkRoom(){
-        if(this.peers.length <= 0 && this.observers.length <= 0){
+        if(this.peers.length <= 0){
             this.server.removeRoom(this);
         }
     }
@@ -779,34 +730,6 @@ class Room{
                 peer.send(message);
             }
         });
-        this.observers.forEach(peer =>{ // Observers receive messages emanating from this room, but emit messages from their own room
-            if(peer != source){
-                peer.send(message);
-            }
-        });
-    }
-
-    addObserver(peer){
-        if(!this.observers.includes(peer)){
-            this.observers.push(peer);
-            peer.setObserved(this);
-            this.peers.forEach(member => {
-                peer.sendPeerAdded(member); // Tell the new observer about the existing peers
-            })
-            console.log(peer.uuid + " observed room " + this.uuid);
-        }
-    }
-
-    removeObserver(peer){
-        if(this.observers.includes(peer)){
-            arrayRemove(this.observers, peer);
-            peer.unsetObserved(this);
-            this.peers.forEach(existing => {
-                peer.sendPeerRemoved(existing); // Once the Observer is no longer observing the room, it should no longer see the rooms peers
-            });
-            console.log(peer.uuid + " stopped observing room " + this.uuid);
-        }
-        this.checkRoom();
     }
 }
 
@@ -932,16 +855,6 @@ Schema.add({
     id: "/ubiq.rooms.updatepeerargs",
     $ref: "/ubiq.rooms.peerinfo"
 });
-
-Schema.add({
-    id: "/ubiq.rooms.setobserved",
-    type: "object",
-    properties: {
-        rooms: {type:"array"},
-        peer: {$ref: "/ubiq.rooms.peerinfo"},
-    },
-    required: ["rooms","peer"]
-})
 
 module.exports = {
     RoomServer,

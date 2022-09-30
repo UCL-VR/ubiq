@@ -270,7 +270,6 @@ MonoBehaviour:
   BotPrefabs:
   - {fileID: 2044676199132764484, guid: 8969237717949e3418c9f0385e21c460, type: 3}
   - {fileID: 2739430715554702360, guid: f48c26e946b7fc644bf1eaebc31a8bd3, type: 3}
-  - {fileID: 3073463335692407091, guid: b3afcc020f00d5347bd785e880fdc3ed, type: 3}
   HideBotAvatars: 0
   AvatarUpdateRate: 60
   Padding: 0

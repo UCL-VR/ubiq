@@ -35,6 +35,7 @@ if (iceServers){
 
 // Set the type of room this Server should use
 const { KnnRoom } = require("./knnroom");
+const { HexRoom } = require("./hexroom");
 
 var roomTypeName = nconf.get("roomserver:roomType");
 if(roomTypeName != undefined){

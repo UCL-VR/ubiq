@@ -94,12 +94,6 @@ namespace Ubiq.Rooms
         {
             public NetworkId clientid;
         }
-
-        private struct SetObservedRequest
-        {
-            public List<string> rooms;
-            public PeerInfo peer;
-        }
         #endregion
 
         #region Recv from Server
@@ -561,9 +555,22 @@ namespace Ubiq.Rooms
             }
         }
 
-        private void SendToServer(string type, object argument)
+        private void SendToServerSync(string type, object argument)
         {
-            scene.SendJson(roomServerObjectId, new Message(type, argument));
+            SendToServerSync(new Message(type, argument));
+        }
+
+        private void SendToServerSync(Message message)
+        {
+            scene.SendJson(roomServerObjectId, message);
+        }
+
+        public void SendToServer(Message message)
+        {
+            actions.Add(() =>
+            {
+                SendToServerSync(message);
+            });
         }
 
         /// <summary>
@@ -575,7 +582,7 @@ namespace Ubiq.Rooms
         {
             actions.Add(() =>
             {
-                SendToServer("Join", new JoinArgs()
+                SendToServerSync("Join", new JoinArgs()
                 {
                     name = name,
                     publish = publish,
@@ -592,7 +599,7 @@ namespace Ubiq.Rooms
         {
             actions.Add(() =>
             {
-                SendToServer("Join", new JoinArgs()
+                SendToServerSync("Join", new JoinArgs()
                 {
                     joincode = joincode,
                     peer = me.GetPeerInfo()
@@ -608,7 +615,7 @@ namespace Ubiq.Rooms
         {
             actions.Add(() =>
             {
-                SendToServer("Join", new JoinArgs()
+                SendToServerSync("Join", new JoinArgs()
                 {
                     uuid = guid.ToString(),
                     peer = me.GetPeerInfo()
@@ -643,7 +650,7 @@ namespace Ubiq.Rooms
                     _appendPeerPropertiesArgs.values.Add(value);
                 }
 
-                SendToServer("AppendPeerProperties", _appendPeerPropertiesArgs);
+                SendToServerSync("AppendPeerProperties", _appendPeerPropertiesArgs);
                 OnPeerUpdated.Invoke(me);
             }
 
@@ -657,7 +664,7 @@ namespace Ubiq.Rooms
                     _appendRoomPropertiesArgs.values.Add(value);
                 }
 
-                SendToServer("AppendRoomProperties", _appendRoomPropertiesArgs);
+                SendToServerSync("AppendRoomProperties", _appendRoomPropertiesArgs);
             }
 
             if (heartbeatSent > HeartbeatInterval)
@@ -683,7 +690,7 @@ namespace Ubiq.Rooms
                 var args = new DiscoverRoomsArgs();
                 args.clientid = objectid;
                 args.joincode = joincode;
-                SendToServer("DiscoverRooms", args);
+                SendToServerSync("DiscoverRooms", args);
             });
         }
 
@@ -711,14 +718,14 @@ namespace Ubiq.Rooms
                 networkId = objectid,
                 blob = blob
             };
-            SendToServer("GetBlob", request);
+            SendToServerSync("GetBlob", request);
         }
 
         private void SetBlob(string room, string uuid, string blob) // private because this could encourage re-using uuids, which is not allowed because blobs are meant to be immutable
         {
             if (blob.Length > 0)
             {
-                SendToServer("SetBlob", new SetBlobRequest()
+                SendToServerSync("SetBlob", new SetBlobRequest()
                 {
                     blob = new Blob()
                     {
@@ -743,26 +750,10 @@ namespace Ubiq.Rooms
             return uuid;
         }
 
-        /// <summary>
-        /// Observes the Rooms with the specified Guids. Stops observing any not in the list, and begins observing any new ones.
-        /// </summary>
-        /// <param name="guids"></param>
-        public void SetObserved(List<Guid> guids)
-        {
-            actions.Add(() =>
-            {
-                SendToServer("SetObserved", new SetObservedRequest()
-                {
-                    peer = me.GetPeerInfo(),
-                    rooms = guids.Select(g => g.ToString()).ToList() // todo: GC
-                });
-            });
-        }
-
         public void Ping()
         {
             pingSent = Time.realtimeSinceStartup;
-            SendToServer("Ping", new PingArgs() { clientid = objectid });
+            SendToServerSync("Ping", new PingArgs() { clientid = objectid });
         }
 
         private void OnPingResponse(PingResponseArgs args)

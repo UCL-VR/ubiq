@@ -10,12 +10,12 @@ PrefabInstance:
     - target: {fileID: 970569313930788201, guid: c1a55c9926c8d4843a76621513810efd,
         type: 3}
       propertyPath: networkId.a
-      value: 2972622581
+      value: 2186991470
       objectReference: {fileID: 0}
     - target: {fileID: 970569313930788201, guid: c1a55c9926c8d4843a76621513810efd,
         type: 3}
       propertyPath: networkId.b
-      value: 2801617082
+      value: 3976280768
       objectReference: {fileID: 0}
     - target: {fileID: 970569313930788201, guid: c1a55c9926c8d4843a76621513810efd,
         type: 3}
@@ -80,15 +80,14 @@ PrefabInstance:
     - target: {fileID: 4904968254921343995, guid: c1a55c9926c8d4843a76621513810efd,
         type: 3}
       propertyPath: m_Name
-      value: Hex Boids Peer Variant
+      value: Hex Randomwalk Peer
       objectReference: {fileID: 0}
     - target: {fileID: 4904968254933215399, guid: c1a55c9926c8d4843a76621513810efd,
         type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 4904968254933215399, guid: c1a55c9926c8d4843a76621513810efd, type: 3}
+    m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c1a55c9926c8d4843a76621513810efd, type: 3}
 --- !u!1 &3832254307770460283 stripped
 GameObject:

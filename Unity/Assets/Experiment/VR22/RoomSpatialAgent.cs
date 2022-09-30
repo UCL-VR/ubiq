@@ -58,6 +58,11 @@ namespace Ubiq.Rooms.Spatial
                 roomClient.Join(member);
             }
 
+            if(!roomClient.JoinedRoom)
+            {
+                return; // The spatial client must join one room before observing any others, for the peer to be set up correctly
+            }
+
             int numExists = 0;
             foreach (var item in state.Observed)
             {
@@ -71,8 +76,28 @@ namespace Ubiq.Rooms.Spatial
             {
                 observed.Clear();
                 observed.AddRange(state.Observed);
-                roomClient.SetObserved(observed);
+                SetObserved(observed);
             }
+        }
+
+        private struct SetObservedRequest
+        {
+            public List<string> rooms;
+        }
+
+        /// <summary>
+        /// Observes the Rooms with the specified Guids. Stops observing any not in the list, and begins observing any new ones.
+        /// </summary>
+        void SetObserved(List<Guid> guids)
+        {
+            roomClient.SendToServer(
+                new Messages.Message(
+                    "SetObserved", 
+                    new SetObservedRequest()
+                    {
+                        rooms = guids.Select(g => g.ToString()).ToList() // todo: GC
+                    })
+                );
         }
     }
 }

@@ -281,6 +281,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   BotPrefabs:
   - {fileID: 3073463335692407091, guid: b3afcc020f00d5347bd785e880fdc3ed, type: 3}
+  - {fileID: 3832254308169481240, guid: 5e71eef5fc8b248429e6ad5db3ec7787, type: 3}
   HideBotAvatars: 0
   AvatarUpdateRate: 60
   Padding: 0
@@ -317,14 +318,14 @@ MonoBehaviour:
   DefaultCommandServer:
     listen_on_ip: 
     listen_on_port: 
-    send_to_ip: localhost
+    send_to_ip: nexus.cs.ucl.ac.uk
     send_to_port: 8007
     type: 0
   DefaultBotServer:
     listen_on_ip: 
     listen_on_port: 
     send_to_ip: localhost
-    send_to_port: 8007
+    send_to_port: 8009
     type: 0
   ControlRoomId: 87ef0572-67ea-43cc-b2d9-a242428ce929
 --- !u!4 &1567755671
@@ -829,20 +830,30 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3832254308173076292, guid: 5e71eef5fc8b248429e6ad5db3ec7787,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7137195073088726457, guid: 5e71eef5fc8b248429e6ad5db3ec7787,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8955183527532184202, guid: 5e71eef5fc8b248429e6ad5db3ec7787,
         type: 3}
       propertyPath: networkId.a
-      value: 753562226
+      value: 2735140203
       objectReference: {fileID: 0}
     - target: {fileID: 8955183527532184202, guid: 5e71eef5fc8b248429e6ad5db3ec7787,
         type: 3}
       propertyPath: networkId.b
-      value: 3142379721
+      value: 2517697591
       objectReference: {fileID: 0}
     - target: {fileID: 8955183527532184202, guid: 5e71eef5fc8b248429e6ad5db3ec7787,
         type: 3}
       propertyPath: __serializedGoid
-      value: GlobalObjectId_V1-2-001a7a5a52ef97b41a6f88fdfd341501-7191957901218983841-66544694
+      value: GlobalObjectId_V1-2-001a7a5a52ef97b41a6f88fdfd341501-8955183527532184202-2272563418725845277
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 3401549252859494198, guid: 5e71eef5fc8b248429e6ad5db3ec7787, type: 3}
