@@ -87,9 +87,9 @@ public static class ProjectTools
         //     RunProcess("robocopy",sourcePackagesDir + " " + targetPackagesDir + @" manifest.json /MIR");
         // }).Start();
 
-        RunAndLogProcess("robocopy",sourceAssetsDir + " " + targetAssetsDir + @" /MIR");
-        RunAndLogProcess("robocopy",sourceSettingsDir + " " + targetSettingsDir + @" /MIR");
-        RunAndLogProcess("robocopy",sourcePackagesDir + " " + targetPackagesDir + @" manifest.json /MIR");
+        RunAndLogProcess("robocopy",@$"""{sourceAssetsDir}"" ""{targetAssetsDir}"" /MIR");
+        RunAndLogProcess("robocopy",@$"""{sourceSettingsDir}"" ""{targetSettingsDir}"" /MIR");
+        RunAndLogProcess("robocopy",@$"""{sourcePackagesDir}"" ""{targetPackagesDir}"" manifest.json /MIR");
     }
 
     static void RunAndLogProcess (string file, string args)

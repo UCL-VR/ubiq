@@ -6,7 +6,6 @@ using Ubiq.Messaging;
 
 namespace Ubiq.Avatars
 {
-    [RequireComponent(typeof(Avatar))]
     public class VoipAvatar : MonoBehaviour
     {
         public Transform audioSourcePosition;
@@ -16,15 +15,10 @@ namespace Ubiq.Avatars
         private Transform sinkTransform;
         private VoipPeerConnectionManager peerConnectionManager;
 
-        private void Awake()
-        {
-            avatar = GetComponent<Avatars.Avatar>();
-        }
-
         private void Start()
         {
-            peerConnectionManager = NetworkScene.Find(this).
-                GetComponentInChildren<VoipPeerConnectionManager>();
+            avatar = GetComponentInParent<Avatars.Avatar>();
+            peerConnectionManager = NetworkScene.Find(this).GetComponentInChildren<VoipPeerConnectionManager>();
             if (peerConnectionManager)
             {
                 peerConnectionManager.OnPeerConnection.AddListener(OnPeerConnection, true);
@@ -43,7 +37,7 @@ namespace Ubiq.Avatars
         {
             if (peerConnection.PeerUuid == avatar.Peer.uuid)
             {
-                this.peerConnection= peerConnection;
+                this.peerConnection = peerConnection;
                 var sink = peerConnection.audioSink;
                 if(sink is VoipAudioSourceOutput)
                 {

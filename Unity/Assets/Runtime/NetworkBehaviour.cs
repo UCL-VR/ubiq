@@ -29,10 +29,6 @@ namespace Ubiq
     #endif
 
         NetworkId INetworkSpawnable.networkId { set => this.networkId = value; }
-        void INetworkSpawnable.Spawned(bool local)
-        {
-            OnSpawn(local);
-        }
 
         protected void Start ()
         {
@@ -107,7 +103,6 @@ namespace Ubiq
         }
 
         protected virtual void ProcessMessage(ReferenceCountedSceneGraphMessage message) {}
-        protected virtual void OnSpawn (bool local) {}
         protected virtual void Started() {}
         protected virtual void OnValidated() {}
         protected virtual void OnDestroyed() {}

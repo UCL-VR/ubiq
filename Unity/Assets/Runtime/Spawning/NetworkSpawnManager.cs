@@ -19,7 +19,6 @@ namespace Ubiq.Spawning
     public interface INetworkSpawnable
     {
         NetworkId networkId { set; }
-        void Spawned(bool local);
     }
 
     public class NetworkSpawner : IDisposable
@@ -45,9 +44,8 @@ namespace Ubiq.Spawning
         [Serializable]
         private struct Message
         {
-            public string creatorPeerUuid;
+            public NetworkId creatorPeer;
             public int catalogueIndex;
-            public List<NetworkId> networkIds;
         }
 
         public NetworkSpawner (NetworkScene scene, RoomClient roomClient,
@@ -81,17 +79,12 @@ namespace Ubiq.Spawning
 
         private void OnJoinedRoom(IRoom room)
         {
-            // If we've moved room, remove all room scoped spawned objects
-            if (room != prevSpawnerRoom)
-            {
-                foreach (var go in spawnedForRoom.Values)
-                {
-                    GameObject.Destroy(go);
-                }
-                spawnedForRoom.Clear();
-                prevSpawnerRoom = room;
-            }
             UpdateRoom(room);
+        }
+
+        static private NetworkSpawnOrigin GetOrigin (bool local)
+        {
+            return local ? NetworkSpawnOrigin.Local : NetworkSpawnOrigin.Remote;
         }
 
         private void OnRoomUpdated(IRoom room)
@@ -104,18 +97,17 @@ namespace Ubiq.Spawning
             // Spawn all unspawned objects for this room
             foreach (var item in room)
             {
-                var keyMissing = !spawnedForRoom.ContainsKey(item.Key);
-                if(keyMissing && item.Key.StartsWith(propertyPrefix))
+                if(item.Key.StartsWith(propertyPrefix))
                 {
-                    var msg = JsonUtility.FromJson<Message>(item.Value);
-                    var go = InstantiateAndSetIds(msg.catalogueIndex,msg.networkIds);
-                    spawnedForRoom.Add(item.Key,go);
+                    if (!spawnedForRoom.ContainsKey(item.Key))
+                    {
+                        var msg = JsonUtility.FromJson<Message>(item.Value);
+                        var local = msg.creatorPeer == roomClient.Me.networkId;
+                        var go = InstantiateAndSetIds(item.Key,msg.catalogueIndex,local);
 
-                    var origin = msg.creatorPeerUuid == roomClient.Me.uuid
-                        ? NetworkSpawnOrigin.Local
-                        : NetworkSpawnOrigin.Remote;
-
-                    OnSpawned(go,room,peer:null,origin);
+                        spawnedForRoom.Add(item.Key,go);
+                        OnSpawned(go,room,peer:null,GetOrigin(local));
+                    }
                 }
             }
 
@@ -153,41 +145,39 @@ namespace Ubiq.Spawning
 
         private void UpdatePeer(IPeer peer)
         {
-            Dictionary<string,GameObject> spawned = null;
-            spawnedForPeers.TryGetValue(peer, out spawned);
+            spawnedForPeers.TryGetValue(peer, out var spawnedForPeer);
 
             // Spawn all unspawned objects for this peer
             foreach(var item in peer)
             {
-                var keyMissing = spawned == null || !spawned.ContainsKey(item.Key);
-                if(keyMissing && item.Key.StartsWith(propertyPrefix))
+                if(item.Key.StartsWith(propertyPrefix))
                 {
-                    var msg = JsonUtility.FromJson<Message>(item.Value);
-                    var go = InstantiateAndSetIds(msg.catalogueIndex,msg.networkIds);
-
-                    if (!spawnedForPeers.ContainsKey(peer))
+                    if (spawnedForPeer == null)
                     {
-                        spawned = new Dictionary<string,GameObject>();
-                        spawnedForPeers.Add(peer,spawned);
+                        spawnedForPeer = new Dictionary<string,GameObject>();
+                        spawnedForPeers.Add(peer,spawnedForPeer);
                     }
-                    spawned.Add(item.Key,go);
 
-                    var origin = msg.creatorPeerUuid == roomClient.Me.uuid
-                        ? NetworkSpawnOrigin.Local
-                        : NetworkSpawnOrigin.Remote;
+                    if (!spawnedForPeer.ContainsKey(item.Key))
+                    {
+                        var msg = JsonUtility.FromJson<Message>(item.Value);
+                        var local = msg.creatorPeer == roomClient.Me.networkId;
+                        var go = InstantiateAndSetIds(item.Key,msg.catalogueIndex,local);
 
-                    OnSpawned(go,room:null,peer,origin);
+                        spawnedForPeer.Add(item.Key,go);
+                        OnSpawned(go,room:null,peer,GetOrigin(local));
+                    }
                 }
             }
 
             // Remove any spawned items no longer present in properties
-            if (spawned == null)
+            if (spawnedForPeer == null)
             {
                 return;
             }
 
             tmpStrings.Clear();
-            foreach(var item in spawned)
+            foreach(var item in spawnedForPeer)
             {
                 if (peer[item.Key] == null)
                 {
@@ -197,14 +187,14 @@ namespace Ubiq.Spawning
 
             foreach(var key in tmpStrings)
             {
-                var go = spawned[key];
+                var go = spawnedForPeer[key];
                 if (go)
                 {
                     OnDespawned(go,room:null,peer);
                     GameObject.Destroy(go);
                 }
 
-                spawned.Remove(key);
+                spawnedForPeer.Remove(key);
             }
         }
 
@@ -275,22 +265,19 @@ namespace Ubiq.Spawning
         {
             var key = $"{ propertyPrefix }{ NetworkId.Unique() }"; // Uniquely id the whole object
             var catalogueIdx = ResolveIndex(gameObject);
-            GenerateIds(gameObject,tmpNetworkIds);
 
-            var go = InstantiateAndSetIds(catalogueIdx,tmpNetworkIds);
-
+            var go = InstantiateAndSetIds(key,catalogueIdx,local:true);
             if (!spawnedForPeers.ContainsKey(roomClient.Me))
             {
                 spawnedForPeers.Add(roomClient.Me,new Dictionary<string, GameObject>());
             }
             spawnedForPeers[roomClient.Me].Add(key,go);
-            OnSpawned(go,room:null,roomClient.Me,NetworkSpawnOrigin.Local);
+            OnSpawned(go,room:null,roomClient.Me,GetOrigin(local:true));
 
             roomClient.Me[key] = JsonUtility.ToJson(new Message()
             {
-                creatorPeerUuid = roomClient.Me.uuid,
+                creatorPeer = roomClient.Me.networkId,
                 catalogueIndex = catalogueIdx,
-                networkIds = tmpNetworkIds
             });
 
             return go;
@@ -308,64 +295,41 @@ namespace Ubiq.Spawning
         {
             var key = $"{ propertyPrefix }{ NetworkId.Unique() }"; // Uniquely id the whole object
             var catalogueIdx = ResolveIndex(gameObject);
-            GenerateIds(gameObject,tmpNetworkIds);
             roomClient.Room[key] = JsonUtility.ToJson(new Message()
             {
-                creatorPeerUuid = roomClient.Me.uuid,
+                creatorPeer = roomClient.Me.networkId,
                 catalogueIndex = catalogueIdx,
-                networkIds = tmpNetworkIds
             });
         }
 
-        private void GenerateIds(GameObject gameObject, List<NetworkId> outNetworkIds)
+        private static NetworkId ParseNetworkId (string key, string propertyPrefix)
         {
-            tmpSpawnables.Clear();
-            gameObject.GetComponentsInChildren<INetworkSpawnable>(true,tmpSpawnables);
-
-            outNetworkIds.Clear();
-            for(int i = 0; i < tmpSpawnables.Count; i++)
+            if (key.Length > propertyPrefix.Length)
             {
-                outNetworkIds.Add(NetworkId.Unique());
+                return new NetworkId(key.Substring(propertyPrefix.Length));
             }
+            return NetworkId.Null;
         }
 
-        // private GameObject InstantiateAndGenerateIds(int catalogueIdx,
-        //     List<NetworkId> outNetworkIds)
-        // {
-        //     var go = InstantiateAndGetSpawnables(catalogueIdx,tmpSpawnables);
-        //     outNetworkIds.Clear();
-        //     for(int i = 0; i < tmpSpawnables.Count; i++)
-        //     {
-        //         var id = NetworkId.Unique();
-        //         tmpSpawnables[i].networkId = id;
-        //         outNetworkIds.Add(id);
-        //     }
-
-        //     return go;
-        // }
-
-        private GameObject InstantiateAndSetIds(int catalogueIdx,
-            List<NetworkId> networkIds)
+        private GameObject InstantiateAndSetIds(string key, int catalogueIdx, bool local)
         {
+            var networkId = ParseNetworkId(key,propertyPrefix);
+            if (networkId == NetworkId.Null)
+            {
+                return null;
+            }
+
             var go = GameObject.Instantiate(catalogue.prefabs[catalogueIdx]);
             tmpSpawnables.Clear();
             go.GetComponentsInChildren<INetworkSpawnable>(true,tmpSpawnables);
+
             for(int i = 0; i < tmpSpawnables.Count; i++)
             {
-                tmpSpawnables[i].networkId = networkIds[i];
+                tmpSpawnables[i].networkId = NetworkId.Create(networkId,(uint)(i+1));
             }
 
             return go;
         }
-
-        // private GameObject InstantiateAndGetSpawnables(int catalogueIdx,
-        //     List<INetworkSpawnable> outSpawnables)
-        // {
-        //     var go = GameObject.Instantiate(catalogue.prefabs[catalogueIdx]);
-        //     tmpSpawnables.Clear();
-        //     go.GetComponentsInChildren<INetworkSpawnable>(true,tmpSpawnables);
-        //     return go;
-        // }
 
         private int ResolveIndex(GameObject gameObject)
         {
@@ -381,8 +345,10 @@ namespace Ubiq.Spawning
         public PrefabCatalogue catalogue;
 
         public class OnSpawnedEvent : UnityEvent<GameObject,IRoom,IPeer,NetworkSpawnOrigin> {}
+        public class OnDespawnedEvent : UnityEvent<GameObject,IRoom,IPeer> {}
 
         public OnSpawnedEvent OnSpawned = new OnSpawnedEvent();
+        public OnDespawnedEvent OnDespawned = new OnDespawnedEvent();
 
         private NetworkSpawner spawner;
 
@@ -413,11 +379,13 @@ namespace Ubiq.Spawning
         {
             spawner = new NetworkSpawner(NetworkScene.Find(this),roomClient,catalogue);
             spawner.OnSpawned += Spawner_OnSpawned;
+            spawner.OnDespawned += Spawner_OnDespawned;
         }
 
         private void OnDestroy()
         {
             spawner.OnSpawned -= Spawner_OnSpawned;
+            spawner.OnDespawned -= Spawner_OnDespawned;
             spawner.Dispose();
             spawner = null;
         }
@@ -460,6 +428,12 @@ namespace Ubiq.Spawning
         {
             gameObject.transform.parent = transform;
             OnSpawned.Invoke(gameObject,room,peer,origin);
+        }
+
+        private void Spawner_OnDespawned(GameObject gameObject, IRoom room,
+            IPeer peer)
+        {
+            OnDespawned.Invoke(gameObject,room,peer);
         }
 
         public static NetworkSpawnManager Find(MonoBehaviour component)

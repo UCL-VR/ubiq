@@ -250,5 +250,13 @@ namespace Ubiq.Messaging
 
             return id;
         }
+
+        public static NetworkId Create(NetworkId nameSpace, uint service)
+        {
+            NetworkId id;
+            id.a = nameSpace.a;
+            id.b = unchecked(nameSpace.b + service);
+            return id;
+        }
     }
 }
