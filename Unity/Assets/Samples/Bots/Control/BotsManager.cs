@@ -15,11 +15,39 @@ namespace Ubiq.Samples.Bots
 {
     public class BotsManager : MonoBehaviour
     {
-        public GameObject BotPeer;
+        public GameObject[] BotPrefabs;
         public int NumBots { get => bots.Count; }
         public float Fps { get { return FpsMovingAverage.Mean(); } private set { FpsMovingAverage.Update(value); } }
         public string Guid { get; private set; }
         public string Pid { get; private set; }
+
+        public class MovingAverage
+        {
+            float[] samples;
+            int i;
+
+            public MovingAverage(int N)
+            {
+                samples = new float[N];
+                i = 0;
+            }
+
+            public void Update(float s)
+            {
+                i = (int)Mathf.Repeat(i, samples.Length);
+                samples[i++] = s;
+            }
+
+            public float Mean()
+            {
+                float acc = 0;
+                for (int i = 0; i < samples.Length; i++)
+                {
+                    acc += samples[i];
+                }
+                return acc / (float)samples.Length;
+            }
+        }
 
         private MovingAverage FpsMovingAverage = new MovingAverage(30);
 
@@ -109,20 +137,20 @@ namespace Ubiq.Samples.Bots
             }
         }
 
-        public void AddBot()
+        private void AddBot(int Prefab)
         {
-            var newBot = GameObject.Instantiate(BotPeer);
+            var newBot = GameObject.Instantiate(BotPrefabs[Prefab]);
             var bot = newBot.GetComponentInChildren<Bot>();
             bots.Add(bot);
             InitialiseBot(bot);
             AddBotsToRoom(bot);
         }
 
-        public void AddBots(int count)
+        public void AddBots(int index, int count)
         {
             for (int i = 0; i < count; i++)
             {
-                AddBot();
+                AddBot(index);
             }
         }
 
@@ -255,7 +283,7 @@ namespace Ubiq.Samples.Bots
                 case "AddBots":
                     {
                         var Message = message.FromJson<AddBots>();
-                        AddBots(Message.NumBots);
+                        AddBots(Message.PrefabIndex, Message.NumBots);
                     }
                     break;
                 case "ClearBots":

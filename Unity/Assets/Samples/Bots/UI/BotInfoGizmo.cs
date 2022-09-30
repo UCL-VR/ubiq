@@ -32,6 +32,8 @@ namespace Ubiq.Samples.Bots
 
                 var Peers = roomClient.Peers.Count();
 
+                //var style = new GUIStyle();
+                //style.fontSize = 20;
                 UnityEditor.Handles.Label(transform.position, $"Peers: { Peers }");
                 UnityEditor.Handles.EndGUI();
             }

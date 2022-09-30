@@ -23,7 +23,6 @@ public class ExperimentRunnerEditor : Editor
         {
             int[] paddings = new int[] { 0, 500, 1500 };
             int[] updaterates = new int[] { 10, 60, 500, 1000 };
-            string[] modes = new string[] { "RandomWalk", "Boids" };
 
             component.Conditions.Clear();
 
@@ -31,15 +30,12 @@ public class ExperimentRunnerEditor : Editor
             {
                 foreach (var updaterate in updaterates)
                 {
-                    foreach (var mode in modes)
+                    component.Conditions.Add(new ExperimentRunner.Condition()
                     {
-                        component.Conditions.Add(new ExperimentRunner.Condition()
-                        {
-                            Mode = mode,
-                            Padding = padding,
-                            UpdateRate = updaterate
-                        });
-                    }
+                        Padding = padding,
+                        UpdateRate = updaterate,
+                        ManageRooms = true
+                    });
                 }
             }
 

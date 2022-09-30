@@ -1,0 +1,17 @@
+{
+    "roomserver":
+    {
+        "ports":
+        {
+            "tcp": 8009,
+            "ws": 8010
+        },
+        "statusLogFile":"./server.log",
+    },
+    "iceservers":
+    [
+        {
+            "uri" : "stun:stun.l.google.com:19302"
+        }
+    ]
+}

@@ -33,11 +33,13 @@ namespace Ubiq.Samples.Bots.Messaging
     [Serializable]
     public class AddBots : Message
     {
+        public int PrefabIndex;
         public int NumBots;
 
-        public AddBots(int NumBots):base("AddBots")
+        public AddBots(int PrefabIndex, int NumBots):base("AddBots")
         {
             this.NumBots = NumBots;
+            this.PrefabIndex = PrefabIndex;
         }
     }
 

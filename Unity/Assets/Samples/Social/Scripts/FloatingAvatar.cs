@@ -145,6 +145,10 @@ namespace Ubiq.Samples
             // Place torso so it makes a straight line between neck and feet
             torso.position = neckPosition;
             torso.rotation = Quaternion.FromToRotation(Vector3.down, footPosition - neckPosition) * torsoFacing;
+
+            avatar.Velocity = (torso.position - avatar.Position) / Time.deltaTime;
+            avatar.Position = torso.position;
+            avatar.Rotation = torso.rotation;
         }
 
         // private Vector3 handsFwdStore;

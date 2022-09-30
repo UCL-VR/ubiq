@@ -7,9 +7,16 @@ using Ubiq.Messaging;
 using Ubiq.Samples.Bots;
 using UnityEngine;
 
+/// <summary>
+/// Implements a scalability experiment by remote controlling BotManager 
+/// instances.
+/// This Component creates bots at a regular frequency, and collects
+/// latency measurements using the BotsController's RPC feature.
+/// </summary>
 public class ExperimentRunner : MonoBehaviour
 {
     public BotsController Controller; // For the bots
+    public BotsManager Manager; // For the prefab list
     public LogCollector LocalLogCollector; // For the log collector
 
     private LogEmitter experiment;
@@ -17,11 +24,13 @@ public class ExperimentRunner : MonoBehaviour
     [Serializable]
     public class Condition
     {
-        public string Mode;
+        public GameObject Bot;
         public int UpdateRate;
         public int Padding;
         public bool ManageRooms;
     }
+
+    public int NumBots;
 
     public List<Condition> Conditions;
 
@@ -46,6 +55,7 @@ public class ExperimentRunner : MonoBehaviour
         experiment = new ExperimentLogEmitter(LocalLogCollector);
         LocalLogCollector.StartCollection();
         Controller.OnMessage("RTT", OnRTT);
+        Controller.OnMessage("Position", OnPosition);
     }
 
     private void OnRTT(string ev)
@@ -54,10 +64,17 @@ public class ExperimentRunner : MonoBehaviour
         experiment.Log("RTT", measurement.source, measurement.destination, measurement.time, measurement.frameTime);
     }
 
+    private void OnPosition(string parms)
+    {
+        var report = JsonUtility.FromJson<BotExperimentScript.PositionReport>(parms);
+        experiment.Log("Position", report.slice, report.position, report.velocity);
+    }
+
     public void Begin()
     {
         StartCoroutine(RunAllConditions());
         StartCoroutine(Step());
+        StartCoroutine(Step2());
     }
 
     public IEnumerator RunAllConditions()
@@ -83,9 +100,22 @@ public class ExperimentRunner : MonoBehaviour
         }
     }
 
+    public IEnumerator Step2()
+    {
+        int slice = 0;
+        while (true)
+        {
+            Controller.SendBotMessage("GetPosition", slice.ToString());
+            slice++;
+            yield return new WaitForSeconds(0.5f);
+        }
+    }
+
     public IEnumerator Run(int conditionIndex)
     {
-        Debug.Log("Starting Condition " + conditionIndex);
+        // This corountine implements one trial over multiple frames.
+
+        Debug.Log("Preparing Condition " + conditionIndex);
 
         var condition = Conditions[conditionIndex];
 
@@ -105,13 +135,24 @@ public class ExperimentRunner : MonoBehaviour
             yield return null;
         }
 
-        yield return new WaitForSeconds(3f); // Wait for a few seconds to let the server settle.
+        yield return new WaitForSeconds(5f); // Wait for a few seconds to let the server settle.
 
-        experiment.Log("Condition", conditionIndex, condition.UpdateRate, condition.Padding, condition.Mode);
+        Debug.Log("Starting Condition " + conditionIndex);
+
+        experiment.Log("Condition", conditionIndex, condition.UpdateRate, condition.Padding, condition.Bot.name);
 
         Controller.UpdateRate = condition.UpdateRate;
         Controller.Padding = condition.Padding;
-        Controller.SendMessage(condition.Mode);
+
+        var prefab = 0;
+        for (int i = 0; i < Manager.BotPrefabs.Length; i++)
+        {
+            if(Manager.BotPrefabs[i] == condition.Bot)
+            {
+                prefab = i;
+                break;
+            }
+        }
 
         if(condition.ManageRooms)
         {
@@ -119,17 +160,12 @@ public class ExperimentRunner : MonoBehaviour
         }
 
         float startTime = Time.time;
-        float totalTime = 100f;
 
         int botManager = 0;
+        int numBots = 0;
 
-        while(true)
+        while(numBots < NumBots)
         {
-            if((Time.time - startTime) > totalTime) // For the duration of a trial (100 seconds)
-            {
-                break;
-            }
-
             var manager = Controller.BotManagers.ElementAt(botManager);
             botManager = (botManager + 1) % Controller.BotManagers.Count;
 
@@ -139,10 +175,11 @@ public class ExperimentRunner : MonoBehaviour
                 botManager = (botManager + 1) % Controller.BotManagers.Count;
             }
 
-            manager.AddBots(1);
+            manager.AddBots(prefab, 1);
 
             // Check for early termination criteria here...
 
+            numBots++;
             yield return new WaitForSeconds(1.5f); // Every second add a new bot to a manager process in order
         }
 

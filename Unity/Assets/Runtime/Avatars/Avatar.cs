@@ -43,6 +43,12 @@ namespace Ubiq.Avatars
         /// </summary>
         public int UpdateRate = 60;
 
+
+        // These properties should be set by whatever Component controls the avatar.
+        public Vector3 Position { get; set; }
+        public Vector3 Velocity { get; set; }
+        public Quaternion Rotation { get; set; }
+
         /// <summary>
         /// A dummy PeerInterface for local properties.
         /// </summary>
@@ -93,6 +99,14 @@ namespace Ubiq.Avatars
         private void Start()
         {
             hasStarted = true;
+        }
+
+        private Vector3 previousPosition;
+        private Quaternion previousRotation;
+
+        private void Update()
+        {
+            
         }
     }
 }

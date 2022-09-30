@@ -176,6 +176,21 @@ namespace Ubiq.Avatars
             }
             return null;
         }
+
+        /// <summary>
+        /// Finds the first avatar (if any) associated with the Peer
+        /// </summary>
+        public Avatar FindAvatar(IPeer Peer)
+        {
+            if(playerAvatars.ContainsKey(Peer))
+            {
+                return playerAvatars[Peer];
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 
 }
