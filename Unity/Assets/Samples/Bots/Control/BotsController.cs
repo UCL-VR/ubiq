@@ -48,6 +48,8 @@ namespace Ubiq.Samples.Bots
                 return;
             }
 
+            UpdateRate = 60;
+
             RoomClient.Find(this).SetDefaultServer(BotsConfig.CommandServer);
             BotsRoom.SetDefaultServer(BotsConfig.BotServer);
         }
@@ -57,11 +59,12 @@ namespace Ubiq.Samples.Bots
             networkScene = NetworkScene.Find(this);
             if (networkScene)
             {
-                networkScene.AddProcessor(Id,ProcessMessage);
+                networkScene.AddProcessor(Id, ProcessMessage);
             }
 
             var roomClient = networkScene.GetComponent<RoomClient>();
-            roomClient.OnJoinedRoom.AddListener(room => {
+            roomClient.OnJoinedRoom.AddListener(room =>
+            {
                 CommandJoinCode = room.JoinCode;
             });
             roomClient.Join(BotsConfig.CommandRoomGuid);
@@ -71,7 +74,8 @@ namespace Ubiq.Samples.Bots
                 proxies.Remove(peer.uuid);
             });
 
-            BotsRoom.OnJoinedRoom.AddListener((room) => {
+            BotsRoom.OnJoinedRoom.AddListener((room) =>
+            {
                 AddBotsToRoom(room.JoinCode);
             });
 
@@ -221,7 +225,15 @@ namespace Ubiq.Samples.Bots
         {
             if (networkScene)
             {
-                networkScene.SendJson(Id, new AddBots(NumBots));
+                networkScene.SendJson(Id, new AddBots(0, NumBots));
+            }
+        }
+
+        public void AddBots(int BotPrefab, int NumBots)
+        {
+            if (networkScene)
+            {
+                networkScene.SendJson(Id, new AddBots(BotPrefab, NumBots));
             }
         }
 

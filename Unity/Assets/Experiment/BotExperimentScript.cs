@@ -22,6 +22,7 @@ public class BotExperimentScript : MonoBehaviour
         latencyMeter = this.GetClosestComponent<LatencyMeter>();
         latencyMeter.OnMeasurement.AddListener(OnMeasurement);
         client = RoomClient.Find(this);
+        sendMessageBack = BotsManager.Find(this).SendMessageBack;
     }
 
     // Called by latencyMeter when a ping has taken place
@@ -53,5 +54,33 @@ public class BotExperimentScript : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void Update()
+    {
+        positionReport.velocity = (transform.position - positionReport.position) / Time.deltaTime;
+        positionReport.position = transform.position;
+    }
+
+    private PositionReport positionReport;
+
+    [Serializable]
+    public struct PositionReport 
+    {
+        public string slice;
+        public Vector3 position;
+        public Vector3 velocity;
+    }
+
+    // Called by SendMessage
+    public void GetPosition(string slice)
+    {
+        if (sendMessageBack == null)
+        {
+            sendMessageBack = BotsManager.Find(this).SendMessageBack;
+        }
+
+        positionReport.slice = slice;
+        sendMessageBack("Position", JsonUtility.ToJson(positionReport));
     }
 }
