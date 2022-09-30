@@ -31,6 +31,8 @@ namespace Ubiq.Samples
         private Vector3 footPosition;
         private Quaternion torsoFacing;
 
+        private Avatars.Avatar avatar;
+
         private void OnEnable()
         {
             trackedAvatar = GetComponentInParent<ThreePointTrackedAvatar>();
@@ -48,6 +50,11 @@ namespace Ubiq.Samples
             {
                 texturedAvatar.OnTextureChanged.AddListener(TexturedAvatar_OnTextureChanged);
             }
+        }
+
+        private void Awake()
+        {
+            avatar = GetComponentInParent<Avatars.Avatar>();
         }
 
         private void OnDisable()

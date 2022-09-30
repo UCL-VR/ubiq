@@ -255,7 +255,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a19e308cf6dd8df44aa662c5f97f85e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  BotPeer: {fileID: 4904968254921343995, guid: c1a55c9926c8d4843a76621513810efd, type: 3}
+  BotPrefabs:
+  - {fileID: 4904968254921343995, guid: c1a55c9926c8d4843a76621513810efd, type: 3}
   HideBotAvatars: 0
   AvatarUpdateRate: 60
   Padding: 0
