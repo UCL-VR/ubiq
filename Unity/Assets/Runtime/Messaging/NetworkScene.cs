@@ -127,6 +127,17 @@ namespace Ubiq.Messaging
             }
         }
 
+        public IEnumerable<KeyValuePair<Action<ReferenceCountedSceneGraphMessage>,NetworkId>> GetProcessors()
+        {
+            foreach (var pair in processorCollections)
+            {
+                foreach (var action in pair.Value)
+                {
+                    yield return new KeyValuePair<Action<ReferenceCountedSceneGraphMessage>, NetworkId>(action, pair.Key);
+                }
+            }
+        }
+
         /// <summary>
         /// Registers a Networked Component with its closest Network Scene. The
         /// Network Id will be automatically assigned based on the Components 
@@ -168,7 +179,7 @@ namespace Ubiq.Messaging
 
         public static NetworkId GetNetworkId(MonoBehaviour component)
         {
-            var property = (component.GetType().GetProperty("NetworKId", typeof(NetworkId)));
+            var property = (component.GetType().GetProperty("NetworkId", typeof(NetworkId)));
             if (property != null)
             {
                 return (NetworkId)property.GetValue(component);
