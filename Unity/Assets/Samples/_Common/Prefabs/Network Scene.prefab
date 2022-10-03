@@ -88,10 +88,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e46bf3e4b5d49c49a382019586ab820, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  networkId:
-    a: 1515287811
-    b: 612655454
-  __serializedGoid: GlobalObjectId_V1-0-00000000000000000000000000000000-0-0
 --- !u!1 &7068762446378101732
 GameObject:
   m_ObjectHideFlags: 0
@@ -162,15 +158,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d61f55a1b9a02064ebf167b08e5b22b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  networkId:
-    a: 2266662135
-    b: 22742316
-  __serializedGoid: GlobalObjectId_V1-0-00000000000000000000000000000000-0-0
   servers:
   - listen_on_ip: 
     listen_on_port: 
     send_to_ip: nexus.cs.ucl.ac.uk
-    send_to_port: 8007
+    send_to_port: 8009
     type: 0
 --- !u!114 &7068762446378101731
 MonoBehaviour:
@@ -184,6 +176,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fddd4936b870f084aa3cf82b0e18125f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  OnUpdate:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &960602657531704009
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -196,10 +191,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e43c7e54c1f3d04587f56659512387b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  networkId:
-    a: 1302091645
-    b: 59970330
-  __serializedGoid: GlobalObjectId_V1-0-00000000000000000000000000000000-0-0
+  OnMeasurement:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &7068762446560339093
 GameObject:
   m_ObjectHideFlags: 0
