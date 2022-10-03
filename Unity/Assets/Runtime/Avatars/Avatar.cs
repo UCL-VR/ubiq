@@ -6,6 +6,7 @@ using Ubiq.Messaging;
 using UnityEngine.Events;
 using Ubiq.Rooms;
 using Ubiq.Dictionaries;
+using Ubiq.Spawning;
 
 namespace Ubiq.Avatars
 {
@@ -14,8 +15,13 @@ namespace Ubiq.Avatars
     /// Components can either subclass this type, or be instantiated next to it, to support
     /// their custom behaviours.
     /// </summary>
-    public class Avatar : MonoBehaviour
+    public class Avatar : MonoBehaviour, INetworkSpawnable
     {
+        /// <summary>
+        /// The NetworkId set by the Spawner when this Avatar is created.
+        /// </summary>
+        public NetworkId NetworkId { get; set; }
+
         /// <summary>
         /// Whether the Avatar instance represents a local or remote player. This flag is nominal only; child components do not have to use it.
         /// </summary>
@@ -103,10 +109,5 @@ namespace Ubiq.Avatars
 
         private Vector3 previousPosition;
         private Quaternion previousRotation;
-
-        private void Update()
-        {
-            
-        }
     }
 }

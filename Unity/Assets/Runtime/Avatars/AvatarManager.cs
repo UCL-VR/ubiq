@@ -71,7 +71,7 @@ namespace Ubiq.Avatars
         private void Start()
         {
             spawner = new NetworkSpawner(NetworkScene.Find(this),
-                RoomClient,avatarCatalogue,"ubiq.avatars.");
+                RoomClient, avatarCatalogue, "ubiq.avatars.");
             spawner.OnSpawned += OnSpawned;
             spawner.OnDespawned += OnDespawned;
 
@@ -95,7 +95,7 @@ namespace Ubiq.Avatars
         {
             var avatar = gameObject.GetComponentInChildren<Avatar>();
             avatar.SetPeer(peer);
-            playerAvatars.Add(peer,avatar);
+            playerAvatars.Add(peer, avatar);
 
             if (peer == RoomClient.Me)
             {
@@ -182,7 +182,7 @@ namespace Ubiq.Avatars
         /// </summary>
         public Avatar FindAvatar(IPeer Peer)
         {
-            if(playerAvatars.ContainsKey(Peer))
+            if (playerAvatars.ContainsKey(Peer))
             {
                 return playerAvatars[Peer];
             }
@@ -192,5 +192,4 @@ namespace Ubiq.Avatars
             }
         }
     }
-
 }

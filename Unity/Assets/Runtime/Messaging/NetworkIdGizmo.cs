@@ -20,12 +20,20 @@ namespace Ubiq.Messaging
         // Update is called once per frame
         void Update()
         {
+            var processors = NetworkScene.Find(this).GetProcessors();
+
             addresses = "";
             foreach (var item in GetComponents<MonoBehaviour>())
             {
                 if(item.GetType().GetMethod("ProcessMessage") != null)
                 {
-                    addresses += SceneGraphHelper.GetUniqueAddress(item) + "\n";
+                    foreach (var processor in processors)
+                    {
+                        if(processor.Key.Target as MonoBehaviour == item)
+                        {
+                            addresses += $"{SceneGraphHelper.GetUniqueAddress(item)} {processor.Value}\n"; 
+                        }
+                    }
                 }
                 if(NetworkedBehaviour.NetworkedBehaviours.IsNetworkedBehaviour(item))
                 {
