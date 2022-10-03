@@ -54,8 +54,9 @@ namespace Ubiq.Messaging
 
                 UnityEditor.Handles.Label(transform.position, $"{addresses}", style);
                 UnityEditor.Handles.EndGUI();
-#endif
+
             }
+#endif
         }
     }
 }

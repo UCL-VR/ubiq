@@ -10,10 +10,8 @@ using Ubiq.Spawning;
 namespace Ubiq.Avatars
 {
     [RequireComponent(typeof(Avatar))]
-    public class ThreePointTrackedAvatar : MonoBehaviour, INetworkSpawnable
+    public class ThreePointTrackedAvatar : MonoBehaviour
     {
-        public NetworkId NetworkId { get; set; }
-
         [Serializable]
         public class TransformUpdateEvent : UnityEvent<Vector3,Quaternion> { }
         public TransformUpdateEvent OnHeadUpdate;
@@ -41,7 +39,7 @@ namespace Ubiq.Avatars
 
         protected void Start()
         {
-            context = NetworkScene.Register(this);
+            context = NetworkScene.Register(this, NetworkId.Create(avatar.NetworkId, "ThreePointTracked"));
             networkSceneRoot = context.Scene.transform;
             lastTransmitTime = Time.time;
         }

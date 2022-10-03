@@ -8,15 +8,20 @@ public class JoinRoomClients : MonoBehaviour
 {
     public bool JoinOnStart = false;
 
+    public string Guid = null;
+
     // Start is called before the first frame update
     void Start()
     {
-        var guid = System.Guid.NewGuid();
+        if(Guid == null || Guid == "")
+        {
+            Guid = System.Guid.NewGuid().ToString();
+        }
         foreach (var forest in SceneManager.GetActiveScene().GetRootGameObjects())
         {
             foreach (var item in forest.GetComponentsInChildren<RoomClient>())
             {
-                item.Join(guid);
+                item.Join(System.Guid.Parse(Guid));
             }
         }
     }
