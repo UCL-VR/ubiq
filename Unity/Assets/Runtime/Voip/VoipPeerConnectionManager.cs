@@ -5,10 +5,8 @@ using Ubiq.Rooms;
 using Ubiq.Messaging;
 using Ubiq.Logging;
 using Ubiq.Extensions;
-using UnityEngine.Events;
 using SIPSorcery.Net;
 using System.Threading.Tasks;
-using System.Collections.Concurrent;
 using SIPSorceryMedia.Abstractions;
 
 
@@ -17,7 +15,7 @@ namespace Ubiq.Voip
     /// <summary>
     /// Manages the lifetime of WebRtc Peer Connection objects with respect to changes in the room
     /// </summary>
-    public class VoipPeerConnectionManager : NetworkBehaviour
+    public class VoipPeerConnectionManager : MonoBehaviour
     {
         // SipSorcery peer connections are slow to instantiate as cert
         // generation seems to take a while. This at least allows that to happen
@@ -110,7 +108,9 @@ namespace Ubiq.Voip
         /// </remarks>
         public OnPeerConnectionEvent OnPeerConnection = new OnPeerConnectionEvent();
 
+        private NetworkId serviceId = new NetworkId("c994-0768-d7b7-171c"); // The unique service Id
         private LogEmitter logger;
+        private NetworkScene scene;
 
         private void Awake()
         {
@@ -126,22 +126,25 @@ namespace Ubiq.Voip
             defaultAudioSink = this.GetInterface<IAudioSink>();
         }
 
-        protected override void Started()
+        protected void Start()
         {
-            logger = new NetworkEventLogger(networkId,networkScene,this);
-
+            scene = NetworkScene.Find(this);
+            NetworkScene.Register(this, NetworkId.Create(scene.Id, serviceId));
+            logger = new NetworkEventLogger(NetworkId.Create(scene.Id, serviceId), scene, this);
             client = GetComponentInParent<RoomClient>();
-            client.OnJoinedRoom.AddListener(OnJoinedRoom);
+            client.OnPeerAdded.AddListener(OnPeerAdded);
             client.OnPeerRemoved.AddListener(OnPeerRemoved);
+            client.OnJoinedRoom.AddListener(OnJoinedRoom);
             client.OnRoomUpdated.AddListener(OnRoomUpdated);
         }
 
-        protected override void OnDestroyed()
+        protected void OnDestroy()
         {
             if (client)
             {
                 client.OnJoinedRoom.RemoveListener(OnJoinedRoom);
                 client.OnPeerRemoved.RemoveListener(OnPeerRemoved);
+                client.OnJoinedRoom.RemoveListener(OnJoinedRoom);
                 client.OnRoomUpdated.RemoveListener(OnRoomUpdated);
             }
             peerConnectionSource = null;
@@ -181,31 +184,38 @@ namespace Ubiq.Voip
         private void OnJoinedRoom(IRoom room)
         {
             UpdateIceServerCollection (room);
+        }
 
-            foreach (var peer in client.Peers)
+        private void OnPeerAdded(IPeer peer)
+        {
+            if (peer.uuid == client.Me.uuid)
             {
-                if (peer.uuid == client.Me.uuid)
+                return; // Don't connect to ones self!
+            }
+
+            if (!peerUuidToConnection.ContainsKey(peer.uuid)) 
+            {
+                // This is a new Peer. OnPeerAdded will be received by both sides.
+                // All else being equal, the client with the highest UUID is
+                // responsible for initiating the connection.
+
+                if (String.Compare(client.Me.uuid, peer.uuid) > 0) // If my uuid is greater then theirs. This will be inverted on the other side.
                 {
-                    continue; // Don't connect to ones self!
+                    var pcid = NetworkId.Unique(); // A single audio channel exists between two peers. Each audio channel has its own Id.
+
+                    logger.Log("CreatePeerConnectionForPeer", pcid, peer.uuid);
+
+                    CreatePeerConnection(pcid, peer.uuid, true);
+
+                    Message m;
+                    m.type = "RequestPeerConnection";
+                    m.objectid = pcid; // the shared Id is set by this peer, but it must be chosen so as not to conflict with any other shared id on the network
+                    m.uuid = client.Me.uuid; // this is so the other end can identify us if we are removed from the room
+
+                    scene.SendJson(NetworkId.Create(peer.networkId, serviceId), m); // Send a message to the Peer's VoipPeerConnectionManager
+
+                    logger.Log("RequestPeerConnection", pcid, peer.uuid);
                 }
-
-                if(peerUuidToConnection.ContainsKey(peer.uuid))
-                {
-                    continue; // This peer existed in the previous room and we already have a connection to it
-                }
-
-                var pcid = NetworkId.Unique(); //A single audio channel exists between two peers. Each audio channel has its own Id.
-
-                logger.Log("CreatePeerConnectionForPeer", pcid, peer.uuid);
-
-                var pc = CreatePeerConnection(pcid, peer.uuid, polite: true);
-
-                Message m;
-                m.type = "RequestPeerConnection";
-                m.objectid = pcid; // the shared Id is set by this peer, but it must be chosen so as not to conflict with any other shared id on the network
-                m.uuid = client.Me.uuid; // this is so the other end can identify us if we are removed from the room
-                SendJson(m);
-                logger.Log("RequestPeerConnection", pcid, peer.uuid);
             }
         }
 
@@ -213,14 +223,12 @@ namespace Ubiq.Voip
         {
             if (peerUuidToConnection.TryGetValue(peer.uuid, out var connection))
             {
-                // Audiosinks are created per connection
-
                 Destroy(connection.gameObject);
                 peerUuidToConnection.Remove(peer.uuid);
             }
         }
 
-        protected override void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+        public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
             var msg = JsonUtility.FromJson<Message>(message.ToString());
             switch (msg.type)
@@ -229,7 +237,7 @@ namespace Ubiq.Voip
                     if (!peerUuidToConnection.ContainsKey(msg.uuid))
                     {
                         logger.Log("CreatePeerConnectionForRequest", msg.objectid);
-                        var pc = CreatePeerConnection(msg.objectid, msg.uuid, polite: false);
+                        CreatePeerConnection(msg.objectid, msg.uuid, polite: false);
                     }
                     break;
             }

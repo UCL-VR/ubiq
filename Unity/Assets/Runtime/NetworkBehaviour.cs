@@ -28,14 +28,14 @@ namespace Ubiq
         private string __goid = null;
     #endif
 
-        NetworkId INetworkSpawnable.networkId { set => this.networkId = value; }
+        NetworkId INetworkSpawnable.NetworkId { get => this.networkId; set => this.networkId = value; }
 
         protected void Start ()
         {
             networkScene = NetworkScene.Find(this);
             if (networkScene)
             {
-                networkScene.AddProcessor(networkId,ProcessMessage);
+                networkScene.AddProcessor(networkId, ProcessMessage);
             }
             else
             {

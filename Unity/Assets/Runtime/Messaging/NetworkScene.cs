@@ -9,9 +9,32 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using System.Linq;
 using Ubiq.Logging;
+using UnityEngine.Events;
 
 namespace Ubiq.Messaging
 {
+    public struct NetworkContext
+    {
+        public NetworkScene Scene;
+        public NetworkId Id;
+        public MonoBehaviour Component;
+
+        public void Send(string message)
+        {
+            Scene.Send(Id, message);
+        }
+
+        public void Send(ReferenceCountedSceneGraphMessage message)
+        {
+            Scene.Send(Id, message);
+        }
+
+        public void SendJson<T>(T message)
+        {
+            Scene.SendJson(Id, message);
+        }
+    }
+
     /// <summary>
     /// The Network Scene connects networked Components to Network Connections.
     /// </summary>
@@ -32,6 +55,8 @@ namespace Ubiq.Messaging
         }
 
         private MessageStatistics statistics;
+
+        public UnityEvent OnUpdate = new UnityEvent();
 
         /// <summary>
         /// Statistics on the number of messages and bytes sent and received by this NetworkScene.
@@ -67,7 +92,7 @@ namespace Ubiq.Messaging
             {
                 foreach (var item in GetComponents<NetworkScene>())
                 {
-                    if(item != this)
+                    if (item != this)
                     {
                         Destroy(item);
                     }
@@ -78,19 +103,19 @@ namespace Ubiq.Messaging
             events.Log("Awake", SystemInfo.deviceName, SystemInfo.deviceModel, SystemInfo.deviceUniqueIdentifier);
         }
 
-        public void AddProcessor (NetworkId id, Action<ReferenceCountedSceneGraphMessage> processor)
+        public void AddProcessor(NetworkId id, Action<ReferenceCountedSceneGraphMessage> processor)
         {
             List<Action<ReferenceCountedSceneGraphMessage>> processors;
             if (!processorCollections.TryGetValue(id, out processors))
             {
                 processors = new List<Action<ReferenceCountedSceneGraphMessage>>();
-                processorCollections.Add(id,processors);
+                processorCollections.Add(id, processors);
             }
 
             processors.Add(processor);
         }
 
-        public void RemoveProcessor (NetworkId id, Action<ReferenceCountedSceneGraphMessage> processor)
+        public void RemoveProcessor(NetworkId id, Action<ReferenceCountedSceneGraphMessage> processor)
         {
             if (processorCollections.TryGetValue(id, out var processors))
             {
@@ -102,12 +127,64 @@ namespace Ubiq.Messaging
             }
         }
 
-        public static NetworkScene Find(MonoBehaviour component)
+        /// <summary>
+        /// Registers a Networked Component with its closest Network Scene. The
+        /// Network Id will be automatically assigned based on the Components 
+        /// location in the Scene Graph.
+        /// </summary>
+        public static NetworkContext Register(MonoBehaviour component)
         {
-            return FindNetworkScene(component.transform);
+            return Register(component, GetNetworkId(component));
         }
 
-        public static NetworkScene FindNetworkScene(Transform component)
+        /// <summary>
+        /// Registers a Networked Component with its closest Network Scene with
+        /// the specified NetworkId.
+        /// </summary>
+        public static NetworkContext Register(MonoBehaviour component, NetworkId id)
+        {
+            NetworkContext context;
+            context.Scene = Find(component);
+            context.Id = id;
+            context.Component = component;
+
+            // Create a delegate for the method for the processor. This should 
+            // similar performance to a virtual method.
+            //https://blogs.msmvps.com/jonskeet/2008/08/09/making-reflection-fly-and-exploring-delegates/
+
+            try
+            {
+                var method = component.GetType().GetMethod("ProcessMessage");
+                var processor = (Action<ReferenceCountedSceneGraphMessage>)Delegate.CreateDelegate(typeof(Action<ReferenceCountedSceneGraphMessage>), component, method);
+                context.Scene.AddProcessor(context.Id, processor);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Could not find ProcessMessage on {component.GetType()} on {component.gameObject.name}. Make sure you have a public method ProcessMessage(ReferenceCountedSceneGraphMessage message)");
+            }
+
+            return context;
+        }
+
+        public static NetworkId GetNetworkId(MonoBehaviour component)
+        {
+            var property = (component.GetType().GetProperty("NetworKId", typeof(NetworkId)));
+            if (property != null)
+            {
+                return (NetworkId)property.GetValue(component);
+            }
+            else
+            {
+                return NetworkId.Create(component);
+            }
+        }
+
+        public static NetworkScene Find(MonoBehaviour component)
+        {
+            return Find(component.transform);
+        }
+
+        public static NetworkScene Find(Transform component)
         {
             // Check if the scene is simply a parent, or if we can find a root scene.
             var scene = component.GetComponentInParent<NetworkScene>();
@@ -115,7 +192,7 @@ namespace Ubiq.Messaging
             {
                 return scene;
             }
-            if(rootNetworkScene != null)
+            if (rootNetworkScene != null)
             {
                 return rootNetworkScene;
             }
@@ -147,6 +224,8 @@ namespace Ubiq.Messaging
 
         private void Update()
         {
+            OnUpdate.Invoke();
+
             foreach (var action in actions)
             {
                 action();
@@ -162,7 +241,7 @@ namespace Ubiq.Messaging
         public void ReceiveConnectionMessages()
         {
             ReferenceCountedMessage m;
-            foreach(var c in connections)
+            foreach (var c in connections)
             {
                 while (true)
                 {
@@ -175,7 +254,7 @@ namespace Ubiq.Messaging
                     var sgbmessage = new ReferenceCountedSceneGraphMessage(m);
                     if (processorCollections.TryGetValue(sgbmessage.objectid, out var processors))
                     {
-                        foreach(var processor in processors)
+                        foreach (var processor in processors)
                         {
                             processor(sgbmessage);
                         }
@@ -214,7 +293,7 @@ namespace Ubiq.Messaging
 
         private void OnDestroy()
         {
-            foreach(var c in connections)
+            foreach (var c in connections)
             {
                 try
                 {

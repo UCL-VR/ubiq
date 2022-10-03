@@ -1,37 +1,35 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using Ubiq.Messaging;
+using Ubiq.Spawning;
 using Ubiq.XR;
 using UnityEngine;
 
 namespace Ubiq.Samples
 {
-    public class Firework : NetworkBehaviour, IUseable, IFirework
+    public class Firework : MonoBehaviour, IUseable, IFirework, INetworkSpawnable
     {
         private Hand attached;
         private Rigidbody body;
         private ParticleSystem particles;
 
+        public NetworkId NetworkId { get; set; }
+
         public bool owner;
         public bool fired;
 
-        public struct Message
-        {
-            public TransformMessage transform;
-            public bool fired;
-
-            public Message(Transform transform, bool fired)
-            {
-                this.transform = new TransformMessage(transform);
-                this.fired = fired;
-            }
-        }
+        private NetworkContext context;
 
         private void Awake()
         {
             body = GetComponent<Rigidbody>();
             particles = GetComponentInChildren<ParticleSystem>();
             owner = false;
+        }
+
+        private void Start()
+        {
+            context = NetworkScene.Register(this);
         }
 
         public void Attach(Hand hand)
@@ -50,6 +48,18 @@ namespace Ubiq.Samples
             fired = true;
         }
 
+        public struct Message
+        {
+            public TransformMessage transform;
+            public bool fired;
+
+            public Message(Transform transform, bool fired)
+            {
+                this.transform = new TransformMessage(transform);
+                this.fired = fired;
+            }
+        }
+
         private void Update()
         {
             if(attached)
@@ -59,7 +69,7 @@ namespace Ubiq.Samples
             }
             if(owner)
             {
-                SendJson(new Message(transform, fired));
+                context.SendJson(new Message(transform, fired));
             }
             if(owner && fired)
             {
@@ -81,7 +91,7 @@ namespace Ubiq.Samples
             }
         }
 
-        protected override void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+        public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
             var msg = message.FromJson<Message>();
             transform.localPosition = msg.transform.position; // The Message constructor will take the *local* properties of the passed transform.
