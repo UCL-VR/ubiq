@@ -7,7 +7,7 @@ using System;
 
 namespace Ubiq.Samples.Boids
 {
-    public class Boids : NetworkBehaviour
+    public class Boids : MonoBehaviour
     {
         public GameObject boidPrefab;
 
@@ -30,6 +30,10 @@ namespace Ubiq.Samples.Boids
 
         private TransformMessage[] transforms;
 
+        private NetworkContext context;
+
+        public NetworkId NetworkId { get; set; }
+
         private void Awake()
         {
             boids = new GameObject[numberLocalBoids];
@@ -42,6 +46,11 @@ namespace Ubiq.Samples.Boids
                     UnityEngine.Random.Range(bounds.min.y, bounds.max.y),
                     UnityEngine.Random.Range(bounds.min.z, bounds.max.z));
             }
+        }
+
+        private void Start()
+        {
+            context = NetworkScene.Register(this, NetworkId);
         }
 
         private void Reset()
@@ -173,10 +182,10 @@ namespace Ubiq.Samples.Boids
             var message = ReferenceCountedSceneGraphMessage.Rent(transformsBytes.Length);
             transformsBytes.CopyTo(new Span<byte>(message.bytes, message.start, message.length));
 
-            Send(message);
+            context.Send(message);
         }
 
-        protected override void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+        public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
             if (transforms == null || transforms.Length != boids.Length)
             {

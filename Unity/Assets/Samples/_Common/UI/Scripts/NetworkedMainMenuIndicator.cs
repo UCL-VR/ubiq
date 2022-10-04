@@ -4,16 +4,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Ubiq.Messaging;
+using Ubiq.Spawning;
 
 namespace Ubiq.Samples
 {
-    public class NetworkedMainMenuIndicator : NetworkBehaviour, ISocialMenuBindable
+    public class NetworkedMainMenuIndicator : MonoBehaviour, INetworkSpawnable, ISocialMenuBindable
     {
         private SocialMenu mainMenu;
         private State[] state = new State[1];
         private Renderer[] renderers;
         private bool visible;
         private bool notify;
+
+        public NetworkId NetworkId { get; set; }
+
+        private NetworkContext context;
 
         [Serializable]
         private struct State
@@ -28,6 +33,11 @@ namespace Ubiq.Samples
             renderers = GetComponentsInChildren<Renderer>(includeInactive:true);
         }
 
+        private void Start()
+        {
+            context = NetworkScene.Register(this);
+        }
+
         public void Bind(SocialMenu mainMenu)
         {
             // If we're bound, we're the local version
@@ -40,7 +50,7 @@ namespace Ubiq.Samples
             SetVisibility(visible:false);
         }
 
-        protected override void OnDestroyed()
+        void OnDestroy()
         {
             if (mainMenu)
             {
@@ -101,10 +111,10 @@ namespace Ubiq.Samples
             var message = ReferenceCountedSceneGraphMessage.Rent(transformBytes.Length);
             transformBytes.CopyTo(new Span<byte>(message.bytes, message.start, message.length));
 
-            Send(message);
+            context.Send(message);
         }
 
-        protected override void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+        public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
             MemoryMarshal.Cast<byte, State>(
                 new ReadOnlySpan<byte>(message.bytes, message.start, message.length))
