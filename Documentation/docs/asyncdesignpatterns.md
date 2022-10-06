@@ -22,28 +22,20 @@ void Start()
 Message pumps with Update. Commonly used in the mid-level networking code, this pattern uses a list of actions to execute methods on the main thread.
 
 ```
-class NetworkScene
+class RoomClient
 {
 	private List<Action> actions = new List<Action>();
 
-	public void RegisterComponent(INetworkComponent component)
+	public void SendToServer(Message message)
 	{
-		actions.Add(() => 
+		actions.Add(() =>
 		{
-			if (!objectProperties.ContainsKey(networkObject))
-			{
-				objectProperties.Add(networkObject, new ObjectProperties()
-				{
-					identity = networkObject,
-					scene = this,
-				});
-			}
+			SendToServerSync(message);
 		});
 	}
 	
 	private void Update()
 	{
-		ReceiveConnectionMessages();
 		foreach (var action in actions)
 		{
 			action();

@@ -23,7 +23,7 @@ namespace Ubiq.Messaging
             var processors = NetworkScene.Find(this).GetProcessors();
 
             addresses = "";
-            foreach (var item in GetComponents<MonoBehaviour>())
+            foreach (var item in GetComponentsInChildren<MonoBehaviour>())
             {
                 if(item.GetType().GetMethod("ProcessMessage") != null)
                 {
