@@ -9,7 +9,7 @@ using UnityEngine.Events;
 namespace Ubiq.Rooms.Messages
 {
     [Serializable]
-    internal struct Message
+    public struct Message
     {
         public string type;
         public string args;

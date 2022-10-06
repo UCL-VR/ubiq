@@ -78,7 +78,7 @@ namespace Ubiq.Voip
             this.PeerUuid = peerUuid;
             this.audioSource = source;
             this.audioSink = sink;
-            this.networkScene = NetworkScene.FindNetworkScene(this);
+            this.networkScene = NetworkScene.Find(this);
 
             networkScene.AddProcessor(networkId,ProcessMessage);
 

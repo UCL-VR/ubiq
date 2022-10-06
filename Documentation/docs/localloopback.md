@@ -1,17 +1,24 @@
 # Testing Networked Objects
 
-A local loopback scene is included in the Ubiq samples. Local loopback is helpful for testing your networked objects without needing to use any external applications. The scene contains two clients and a local server that is started when you play the scene.
+A Local Loopback scene is included in the Ubiq Samples. Local loopback is helpful for testing your networked objects in only one copy of Unity. The scene contains two clients that join a new room when you enter Play Mode.
 
 ![](images/6d75e6c4-a29b-458e-909c-847b7da0796d.png)
 
-The scene is in the Samples/Intro folder. To get started:
+The scene is in the Samples folder (`Start Here - Local Loopback`). Click the play button to get started.
 
-1. Click the play button. The local server is now started and you will see an avatar in one forest. At this stage, neither client is connected to the server.
-2. Expand the hierarchy for Forest 1 and click on the GameObject with the name &quot;NetworkScene&quot; within (see left image below). In the Inspector panel, click Create Room (right image below).
-3. Expand the hierarchy for Forest 2 and click the other &quot;NetworkScene&quot; GameObject. In the Inspector panel, click Refresh and you will see the room you just created. Click to join the room.
+In the Scene View you should see two Avatars. One avatar is you - controlled via the Game View - and the other is Bot, which joins the other NetworkScene. 
 
-Now both clients are connected to the local server and you can test your networked objects. You will notice both Forests now have avatars inside and that the avatars move in sync. There are now 4 avatars in the scene, 2 in each forest, but they share a position. This is because their positions and orientations are derived from the same player prefab.
+![](images/b452b4c9-e186-415c-b026-a79cc24f9151.png)
 
-| ![](images/d9186eab-5ec2-4251-9078-25ee8af2b4de.png) | ![](images/13b07596-a1cf-4117-97b6-120d9cb803e1.png) |
-| --- | --- |
+Each environment is a separate Ubiq Peer. The script attached to the Local Loopback GameObject tells both instances to join the same Room. You can see on your in-game display the Join Code for this Room. Try and join it with a third Ubiq client and see what happens!
+
+## Forests
+
+Objects, such as Avatars and Spawned Items, are associated with a `NetworkScene`. They find their Network Scene by searching the Scene Graph for the closest one.
+
+The Local Loopback scene has two Network Scenes, each under a top level GameObject, called a *Forest*. These GameObjects separate the Unity scene into branches, where all Components in one branch will find that branch's Network Scene.
+
+You can add more Forests to the scene to create more Peers.
+
+Only one Peer can be controlled by the PlayerController at any time however, since Unity only supports one set of Input Devices. The other Peers are controlled by Bots.
 

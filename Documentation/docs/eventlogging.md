@@ -36,7 +36,7 @@ The most common types of event logger are the `ContextEventLogger`, which is des
 
 
 ```
-public class VoipPeerConnectionManager : MonoBehaviour, INetworkComponent
+public class VoipPeerConnectionManager : MonoBehaviour
 {
 	private ContextLogEmitter debug;
 

@@ -15,6 +15,8 @@ namespace Ubiq.Voip
         public AudioClip Clip;
         public bool IsPaused;
 
+        private float gain = 1f;
+
         private G722AudioEncoder audioEncoder;
         private MediaFormatManager<AudioFormat> audioFormatManager;
         private float time;
@@ -104,34 +106,44 @@ namespace Ubiq.Voip
             {
                 // The G722 codec is expecting 16 KHz
                 var numPcmSamples = (int)(Time.fixedDeltaTime * 16000);
-
-                // The codec expects an even number of samples
-                if(numPcmSamples % 2 > 0)
+                if(numPcmSamples % 2 > 0)   // The codec expects an even number of samples
                 {
                     numPcmSamples--;
                 }
-
                 var pcmSamples = new short[numPcmSamples];
+                
+                var numClipSamples = (int)(Time.fixedDeltaTime * Clip.frequency * Clip.channels);
+                if (numClipSamples % 2 > 0) // De-interleaving expects an even number of samples
+                {
+                    numClipSamples--;
+                }
+                var clipSamples = new float[numClipSamples];
 
-                var samplesPerSecond = Clip.frequency * Clip.channels;
-                time += Time.fixedDeltaTime;
+                // The offset is given in samples per-channel
 
-                var offset = Mathf.Repeat(time, Clip.length);
-                var offsetInSamples = (int)(offset * samplesPerSecond) % Clip.samples; // in case quantisation makes the above drift a tiny bit over
+                Clip.GetData(clipSamples, (int)(Mathf.Repeat(time, Clip.length) * Clip.frequency));
 
-                var numFloatSamples = (int)(samplesPerSecond * Time.fixedDeltaTime);
-                var floatSamples = new float[numFloatSamples];
+                if (Clip.channels > 1)
+                {
 
-                Clip.GetData(floatSamples, offsetInSamples);
+                    var channelSamples = new float[clipSamples.Length / Clip.channels];
+                    for (int i = 0; i < channelSamples.Length; i++)
+                    {
+                        channelSamples[i] = clipSamples[i * Clip.channels];
+                    }
+                    clipSamples = channelSamples;
+                }
 
-                var samplesRatio = (Clip.frequency / 16000) * Clip.channels;
+                // This ratio re-samples the clip from one samples per second count to other
+
+                var samplesRatio = (Clip.frequency / 16000f);
 
                 for (int i = 0; i < pcmSamples.Length; i++)
                 {
-                    var floatSampleIndex = (int)(i * samplesRatio);
-                    var floatSample = floatSamples[floatSampleIndex];
-                    floatSample = Mathf.Clamp(floatSample * 1, -.999f, .999f);
-                    pcmSamples[i] = (short)(floatSample * short.MaxValue);
+                    var sampleIndex = (int)(i * samplesRatio);
+                    var clipSample = clipSamples[sampleIndex];
+                    clipSample = Mathf.Clamp(clipSample * gain, -.999f, .999f);
+                    pcmSamples[i] = (short)(clipSample * short.MaxValue);
                 }
 
                 var encoded = audioEncoder.Encode(pcmSamples);
@@ -139,6 +151,8 @@ namespace Ubiq.Voip
                 {
                     OnAudioSourceEncodedSample((uint)pcmSamples.Length, encoded);
                 }
+
+                time += Time.fixedDeltaTime;
             }
         }
     }

@@ -1,6 +1,6 @@
 # Unique Ids
 
-The main considerations of Object Ids are the practices for generating UUIds, collision probabilities and bit sizes.
+One of the most important considerations when generating Ids is the probablity of collisions.
 
 ## Collision Probability
 
@@ -20,7 +20,7 @@ There are no rules defining acceptable chances of collisions. For example, OAuth
 
 In the case of a typical Ubiq room, which due to voice chat limitations can support approximately 25 users, a 32 bit value would probably be adequate. The concept of a Room in Ubiq can change depending on how it is used however, so Ubiq tries to avoid making assumptions about the potential collision space. If rooms were considered to be floating regions, for example, then the number of potential users could be much higher.
 
-It is challenging to grasp levels of chance at these scales. The table below by Jeff Preshing presents collision probabilities with some more intuitive context. (The numer of *hash values* below is the number of Objects between all users that could potentially connect in a Ubiq scenario, be that a room, set of rooms, a server, shard etc.)
+It is challenging to grasp levels of chance at these scales. The table below by Jeff Preshing presents collision probabilities more intuitively. (The numer of *hash values* below is the number of Objects between all users that could potentially connect in a Ubiq scenario, be that a room, set of rooms, a server, shard etc.)
 
 ![A table describing small chances in human terms, e.g. 1 in 100 million are the odds of dying by shark attack.](images/96e766f2-3d71-429c-8e53-0abce4528621.png)
 

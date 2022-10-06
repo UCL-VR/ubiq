@@ -31,6 +31,8 @@ namespace Ubiq.Samples
         private Vector3 footPosition;
         private Quaternion torsoFacing;
 
+        private Avatars.Avatar avatar;
+
         private void OnEnable()
         {
             trackedAvatar = GetComponentInParent<ThreePointTrackedAvatar>();
@@ -48,6 +50,11 @@ namespace Ubiq.Samples
             {
                 texturedAvatar.OnTextureChanged.AddListener(TexturedAvatar_OnTextureChanged);
             }
+        }
+
+        private void Awake()
+        {
+            avatar = GetComponentInParent<Avatars.Avatar>();
         }
 
         private void OnDisable()
@@ -142,6 +149,10 @@ namespace Ubiq.Samples
             // Place torso so it makes a straight line between neck and feet
             torso.position = neckPosition;
             torso.rotation = Quaternion.FromToRotation(Vector3.down, footPosition - neckPosition) * torsoFacing;
+
+            avatar.Velocity = (torso.position - avatar.Position) / Time.deltaTime;
+            avatar.Position = torso.position;
+            avatar.Rotation = torso.rotation;
         }
 
         // private Vector3 handsFwdStore;

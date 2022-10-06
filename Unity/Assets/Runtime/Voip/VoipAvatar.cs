@@ -18,9 +18,7 @@ namespace Ubiq.Avatars
         private void Start()
         {
             avatar = GetComponentInParent<Avatars.Avatar>();
-
-            peerConnectionManager = NetworkScene.FindNetworkScene(this).
-                GetComponentInChildren<VoipPeerConnectionManager>();
+            peerConnectionManager = NetworkScene.Find(this).GetComponentInChildren<VoipPeerConnectionManager>();
             if (peerConnectionManager)
             {
                 peerConnectionManager.OnPeerConnection.AddListener(OnPeerConnection, true);

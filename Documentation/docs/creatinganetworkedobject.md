@@ -1,56 +1,260 @@
 # Building a Basic Networked Object
 
-1. Create a new Unity Script and add it to your GameObject that you want to have networked. You can do this via the inspector by clicking on &quot;Add Component&quot; and typing the new name.
+Networked objects are Components that can keep themselves synchronised by exchanging messages over the network. You can create new Networked Objects to implement your own networked behaviour.
+
+1) Create a new Unity Script and add it to the GameObject that you want to be networked. You can do this via the inspector by clicking on &quot;Add Component&quot; and typing the new name.
  
- ![](images/bd892032-38e4-4ddd-bc38-0d10437cdcb6.png)
+![](images/bd892032-38e4-4ddd-bc38-0d10437cdcb6.png)
+
+2) Include Ubiq.Messaging
+
+```
+	using System.Collections;
+	using System.Collections.Generic;
+	using UnityEngine;
+	using Ubiq.Messaging;
+
+	public class MyNetworkedObject : MonoBehaviour
+	{
+		// Start is called before the first frame update
+		void Start()
+		{
+		}
+
+		// Update is called once per frame
+		void Update()
+		{
+			
+		}
+	}
+```
+
+3) Create a new member, `context`. `context` will hold the address of your object on the network, and allow you to send messages.
+
+```
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Ubiq.Messaging;
+
+public class MyNetworkedObject : MonoBehaviour
+{
+    NetworkContext context;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+	
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
+}
+```
 
 
-2. Include Ubik.Messaging
+4) Declare a method called `ProcessMessage`, which takes a `ReferenceCountedSceneGraphMessage`. This is where messages to your Component will come in.
 
- ![](images/e80eacb1-1f1d-4ea9-a155-13664560eb88.png)
+```
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Ubiq.Messaging;
+
+public class MyNetworkedObject : MonoBehaviour
+{
+    NetworkContext context;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+	
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
+
+    public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+    {
+
+    }
+}
+```
+
+5) In your `Start()` method, call `NetworkScene.Register()`. This registers your Component with Ubiq and gets it an address on the network. The return value is a `NetworkContext` which you can store in the member created previously.
 
 
-3. Inherit from INetworkObject and INetworkComponent
+```
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Ubiq.Messaging;
+
+public class MyNetworkedObject : MonoBehaviour
+{
+    NetworkContext context;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        context = NetworkScene.Register(this);
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
+
+    public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+    {
+
+    }
+}
+```
+
  
- ![](images/ca92236f-ed39-40fc-9a2f-0c0d223b14c6.png)
+6) Define what a message between instances of your Component will look like. In the message, write the variables that you want to send. Below we create a message to send the object's position.
 
 
-4. Implement their interfaces
- In Visual Studio this can be done through the context menu.
- Right Click -\&gt; Quick Actions and Refactoring -\&gt; Implement interface
-**Note:** This will only give you the stubs. You will need to fill them in yourself in the next steps
- 
- ![](images/b067cfe4-d3ee-4a50-911f-6a510f643822.png)
+```
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Ubiq.Messaging;
+
+public class MyNetworkedObject : MonoBehaviour
+{
+    NetworkContext context;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        context = NetworkScene.Register(this);
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
+
+    private struct Message
+    {
+        public Vector3 position;
+    }
+
+    public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+    {
+
+    }
+}
+```
+
+7) Add code to parse and process incoming messages to `ProcessMessage`. Below, we convert the ReferenceCountedSceneGraphMessage into a Message, and then access the position member to set the object's position in world space.
+
+```
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Ubiq.Messaging;
+
+public class MyNetworkedObject : MonoBehaviour
+{
+    NetworkContext context;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        context = NetworkScene.Register(this);
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
+
+    private struct Message
+    {
+        public Vector3 position;
+    }
+
+    public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+    {
+        // Parse the message
+        var m = message.FromJson<Message>();
+
+        // Use the message to update the Component
+        transform.localPosition = m.position;
+    }
+}
+```
+
+8) Messages will only be sent to your Component, from other instances of your Component, so you also need to Send messages as well. This is done through the NetworkContext you recieved when the Component was registered. 
+
+Below, we check if the position of the object has changed in the last frame, and if so, send the new position to all other instances of the object. 
+We detect if the position has changed by keeping track of the position in the last frame in a new member, `lastPosition`.
+
+We also modify `ProcessMessage` slightly, to update `lastPosition` when a message is recieved - otherwise, an incoming message will generate an outgoing message, and two Components will send messages back and forth in an endless cycle even if the player hasn't changed the objects position!
 
 
-5. Implement Network ID creation
- 
- ![](images/9237eeb3-44ef-493a-84a8-e633c23c9233.png)
+```
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Ubiq.Messaging;
 
+public class MyNetworkedObject : MonoBehaviour
+{
+    NetworkContext context;
 
-6. Register your networked object with the network Scene
- This should be done at the start of the objects life i.e. in the Start() function.
- If you want to send messages as well, you also need to save the context object that is returned.
- 
- ![](images/dd24ba78-6e46-472e-bd68-fda10fe36d97.png)
+    // Start is called before the first frame update
+    void Start()
+    {
+        context = NetworkScene.Register(this);
+    }
 
+    Vector3 lastPosition;
 
-7. Define how your message will look like.
- This is best done as a struct in the class. It being defined in the class prevents naming conflict.
- In the message, write the variables that you want to send. A good start is TransformMessage that is built to store the transform and is useful if you want your object&#39;s location and orientation to be synchronised.
- Do not forget the constructor! It allows to create the message in one line.
- 
- ![](images/641029e0-cb0c-4188-879c-66d2a0b35961.png)
+    // Update is called once per frame
+    void Update()
+    {
+        if(lastPosition != transform.localPosition)
+        {
+            lastPosition = transform.localPosition;
+            context.SendJson(new Message()
+            {
+                position = transform.localPosition
+            });
+        }
+    }
 
+    private struct Message
+    {
+        public Vector3 position;
+    }
 
-8. Receiving Messages
- Messages are received automatically. However, you will have to define how they are processed.
- For that, fill in ProcessMessage(…) The first step is usually &quot;decoding&quot; the message. Usually it will be sent as a JSON, but if you send it in a different format, you need to decode it differently as well.
+    public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+    {
+        // Parse the message
+        var m = message.FromJson<Message>();
 
- ![](images/c4628137-6ac2-4ea5-8122-55a00742680e.png)
+        // Use the message to update the Component
+        transform.localPosition = m.position;
 
+        // Make sure the logic in Update doesn't trigger as a result of this message
+        lastPosition = transform.localPosition;
+    }
+}
+```
 
-9. Sending Messages
- You can send messages at any time and anywhere in the code through using your context object. However, most of the time you will probably want that the objects move in sync, so it makes sense to send an update each frame. For this, put your sending in Update(…).
- 
- ![](images/1dbfd8f4-7d2b-4651-8a28-0a5231603682.png)
+9) Your first networked object is now complete!
+
+Add a cube to your object so you can see it in the scene. Continue with the tutorials to see it in action!

@@ -80,6 +80,11 @@ PrefabInstance:
       propertyPath: Root
       value: 
       objectReference: {fileID: 4904968254921343994}
+    - target: {fileID: 7423630782258970210, guid: 08ed9b7817263b641b25d3863adf0c7d,
+        type: 3}
+      propertyPath: Radius
+      value: 100
+      objectReference: {fileID: 0}
     - target: {fileID: 7423630782258970212, guid: 08ed9b7817263b641b25d3863adf0c7d,
         type: 3}
       propertyPath: m_RootOrder
@@ -211,6 +216,21 @@ PrefabInstance:
       value: 'Scene
 
 '
+      objectReference: {fileID: 0}
+    - target: {fileID: 3130174346742382869, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
+        type: 3}
+      propertyPath: networkId.a
+      value: 208930076
+      objectReference: {fileID: 0}
+    - target: {fileID: 3130174346742382869, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
+        type: 3}
+      propertyPath: networkId.b
+      value: 3939690110
+      objectReference: {fileID: 0}
+    - target: {fileID: 3130174346742382869, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
+        type: 3}
+      propertyPath: __serializedGoid
+      value: GlobalObjectId_V1-0-00000000000000000000000000000000-0-0
       objectReference: {fileID: 0}
     - target: {fileID: 3367109844150072685, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
         type: 3}

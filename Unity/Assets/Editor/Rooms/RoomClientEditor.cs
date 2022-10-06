@@ -17,6 +17,7 @@ namespace Ubiq.Rooms
         private List<IRoom> available = new List<IRoom>();
         private double nextRoomRefreshTime = -1;
         private const double ROOM_REFRESH_INTERVAL = 2d;
+        private bool foldoutProperties;
 
         private void Awake()
         {
@@ -134,7 +135,19 @@ namespace Ubiq.Rooms
                 EditorGUILayout.LabelField($"Me {component.Me.uuid}");
             }
 
+            EditorGUILayout.EndFoldoutHeaderGroup();
+
             GUI.enabled = true;
+
+            foldoutProperties = EditorGUILayout.BeginFoldoutHeaderGroup(foldoutProperties, "Properties");
+
+            if (foldoutProperties)
+            {
+                foreach (var item in component.Me)
+                {
+                    EditorGUILayout.LabelField($"{item.Key}: {item.Value}");
+                }
+            }
 
             serializedObject.ApplyModifiedProperties();
         }

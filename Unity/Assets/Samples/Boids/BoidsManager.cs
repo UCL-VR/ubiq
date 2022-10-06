@@ -28,16 +28,22 @@ namespace Ubiq.Samples.Boids
         {
             client = GetComponentInParent<RoomClient>();
             boids = new Dictionary<NetworkId, Boids>();
+            if(localBoids)
+            {
+                localBoids.NetworkId = NetworkId.Unique();
+            }
         }
 
         private void Start()
         {
-            //todo: invert this so params come from avatar object?
-            myBoidsParams.sharedId = NetworkId.Unique();
-
             if (localBoids != null)
             {
+                myBoidsParams.sharedId = localBoids.NetworkId;
                 boids.Add(myBoidsParams.sharedId, localBoids);
+            }
+            else
+            {
+                myBoidsParams.sharedId = NetworkId.Unique(); // Create a new Boids
             }
 
             client.OnPeerAdded.AddListener(OnPeer);
@@ -48,7 +54,6 @@ namespace Ubiq.Samples.Boids
 
         private Boids MakeBoids(BoidsParams args)
         {
-            //todo: turn the prefab reference into a catalogue
             return GameObject.Instantiate(boidsPrefab, transform).GetComponentInChildren<Boids>();
         }
 
@@ -71,7 +76,7 @@ namespace Ubiq.Samples.Boids
                 go.name = "Remote Flock #" + args.sharedId.ToString();
             }
 
-            flock.networkId = args.sharedId;
+            flock.NetworkId = args.sharedId;
             flock.local = local;
         }
 
