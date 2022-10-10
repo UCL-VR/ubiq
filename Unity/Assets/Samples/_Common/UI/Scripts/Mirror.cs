@@ -95,7 +95,7 @@ namespace Ubiq.Samples.Social
         private bool TryGetAvatarManager(out AvatarManager avatarManager)
         {
             try {
-                avatarManager = NetworkScene.FindNetworkScene(this)
+                avatarManager = NetworkScene.Find(this)
                     .GetComponentInChildren<AvatarManager>();
             }
             catch (System.NullReferenceException)

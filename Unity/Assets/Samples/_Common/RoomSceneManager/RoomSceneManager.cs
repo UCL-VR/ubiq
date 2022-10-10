@@ -69,7 +69,7 @@ namespace Ubiq.Samples
 
         public static void ChangeScene(MonoBehaviour caller, string sceneName)
         {
-            var manager = FindSceneManager(NetworkScene.FindNetworkScene(caller));
+            var manager = FindSceneManager(NetworkScene.Find(caller));
             manager.ChangeScene(sceneName);
         }
 

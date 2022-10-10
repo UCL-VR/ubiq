@@ -21,8 +21,3 @@ For example, a Json message would arrive containing the Id of an object that the
 Binary `NetworkId`s are converted to `NetworkId` class instances by the `Message` wrapper. From this point on any Javascript code can work with the object in its Json representation.
 
 `NetworkId` instances and generic Json objects representing a network Id can interoperate.
-
-
-## Component Ids
-
-Component Ids are represented by ushort.

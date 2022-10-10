@@ -5,11 +5,12 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Events;
 using Ubiq.Messaging;
+using Ubiq.Spawning;
 
 namespace Ubiq.Avatars
 {
     [RequireComponent(typeof(Avatar))]
-    public class ThreePointTrackedAvatar : NetworkBehaviour
+    public class ThreePointTrackedAvatar : MonoBehaviour
     {
         private struct PositionRotation
         {
@@ -40,6 +41,7 @@ namespace Ubiq.Avatars
         public GripUpdateEvent OnLeftGripUpdate;
         public GripUpdateEvent OnRightGripUpdate;
 
+        private NetworkContext context;
         private Transform networkSceneRoot;
         private State[] state = new State[1];
         private Avatar avatar;
@@ -55,11 +57,12 @@ namespace Ubiq.Avatars
             public float rightGrip;
         }
 
-        protected override void Started ()
+        protected void Start()
         {
             avatar = GetComponent<Avatar>();
+            context = NetworkScene.Register(this, NetworkId.Create(avatar.NetworkId, "ThreePointTracked"));
+            networkSceneRoot = context.Scene.transform;
             lastTransmitTime = Time.time;
-            networkSceneRoot = networkScene.transform;
         }
 
         private void Update ()
@@ -145,15 +148,14 @@ namespace Ubiq.Avatars
             var message = ReferenceCountedSceneGraphMessage.Rent(transformBytes.Length);
             transformBytes.CopyTo(new Span<byte>(message.bytes, message.start, message.length));
 
-            networkScene.Send(networkId,message);
+            context.Send(message);
         }
 
-        protected override void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+        public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
             MemoryMarshal.Cast<byte, State>(
                 new ReadOnlySpan<byte>(message.bytes, message.start, message.length))
                 .CopyTo(new Span<State>(state));
-
             OnRecv();
         }
 

@@ -36,7 +36,7 @@ namespace Ubiq.Samples
 
         private void Start()
         {
-            roomClient = NetworkScene.FindNetworkScene(this).GetComponentInChildren<RoomClient>();
+            roomClient = NetworkScene.Find(this).GetComponentInChildren<RoomClient>();
 
             if (avatar.IsLocal)
             {

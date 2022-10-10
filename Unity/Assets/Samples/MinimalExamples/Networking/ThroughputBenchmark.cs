@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Ubiq.Samples
 {
-    public class ThroughputBenchmark : NetworkBehaviour
+    public class ThroughputBenchmark : MonoBehaviour
     {
         public int messagesPerFrame = 10;
         public int maxMessageSize = 100000;
@@ -23,13 +23,15 @@ namespace Ubiq.Samples
         private SHA256 sha526;
         private const int hashLength = 32;
 
+        private NetworkContext context;
+
         private void Awake()
         {
             sha526 = SHA256.Create();
-            networkId = new NetworkId("a2a6-6b97-e7b6-6277");
+            context = NetworkScene.Register(this, new NetworkId("a2a6-6b97-e7b6-6277"));
         }
 
-        protected override void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+        public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
             var hash = sha526.ComputeHash(message.bytes, message.start, message.length - hashLength);
             var compare = new ReadOnlySpan<byte>(message.bytes, message.start + message.length - hashLength, hashLength).SequenceEqual(hash);
@@ -72,7 +74,7 @@ namespace Ubiq.Samples
                         }
                     }
 
-                    Send(message);
+                    context.Send(message);
 
                     sent++;
                 }

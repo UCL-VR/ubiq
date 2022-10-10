@@ -16,7 +16,7 @@ namespace Ubiq.Samples.UnitTests.Logging
     /// The events are deterministic, meaning the cumulative log files can
     /// be analysed afterwards for integrity.
     /// </summary>
-    public class LoggingDiagnostics : NetworkBehaviour
+    public class LoggingDiagnostics : MonoBehaviour
     {
         /// <summary>
         /// Each event increments the counter by 1. If the counter does not
@@ -35,8 +35,11 @@ namespace Ubiq.Samples.UnitTests.Logging
 
         protected LogCollector Collector;
 
-        override protected void Started()
+        private NetworkContext context;
+
+        void Start()
         {
+            context = NetworkScene.Register(this);
             int numEmitters = UnityEngine.Random.Range(1, 5);
             for (int i = 0; i < numEmitters; i++)
             {
@@ -78,7 +81,7 @@ namespace Ubiq.Samples.UnitTests.Logging
             }
         }
 
-        override protected void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+        public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
             if(message.ToString() == "End")
             {
@@ -88,7 +91,7 @@ namespace Ubiq.Samples.UnitTests.Logging
 
         public void End()
         {
-            Send("End");
+            context.Send("End");
             Shutdown();
         }
 

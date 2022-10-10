@@ -56,6 +56,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -80,6 +81,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!64 &2005247020476989506
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -186,28 +188,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d61f55a1b9a02064ebf167b08e5b22b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Available: []
   servers:
   - listen_on_ip: 
     listen_on_port: 
-    send_to_ip: localhost
-    send_to_port: 8004
+    send_to_ip: nexus.cs.ucl.ac.uk
+    send_to_port: 8009
     type: 0
-  me:
-    uuid: 
-    networkObject:
-      a: 0
-      b: 0
-    component: 0
-    properties:
-      keys: []
-      values: []
-  OnJoinedRoom:
-    m_PersistentCalls:
-      m_Calls: []
-  OnRoom:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!114 &7441624288820731779
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -220,3 +206,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fddd4936b870f084aa3cf82b0e18125f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  OnUpdate:
+    m_PersistentCalls:
+      m_Calls: []

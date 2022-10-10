@@ -84,7 +84,7 @@ namespace Ubiq.Samples.Social
         {
             if (!networkScene)
             {
-                networkScene = NetworkScene.FindNetworkScene(this);
+                networkScene = NetworkScene.Find(this);
                 if (!networkScene)
                 {
                     return;

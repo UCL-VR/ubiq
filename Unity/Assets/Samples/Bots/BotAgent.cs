@@ -33,7 +33,7 @@ namespace Ubiq.Samples.Bots
         void Update()
         {
             // Have the agent wander around the scene
-            if(Vector3.Distance(destination, transform.position) < 1f || wanderingTime > 5f)
+            if(Vector3.Distance(destination, transform.position) < 1f || wanderingTime > 10f)
             {
                 Wander();
             }
@@ -43,6 +43,11 @@ namespace Ubiq.Samples.Bots
 
         public void Wander()
         {
+            if (!navMeshAgent.isActiveAndEnabled)
+            {
+                return;
+            }
+
             NavMeshHit hit;
 
             int i = 0;

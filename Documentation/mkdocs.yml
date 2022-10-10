@@ -7,10 +7,10 @@ nav:
             - Setting Up VR: settingupvr.md
             - Creating Networked Objects: creatinganetworkedobject.md
             - Object Spawning: spawningobjects.md
-            - Ownership: objectownership.md
+            - Testing with Local Loopback: localloopback.md
+            - Synchronisation: synchronisation.md
             - Interaction with Ubiq XR: ubiqxrinteraction.md
             - Servers and Rooms: serversandrooms.md
-            - Testing with Local Loopback: localloopback.md
             - Logging: eventlogginggettingstarted.md
         - Server:
             - Running the server: serversetup.md
@@ -27,7 +27,7 @@ nav:
             - Serialisation and Memory: eventlogserialisation.md
         - Messaging:
             - Introduction: messaging.md
-            - Object and Component Ids: objectids.md
+            - Network Ids: networkids.md
             - Generating Unique Ids: generatinguniqueids.md
             - Types: networkidtype.md
             - Reserved IDs: reservedids.md

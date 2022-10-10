@@ -48,7 +48,8 @@ namespace Ubiq.Samples
         public void Use(Hand controller)
         {
             var go = NetworkSpawnManager.Find(this).SpawnWithPeerScope(FireworkPrefab);
-            var firework = go.GetComponent<IFirework>();
+            var firework = go.GetComponent<Firework>();
+            firework.owner = true;
             if (firework != null)
             {
                 firework.Attach(controller);
