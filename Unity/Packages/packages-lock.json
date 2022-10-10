@@ -1,14 +1,7 @@
 {
   "dependencies": {
-    "com.ogxd.project-curator": {
-      "version": "https://github.com/ogxd/project-curator.git",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "5a5eb9a29570b6f59d117945552f5a4d4850c6b5"
-    },
     "com.unity.collab-proxy": {
-      "version": "1.17.0",
+      "version": "1.17.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -24,11 +17,11 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.rider": {
-      "version": "2.0.7",
+      "version": "3.0.15",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.test-framework": "1.1.1"
+        "com.unity.ext.nunit": "1.0.6"
       },
       "url": "https://packages.unity.com"
     },
@@ -139,7 +132,7 @@
       }
     },
     "com.unity.xr.legacyinputhelpers": {
-      "version": "2.1.9",
+      "version": "2.1.10",
       "depth": 1,
       "source": "registry",
       "dependencies": {
