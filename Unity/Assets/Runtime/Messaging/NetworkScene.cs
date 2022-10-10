@@ -140,7 +140,7 @@ namespace Ubiq.Messaging
 
         /// <summary>
         /// Registers a Networked Component with its closest Network Scene. The
-        /// Network Id will be automatically assigned based on the Components 
+        /// Network Id will be automatically assigned based on the Components
         /// location in the Scene Graph.
         /// </summary>
         public static NetworkContext Register(MonoBehaviour component)
@@ -159,7 +159,7 @@ namespace Ubiq.Messaging
             context.Id = id;
             context.Component = component;
 
-            // Create a delegate for the method for the processor. This should 
+            // Create a delegate for the method for the processor. This should
             // similar performance to a virtual method.
             //https://blogs.msmvps.com/jonskeet/2008/08/09/making-reflection-fly-and-exploring-delegates/
 
@@ -169,7 +169,7 @@ namespace Ubiq.Messaging
                 var processor = (Action<ReferenceCountedSceneGraphMessage>)Delegate.CreateDelegate(typeof(Action<ReferenceCountedSceneGraphMessage>), component, method);
                 context.Scene.AddProcessor(context.Id, processor);
             }
-            catch (Exception e)
+            catch
             {
                 Debug.LogError($"Could not find ProcessMessage on {component.GetType()} on {component.gameObject.name}. Make sure you have a public method ProcessMessage(ReferenceCountedSceneGraphMessage message)");
             }
