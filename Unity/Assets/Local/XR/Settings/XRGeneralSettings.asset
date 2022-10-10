@@ -80,7 +80,6 @@ MonoBehaviour:
   m_AutomaticRunning: 0
   m_Loaders:
   - {fileID: 11400000, guid: 4910e050168fa074fa0d74dd58dc28eb, type: 2}
-  - {fileID: 11400000, guid: e82918ad21eed1d42bfadb8b9327e2b8, type: 2}
 --- !u!114 &-987961185806623940
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -94,7 +93,7 @@ MonoBehaviour:
   m_Name: WebGL Settings
   m_EditorClassIdentifier: 
   m_LoaderManagerInstance: {fileID: -5402938533072745881}
-  m_InitManagerOnStart: 1
+  m_InitManagerOnStart: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -140,4 +139,4 @@ MonoBehaviour:
   m_Name: Standalone Settings
   m_EditorClassIdentifier: 
   m_LoaderManagerInstance: {fileID: -2009384406359797729}
-  m_InitManagerOnStart: 0
+  m_InitManagerOnStart: 1

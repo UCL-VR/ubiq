@@ -13,42 +13,20 @@ namespace Ubiq.Samples
 {
     public class WristMenuInvoker : MonoBehaviour, IUseable
     {
-        public MenuRequestSource source;
-
-        public enum Wrist
+        private void Start()
         {
-            Left,
-            Right
+            var avatar = GetComponentInParent<Ubiq.Avatars.Avatar>();
+            if (!avatar || !avatar.IsLocal)
+            {
+                gameObject.SetActive(false);
+            }
         }
-        public Wrist wrist;
 
         public void Use(Hand controller)
         {
-            source.Request(gameObject);
+            MenuRequestSource.RequestAll(requester:gameObject);
         }
 
         public void UnUse(Hand controller) { }
-
-        private void Update()
-        {
-            UpdatePositionAndRotation();
-        }
-
-        private void LateUpdate()
-        {
-            UpdatePositionAndRotation();
-        }
-
-        private void UpdatePositionAndRotation()
-        {
-            var node = wrist == Wrist.Left
-                ? AvatarHints.NodePosRot.LeftWrist
-                : AvatarHints.NodePosRot.RightWrist;
-            if (AvatarHints.TryGet(node, XRPlayerController.Singleton, out var positionRotation))
-            {
-                transform.position = positionRotation.position;
-                transform.rotation = positionRotation.rotation;
-            }
-        }
     }
 }

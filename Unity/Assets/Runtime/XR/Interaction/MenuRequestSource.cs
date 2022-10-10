@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Events;
 
 namespace Ubiq.XR
@@ -9,14 +10,32 @@ namespace Ubiq.XR
     /// </summary>
     public class MenuRequestSource : MonoBehaviour
     {
+        private static List<MenuRequestSource> _sources = new List<MenuRequestSource>();
+
         [System.Serializable]
         public class RequestEvent : UnityEvent<GameObject> { };
 
         public RequestEvent OnRequest;
 
+        public void Awake ()
+        {
+            if (!_sources.Contains(this))
+            {
+                _sources.Add(this);
+            }
+        }
+
         public void Request(GameObject requester)
         {
             OnRequest.Invoke(requester);
+        }
+
+        public static void RequestAll(GameObject requester)
+        {
+            foreach(var source in _sources)
+            {
+                source.Request(requester);
+            }
         }
     }
 }

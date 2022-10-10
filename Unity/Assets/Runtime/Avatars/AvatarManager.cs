@@ -19,6 +19,7 @@ namespace Ubiq.Avatars
     {
         public PrefabCatalogue avatarCatalogue;
         public GameObject avatarPrefab;
+        public AvatarHints hints;
 
         /// <summary>
         /// The current avatar loaded for the local player. Be aware that this reference may change at any time
@@ -107,6 +108,7 @@ namespace Ubiq.Avatars
                     gameObject.transform.localRotation = LocalAvatar.transform.localRotation;
                 }
                 avatar.IsLocal = true;
+                avatar.SetHints(hints);
                 gameObject.name = $"My Avatar #{ peer.uuid }";
 
                 LocalAvatar = avatar;

@@ -1,8 +1,17 @@
 fileFormatVersion: 2
-guid: 36ff1d43cf6ba8a44a7f5cd1962fd8d0
+guid: 043e9e9ef6317ff4e83ed55ba5b19445
 ModelImporter:
   serializedVersion: 20200
-  internalIDToNameTable: []
+  internalIDToNameTable:
+  - first:
+      74: -5225591888644748974
+    second: Rest
+  - first:
+      74: -2182677118122204704
+    second: rig|LeftGrip
+  - first:
+      74: 1339010611884143752
+    second: rig|RightGrip
   externalObjects: {}
   materials:
     materialImportMode: 2
@@ -34,7 +43,7 @@ ModelImporter:
     isReadable: 0
   meshes:
     lODScreenPercentages: []
-    globalScale: 0.54
+    globalScale: 0.6
     meshCompression: 0
     addColliders: 0
     useSRGBMaterialColor: 1
@@ -85,14 +94,14 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
-    globalScale: 0.0054
+    globalScale: 0.006
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
   autoGenerateAvatarMappingIfUnspecified: 1
-  animationType: 0
+  animationType: 2
   humanoidOversampling: 1
   avatarSetup: 0
   addHumanoidExtraRootOnlyWhenUsingAvatar: 1
