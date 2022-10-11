@@ -16,12 +16,18 @@ namespace Ubiq.Samples
 
         private void OnEnable()
         {
-            source.OnRequest.AddListener(MenuRequestSource_OnMenuRequest);
+            if (source)
+            {
+                source.OnRequest.AddListener(MenuRequestSource_OnMenuRequest);
+            }
         }
 
         private void OnDisable()
         {
-            source.OnRequest.RemoveListener(MenuRequestSource_OnMenuRequest);
+            if (source)
+            {
+                source.OnRequest.RemoveListener(MenuRequestSource_OnMenuRequest);
+            }
         }
 
         private void MenuRequestSource_OnMenuRequest(GameObject requester)
