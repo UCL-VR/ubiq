@@ -122,7 +122,7 @@ namespace Ubiq.Avatars
             {
                 posrot.rotation = rot;
             }
-            return posrot;
+            return InverseTransformPosRot(posrot,networkSceneRoot);
         }
 
         private float GetFloatHint (string node)
