@@ -14,100 +14,6 @@ namespace Ubiq.Samples
             Exact
         }
 
-        private class HandAnimation
-        {
-            public enum Side
-            {
-                Left,
-                Right
-            }
-
-            private Transform indexProximal;
-            private Transform indexIntermediate;
-            private Transform thumbProximal;
-            private Transform thumbIntermediate;
-
-            // private Vector3 indexProximalOriginal;
-            // private Vector3 indexIntermediateOriginal;
-            // private Vector3 thumbProximalOriginal;
-            // private Vector3 thumbIntermediateOriginal;
-            private Quaternion indexProximalOriginal;
-            private Quaternion indexIntermediateOriginal;
-            private Quaternion thumbProximalOriginal;
-            private Quaternion thumbIntermediateOriginal;
-
-            private Quaternion indexProximalTarget;
-            private Quaternion indexIntermediateTarget;
-            private Quaternion thumbProximalTarget;
-            private Quaternion thumbIntermediateTarget;
-
-            public HandAnimation (Animator animator, Side side,
-                Vector3 indexProximalTarget, Vector3 indexIntermediateTarget,
-                Vector3 thumbProximalTarget, Vector3 thumbIntermediateTarget)
-            {
-                if (side == Side.Left)
-                {
-                    indexProximal = animator.GetBoneTransform(HumanBodyBones.LeftIndexProximal);
-                    indexIntermediate = animator.GetBoneTransform(HumanBodyBones.LeftIndexIntermediate);
-                    thumbProximal = animator.GetBoneTransform(HumanBodyBones.LeftThumbProximal);
-                    thumbIntermediate = animator.GetBoneTransform(HumanBodyBones.LeftThumbIntermediate);
-                }
-                else
-                {
-                    indexProximal = animator.GetBoneTransform(HumanBodyBones.RightIndexProximal);
-                    indexIntermediate = animator.GetBoneTransform(HumanBodyBones.RightIndexIntermediate);
-                    thumbProximal = animator.GetBoneTransform(HumanBodyBones.RightThumbProximal);
-                    thumbIntermediate = animator.GetBoneTransform(HumanBodyBones.RightThumbIntermediate);
-                }
-
-                if (indexProximal)
-                {
-                    indexProximalOriginal = Quaternion.Euler(indexProximal.localEulerAngles);
-                }
-                if (indexIntermediate)
-                {
-                    indexIntermediateOriginal = Quaternion.Euler(indexIntermediate.localEulerAngles);
-                }
-                if (thumbProximal)
-                {
-                    thumbProximalOriginal = Quaternion.Euler(thumbProximal.localEulerAngles);
-                }
-                if (thumbIntermediate)
-                {
-                    thumbIntermediateOriginal = Quaternion.Euler(thumbIntermediate.localEulerAngles);
-                }
-
-                this.indexProximalTarget = Quaternion.Euler(indexProximalTarget);
-                this.indexIntermediateTarget = Quaternion.Euler(indexIntermediateTarget);
-                this.thumbProximalTarget = Quaternion.Euler(thumbProximalTarget);
-                this.thumbIntermediateTarget = Quaternion.Euler(thumbIntermediateTarget);
-            }
-
-            public void UpdateAnim (float value)
-            {
-                if (indexProximal)
-                {
-                    indexProximal.localRotation = Quaternion.Lerp(
-                        indexProximalOriginal,indexProximalTarget,value);
-                }
-                if (indexIntermediate)
-                {
-                    indexIntermediate.localRotation = Quaternion.Lerp(
-                        indexIntermediateOriginal,indexIntermediateTarget,value);
-                }
-                if (thumbProximal)
-                {
-                    thumbProximal.localRotation = Quaternion.Lerp(
-                        thumbProximalOriginal,thumbProximalTarget,value);
-                }
-                if (thumbIntermediate)
-                {
-                    thumbIntermediate.localRotation = Quaternion.Lerp(
-                        thumbIntermediateOriginal,thumbIntermediateTarget,value);
-                }
-            }
-        }
-
         public Transform centerEye;
         public Transform baseOfNeck;
 
@@ -126,21 +32,6 @@ namespace Ubiq.Samples
         public Transform leftHandOffsetHint;
         public Transform rightHandOffsetHint;
 
-        public Vector3 indexProximalTarget;
-        public Vector3 indexIntermediateTarget;
-        public Vector3 thumbProximalTarget;
-        public Vector3 thumbIntermediateTarget;
-
-        public Vector3 leftIndexProximalTarget;
-        public Vector3 leftIndexIntermediateTarget;
-        public Vector3 leftThumbProximalTarget;
-        public Vector3 leftThumbIntermediateTarget;
-
-        public Vector3 rightIndexProximalTarget;
-        public Vector3 rightIndexIntermediateTarget;
-        public Vector3 rightThumbProximalTarget;
-        public Vector3 rightThumbIntermediateTarget;
-
         private Animator animator;
         private ThreePointTrackedAvatar trackedAvatar;
 
@@ -149,8 +40,6 @@ namespace Ubiq.Samples
         private Transform rightUpper;
         private Transform leftHand;
         private Transform rightHand;
-        private HandAnimation leftHandAnim;
-        private HandAnimation rightHandAnim;
 
         private Vector3 headPos;
         private Quaternion headRot;
@@ -197,13 +86,6 @@ namespace Ubiq.Samples
             leftHandLocalPos = leftHand.localPosition;
             leftHandLocalRot = leftHand.localRotation;
 
-            leftHandAnim = new HandAnimation(animator,HandAnimation.Side.Left,
-                leftIndexProximalTarget,leftIndexIntermediateTarget,
-                leftThumbProximalTarget,leftThumbIntermediateTarget);
-            rightHandAnim = new HandAnimation(animator,HandAnimation.Side.Right,
-                rightIndexProximalTarget,rightIndexIntermediateTarget,
-                rightThumbProximalTarget,rightThumbIntermediateTarget);
-
             headPosEyeSpace = centerEye.InverseTransformPoint(head.position);
             headRotEyeSpace = Quaternion.Inverse(centerEye.rotation) * head.rotation;
             neckPosEyeSpace = centerEye.InverseTransformPoint(baseOfNeck.position);
@@ -239,16 +121,16 @@ namespace Ubiq.Samples
 
         private void OnLeftHandUpdate (Vector3 pos, Quaternion rot)
         {
-            // if (leftHandOffsetHint)
-            // {
-                // leftHandPos = (rot * leftHandOffsetHint.localPosition) + pos;
-                // leftHandRot = rot * leftHandOffsetHint.localRotation;
-            // }
-            // else
-            // {
+            if (leftHandOffsetHint)
+            {
+                leftHandPos = (rot * leftHandOffsetHint.localPosition) + pos;
+                leftHandRot = rot * leftHandOffsetHint.localRotation;
+            }
+            else
+            {
                 leftHandPos = pos;
                 leftHandRot = rot;
-            // }
+            }
         }
 
         private void OnLeftGripUpdate (float leftGrip)
@@ -352,22 +234,13 @@ namespace Ubiq.Samples
 
             if (handPositionMethod == HandPositionMethod.Exact)
             {
-                // var leftTRS = Matrix4x4.TRS(leftHandPos,leftHandRot,Vector3.one);
-                leftHand.position = leftHandPos;// (leftTRS * leftHandTRS).MultiplyPoint3x4(Vector3.zero);
-                // leftHand.rotation = leftHandRot; //(leftTRS * leftHandTRS).rotation;
-                // leftHand.localPosition += leftHandLocalPos;
-                // leftHand.position = leftHand.TransformPoint(leftHandOffsetHint.localPosition);
-                leftHand.rotation = leftHandRot * leftHandOffsetHint.localRotation;
-                // leftHand.localPosition += leftHandOffsetHint.localPosition;
-                // leftHand.localRotation = leftHandOffsetHint.localRotation * leftHand.localRotation;
-                // leftHand.localRotation = leftHandLocalRot * leftHand.localRotation;
+                var leftTRS = Matrix4x4.TRS(leftHandPos,leftHandRot,Vector3.one);
+                leftHand.position = (leftTRS * leftHandTRS).MultiplyPoint3x4(Vector3.zero);
+                leftHand.rotation = (leftTRS * leftHandTRS).rotation;
                 var rightTRS = Matrix4x4.TRS(rightHandPos,rightHandRot,Vector3.one);
                 rightHand.position = (rightTRS * rightHandTRS).MultiplyPoint3x4(Vector3.zero);
                 rightHand.rotation = (rightTRS * rightHandTRS).rotation;
             }
-
-            leftHandAnim.UpdateAnim(leftGrip);
-            rightHandAnim.UpdateAnim(rightGrip);
         }
 
         private Vector3 ApproachHandPos (Vector3 shoulderPos, Vector3 handPos)

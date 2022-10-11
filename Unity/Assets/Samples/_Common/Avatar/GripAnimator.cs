@@ -3,16 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using Ubiq.Avatars;
 
-public class GripAnimator : MonoBehaviour
+public class GripController : MonoBehaviour
 {
-
     public enum Side
     {
         Left,
         Right
     }
 
-    // []
     public Side side;
 
     public Transform indexProximal;
@@ -37,14 +35,20 @@ public class GripAnimator : MonoBehaviour
 
     private ThreePointTrackedAvatar trackedAvatar;
 
-    private float leftGrip;
-    private float rightGrip;
+    private float grip;
 
     private void Start()
     {
         trackedAvatar = GetComponentInParent<ThreePointTrackedAvatar>();
-        trackedAvatar.OnLeftGripUpdate.AddListener(OnLeftGripUpdate);
-        trackedAvatar.OnRightGripUpdate.AddListener(OnRightGripUpdate);
+
+        if (side == Side.Left)
+        {
+            trackedAvatar.OnLeftGripUpdate.AddListener(OnGripUpdate);
+        }
+        else
+        {
+            trackedAvatar.OnRightGripUpdate.AddListener(OnGripUpdate);
+        }
 
         var animator = GetComponent<Animator>();
         if (animator && !indexProximal)
@@ -99,24 +103,19 @@ public class GripAnimator : MonoBehaviour
     {
         if (trackedAvatar)
         {
-            trackedAvatar.OnLeftGripUpdate.RemoveListener(OnLeftGripUpdate);
-            trackedAvatar.OnRightGripUpdate.RemoveListener(OnRightGripUpdate);
+            trackedAvatar.OnLeftGripUpdate.RemoveListener(OnGripUpdate);
+            trackedAvatar.OnRightGripUpdate.RemoveListener(OnGripUpdate);
         }
     }
 
-    private void OnLeftGripUpdate (float leftGrip)
+    private void OnGripUpdate (float grip)
     {
-        this.leftGrip = leftGrip;
-    }
-
-    private void OnRightGripUpdate (float rightGrip)
-    {
-        this.rightGrip = rightGrip;
+        this.grip = grip;
     }
 
     private void LateUpdate()
     {
-        // UpdateAnim()
+        UpdateAnim(grip);
     }
 
     private void UpdateAnim (float value)

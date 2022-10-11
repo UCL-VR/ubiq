@@ -282,6 +282,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   centerEye: {fileID: 4225431301482964957}
   baseOfNeck: {fileID: 4557497354323884632}
+  handPositionMethod: 0
   maxArmLength: 0.77
   elbowIKHintCutoff: 0.1
   elbowIKHintScale: 3
@@ -347,18 +348,48 @@ MonoBehaviour:
   headOffsetHint: {fileID: 0}
   leftHandOffsetHint: {fileID: 953900870445139999}
   rightHandOffsetHint: {fileID: 992421515125140171}
-  indexProximalTarget: {x: 72.8117, y: 340.34702, z: 346.98364}
-  indexIntermediateTarget: {x: 71.35432, y: 329.58704, z: 310.70282}
-  thumbProximalTarget: {x: 290.85333, y: 210.74936, z: 25.529207}
-  thumbIntermediateTarget: {x: 13.363994, y: 341.75064, z: 258.4438}
-  leftIndexProximalTarget: {x: 72.8117, y: 340.34702, z: 346.98364}
-  leftIndexIntermediateTarget: {x: 71.35432, y: 329.58704, z: 310.70282}
-  leftThumbProximalTarget: {x: 290.85333, y: 210.74936, z: 25.529207}
-  leftThumbIntermediateTarget: {x: 13.363994, y: 341.75064, z: 258.4438}
-  rightIndexProximalTarget: {x: 72.8117, y: -340.347, z: -346.9836}
-  rightIndexIntermediateTarget: {x: 71.35432, y: -329.587, z: -310.7028}
-  rightThumbProximalTarget: {x: 290.85333, y: -210.7494, z: -25.52921}
-  rightThumbIntermediateTarget: {x: 13.363994, y: -341.7506, z: -258.4438}
+--- !u!114 &5948179122259258759
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2263436887704819234}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a557151858ddf04fb0144c2564cf66a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  side: 1
+  indexProximal: {fileID: 0}
+  indexIntermediate: {fileID: 0}
+  thumbProximal: {fileID: 0}
+  thumbIntermediate: {fileID: 0}
+  indexProximalGrippedEuler: {x: 72.8117, y: -340.347, z: -346.9836}
+  indexIntermediateGrippedEuler: {x: 71.35432, y: -329.587, z: -310.7028}
+  thumbProximalGrippedEuler: {x: 290.85333, y: -210.7494, z: -25.52921}
+  thumbIntermediateGrippedEuler: {x: 13.363994, y: -341.7506, z: -258.4438}
+--- !u!114 &7620624510632129548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2263436887704819234}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a557151858ddf04fb0144c2564cf66a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  side: 0
+  indexProximal: {fileID: 0}
+  indexIntermediate: {fileID: 0}
+  thumbProximal: {fileID: 0}
+  thumbIntermediate: {fileID: 0}
+  indexProximalGrippedEuler: {x: 72.8117, y: 340.34702, z: 346.98364}
+  indexIntermediateGrippedEuler: {x: 71.35432, y: 329.58704, z: 310.70282}
+  thumbProximalGrippedEuler: {x: 290.85333, y: 210.74936, z: 25.529207}
+  thumbIntermediateGrippedEuler: {x: 13.363994, y: 341.75064, z: 258.4438}
 --- !u!1001 &1664347988312751811
 PrefabInstance:
   m_ObjectHideFlags: 0
