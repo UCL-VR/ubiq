@@ -36,6 +36,11 @@ public class BotBoidAgent : MonoBehaviour
     {
         var myAvatar = avatarManager.FindAvatar(roomClient.Me);
 
+        if(!myAvatar)
+        {
+            return;
+        }
+
         Vector3 center = myAvatar.Position;
         Vector3 inertia = myAvatar.Velocity;
         int numBoids = 1;

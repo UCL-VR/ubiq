@@ -1,5 +1,6 @@
 using Ubiq.Avatars;
 using UnityEngine;
+using Avatar = Ubiq.Avatars.Avatar;
 
 namespace Ubiq.Samples
 {
@@ -31,6 +32,8 @@ namespace Ubiq.Samples
         private Vector3 footPosition;
         private Quaternion torsoFacing;
 
+        public Avatar avatar;
+
         private void OnEnable()
         {
             trackedAvatar = GetComponentInParent<ThreePointTrackedAvatar>();
@@ -48,6 +51,8 @@ namespace Ubiq.Samples
             {
                 texturedAvatar.OnTextureChanged.AddListener(TexturedAvatar_OnTextureChanged);
             }
+
+            avatar = GetComponent<Avatar>();
         }
 
         private void OnDisable()

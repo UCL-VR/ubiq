@@ -32,7 +32,6 @@ namespace Ubiq.Rooms.Spatial
             state = new SpatialState();
             state.Shard = Guid.Parse(Shard);
             observed = new List<Guid>();
-
         }
 
         // Start is called before the first frame update
@@ -56,6 +55,7 @@ namespace Ubiq.Rooms.Spatial
             {
                 member = state.Member;
                 roomClient.Join(member);
+                BotDistributionMeasure.AddVisitedRoomStatic(this, member);
             }
 
             if(!roomClient.JoinedRoom)
