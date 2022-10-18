@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using SIPSorcery.Net;
 using Ubiq.Messaging;
+using Ubiq.Logging;
 using SIPSorceryMedia.Abstractions;
 
 namespace Ubiq.Voip
@@ -32,8 +33,9 @@ namespace Ubiq.Voip
         private ConcurrentQueue<Action> mainThreadActions = new ConcurrentQueue<Action>();
         private Queue<Message> messageQueue = new Queue<Message>();
         private Task<RTCPeerConnection> setupTask;
+        private LogEmitter logger;
 
-        // SipSorcery Peer Connection
+        // Underlying SipSorcery Peer Connection
         private RTCPeerConnection rtcPeerConnection;
 
         public struct SessionStatistics
@@ -79,6 +81,7 @@ namespace Ubiq.Voip
             this.audioSource = source;
             this.audioSink = sink;
             this.networkScene = NetworkScene.Find(this);
+            this.logger = new NetworkEventLogger(objectId, networkScene, this);
 
             networkScene.AddProcessor(networkId,ProcessMessage);
 
@@ -113,7 +116,7 @@ namespace Ubiq.Voip
                 {
                     peerConnectionState = state;
                     OnPeerConnectionStateChanged.Invoke(state);
-                    Debug.Log($"Peer connection state change to {state}.");
+                    logger.Log("PeerConnectionStateChange",state);
                 });
 
                 if (state == RTCPeerConnectionState.connected)
@@ -145,16 +148,16 @@ namespace Ubiq.Voip
 
             // Diagnostics.
             pc.OnReceiveReport += (re, media, rr) => mainThreadActions.Enqueue(
-                () => Debug.Log($"RTCP Receive for {media} from {re}\n{rr.GetDebugSummary()}"));
+                () => logger.Log("RTCPReceive",media,rr.ReceiverReport));
             pc.OnSendReport += (media, sr) => mainThreadActions.Enqueue(
-                () => Debug.Log($"RTCP Send for {media}\n{sr.GetDebugSummary()}"));
+                () => logger.Log("RTCPSend",media,sr.SenderReport));
             pc.GetRtpChannel().OnStunMessageReceived += (msg, ep, isRelay) => mainThreadActions.Enqueue(
-                () => Debug.Log($"STUN {msg.Header.MessageType} received from {ep}."));
+                () => logger.Log("STUN",ep,msg.Header.MessageType));
             pc.oniceconnectionstatechange += (state) => mainThreadActions.Enqueue(() =>
             {
                 iceConnectionState = state;
                 OnIceConnectionStateChanged.Invoke(state);
-                Debug.Log($"ICE connection state change to {state}.");
+                logger.Log("IceConnectionStateChange",state);
             });
 
             if (!polite)
@@ -219,12 +222,12 @@ namespace Ubiq.Voip
                     // var offer = JsonUtility.FromJson<RTCSessionDescriptionInit>(message.args);
                     if (RTCSessionDescriptionInit.TryParse(message.args,out RTCSessionDescriptionInit offer))
                     {
-                        Debug.Log($"Got remote SDP, type {offer.type}");
+                        logger.Log("RemoteSDP",offer.type);
 
                         var result = rtcPeerConnection.setRemoteDescription(offer);
                         if (result != SetDescriptionResultEnum.OK)
                         {
-                            Debug.Log($"Failed to set remote description, {result}.");
+                            logger.Log("SetRemoteDescriptionFailed",result);
                             rtcPeerConnection.Close("Failed to set remote description");
                         }
                         else
@@ -234,7 +237,7 @@ namespace Ubiq.Voip
                                 var answerSdp = rtcPeerConnection.createAnswer();
                                 rtcPeerConnection.setLocalDescription(answerSdp);
 
-                                Debug.Log($"Sending SDP answer");
+                                logger.Log("SendingSDPAnswer");
 
                                 Send("Offer", answerSdp.toJSON());
                             }
@@ -244,7 +247,7 @@ namespace Ubiq.Voip
                 case "IceCandidate":
                     if (RTCIceCandidateInit.TryParse(message.args,out RTCIceCandidateInit candidate))
                     {
-                        Debug.Log($"Got remote Ice Candidate, uri {candidate.candidate}");
+                        logger.Log("IceCandidate",candidate.candidate);
                         rtcPeerConnection.addIceCandidate(candidate);
                     }
                     break;
