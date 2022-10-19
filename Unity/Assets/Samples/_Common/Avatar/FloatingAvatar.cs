@@ -6,7 +6,7 @@ namespace Ubiq.Samples
     /// <summary>
     /// Recroom/rayman style avatar with hands, torso and head
     /// </summary>
-    public class LeglessAvatar : MonoBehaviour
+    public class FloatingAvatar : MonoBehaviour
     {
         public Transform head;
         public Transform torso;
@@ -25,13 +25,10 @@ namespace Ubiq.Samples
 
         public AnimationCurve torsoFacingCurve;
 
-        public TexturedAvatar texturedAvatar;
-
+        private TexturedAvatar texturedAvatar;
         private ThreePointTrackedAvatar trackedAvatar;
         private Vector3 footPosition;
         private Quaternion torsoFacing;
-
-        private Avatars.Avatar avatar;
 
         private void OnEnable()
         {
@@ -50,11 +47,6 @@ namespace Ubiq.Samples
             {
                 texturedAvatar.OnTextureChanged.AddListener(TexturedAvatar_OnTextureChanged);
             }
-        }
-
-        private void Awake()
-        {
-            avatar = GetComponentInParent<Avatars.Avatar>();
         }
 
         private void OnDisable()
@@ -149,10 +141,6 @@ namespace Ubiq.Samples
             // Place torso so it makes a straight line between neck and feet
             torso.position = neckPosition;
             torso.rotation = Quaternion.FromToRotation(Vector3.down, footPosition - neckPosition) * torsoFacing;
-
-            avatar.Velocity = (torso.position - avatar.Position) / Time.deltaTime;
-            avatar.Position = torso.position;
-            avatar.Rotation = torso.rotation;
         }
 
         // private Vector3 handsFwdStore;

@@ -175,13 +175,13 @@ namespace Ubiq.Samples.Social
                 mirrorCameraForward * observerToMirror.magnitude;
 
             // Shape frustrum s.t. it fits the four corners of the mirror
-            var imageTransform = image.rectTransform;
-            imageTransform.GetWorldCorners(cornersTmp);
-            var worldWidth = Mathf.Abs(cornersTmp[3].x - cornersTmp[0].x);
-            var worldHeight = Mathf.Abs(cornersTmp[1].y - cornersTmp[0].y);
+            image.rectTransform.GetWorldCorners(cornersTmp);
+            var worldWidth = (cornersTmp[3] - cornersTmp[0]).magnitude;
+            var worldHeight = (cornersTmp[1] - cornersTmp[0]).magnitude;
             var w = worldWidth;
             var h = worldHeight;
             var d = observerToMirror.magnitude;
+            mirrorCamera.stereoTargetEye = StereoTargetEyeMask.None;
             mirrorCamera.aspect = w/h;
             mirrorCamera.fieldOfView = 2 * Mathf.Atan2(h,2*d) * Mathf.Rad2Deg;
             mirrorCamera.nearClipPlane = d * 0.5f;
@@ -194,8 +194,8 @@ namespace Ubiq.Samples.Social
             }
             var scale = scaler.dynamicPixelsPerUnit * config.resolutionMultiplier;
 
-            var texWidth = Mathf.RoundToInt(imageTransform.rect.width * scale);
-            var texHeight = Mathf.RoundToInt(imageTransform.rect.height * scale);
+            var texWidth = Mathf.RoundToInt(image.rectTransform.rect.width * scale);
+            var texHeight = Mathf.RoundToInt(image.rectTransform.rect.height * scale);
             var rt = RequireTex(texWidth,texHeight);
 
             if (rt)
