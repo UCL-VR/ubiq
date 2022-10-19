@@ -8,7 +8,7 @@ So, if there are two copies of a Prefab in a Scene, they will talk to their resp
 
 ### Default Network Id
 
-The default behaviour of Ubiq is to generate a Network Id for a Component when it calls Register(). The Id is based on the Component's address is in the scene graph. This is done predominatly by name.
+The default behaviour of Ubiq is to generate a Network Id for a Component when it calls Register(). The Id is based on the Component's address is in the scene graph. This is done predominantly by name.
 
 If you have two scenes with the same hierarchy, and two GameObjects with the same name, and same networked Components, those Components will end up with the same Id. This is true even if the scenes are different Unity scenes, or if the scenes are on different devices.
 
@@ -33,7 +33,7 @@ In these cases you can call `NetworkScene::Register(MonoBehaviour, NetworkId)`. 
 
 ### Generating Ids
 
-You can generate a new, unique network Id by calling `NetworkId::Unique()`. 
+You can generate a new, unique network Id by calling `NetworkId::Unique()`.
 
 
 ### Network Context & Send

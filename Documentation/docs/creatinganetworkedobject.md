@@ -3,7 +3,7 @@
 Networked objects are Components that can keep themselves synchronised by exchanging messages over the network. You can create new Networked Objects to implement your own networked behaviour.
 
 1) Create a new Unity Script and add it to the GameObject that you want to be networked. You can do this via the inspector by clicking on &quot;Add Component&quot; and typing the new name.
- 
+
 ![](images/bd892032-38e4-4ddd-bc38-0d10437cdcb6.png)
 
 2) Include Ubiq.Messaging
@@ -24,7 +24,7 @@ Networked objects are Components that can keep themselves synchronised by exchan
 		// Update is called once per frame
 		void Update()
 		{
-			
+
 		}
 	}
 ```
@@ -44,13 +44,13 @@ public class MyNetworkedObject : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-	
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 }
 ```
@@ -71,13 +71,13 @@ public class MyNetworkedObject : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-	
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
@@ -109,7 +109,7 @@ public class MyNetworkedObject : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
@@ -119,7 +119,7 @@ public class MyNetworkedObject : MonoBehaviour
 }
 ```
 
- 
+
 6) Define what a message between instances of your Component will look like. In the message, write the variables that you want to send. Below we create a message to send the object's position.
 
 
@@ -142,7 +142,7 @@ public class MyNetworkedObject : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     private struct Message
@@ -178,7 +178,7 @@ public class MyNetworkedObject : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     private struct Message
@@ -197,12 +197,12 @@ public class MyNetworkedObject : MonoBehaviour
 }
 ```
 
-8) Messages will only be sent to your Component, from other instances of your Component, so you also need to Send messages as well. This is done through the NetworkContext you recieved when the Component was registered. 
+8) Messages will only be sent to your Component, from other instances of your Component, so you also need to Send messages as well. This is done through the NetworkContext you recieved when the Component was registered.
 
-Below, we check if the position of the object has changed in the last frame, and if so, send the new position to all other instances of the object. 
+Below, we check if the position of the object has changed in the last frame, and if so, send the new position to all other instances of the object.
 We detect if the position has changed by keeping track of the position in the last frame in a new member, `lastPosition`.
 
-We also modify `ProcessMessage` slightly, to update `lastPosition` when a message is recieved - otherwise, an incoming message will generate an outgoing message, and two Components will send messages back and forth in an endless cycle even if the player hasn't changed the objects position!
+We also modify `ProcessMessage` slightly, to update `lastPosition` when a message is received - otherwise, an incoming message will generate an outgoing message, and two Components will send messages back and forth in an endless cycle even if the player hasn't changed the objects position!
 
 
 ```
