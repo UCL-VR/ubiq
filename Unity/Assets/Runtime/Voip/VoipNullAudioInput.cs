@@ -11,9 +11,11 @@ public class VoipNullAudioInput : MonoBehaviour, IAudioSource
     private G722AudioEncoder audioEncoder;
     private MediaFormatManager<AudioFormat> audioFormatManager;
 
+#pragma warning disable 0067
     public event EncodedSampleDelegate OnAudioSourceEncodedSample;
     public event RawAudioSampleDelegate OnAudioSourceRawSample;
     public event SourceErrorDelegate OnAudioSourceError;
+#pragma warning restore 0067
 
     private void Awake()
     {
