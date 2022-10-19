@@ -12,6 +12,8 @@ namespace Ubiq.Messaging
     {
         private string addresses;
 
+        public Color color = Color.black;
+
         // Start is called before the first frame update
         void Start()
         {
@@ -51,6 +53,8 @@ namespace Ubiq.Messaging
 
                 var style = new GUIStyle();
                 //style.fontSize = 20;
+
+                style.normal.textColor = color;
 
                 UnityEditor.Handles.Label(transform.position, $"{addresses}", style);
                 UnityEditor.Handles.EndGUI();
