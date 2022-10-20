@@ -1,29 +1,27 @@
 site_name: Ubiq Docs
 nav:
     - Home: index.md
+    - Getting Started:
+        - Getting Ubiq: gettingubiq.md
+        - Setting Up VR: settingupvr.md
+        - Creating Networked Objects: creatinganetworkedobject.md
+        - Object Spawning: spawningobjects.md
+        - Testing with Local Loopback: localloopback.md
+        - Synchronisation: synchronisation.md
+        - Interaction with Ubiq XR: ubiqxrinteraction.md
+        - Servers and Rooms: serversandrooms.md
+        - Logging: eventlogginggettingstarted.md
     - Tutorials:
-        - Getting Started:
-            - Getting Ubiq: gettingubiq.md
-            - Setting Up VR: settingupvr.md
-            - Creating Networked Objects: creatinganetworkedobject.md
-            - Object Spawning: spawningobjects.md
-            - Testing with Local Loopback: localloopback.md
-            - Synchronisation: synchronisation.md
-            - Interaction with Ubiq XR: ubiqxrinteraction.md
-            - Servers and Rooms: serversandrooms.md
-            - Logging: eventlogginggettingstarted.md
-        - Server:
-            - Running the server: serversetup.md
-    - Nexus: nexus.md
+      - Creating a 3D Pen: 3dpentutorial.md
+      - Server: serversetup.md
     - Advanced:
         - Interaction: xrinteraction.md
         - Logging:
             - Introduction: eventlogging.md
             - Analysis: eventloganalysis.md
-            - Examples:
-                - Questionnaire: eventloggingexperimentquestionnaire.md
-                - Unit Tests: eventloggingunittests.md
-                - LogCollector Service: eventloggingcollectorservice.md
+            - Questionnaire: eventloggingexperimentquestionnaire.md
+            - Unit Tests: eventloggingunittests.md
+            - LogCollector Service: eventloggingcollectorservice.md
             - Serialisation and Memory: eventlogserialisation.md
         - Messaging:
             - Introduction: messaging.md
@@ -32,7 +30,7 @@ nav:
             - Types: networkidtype.md
             - Reserved IDs: reservedids.md
         - WebRtc: webrtc.md
-        - Servers and Rooms: 
+        - Servers and Rooms:
             - Introduction: serverintroduction.md
             - Server Overview: serveroverview.md
             - Heartbeat and Timeouts: serverheartbeat.md
@@ -42,6 +40,8 @@ nav:
         - Async Design Patterns: asyncdesignpatterns.md
     - Development:
         - Packaging: packaging.md
+        - Nexus: nexus.md
     - Meta: mkdocs.md
-    
-theme: readthedocs    
+
+theme:
+    name: readthedocs
