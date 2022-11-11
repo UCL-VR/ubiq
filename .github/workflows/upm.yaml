@@ -26,7 +26,7 @@ jobs:
           git rm -rf Web
           git rm -rf .github
           git rm -f README.md
-          gim rm -f LICENSE.txt
+          git rm -f LICENSE.txt
           git mv Unity/Assets/* .
           git rm -rf Unity
           git rm -rf Local
