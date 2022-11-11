@@ -32,6 +32,7 @@ jobs:
           git rm -f Local.meta
           git rm -f Readme.md
           git rm -f Readme.md.meta
+          gim rm -f LICENSE.txt
           git mv Samples Samples~
           git rm -f Samples.meta
           ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//  /g' -e 's/^/   /'
