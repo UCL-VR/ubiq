@@ -284,7 +284,7 @@ public class Pen : MonoBehaviour, IGraspable, IUseable // new
 }
 ```
 
-19) Test as in steps 12-14. You should now be able to draw a line in the air with the pen! This is intuitive in virtual reality - pick up the item and grasp buttons/triggers, and use with main button/trigger. The desktop interface is fiddly for this, but okay for debug: First, click on the pen to 'use' it - you should see a debug message in the Unity editor if successful. Then, while still holding left mouse to use, hold right mouse to move your view around. But you'll notice that the line is only drawn locally so far - the remote user does not yet see it. Let's change that!
+19) Test as in steps 12-14. You should now be able to draw a line in the air with the pen! This is intuitive in virtual reality - pick up the item and grasp buttons/triggers, and use with main button/trigger. The desktop interface is fiddly for this, but okay for debug: First, click on the pen to 'use' it - you should see a debug message in the Unity editor if successful. Then, while still holding left mouse to use, hold right mouse to move your view around. But you'll notice that the line is only drawn locally so far - the remote user does not yet see it. We'll change that in the next step.
 
 20) Time to add networking to our drawings! Replace Pen.cs with this final version:
 
