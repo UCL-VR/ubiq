@@ -179,7 +179,7 @@ namespace Ubiq.Spawning
             tmpStrings.Clear();
             foreach (var item in spawnedForPeer)
             {
-                if (peer[item.Key] == null)
+                if (peer[item.Key] == string.Empty)
                 {
                     tmpStrings.Add(item.Key);
                 }
@@ -420,6 +420,14 @@ namespace Ubiq.Spawning
             if (spawner != null)
             {
                 spawner.SpawnWithRoomScope(gameObject);
+            }
+        }
+
+        public void Despawn (GameObject gameObject)
+        {
+            if (spawner != null)
+            {
+                spawner.Despawn(gameObject);
             }
         }
 

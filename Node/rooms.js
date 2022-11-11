@@ -45,7 +45,7 @@ class PropertyDictionary{
             if (value === ""){
                 // Attempting to remove
                 if (dict.hasOwnProperty(key)){
-                    delete dict.key;
+                    delete dict[key];
                     return true;
                 }
 
