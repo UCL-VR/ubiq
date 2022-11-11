@@ -22,22 +22,6 @@ The original copyright notices and the licenses under which UCL received
 the components are presented in the LICENSE files in the directories of 
 those components.
 
-Below is a non-normative summary of the subcomponents; see the license file
-with each component for authoritative copyright and licensing information.
-
-Subcomponents:
-
-1. Hotshot (c) Scott Holmes (CC BY-NC 3.0)
-2. Take Me Higher (c) Jahzzar (CC BY-SA 4.0)
-3. Lock Free Structures (c) Julian M Bucknall (MIT)
-4. .NET Binaries (c) DotNetFoundation authors (MIT)
-5. WebRTC (c) The WebRTC project authors (BSD)
-6. NaturePack (c) Quaternius (CC0)
-7. Avatars (c) Kenney (CC0)
-
-(With the exception of items 1 & 2 all subcomponents are redistributable
-under an equally or more permissive license than the Apache 2.0)
-
 University College London reserves all rights not expressly granted herein, 
 whether by implication, estoppel or otherwise.
 
