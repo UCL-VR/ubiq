@@ -26,13 +26,13 @@ jobs:
           git rm -rf Web
           git rm -rf .github
           git rm -f README.md
+          gim rm -f LICENSE.txt
           git mv Unity/Assets/* .
           git rm -rf Unity
           git rm -rf Local
           git rm -f Local.meta
           git rm -f Readme.md
           git rm -f Readme.md.meta
-          gim rm -f LICENSE.txt
           git mv Samples Samples~
           git rm -f Samples.meta
           ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//  /g' -e 's/^/   /'
