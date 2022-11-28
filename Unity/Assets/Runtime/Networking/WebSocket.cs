@@ -20,7 +20,7 @@ namespace Ubiq.Networking
             websocket = new ClientWebSocket();
             websocket.Options.SetBuffer(10000, 256);
             messagesToSend = new BlockingCollection<ReferenceCountedMessage>();
-            uri = string.Format("ws://{0}:{1}", def.send_to_ip, def.send_to_port);
+            uri = string.Format("ws://{0}:{1}", def.sendToIp, def.sendToPort);
             Task.Run(WebsocketConnect);
         }
 

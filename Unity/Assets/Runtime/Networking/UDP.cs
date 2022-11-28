@@ -242,8 +242,8 @@ namespace Ubiq.Networking
                     break;
             }
 
-            IPEndPoint local_endpoint = new IPEndPoint(IPAddress.Parse(def.listen_on_ip), int.Parse(def.listen_on_port));
-            IPEndPoint remote_endpoint = new IPEndPoint(IPAddress.Parse(def.send_to_ip), int.Parse(def.send_to_port));
+            IPEndPoint local_endpoint = new IPEndPoint(IPAddress.Parse(def.listenOnIp), int.Parse(def.listenOnPort));
+            IPEndPoint remote_endpoint = new IPEndPoint(IPAddress.Parse(def.sendToIp), int.Parse(def.sendToPort));
 
             while (!connected)
             {

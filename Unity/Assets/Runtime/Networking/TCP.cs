@@ -132,13 +132,13 @@ namespace Ubiq.Networking
         {
             switch (definition.type)
             {
-                case ConnectionType.tcp_client:
+                case ConnectionType.TcpClient:
                     ServerEnd = false;
-                    Endpoint = ParseEndpoint(definition.send_to_ip, definition.send_to_port);
+                    Endpoint = ParseEndpoint(definition.sendToIp, definition.sendToPort);
                     break;
-                case ConnectionType.tcp_server:
+                case ConnectionType.TcpServer:
                     ServerEnd = true;
-                    Endpoint = ParseEndpoint(definition.listen_on_ip, definition.listen_on_port);
+                    Endpoint = ParseEndpoint(definition.listenOnIp, definition.listenOnPort);
                     break;
                 default:
                     throw new ArgumentException();

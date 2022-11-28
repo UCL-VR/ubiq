@@ -32,14 +32,14 @@ namespace Ubiq.Networking
             INetworkConnection connection;
             switch (def.type)
             {
-                case ConnectionType.tcp_client:
-                case ConnectionType.tcp_server:
+                case ConnectionType.TcpClient:
+                case ConnectionType.TcpServer:
                     connection = new TCPConnection(def);
                     break;
-                case ConnectionType.udp:
+                case ConnectionType.UDP:
                     connection = new UDPConnection(def);
                     break;
-                case ConnectionType.websocket:
+                case ConnectionType.WebSocket:
                     connection = new WebSocketConnection(def);
                     break;
                 default:
