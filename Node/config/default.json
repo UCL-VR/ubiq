@@ -1,10 +1,15 @@
 {
     "roomserver":
     {
-        "ports":
+        "tcp":
         {
-            "tcp": 8009,
-            "ws": 8010
+            "port": 8009
+        },
+        "wss":
+        {
+            "port": 8010,
+            "cert": "./cert.pem",
+            "key": "./key.pem"
         }
     },
     "iceservers":

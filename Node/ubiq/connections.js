@@ -1,7 +1,9 @@
 const { Message } = require('./messaging');
-const WebSocket = require('ws');
+const WebSockets = require('ws');
 const Tcp = require('net');
-const { networkInterfaces } = require('os');
+const { createServer } = require('https');
+const path = require('node:path');
+const fs = require('node:fs');
 
 // All WrappedConnection types implement two callbacks,
 // onMessage and onClose, and one function, Send.
@@ -13,14 +15,51 @@ const { networkInterfaces } = require('os');
 // connection.onClose.push(this.myOnCloseCallback.bind(this));
 
 
-class WrappedWebSocketServer{
-    constructor(port){
+class WrappedSecureWebSocketServer{
+
+    // Opens a new Secure WebSocket Server through an HTTPS instance.
+    // The certificate and key should be provided as paths in the config.
+    
+    constructor(config){
+        if(config == undefined){
+            return;
+        }
+
         this.onConnection = [];
-        this.port = port;
-        var wss = new WebSocket.Server({ port: port });
+        
+        let certPath = path.resolve(config.cert);
+        let keyPath = path.resolve(config.key);
+
+        if(!fs.existsSync(certPath)){
+            console.error(`Certificate at ${certPath} could not be found. WebSocket server will not be started.`);
+            return;
+        }
+        if(!fs.existsSync(keyPath)){
+            console.error(`Certificate at ${certPath} could not be found. WebSocket server will not be started.`);
+            return;
+        }
+
+        // Use an https server to present the websocket 
+        // (see: https://github.com/websockets/ws#usage-examples)
+            
+        const server = createServer({
+            cert: fs.readFileSync(certPath),
+            key: fs.readFileSync(keyPath)
+        },
+        (req, res) => {
+            res.writeHead(200);
+            res.end('Welcome to Ubiq! This is a Ubiq WebSocket Server. To use this endpoint, connect to it with a Ubiq Client.\n');
+          }
+        );
+        const wss = new WebSockets.WebSocketServer({ server }); // Take care to use the WebSocketServer member, as the import of ws provides the WebSocket *client* type.
+        this.port = config.port;
+        server.listen(this.port);
+
         wss.on("connection", function(ws) {
             this.onConnection.map(callback => callback(new WebSocketConnectionWrapper(ws)));
         }.bind(this));
+
+        this.status = "LISTENING";
     }
 }
 
@@ -53,14 +92,18 @@ class WebSocketConnectionWrapper{
 }
 
 class WrappedTcpServer{
-    constructor(port){
+    constructor(config){
+        if(config == undefined){
+            return;
+        }
         this.onConnection = [];
-        this.port = port;
+        this.port = config.port;
         var server = Tcp.createServer(); 
         server.on('connection', function(s){
             this.onConnection.map(callback => callback(new TcpConnectionWrapper(s)));
         }.bind(this));
-        server.listen(port);
+        server.listen(this.port);
+        this.status = "LISTENING";
     }
 }
 
@@ -158,7 +201,7 @@ function UbiqTcpConnection(uri,port){
 
 module.exports = {
     WebSocketConnectionWrapper,
-    WrappedWebSocketServer,
+    WrappedSecureWebSocketServer,
     TcpConnectionWrapper,
     WrappedTcpServer,
     UbiqTcpConnection

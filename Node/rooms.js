@@ -207,8 +207,10 @@ class RoomServer extends EventEmitter{
     }
 
     addServer(server){
-        console.log("Added RoomServer port " + server.port);
-        server.onConnection.push(this.onConnection.bind(this));
+        if(server.status == "LISTENING"){
+            console.log("Added RoomServer port " + server.port);
+            server.onConnection.push(this.onConnection.bind(this));
+        }
     }
 
     onConnection(wrapped){
