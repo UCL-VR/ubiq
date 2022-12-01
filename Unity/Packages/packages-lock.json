@@ -132,7 +132,7 @@
       }
     },
     "com.unity.xr.legacyinputhelpers": {
-      "version": "2.1.10",
+      "version": "2.1.9",
       "depth": 1,
       "source": "registry",
       "dependencies": {
@@ -165,13 +165,13 @@
       "url": "https://packages.unity.com"
     },
     "com.valvesoftware.unity.openvr": {
-      "version": "1.0.1",
+      "version": "3.0.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.unity.xr.management": "3.2.13",
         "com.unity.ugui": "1.0.0",
-        "com.unity.xr.legacyinputhelpers": "2.1.4"
+        "com.unity.xr.legacyinputhelpers": "1.0.0"
       },
       "url": "https://registry.npmjs.org"
     },

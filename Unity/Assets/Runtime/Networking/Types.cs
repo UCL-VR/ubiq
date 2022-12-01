@@ -72,7 +72,7 @@ namespace Ubiq.Networking
                 case ConnectionType.UDP:
                     return "udp";
                 case ConnectionType.WebSocket:
-                    return "ws";
+                    return "wss";
                 default:
                     throw new NotImplementedException();
             }

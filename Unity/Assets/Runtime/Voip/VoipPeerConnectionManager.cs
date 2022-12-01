@@ -119,7 +119,7 @@ namespace Ubiq.Voip
             defaultAudioSource = this.GetInterface<IAudioSource>();
             if (defaultAudioSource == null)
             {
-                defaultAudioSource = CreateAudioSource();
+                defaultAudioSource = CreateDefaultAudioSource();
             }
             defaultAudioSource.StartAudio();
 
@@ -251,20 +251,34 @@ namespace Ubiq.Voip
             public string uuid;
         }
 
-        private VoipMicrophoneInput CreateAudioSource()
+        private IAudioSource CreateDefaultAudioSource()
         {
-            var audioSource = new GameObject("Voip Microphone Input")
-                .AddComponent<VoipMicrophoneInput>();
+            switch (Application.platform)
+            {
+                case RuntimePlatform.WebGLPlayer:
+                    return gameObject.AddComponent<VoipNullAudioInput>();
+                default:
+                    var audioSource = new GameObject("Voip Microphone Input").AddComponent<VoipMicrophoneInput>();
+                    audioSource.transform.SetParent(transform);
+                    return audioSource;
+            }
+        }
 
-            audioSource.transform.SetParent(transform);
-            return audioSource;
+        private IAudioSink CreateDefaultAudioSink(VoipPeerConnection pc)
+        {
+            switch(Application.platform)
+            {
+                case RuntimePlatform.WebGLPlayer:
+                    return gameObject.AddComponent<VoipNullAudioOutput>();
+                default:
+                    return pc.gameObject.AddComponent<VoipAudioSourceOutput>();
+            }
         }
 
         private VoipPeerConnection CreatePeerConnection(NetworkId objectid,
             string peerUuid, bool polite)
         {
-            var pc = new GameObject("Voip Peer Connection " + peerUuid)
-                .AddComponent<VoipPeerConnection>();
+            var pc = new GameObject("Voip Peer Connection " + peerUuid).AddComponent<VoipPeerConnection>();
             pc.transform.SetParent(transform);
 
             // Each network audio sink is a Unity Audio Source. Where sources are created on demand (where none
@@ -273,16 +287,11 @@ namespace Ubiq.Voip
             var pcSink = defaultAudioSink;
             if (pcSink == null)
             {
-                var audioSourceOutputGo = new GameObject("Voip Audio Output + " + peerUuid)
-                    .AddComponent<VoipAudioSourceOutput>();
-
-                // The audiosink can be made 3d and moved around by event listeners
-                // but for now, make it a child to avoid cluttering scene graph
-                audioSourceOutputGo.transform.SetParent(pc.transform);
-                pcSink = audioSourceOutputGo;
+                pcSink = CreateDefaultAudioSink(pc);
             }
 
-            // The default audio source will always be valid - for now, either the specified source, or the system wide microphone.
+            // The default audio source will always be valid because it is initialised in Awake
+            // (for now, to either the specified source, or the system's microphone)
 
             var pcSource = defaultAudioSource;
 

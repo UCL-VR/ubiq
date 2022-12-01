@@ -164,7 +164,7 @@ namespace Ubiq.Networking
                         serialised.ApplyModifiedProperties();
 
                     }
-                    catch(ArgumentException e)
+                    catch(ArgumentException)
                     {
                         // For some reason when we delete an element using the Del key, the drawer tries to run
                         // with a non-null objectReferenceValue for a frame, which will result in an exception

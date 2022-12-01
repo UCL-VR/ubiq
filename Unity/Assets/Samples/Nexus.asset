@@ -36,5 +36,5 @@ MonoBehaviour:
   listenOnPort: 
   sendToIp: nexus.cs.ucl.ac.uk
   sendToPort: 8010
-  type: 0
+  type: 3
   platforms: []
