@@ -25,6 +25,7 @@ namespace Ubiq.Networking
     }
 #endif
 
+#if UNITY_WEBGL
     public class JsWebSocketConnection : INetworkConnection
     {
         [DllImport("__Internal")]
@@ -177,6 +178,7 @@ namespace Ubiq.Networking
             JsWebSocketPlugin_Close();
         }
     }
+#endif
 
     public class NativeWebSocketConnection : INetworkConnection
     {
