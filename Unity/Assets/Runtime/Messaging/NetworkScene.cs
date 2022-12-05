@@ -40,9 +40,21 @@ namespace Ubiq.Messaging
     /// </summary>
     public class NetworkScene : MonoBehaviour
     {
+        private struct AutoProcessor
+        {
+            public NetworkContext context;
+            public Action<ReferenceCountedSceneGraphMessage> processor;
+            public AutoProcessor (NetworkContext context, Action<ReferenceCountedSceneGraphMessage> processor)
+            {
+                this.context = context;
+                this.processor = processor;
+            }
+        }
+
         private List<INetworkConnection> connections = new List<INetworkConnection>();
         private List<Action> actions = new List<Action>();
         private Dictionary<NetworkId, List<Action<ReferenceCountedSceneGraphMessage>>> processorCollections = new Dictionary<NetworkId, List<Action<ReferenceCountedSceneGraphMessage>>>();
+        private List<AutoProcessor> autoProcessors = new List<AutoProcessor>();
 
         private LogEmitter events;
 
@@ -167,6 +179,7 @@ namespace Ubiq.Messaging
             {
                 var method = component.GetType().GetMethod("ProcessMessage");
                 var processor = (Action<ReferenceCountedSceneGraphMessage>)Delegate.CreateDelegate(typeof(Action<ReferenceCountedSceneGraphMessage>), component, method);
+                context.Scene.autoProcessors.Add(new AutoProcessor(context,processor));
                 context.Scene.AddProcessor(context.Id, processor);
             }
             catch
@@ -251,6 +264,18 @@ namespace Ubiq.Messaging
         /// </summary>
         public void ReceiveConnectionMessages()
         {
+            // Remove any destroyed autoprocessors
+            for(int i = 0; i < autoProcessors.Count; i++)
+            {
+                if (!autoProcessors[i].context.Component)
+                {
+                    RemoveProcessor(autoProcessors[i].context.Id,autoProcessors[i].processor);
+                    autoProcessors.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            // Fan out all messages to all remaining processors
             ReferenceCountedMessage m;
             foreach (var c in connections)
             {
