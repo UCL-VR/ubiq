@@ -24,7 +24,7 @@ namespace Ubiq.Voip
         private Dictionary<string, VoipPeerConnection> peerUuidToConnection = new Dictionary<string, VoipPeerConnection>();
 
         private string prevIceServersString;
-        private IceServerDetailsCollection iceServers;
+        private IceServerDetailsCollection iceServers = new IceServerDetailsCollection();
 
         public class OnPeerConnectionEvent : ExistingListEvent<VoipPeerConnection> {}
 

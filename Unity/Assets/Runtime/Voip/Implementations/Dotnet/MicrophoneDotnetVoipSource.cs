@@ -157,6 +157,11 @@ namespace Ubiq.Voip.Implementations.Dotnet
 #endif
         }
 
+        private void Start()
+        {
+            StartAudio();
+        }
+
         private void OnDestroy()
         {
             // Mark all tasks completed when this MonoBehaviour is destroyed

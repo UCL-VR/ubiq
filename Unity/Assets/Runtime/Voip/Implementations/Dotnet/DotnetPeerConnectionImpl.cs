@@ -113,6 +113,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
             if (source == null)
             {
                 var go = new GameObject("Microphone Dotnet Voip Source");
+                go.transform.parent = manager;
                 source = go.AddComponent<MicrophoneDotnetVoipSource>();
             }
         }
@@ -139,6 +140,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
             if (sink == null)
             {
                 var go = new GameObject("Dotnet Voip Output");
+                go.transform.parent = context.transform;
                 sink = go.AddComponent<AudioSourceDotnetVoipSink>();
             }
         }
@@ -196,18 +198,14 @@ namespace Ubiq.Voip.Implementations.Dotnet
                 iceServers = ssIceServers,
             });
 
-// todo
-            // pc.addTrack(new MediaStreamTrack(
-            //     context.audioSource.GetAudioSourceFormats(),
-            //     MediaStreamStatusEnum.SendRecv));
-            // pc.OnAudioFormatsNegotiated += (formats) =>
-            // {
-            //     context.audioSource.SetAudioSourceFormat(formats[0]);
-            //     context.audioSink.SetAudioSinkFormat(formats[0]);
-            // };
-
-            // context.audioSource.OnAudioSourceEncodedSample += pc.SendAudio;
-// todo
+            pc.addTrack(new MediaStreamTrack(
+                source.GetAudioSourceFormats(),
+                MediaStreamStatusEnum.SendRecv));
+            pc.OnAudioFormatsNegotiated += (formats) =>
+            {
+                source.SetAudioSourceFormat(formats[0]);
+                sink.SetAudioSinkFormat(formats[0]);
+            };
 
             pc.onconnectionstatechange += (state) =>
             {
@@ -227,11 +225,11 @@ namespace Ubiq.Voip.Implementations.Dotnet
 
                 if (state == RTCPeerConnectionState.connected)
                 {
-                    // audioSource.OnAudioSourceEncodedSample += pc.SendAudio;
+                    source.OnAudioSourceEncodedSample += pc.SendAudio;
                 }
                 else if (state == RTCPeerConnectionState.closed || state == RTCPeerConnectionState.failed)
                 {
-                    // audioSource.OnAudioSourceEncodedSample -= pc.SendAudio;
+                    source.OnAudioSourceEncodedSample -= pc.SendAudio;
                 }
             };
 
@@ -248,7 +246,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
                 if (media == SDPMediaTypesEnum.audio)
                 {
                     // todo
-                    // context.audioSink.GotAudioRtp(rep, rtpPkt.Header.SyncSource, rtpPkt.Header.SequenceNumber, rtpPkt.Header.Timestamp, rtpPkt.Header.PayloadType, rtpPkt.Header.MarkerBit == 1, rtpPkt.Payload);
+                    sink.GotAudioRtp(rep, rtpPkt.Header.SyncSource, rtpPkt.Header.SequenceNumber, rtpPkt.Header.Timestamp, rtpPkt.Header.PayloadType, rtpPkt.Header.MarkerBit == 1, rtpPkt.Payload);
                 }
             };
 
