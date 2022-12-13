@@ -1,13 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Ubiq.Voip;
-using Ubiq.Voip.Implementations;
 using System.Runtime.InteropServices;
 
-namespace Ubiq.Voip.WebGL
+namespace Ubiq.Voip.Implementations.WebGL
 {
-    public class WebGlPeerConnectionImpl : IPeerConnectionImpl {
+    public class WebPeerConnectionImpl : IPeerConnectionImpl {
 
         [DllImport("__Internal")]
         public static extern int JS_WebRTC_New();
@@ -57,6 +55,9 @@ namespace Ubiq.Voip.WebGL
         private Coroutine updateCoroutine;
         private int peerConnectionId = -1;
 
+        private PeerConnectionState lastPeerConnectionState = PeerConnectionState.@new;
+        private IceConnectionState lastIceConnectionState = IceConnectionState.@new;
+
         public void Dispose()
         {
             if (updateCoroutine != null)
@@ -76,8 +77,8 @@ namespace Ubiq.Voip.WebGL
         {
             return new PlaybackStats
             {
-                samples = JS_WebRTC_GetStatsSamples(peerConnectionId),
-                volume = JS_WebRTC_GetStatsVolume(peerConnectionId),
+                sampleCount = JS_WebRTC_GetStatsSamples(peerConnectionId),
+                volumeSum = JS_WebRTC_GetStatsVolume(peerConnectionId),
                 sampleRate = 16000
             };
         }
@@ -93,7 +94,7 @@ namespace Ubiq.Voip.WebGL
             JS_WebRTC_SetPanner(peerConnectionId,p.x,p.y,p.z);
         }
 
-        public void Setup(VoipPeerConnection context,
+        public void Setup(MonoBehaviour context,
             bool polite, List<IceServerDetails> iceServers)
         {
             if (this.context != null)
@@ -177,10 +178,11 @@ namespace Ubiq.Voip.WebGL
         {
             var state = (IceConnectionState)
                 JS_WebRTC_GetIceConnectionState(peerConnectionId);
-            if (state != context.iceConnectionState)
+            if (state != lastIceConnectionState)
             {
                 Debug.Log("ICE Connection State Changed: " + state);
                 iceConnectionStateChanged(state);
+                lastIceConnectionState = state;
             }
         }
 
@@ -188,10 +190,11 @@ namespace Ubiq.Voip.WebGL
         {
             var state = (PeerConnectionState)
                 JS_WebRTC_GetPeerConnectionState(peerConnectionId);
-            if (state != context.peerConnectionState)
+            if (state != lastPeerConnectionState)
             {
                 Debug.Log("Peer Connection State Changed: " + state);
                 peerConnectionStateChanged(state);
+                lastPeerConnectionState = state;
             }
         }
 
