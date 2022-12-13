@@ -71,13 +71,10 @@ namespace Ubiq.Samples
 
             var volumeWindowSampleCount = 0;
 
-            if(voipAvatar.peerConnection.audioSink is IAudioStats)
-            {
-                var stats = (voipAvatar.peerConnection.audioSink as IAudioStats).lastFrameStats;
-                currentFrameVolumeSum += stats.volume;
-                currentFrameSampleCount += stats.samples;
-                volumeWindowSampleCount = (int)(sampleSecondsPerIndicator * stats.sampleRate);
-            }
+            var stats = voipAvatar.peerConnection.GetLastFramePlaybackStats();
+            currentFrameVolumeSum += stats.volume;
+            currentFrameSampleCount += stats.samples;
+            volumeWindowSampleCount = (int)(sampleSecondsPerIndicator * stats.sampleRate);
 
             if (currentFrameSampleCount > volumeWindowSampleCount)
             {

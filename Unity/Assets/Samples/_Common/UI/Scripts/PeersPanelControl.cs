@@ -133,29 +133,27 @@ namespace Ubiq.Samples
                 var peerConnection = peerConnectionManager.GetPeerConnection(peer.uuid);
                 if (peerConnection)
                 {
-                    var audioSink = peerConnection.audioSink;
+                    // var audioSink = peerConnection.audioSink;
 
-                    if(audioSink is IAudioStats)
-                    {
-                        var volume = (audioSink as IAudioStats).lastFrameStats.volume;
-                        voipVolumeIndicator.Update(volume);
-                        voipConnectionIndicator.Update((int)peerConnection.peerConnectionState);
-                    }                 
+                    var stats  = peerConnection.GetLastFramePlaybackStats();
+                    var volume = stats.volume / stats.samples;
+                    voipVolumeIndicator.Update(volume);
+                    voipConnectionIndicator.Update((int)peerConnection.peerConnectionState);
 
-                    if (!isMe && audioSink is IOutputVolume)
-                    {
-                        (audioSink as IOutputVolume).Volume = voipVolumeSlider.value;
-                    }
-                    else
-                    {
-                        voipVolumeSlider.value = 1.0f;
-                    }
+                    // if (!isMe && audioSink is IOutputVolume)
+                    // {
+                    //     (audioSink as IOutputVolume).Volume = voipVolumeSlider.value;
+                    // }
+                    // else
+                    // {
+                    //     voipVolumeSlider.value = 1.0f;
+                    // }
                 }
             }
             else
             {
                 // No peer connection manager - we haven't connected yet
-                var state = SIPSorcery.Net.RTCPeerConnectionState.disconnected;
+                var state = VoipPeerConnection.IceConnectionState.disconnected;
                 voipConnectionIndicator.Update((int)state);
             }
 
