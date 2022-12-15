@@ -21,7 +21,11 @@ namespace Ubiq.Voip.Implementations.Dotnet
         public Task PauseAudioSink() => QueueTaskOnMainThread(GetPauseAudioTask);
         public Task ResumeAudioSink() => QueueTaskOnMainThread(GetResumeAudioTask);
         public Task CloseAudioSink() => QueueTaskOnMainThread(GetCloseAudioTask);
-        public void GotAudioRtp(IPEndPoint remoteEndPoint, uint ssrc, uint seqnum, uint timestamp, int payloadID, bool marker, byte[] payload) => rtps?.Enqueue(new AudioRtp(remoteEndPoint,ssrc,seqnum,timestamp,payloadID,marker,payload));
+        public void GotAudioRtp(IPEndPoint remoteEndPoint, uint ssrc, uint seqnum, uint timestamp, int payloadID, bool marker, byte[] payload)
+        {
+            // 2*timestamp as G722 clock rate is half sample rate
+            rtps?.Enqueue(new AudioRtp(remoteEndPoint,ssrc,seqnum,timestamp*2,payloadID,marker,payload));
+        }
         // IAudioSink implementation ends
 
         // TODO SIPSorcery is internally allocating large byte arrays for

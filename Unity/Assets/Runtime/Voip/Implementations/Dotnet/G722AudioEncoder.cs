@@ -28,6 +28,22 @@ namespace Ubiq.Voip.Implementations.Dotnet
         //     return encodedByteCount;
         // }
 
+        public static int GetEncodedByteLength (int pcmLength)
+        {
+            return pcmLength / 2;
+        }
+
+        public void Encode(byte[] outputBuffer, short[] pcm)
+        {
+            if (g722Codec == null)
+            {
+                g722Codec = new G722Codec();
+                g722CodecState = new G722CodecState(G722_BIT_RATE, G722Flags.None);
+            }
+
+            g722Codec.Encode(g722CodecState,outputBuffer,pcm,pcm.Length);
+        }
+
         public byte[] Encode(short[] pcm)
         {
             if (g722Codec == null)

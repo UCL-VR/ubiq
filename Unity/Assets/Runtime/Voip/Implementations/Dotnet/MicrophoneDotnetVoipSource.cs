@@ -143,6 +143,16 @@ namespace Ubiq.Voip.Implementations.Dotnet
         private TaskCompletionSource<bool> allTaskTcs = new TaskCompletionSource<bool>();
         private readonly object taskLock = new object();
 
+        private const int SAMPLE_RATE = 16000;
+        private const int SAMPLE_BUFFER_LENGTH = 512;
+
+        private readonly short[] pcm = new short[SAMPLE_BUFFER_LENGTH];
+        private readonly byte[] encoded = new byte[
+            G722AudioEncoder.GetEncodedByteLength(SAMPLE_BUFFER_LENGTH)];
+
+        // G722 has a sample rate of 16000 but a clock rate of 8000
+        private const int RTP_TIMESTAMP_PER_BUFFER = SAMPLE_BUFFER_LENGTH/2;
+
 #if UNITY_ANDROID && !UNITY_EDITOR
         private bool microphoneAuthorized = false;
 #endif
@@ -211,17 +221,15 @@ namespace Ubiq.Voip.Implementations.Dotnet
             // Send samples if we have them
             while (microphoneListener.Advance())
             {
-                // TODO pool buffers to avoid runtime GC
-                var pcmSamples = new short[microphoneListener.samples.Length];
                 for (int i = 0; i < microphoneListener.samples.Length; i++)
                 {
                     var floatSample = microphoneListener.samples[i];
                     floatSample = Mathf.Clamp(floatSample*gain,-.999f,.999f);
-                    pcmSamples[i] = (short)(floatSample * short.MaxValue);
+                    pcm[i] = (short)(floatSample * short.MaxValue);
                 }
 
-                var encoded = audioEncoder.Encode(pcmSamples);
-                OnAudioSourceEncodedSample.Invoke((uint)pcmSamples.Length,encoded);
+                audioEncoder.Encode(encoded,pcm);
+                OnAudioSourceEncodedSample.Invoke(RTP_TIMESTAMP_PER_BUFFER,encoded);
             }
         }
 

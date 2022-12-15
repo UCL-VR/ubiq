@@ -148,7 +148,9 @@ namespace Ubiq.Voip.Implementations.Dotnet
                 var encoded = audioEncoder.Encode(pcmSamples);
                 if (HasEncodedAudioSubscribers())
                 {
-                    OnAudioSourceEncodedSample((uint)pcmSamples.Length, encoded);
+                    // G722 has a sample rate of 16000 but a clock rate of 8000
+                    var duration = pcmSamples.Length/2;
+                    OnAudioSourceEncodedSample((uint)duration, encoded);
                 }
 
                 time += Time.fixedDeltaTime;
