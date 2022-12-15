@@ -41,7 +41,7 @@ namespace Ubiq.Samples
                 return;
             }
 
-            UpdateIndicator(VoipPeerConnection.IceConnectionState.disconnected);
+            UpdateIndicator(VoipPeerConnection.IceConnectionState.@new);
             peerConnectionManager.OnPeerConnection.AddListener(
                 PeerConnectionManager_OnPeerConnection,runExisting:true);
         }
