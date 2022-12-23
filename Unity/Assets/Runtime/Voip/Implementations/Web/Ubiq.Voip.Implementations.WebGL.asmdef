@@ -1,5 +1,5 @@
 {
-    "name": "Ubiq.Voip.Implementations.WebGL",
+    "name": "Ubiq.Voip.Implementations.Web",
     "rootNamespace": "",
     "references": [
         "GUID:d43c05b6cc104384f8f68e8dad6a32fb"
@@ -12,7 +12,9 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": [],
+    "defineConstraints": [
+        "UNITY_2021_3_OR_NEWER"
+    ],
     "versionDefines": [],
     "noEngineReferences": false
 }

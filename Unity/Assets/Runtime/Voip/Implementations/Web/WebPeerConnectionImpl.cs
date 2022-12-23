@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Runtime.InteropServices;
 
-namespace Ubiq.Voip.Implementations.WebGL
+namespace Ubiq.Voip.Implementations.Web
 {
     public class WebPeerConnectionImpl : IPeerConnectionImpl {
 
