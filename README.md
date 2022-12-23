@@ -13,27 +13,19 @@ Ubiq's goal is to enable your networked project. It includes message passing, ro
 
 Instructions for setting up your own server are included. Ubiq does not rely on any third-party services, making it GDPR-safe for your experiments.
 
-## Documentation
-
-To find out more about Ubiq please visit our Introduction [here](https://ucl-vr.github.io/ubiq/).
-
 ## Quick Start
 
-1. Clone this repository somewhere on your local PC.
-
+1. Add a git package in the Unity package manager (UPM). See UPM instructions [here](https://docs.unity3d.com/Manual/upm-ui-giturl.html).
 ```
-git clone git@github.com:UCL-VR/ubiq.git Ubiq
+https://github.com/UCL-VR/ubiq.git#upm
 ```
+2. In the UPM window, select Ubiq from the package list and import the Samples.
 
-2. Open the `Unity` folder in Unity. To add Ubiq to the `Unity Hub`, open the `Unity Hub`, click `Add`, then navigate to `/Ubiq/Unity` and click `Select Folder`.
-
-3. Open the `Assets/Samples/Intro/Hello World` scene.
+3. Open the `Assets/Samples/Ubiq/0.4.0/Samples/Start Here.unity` scene.
 
 4. Click `Play`.
 
-You're connected!
-
-For next steps see our Getting Started guide.
+You're connected! For next steps see the Getting Started guide in our docs at https://ucl-vr.github.io/ubiq/.
 
 ## Awards
 
