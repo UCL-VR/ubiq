@@ -109,39 +109,39 @@ namespace Ubiq.Logging.Utf8Json
             writer.Dispose();
         }
 
-#if NETSTANDARD
+// #if NETSTANDARD
 
-        /// <summary>
-        /// Serialize to stream(write async).
-        /// </summary>
-        public static System.Threading.Tasks.Task SerializeAsync<T>(Stream stream, T value)
-        {
-            return SerializeAsync<T>(stream, value, defaultResolver);
-        }
+//         /// <summary>
+//         /// Serialize to stream(write async).
+//         /// </summary>
+//         public static System.Threading.Tasks.Task SerializeAsync<T>(Stream stream, T value)
+//         {
+//             return SerializeAsync<T>(stream, value, defaultResolver);
+//         }
 
-        /// <summary>
-        /// Serialize to stream(write async) with specified resolver.
-        /// </summary>
-        public static async System.Threading.Tasks.Task SerializeAsync<T>(Stream stream, T value, IJsonFormatterResolver resolver)
-        {
-            if (resolver == null) resolver = DefaultResolver;
+//         /// <summary>
+//         /// Serialize to stream(write async) with specified resolver.
+//         /// </summary>
+//         public static async System.Threading.Tasks.Task SerializeAsync<T>(Stream stream, T value, IJsonFormatterResolver resolver)
+//         {
+//             if (resolver == null) resolver = DefaultResolver;
 
-            var buf = BufferPool.Default.Rent();
-            try
-            {
-                var writer = new JsonWriter(buf);
-                var formatter = resolver.GetFormatterWithVerify<T>();
-                formatter.Serialize(ref writer, value, resolver);
-                var buffer = writer.GetBuffer();
-                await stream.WriteAsync(buffer.Array, buffer.Offset, buffer.Count).ConfigureAwait(false);
-            }
-            finally
-            {
-                BufferPool.Default.Return(buf);
-            }
-        }
+//             var buf = BufferPool.Default.Rent();
+//             try
+//             {
+//                 var writer = new JsonWriter(buf);
+//                 var formatter = resolver.GetFormatterWithVerify<T>();
+//                 formatter.Serialize(ref writer, value, resolver);
+//                 var buffer = writer.GetBuffer();
+//                 await stream.WriteAsync(buffer.Array, buffer.Offset, buffer.Count).ConfigureAwait(false);
+//             }
+//             finally
+//             {
+//                 BufferPool.Default.Return(buf);
+//             }
+//         }
 
-#endif
+// #endif
 
         /// <summary>
         /// Serialize to JsonString.
@@ -257,48 +257,48 @@ namespace Ubiq.Logging.Utf8Json
             }
         }
 
-#if NETSTANDARD
+// #if NETSTANDARD
 
-        public static System.Threading.Tasks.Task<T> DeserializeAsync<T>(Stream stream)
-        {
-            return DeserializeAsync<T>(stream, defaultResolver);
-        }
+//         public static System.Threading.Tasks.Task<T> DeserializeAsync<T>(Stream stream)
+//         {
+//             return DeserializeAsync<T>(stream, defaultResolver);
+//         }
 
-        public static async System.Threading.Tasks.Task<T> DeserializeAsync<T>(Stream stream, IJsonFormatterResolver resolver)
-        {
-            if (resolver == null) resolver = DefaultResolver;
+//         public static async System.Threading.Tasks.Task<T> DeserializeAsync<T>(Stream stream, IJsonFormatterResolver resolver)
+//         {
+//             if (resolver == null) resolver = DefaultResolver;
 
-            var buffer = BufferPool.Default.Rent();
-            var buf = buffer;
-            try
-            {
-                int length = 0;
-                int read;
-                while ((read = await stream.ReadAsync(buf, length, buf.Length - length).ConfigureAwait(false)) > 0)
-                {
-                    length += read;
-                    if (length == buf.Length)
-                    {
-                        BinaryUtil.FastResize(ref buf, length * 2);
-                    }
-                }
+//             var buffer = BufferPool.Default.Rent();
+//             var buf = buffer;
+//             try
+//             {
+//                 int length = 0;
+//                 int read;
+//                 while ((read = await stream.ReadAsync(buf, length, buf.Length - length).ConfigureAwait(false)) > 0)
+//                 {
+//                     length += read;
+//                     if (length == buf.Length)
+//                     {
+//                         BinaryUtil.FastResize(ref buf, length * 2);
+//                     }
+//                 }
 
-                // when token is number, can not use from pool(can not find end line).
-                var token = new JsonReader(buf).GetCurrentJsonToken();
-                if (token == JsonToken.Number)
-                {
-                    buf = BinaryUtil.FastCloneWithResize(buf, length);
-                }
+//                 // when token is number, can not use from pool(can not find end line).
+//                 var token = new JsonReader(buf).GetCurrentJsonToken();
+//                 if (token == JsonToken.Number)
+//                 {
+//                     buf = BinaryUtil.FastCloneWithResize(buf, length);
+//                 }
 
-                return Deserialize<T>(buf, resolver);
-            }
-            finally
-            {
-                BufferPool.Default.Return(buffer);
-            }
-        }
+//                 return Deserialize<T>(buf, resolver);
+//             }
+//             finally
+//             {
+//                 BufferPool.Default.Return(buffer);
+//             }
+//         }
 
-#endif
+// #endif
 
         public static string PrettyPrint(byte[] json)
         {
