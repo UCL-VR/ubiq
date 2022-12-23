@@ -6,8 +6,8 @@ namespace Ubiq.Voip.Factory
     {
         public static IPeerConnectionImpl Create()
         {
-#if UNITY_WEBGL && !UNITY_EDITOR
-            return new Ubiq.Voip.Implementations.WebGL.WebPeerConnectionImpl();
+#if UNITY_WEBGL && !UNITY_EDITOR && UNITY_2021_3_OR_NEWER
+            return new Ubiq.Voip.Implementations.Web.WebPeerConnectionImpl();
 #else
             return new Ubiq.Voip.Implementations.Dotnet.DotnetPeerConnectionImpl();
 #endif
