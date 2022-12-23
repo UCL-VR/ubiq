@@ -1,13 +1,11 @@
 {
-    "name": "Ubiq.Voip.Implementations.Dotnet",
+    "name": "Ubiq.Voip.Implementations.Null",
     "rootNamespace": "",
     "references": [
         "GUID:d43c05b6cc104384f8f68e8dad6a32fb"
     ],
     "includePlatforms": [],
-    "excludePlatforms": [
-        "WebGL"
-    ],
+    "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],

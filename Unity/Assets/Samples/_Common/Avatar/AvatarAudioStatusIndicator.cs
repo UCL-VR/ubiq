@@ -72,6 +72,7 @@ namespace Ubiq.Samples
             }
 
             peerConnection = pc;
+            UpdateIndicator(peerConnection.iceConnectionState);
             peerConnection.OnIceConnectionStateChanged.AddListener(PeerConnection_OnIceConnectionStateChanged);
         }
 
