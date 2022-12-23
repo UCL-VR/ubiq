@@ -416,9 +416,9 @@ namespace Ubiq.Rooms
             {
                 new ConnectionDefinition()
                 {
-                    send_to_ip = "",
-                    send_to_port = "",
-                    type = ConnectionType.tcp_client
+                    sendToIp = "",
+                    sendToPort = "",
+                    type = ConnectionType.TcpClient
                 }
             };
         }

@@ -1,42 +1,45 @@
 using System;
-using System.Net;
-using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using UnityEngine;
 using UnityEngine.Events;
-using SIPSorcery.Net;
 using Ubiq.Messaging;
 using Ubiq.Logging;
-using SIPSorceryMedia.Abstractions;
+using Ubiq.Voip.Factory;
+using Ubiq.Voip.Implementations;
 
 namespace Ubiq.Voip
 {
-    public class VoipPeerConnection : MonoBehaviour {
+    public class VoipPeerConnection : MonoBehaviour
+    {
+        // Defined here as well as in Impl for external use
+        public enum IceConnectionState
+        {
+            closed = 0,
+            failed = 1,
+            disconnected = 2,
+            @new = 3,
+            checking = 4,
+            connected = 5
+        }
 
-        public IAudioSource audioSource { get; private set; }
-        public IAudioSink audioSink { get; private set; }
-        public NetworkId networkId { get; private set; }
-        public string PeerUuid { get; private set; }
+        // Defined here as well as in Impl for external use
+        public enum PeerConnectionState
+        {
+            closed = 0,
+            failed = 1,
+            disconnected = 2,
+            @new = 3,
+            connecting = 4,
+            connected = 5
+        }
 
-        public bool isSetup => setupTask != null && setupTask.IsCompleted;
-        public RTCIceConnectionState iceConnectionState { get; private set; } = RTCIceConnectionState.@new;
-        public RTCPeerConnectionState peerConnectionState { get; private set; } = RTCPeerConnectionState.@new;
-
-        [Serializable] public class IceConnectionStateEvent : UnityEvent<RTCIceConnectionState> { }
-        [Serializable] public class PeerConnectionStateEvent : UnityEvent<RTCPeerConnectionState> { }
-
-        public IceConnectionStateEvent OnIceConnectionStateChanged = new IceConnectionStateEvent();
-        public PeerConnectionStateEvent OnPeerConnectionStateChanged = new PeerConnectionStateEvent();
-
-        private NetworkScene networkScene;
-        private ConcurrentQueue<Action> mainThreadActions = new ConcurrentQueue<Action>();
-        private Queue<Message> messageQueue = new Queue<Message>();
-        private Task<RTCPeerConnection> setupTask;
-        private LogEmitter logger;
-
-        // Underlying SipSorcery Peer Connection
-        private RTCPeerConnection rtcPeerConnection;
+        // Defined here as well as in Impl for external use
+        public struct PlaybackStats
+        {
+            public int samples;
+            public float volume;
+            public int sampleRate;
+        }
 
         public struct SessionStatistics
         {
@@ -50,11 +53,29 @@ namespace Ubiq.Voip
         /// Summarises the throughput for different sessions in this connection.
         /// This is returned when the statistics are polled from this peer connection.
         /// </summary>
-        public struct Statistics
+        public struct TransmissionStats
         {
             public SessionStatistics Audio;
             public SessionStatistics Video;
         }
+
+        public string peerUuid { get; private set; }
+
+        public IceConnectionState iceConnectionState { get; private set; } = IceConnectionState.@new;
+        public PeerConnectionState peerConnectionState { get; private set; } = PeerConnectionState.@new;
+
+        [Serializable] public class IceConnectionStateEvent : UnityEvent<IceConnectionState> { }
+        [Serializable] public class PeerConnectionStateEvent : UnityEvent<PeerConnectionState> { }
+
+        public IceConnectionStateEvent OnIceConnectionStateChanged = new IceConnectionStateEvent();
+        public PeerConnectionStateEvent OnPeerConnectionStateChanged = new PeerConnectionStateEvent();
+
+        private NetworkId networkId;
+        private NetworkScene networkScene;
+        private LogEmitter logger;
+        private IPeerConnectionImpl impl;
+
+        private bool isSetup;
 
         private void OnDestroy()
         {
@@ -63,203 +84,121 @@ namespace Ubiq.Voip
                 networkScene.RemoveProcessor(networkId,ProcessMessage);
             }
 
-            Teardown();
-        }
-
-        public void Setup (NetworkId objectId, string peerUuid,
-            bool polite, IAudioSource source, IAudioSink sink,
-            Task<RTCPeerConnection> peerConnectionTask)
-        {
-            if (setupTask != null)
+            if (impl != null)
             {
-                // Already setup or setup in progress
-                return;
-            }
-
-            this.networkId = objectId;
-            this.PeerUuid = peerUuid;
-            this.audioSource = source;
-            this.audioSink = sink;
-            this.networkScene = NetworkScene.Find(this);
-            this.logger = new NetworkEventLogger(objectId, networkScene, this);
-
-            networkScene.AddProcessor(networkId,ProcessMessage);
-
-            this.setupTask = Task.Run(() => DoSetup(polite,peerConnectionTask));
-        }
-
-        private async void Teardown ()
-        {
-            if (setupTask != null)
-            {
-                await setupTask.ConfigureAwait(false);
-                setupTask.Result.Dispose();
+                impl.Dispose();
+                impl = null;
             }
         }
 
-        private async Task<RTCPeerConnection> DoSetup(bool polite, Task<RTCPeerConnection> pcTask)
+        // todo-remotepeer just take relative co-ords
+        // public void SetRemotePeerPosition(Vector3 worldPosition, Quaternion worldRotation)
+        // {
+        //     if (!networkScene)
+        //     {
+        //         return;
+        //     }
+
+        //     var avatarManager = networkScene.GetComponentInChildren<Ubiq.Avatars.AvatarManager>();
+        //     if (!avatarManager)
+        //     {
+        //         return;
+        //     }
+
+        //     var localVoipAvatar = avatarManager.LocalAvatar.GetComponent<Ubiq.Avatars.VoipAvatar>();
+        //     if (!localVoipAvatar)
+        //     {
+        //         return;
+        //     }
+
+        //     var listener = localVoipAvatar.audioSourcePosition;
+        //     var relativePosition = listener.InverseTransformPoint(worldPosition);
+        //     var relativeRotation = Quaternion.Inverse(listener.rotation) * worldRotation;
+
+        //     impl.SetRemotePeerRelativePosition(relativePosition,relativeRotation);
+        // }
+
+        public void UpdateSpatialization(Vector3 sourcePosition,
+            Quaternion sourceRotation, Vector3 listenerPosition,
+            Quaternion listenerRotation)
         {
-            var pc = await pcTask.ConfigureAwait(false);
-
-            pc.addTrack(new MediaStreamTrack(
-                audioSource.GetAudioSourceFormats(),
-                MediaStreamStatusEnum.SendRecv));
-            pc.OnAudioFormatsNegotiated += (formats) =>
-                audioSource.SetAudioSourceFormat(formats[0]);
-                // audioSink.SetAudioSinkFormat(formats[0]);
-
-            audioSource.OnAudioSourceEncodedSample += pc.SendAudio;
-
-            pc.onconnectionstatechange += (state) =>
-            {
-                mainThreadActions.Enqueue(() =>
-                {
-                    peerConnectionState = state;
-                    OnPeerConnectionStateChanged.Invoke(state);
-                    logger.Log("PeerConnectionStateChange",state);
-                });
-
-                if (state == RTCPeerConnectionState.connected)
-                {
-                    // audioSource.OnAudioSourceEncodedSample += pc.SendAudio;
-                }
-                else if (state == RTCPeerConnectionState.closed || state == RTCPeerConnectionState.failed)
-                {
-                    // audioSource.OnAudioSourceEncodedSample -= pc.SendAudio;
-                }
-            };
-
-            pc.onicecandidate += (iceCandidate) =>
-            {
-                if (pc.signalingState == RTCSignalingState.have_remote_offer ||
-                    pc.signalingState == RTCSignalingState.stable)
-                {
-                    mainThreadActions.Enqueue(() => Send("IceCandidate",iceCandidate.toJSON()));
-                }
-            };
-
-            pc.OnRtpPacketReceived += (IPEndPoint rep, SDPMediaTypesEnum media, RTPPacket rtpPkt) =>
-            {
-                if (media == SDPMediaTypesEnum.audio)
-                {
-                    audioSink.GotAudioRtp(rep, rtpPkt.Header.SyncSource, rtpPkt.Header.SequenceNumber, rtpPkt.Header.Timestamp, rtpPkt.Header.PayloadType, rtpPkt.Header.MarkerBit == 1, rtpPkt.Payload);
-                }
-            };
-
-            // Diagnostics.
-            pc.OnReceiveReport += (re, media, rr) => mainThreadActions.Enqueue(
-                () => logger.Log("RTCPReceive",media,rr.ReceiverReport));
-            pc.OnSendReport += (media, sr) => mainThreadActions.Enqueue(
-                () => logger.Log("RTCPSend",media,sr.SenderReport));
-            pc.GetRtpChannel().OnStunMessageReceived += (msg, ep, isRelay) => mainThreadActions.Enqueue(
-                () => logger.Log("STUN",ep,msg.Header.MessageType));
-            pc.oniceconnectionstatechange += (state) => mainThreadActions.Enqueue(() =>
-            {
-                iceConnectionState = state;
-                OnIceConnectionStateChanged.Invoke(state);
-                logger.Log("IceConnectionStateChange",state);
-            });
-
-            if (!polite)
-            {
-                var offer = pc.createOffer();
-                await pc.setLocalDescription(offer).ConfigureAwait(false);
-                mainThreadActions.Enqueue(() => Send("Offer",offer.toJSON()));
-            }
-
-            return pc;
+            impl.UpdateSpatialization(sourcePosition,sourceRotation,
+                listenerPosition,listenerRotation);
         }
 
-        private void Update()
+        // todo
+//         public VoipAudioSourceOutput.Stats GetLastFrameStats ()
+//         {
+// #if UNITY_WEBGL && !UNITY_EDITOR
+//             if (impl != null)
+//             {
+//                 return impl.GetStats();
+//             }
+//             else
+//             {
+//                 return new VoipAudioSourceOutput.Stats {samples = 0, volume = 0};
+//             }
+// #else
+//             if (audioSink)
+//             {
+//                 return audioSink.lastFrameStats;
+//             }
+//             else
+//             {
+//                 return new VoipAudioSourceOutput.Stats {samples = 0, volume = 0};
+//             }
+// #endif
+//         }
+
+        public void Setup (NetworkId networkId, NetworkScene scene,
+            string peerUuid, bool polite, List<IceServerDetails> iceServers)
         {
-            if (!setupTask.IsCompleted)
+            if (isSetup)
             {
                 return;
             }
 
-            rtcPeerConnection = setupTask.Result;
+            this.networkId = networkId;
+            this.peerUuid = peerUuid;
+            this.networkScene = scene;
+            this.logger = new NetworkEventLogger(networkId, networkScene, this);
 
-            // If RtcPeerConnection is initialised, process buffered actions
-            while (mainThreadActions.TryDequeue(out Action action))
-            {
-                action();
-            }
+            this.impl = PeerConnectionImplFactory.Create();
 
-            // If RtcPeerConnection is initialised, process buffered messages
-            while (messageQueue.Count > 0)
-            {
-                DoProcessMessage(messageQueue.Dequeue());
-            }
-        }
+            impl.signallingMessageEmitted += OnImplMessageEmitted;
+            impl.iceConnectionStateChanged += OnImplIceConnectionStateChanged;
+            impl.peerConnectionStateChanged += OnImplPeerConnectionStateChanged;
 
-        [Serializable]
-        private struct Message
-        {
-            public string type;
-            public string args;
+            networkScene.AddProcessor(networkId, ProcessMessage);
+
+            impl.Setup(this,polite,iceServers);
+            isSetup = true;
         }
 
         public void ProcessMessage(ReferenceCountedSceneGraphMessage data)
         {
-            var message = data.FromJson<Message>();
-
-            // Buffer messages until the RtcPeerConnection is initialised
-            if (rtcPeerConnection == null)
+            if (impl != null)
             {
-                messageQueue.Enqueue(message);
-            }
-            else
-            {
-                DoProcessMessage(message);
+                var message = data.FromJson<SignallingMessage>();
+                impl.ProcessSignallingMessage(message);
             }
         }
 
-        private void DoProcessMessage(Message message)
+        private void OnImplMessageEmitted (SignallingMessage message)
         {
-            switch(message.type)
-            {
-                case "Offer":
-                    // var offer = JsonUtility.FromJson<RTCSessionDescriptionInit>(message.args);
-                    if (RTCSessionDescriptionInit.TryParse(message.args,out RTCSessionDescriptionInit offer))
-                    {
-                        logger.Log("RemoteSDP",offer.type);
-
-                        var result = rtcPeerConnection.setRemoteDescription(offer);
-                        if (result != SetDescriptionResultEnum.OK)
-                        {
-                            logger.Log("SetRemoteDescriptionFailed",result);
-                            rtcPeerConnection.Close("Failed to set remote description");
-                        }
-                        else
-                        {
-                            if(rtcPeerConnection.signalingState == RTCSignalingState.have_remote_offer)
-                            {
-                                var answerSdp = rtcPeerConnection.createAnswer();
-                                rtcPeerConnection.setLocalDescription(answerSdp);
-
-                                logger.Log("SendingSDPAnswer");
-
-                                Send("Offer", answerSdp.toJSON());
-                            }
-                        }
-                    }
-                    break;
-                case "IceCandidate":
-                    if (RTCIceCandidateInit.TryParse(message.args,out RTCIceCandidateInit candidate))
-                    {
-                        logger.Log("IceCandidate",candidate.candidate);
-                        rtcPeerConnection.addIceCandidate(candidate);
-                    }
-                    break;
-            }
+            networkScene.SendJson(networkId,message);
         }
 
-        private void Send(string type, string args)
+        private void OnImplIceConnectionStateChanged (Ubiq.Voip.Implementations.IceConnectionState state)
         {
-            if (networkScene)
-            {
-                networkScene.SendJson(networkId, new Message() { type = type, args = args});
-            }
+            iceConnectionState = (IceConnectionState)state;
+            OnIceConnectionStateChanged.Invoke((IceConnectionState)state);
+        }
+
+        private void OnImplPeerConnectionStateChanged (Ubiq.Voip.Implementations.PeerConnectionState state)
+        {
+            peerConnectionState = (PeerConnectionState)state;
+            OnPeerConnectionStateChanged.Invoke((PeerConnectionState)state);
         }
 
         /// <summary>
@@ -269,27 +208,42 @@ namespace Ubiq.Voip
         /// This information is also available through RTCP Reports. This method allows the statistics to be polled,
         /// rather than wait for a report. If this method is not never called, there is no performance overhead.
         /// </remarks>
-        public Statistics GetStatistics()
+        public TransmissionStats GetTransmissionStats()
         {
-            Statistics report = new Statistics();
-            if (rtcPeerConnection != null)
-            {
-                if (rtcPeerConnection.AudioRtcpSession != null)
-                {
-                    report.Audio.PacketsSent = rtcPeerConnection.AudioRtcpSession.PacketsSentCount;
-                    report.Audio.PacketsRecieved = rtcPeerConnection.AudioRtcpSession.PacketsReceivedCount;
-                    report.Audio.BytesSent = rtcPeerConnection.AudioRtcpSession.OctetsSentCount;
-                    report.Audio.BytesReceived = rtcPeerConnection.AudioRtcpSession.OctetsReceivedCount;
-                }
-                if (rtcPeerConnection.VideoRtcpSession != null)
-                {
-                    report.Video.PacketsSent = rtcPeerConnection.VideoRtcpSession.PacketsSentCount;
-                    report.Video.PacketsRecieved = rtcPeerConnection.VideoRtcpSession.PacketsReceivedCount;
-                    report.Video.BytesSent = rtcPeerConnection.VideoRtcpSession.OctetsSentCount;
-                    report.Video.BytesReceived = rtcPeerConnection.VideoRtcpSession.OctetsReceivedCount;
-                }
-            }
+            TransmissionStats report = new TransmissionStats();
+            //todo
+
+            // if (rtcPeerConnection != null)
+            // {
+            //     if (rtcPeerConnection.AudioRtcpSession != null)
+            //     {
+            //         report.Audio.PacketsSent = rtcPeerConnection.AudioRtcpSession.PacketsSentCount;
+            //         report.Audio.PacketsRecieved = rtcPeerConnection.AudioRtcpSession.PacketsReceivedCount;
+            //         report.Audio.BytesSent = rtcPeerConnection.AudioRtcpSession.OctetsSentCount;
+            //         report.Audio.BytesReceived = rtcPeerConnection.AudioRtcpSession.OctetsReceivedCount;
+            //     }
+            //     if (rtcPeerConnection.VideoRtcpSession != null)
+            //     {
+            //         report.Video.PacketsSent = rtcPeerConnection.VideoRtcpSession.PacketsSentCount;
+            //         report.Video.PacketsRecieved = rtcPeerConnection.VideoRtcpSession.PacketsReceivedCount;
+            //         report.Video.BytesSent = rtcPeerConnection.VideoRtcpSession.OctetsSentCount;
+            //         report.Video.BytesReceived = rtcPeerConnection.VideoRtcpSession.OctetsReceivedCount;
+            //     }
+            // }
             return report;
+        }
+
+        public PlaybackStats GetLastFramePlaybackStats()
+        {
+            var playbackStats = new PlaybackStats();
+            if (impl != null)
+            {
+                var implStats = impl.GetLastFramePlaybackStats();
+                playbackStats.volume = implStats.volumeSum;
+                playbackStats.samples = implStats.sampleCount;
+                playbackStats.sampleRate = implStats.sampleRate;
+            }
+            return playbackStats;
         }
     }
 }

@@ -14,7 +14,13 @@ namespace Ubiq.Logging.Utf8Json
 
         public byte Tag;
 
+#if NETSTANDARD
+        internal
+#endif
         byte[] buffer;
+#if NETSTANDARD
+        internal
+#endif
         int offset;
         bool hasPreviousProperty;
 

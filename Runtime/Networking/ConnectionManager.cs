@@ -56,11 +56,11 @@ namespace Ubiq.Networking
         {
             switch (remote.type)
             {
-                case ConnectionType.tcp_server:
+                case ConnectionType.TcpServer:
                     {
                         OnConnection(new TCPConnection(new ConnectionDefinition()
                         {
-                            type = ConnectionType.tcp_client, send_to_ip = remote.listen_on_ip, send_to_port = remote.listen_on_port
+                            type = ConnectionType.TcpClient, sendToIp = remote.listenOnIp, sendToPort = remote.listenOnPort
                         }));
                     }
                     break;
@@ -85,9 +85,9 @@ namespace Ubiq.Networking
             {
                 switch (item.type)
                 {
-                    case ConnectionType.tcp_server:
+                    case ConnectionType.TcpServer:
                         {
-                            var server = new TCPServer(item.listen_on_ip, item.listen_on_port);
+                            var server = new TCPServer(item.listenOnIp, item.listenOnPort);
                             server.OnConnection = (connection) =>
                             {
                                 tasks.Enqueue(() =>
@@ -95,8 +95,8 @@ namespace Ubiq.Networking
                                     OnConnection(connection);
                                 });
                             };
-                            item.listen_on_ip = server.Endpoint.Address.ToString();
-                            item.listen_on_port = server.Endpoint.Port.ToString();
+                            item.listenOnIp = server.Endpoint.Address.ToString();
+                            item.listenOnPort = server.Endpoint.Port.ToString();
                             servers.Add(new Server()
                             {
                                 server = server,

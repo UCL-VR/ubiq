@@ -157,7 +157,7 @@ namespace Ubiq.Rooms
         //     clients = new List<Client>();
         //     actions = new List<Action>();
 
-        //     server = new TCPServer(connection.listen_on_ip, connection.listen_on_port);
+        //     server = new TCPServer(connection.listenOnIp, connection.listenOnPort);
         //     server.OnConnection = OnConnection;
         // }
 

@@ -1,0 +1,19 @@
+{
+    "name": "Ubiq.Voip.Implementations.Factory",
+    "rootNamespace": "",
+    "references": [
+        "GUID:71d013d189dbe2149987f416c8a83f5a",
+        "GUID:443137c542d94934ba4de39941a4859e",
+        "GUID:87394b464d8060b4e89f2f046b8f50e8",
+        "GUID:d43c05b6cc104384f8f68e8dad6a32fb"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

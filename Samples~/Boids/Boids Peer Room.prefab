@@ -189,11 +189,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   servers:
-  - listen_on_ip: 
-    listen_on_port: 
-    send_to_ip: nexus.cs.ucl.ac.uk
-    send_to_port: 8009
-    type: 0
+  - {fileID: -7849211376014683480, guid: 1c91df7c43c1dbe4fb0fb303e71a2790, type: 2}
 --- !u!114 &7441624288820731779
 MonoBehaviour:
   m_ObjectHideFlags: 0

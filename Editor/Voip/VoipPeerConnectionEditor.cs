@@ -9,9 +9,9 @@ namespace Ubiq.Voip
         {
             var pc = target as VoipPeerConnection;
 
-            if (pc.isSetup)
+            if (!string.IsNullOrEmpty(pc.peerUuid))
             {
-                EditorGUILayout.LabelField("Peer", pc.PeerUuid);
+                EditorGUILayout.LabelField("Peer", pc.peerUuid);
                 EditorGUILayout.LabelField("Peer State", pc.peerConnectionState.ToString());
                 EditorGUILayout.LabelField("Ice State", pc.iceConnectionState.ToString());
             }

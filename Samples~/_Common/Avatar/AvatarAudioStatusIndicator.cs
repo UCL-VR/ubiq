@@ -41,7 +41,7 @@ namespace Ubiq.Samples
                 return;
             }
 
-            UpdateIndicator(SIPSorcery.Net.RTCIceConnectionState.disconnected);
+            UpdateIndicator(VoipPeerConnection.IceConnectionState.@new);
             peerConnectionManager.OnPeerConnection.AddListener(
                 PeerConnectionManager_OnPeerConnection,runExisting:true);
         }
@@ -61,7 +61,7 @@ namespace Ubiq.Samples
 
         private void PeerConnectionManager_OnPeerConnection(VoipPeerConnection pc)
         {
-            if (pc == peerConnection || pc.PeerUuid != avatar.Peer.uuid)
+            if (pc == peerConnection || pc.peerUuid != avatar.Peer.uuid)
             {
                 return;
             }
@@ -72,30 +72,31 @@ namespace Ubiq.Samples
             }
 
             peerConnection = pc;
+            UpdateIndicator(peerConnection.iceConnectionState);
             peerConnection.OnIceConnectionStateChanged.AddListener(PeerConnection_OnIceConnectionStateChanged);
         }
 
-        private void PeerConnection_OnIceConnectionStateChanged(SIPSorcery.Net.RTCIceConnectionState state)
+        private void PeerConnection_OnIceConnectionStateChanged(VoipPeerConnection.IceConnectionState state)
         {
             UpdateIndicator(state);
         }
 
-        private void UpdateIndicator (SIPSorcery.Net.RTCIceConnectionState state)
+        private void UpdateIndicator (VoipPeerConnection.IceConnectionState state)
         {
             switch (state)
             {
-                case SIPSorcery.Net.RTCIceConnectionState.closed:
-                case SIPSorcery.Net.RTCIceConnectionState.failed:
-                case SIPSorcery.Net.RTCIceConnectionState.disconnected:
+                case VoipPeerConnection.IceConnectionState.closed:
+                case VoipPeerConnection.IceConnectionState.failed:
+                case VoipPeerConnection.IceConnectionState.disconnected:
                     indicator.enabled = true;
                     indicator.color = failedColor;
                     break;
-                case SIPSorcery.Net.RTCIceConnectionState.@new:
-                case SIPSorcery.Net.RTCIceConnectionState.checking:
+                case VoipPeerConnection.IceConnectionState.@new:
+                case VoipPeerConnection.IceConnectionState.checking:
                     indicator.enabled = true;
                     indicator.color = attemptingColor;
                     break;
-                case SIPSorcery.Net.RTCIceConnectionState.connected:
+                case VoipPeerConnection.IceConnectionState.connected:
                 default:
                     indicator.enabled = false;
                     break;

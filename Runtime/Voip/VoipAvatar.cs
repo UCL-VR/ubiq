@@ -11,49 +11,63 @@ namespace Ubiq.Avatars
         public Transform audioSourcePosition;
         public VoipPeerConnection peerConnection { get; private set; }
 
+        private AvatarManager avatarManager;
         private Avatar avatar;
-        private Transform sinkTransform;
         private VoipPeerConnectionManager peerConnectionManager;
+
+        private VoipAvatar localVoipAvatar;
 
         private void Start()
         {
+            avatarManager = GetComponentInParent<AvatarManager>();
             avatar = GetComponentInParent<Avatars.Avatar>();
-            peerConnectionManager = NetworkScene.Find(this).GetComponentInChildren<VoipPeerConnectionManager>();
+            peerConnectionManager = VoipPeerConnectionManager.Find(this);
             if (peerConnectionManager)
             {
-                peerConnectionManager.OnPeerConnection.AddListener(OnPeerConnection, true);
-            }
-        }
-
-        private void OnDestroy()
-        {
-            if (peerConnectionManager)
-            {
-                peerConnectionManager.OnPeerConnection.RemoveListener(OnPeerConnection);
+                peerConnectionManager.GetPeerConnectionAsync(avatar.Peer.uuid,OnPeerConnection);
             }
         }
 
         private void OnPeerConnection(VoipPeerConnection peerConnection)
         {
-            if (peerConnection.PeerUuid == avatar.Peer.uuid)
+            // If we're very unlucky, this is called after we're destroyed
+            if (!enabled)
             {
-                this.peerConnection = peerConnection;
-                var sink = peerConnection.audioSink;
-                if(sink is VoipAudioSourceOutput)
-                {
-                    var voipOutput = sink as VoipAudioSourceOutput;
-                    voipOutput.unityAudioSource.spatialBlend = 1.0f;
-                    sinkTransform = voipOutput.transform;
-                }
+                return;
             }
+
+            this.peerConnection = peerConnection;
         }
 
         private void LateUpdate()
         {
-            if (sinkTransform)
+            if (!peerConnection || !avatarManager || !avatarManager.LocalAvatar)
             {
-                sinkTransform.position = audioSourcePosition.position;
+                return;
             }
+
+            if (!localVoipAvatar)
+            {
+                if (avatar && avatar.IsLocal)
+                {
+                    localVoipAvatar = this;
+                }
+                else
+                {
+                    localVoipAvatar = avatarManager.LocalAvatar.GetComponentInChildren<VoipAvatar>();
+                }
+            }
+
+            if (!localVoipAvatar || localVoipAvatar == this)
+            {
+                return;
+            }
+
+            var source = audioSourcePosition;
+            var listener = localVoipAvatar.audioSourcePosition;
+            peerConnection.UpdateSpatialization(
+                source.position,source.rotation,
+                listener.position,listener.rotation);
         }
     }
 }

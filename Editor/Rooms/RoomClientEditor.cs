@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEditorInternal;
 using System;
 using System.Linq;
+using Ubiq.Networking;
 
 namespace Ubiq.Rooms
 {
@@ -37,6 +38,15 @@ namespace Ubiq.Rooms
             managerReorderableList.drawElementCallback += DrawElementCallback;
             managerReorderableList.drawHeaderCallback += HeaderCallbackDelegate;
             managerReorderableList.elementHeightCallback += ElementHeightCallbackDelegate;
+            managerReorderableList.onAddCallback += AddCallbackDelegate;
+        }
+
+        void AddCallbackDelegate(ReorderableList list)
+        {
+            var definition = ScriptableObject.CreateInstance<ConnectionDefinition>(); // This will create a local definition which is saved/embedded in the scene.
+            definition.name = "Server Connection";
+            list.serializedProperty.InsertArrayElementAtIndex(0);
+            list.serializedProperty.GetArrayElementAtIndex(0).objectReferenceValue = definition;
         }
 
         bool CanAddCallbackDelegate(ReorderableList list)
@@ -56,14 +66,12 @@ namespace Ubiq.Rooms
                 return 0;
             }
             float propertyHeight = EditorGUI.GetPropertyHeight(serversProperty.GetArrayElementAtIndex(index), true);
-            float spacing = EditorGUIUtility.singleLineHeight / 2;
-            return propertyHeight + spacing;
+            return propertyHeight;
         }
 
         private void DrawElementCallback(Rect rect, int index, bool isactive, bool isfocused)
         {
-            rect.y += EditorGUIUtility.singleLineHeight / 4;
-            EditorGUI.PropertyField(rect, serversProperty.GetArrayElementAtIndex(index), new GUIContent(""), true);
+            EditorGUI.PropertyField(rect, serversProperty.GetArrayElementAtIndex(index), new GUIContent(""), false);
         }
 
         public override void OnInspectorGUI()

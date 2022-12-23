@@ -59,88 +59,20 @@ namespace Ubiq.Networking
         }
     }
 
-    [Serializable]
-    public enum ConnectionType : int
-    {
-        tcp_client,
-        tcp_server,
-        udp,
-        websocket,
-    };
-
-    [Serializable]
-    public class ConnectionDefinition
-    {
-        public string listen_on_ip;
-        public string listen_on_port;
-        public string send_to_ip;
-        public string send_to_port;
-        public ConnectionType type;
-
-        public override string ToString()
-        {
-            switch (type)
-            {
-                case ConnectionType.tcp_client:
-                case ConnectionType.websocket:
-                    return string.Format("{0}://{1}:{2}", Connections.Protocol(type), send_to_ip, send_to_port);
-                case ConnectionType.tcp_server:
-                    return string.Format("{0}://{1}:{2}", Connections.Protocol(type), listen_on_ip, listen_on_port);
-                case ConnectionType.udp:
-                    return string.Format("{0}://{1}:{2}:{3}:{4}", Connections.Protocol(type), send_to_ip, send_to_port, listen_on_ip, listen_on_port); //todo: annoying!!!
-                default:
-                    throw new NotImplementedException();
-            }
-        }
-
-        public ConnectionDefinition()
-        {
-        }
-
-        public ConnectionDefinition(string tcpUri)
-        {
-            if (String.IsNullOrEmpty(tcpUri))
-            {
-                throw new ArgumentException($"Invalid Connection String {tcpUri}");
-            }
-
-            var tokens = tcpUri.Split(':');
-
-            if (tokens.Length != 2)
-            {
-                throw new ArgumentException($"Invalid Connection String {tcpUri}");
-            }
-
-            send_to_ip = tokens[0];
-            send_to_port = tokens[1];
-            type = ConnectionType.tcp_client;
-
-            if (Uri.CheckHostName(send_to_ip) == UriHostNameType.Unknown)
-            {
-                throw new ArgumentException($"Invalid Connection String {tcpUri}");
-            }
-            int temp = 0;
-            if (!int.TryParse(send_to_port, out temp))
-            {
-                throw new ArgumentException($"Invalid Connection String {tcpUri}");
-            }
-        }
-    }
-
     public static class Connections
     {
         public static string Protocol(ConnectionType type)
         {
             switch (type)
             {
-                case ConnectionType.tcp_client:
+                case ConnectionType.TcpClient:
                     return "tcp";
-                case ConnectionType.tcp_server:
+                case ConnectionType.TcpServer:
                     return "tcps";
-                case ConnectionType.udp:
+                case ConnectionType.UDP:
                     return "udp";
-                case ConnectionType.websocket:
-                    return "ws";
+                case ConnectionType.WebSocket:
+                    return "wss";
                 default:
                     throw new NotImplementedException();
             }
@@ -148,17 +80,25 @@ namespace Ubiq.Networking
 
         public static INetworkConnection Resolve(ConnectionDefinition definition)
         {
+            foreach (var item in definition.platforms)
+            {
+                if(item.platform == Application.platform)
+                {
+                    return Resolve(item.connection);
+                }
+            }
+
             INetworkConnection connection;
             switch (definition.type)
             {
-                case ConnectionType.tcp_client:
-                case ConnectionType.tcp_server:
+                case ConnectionType.TcpClient:
+                case ConnectionType.TcpServer:
                     connection = new TCPConnection(definition);
                     break;
-                case ConnectionType.udp:
+                case ConnectionType.UDP:
                     connection = new UDPConnection(definition);
                     break;
-                case ConnectionType.websocket:
+                case ConnectionType.WebSocket:
                     connection = new WebSocketConnection(definition);
                     break;
                 default:

@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7849211376014683480
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9258ee9d68b597d40ac401b2c1f8c3a1, type: 3}
+  m_Name: Nexus
+  m_EditorClassIdentifier: 
+  listenOnIp: 
+  listenOnPort: 
+  sendToIp: nexus.cs.ucl.ac.uk
+  sendToPort: 8009
+  type: 0
+  platforms:
+  - platform: 17
+    connection: {fileID: -4538272763558664669}
+--- !u!114 &-4538272763558664669
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9258ee9d68b597d40ac401b2c1f8c3a1, type: 3}
+  m_Name: Platform Connection
+  m_EditorClassIdentifier: 
+  listenOnIp: 
+  listenOnPort: 
+  sendToIp: nexus.cs.ucl.ac.uk
+  sendToPort: 8010
+  type: 3
+  platforms: []

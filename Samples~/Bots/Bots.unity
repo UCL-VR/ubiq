@@ -212,6 +212,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fddd4936b870f084aa3cf82b0e18125f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  OnUpdate:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1161235697
 GameObject:
   m_ObjectHideFlags: 0
@@ -290,18 +293,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 918c67203be66094baaa634b6f854d04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DefaultCommandServer:
-    listen_on_ip: 
-    listen_on_port: 
-    send_to_ip: nexus.cs.ucl.ac.uk
-    send_to_port: 8007
-    type: 0
-  DefaultBotServer:
-    listen_on_ip: 
-    listen_on_port: 
-    send_to_ip: nexus.cs.ucl.ac.uk
-    send_to_port: 8009
-    type: 0
+  DefaultCommandServer: {fileID: -7849211376014683480, guid: 1c91df7c43c1dbe4fb0fb303e71a2790,
+    type: 2}
+  DefaultBotServer: {fileID: -7849211376014683480, guid: 1c91df7c43c1dbe4fb0fb303e71a2790,
+    type: 2}
   ControlRoomId: 87ef0572-67ea-43cc-b2d9-a242428ce929
 --- !u!4 &1567755671
 Transform:

@@ -29,23 +29,7 @@ namespace Ubiq.Networking
 
         void Start()
         {
-            INetworkConnection connection;
-            switch (def.type)
-            {
-                case ConnectionType.tcp_client:
-                case ConnectionType.tcp_server:
-                    connection = new TCPConnection(def);
-                    break;
-                case ConnectionType.udp:
-                    connection = new UDPConnection(def);
-                    break;
-                case ConnectionType.websocket:
-                    connection = new WebSocketConnection(def);
-                    break;
-                default:
-                    throw new NotImplementedException();
-            }
-
+            var connection = Connections.Resolve(def);
             foreach (var item in GetComponentsInChildren<NetworkScene>())
             {
                 item.AddConnection(connection);
