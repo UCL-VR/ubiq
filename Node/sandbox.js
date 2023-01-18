@@ -23,7 +23,7 @@ class AudioSystemTestSandbox{
     constructor(connection){
         var scene = new NetworkScene(connection);
         var pc = new WebRtcPeerConnection(scene);
-        pc.objectId = new NetworkId(1);
+        pc.networkId = new NetworkId(1);
         pc.onAudioTrack.push((event) =>
         {
             event.pc.addTrack(event.track);

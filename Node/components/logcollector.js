@@ -1,7 +1,7 @@
 const { write } = require('fs');
 const { nextTick } = require('process');
 const { Stream, EventEmitter, Writable } = require('stream');
-const { NetworkId } = require("./messaging")
+const { NetworkId } = require("ubiq/messaging")
 
 class LogCollectorMessage{
     constructor(message){
@@ -47,8 +47,8 @@ class LogCollectorMessage{
 class LogCollector extends EventEmitter{
     constructor(scene){
         super()
-        this.objectId = scene.objectId;
-        this.componentId = 3;
+        this.networkId = NetworkId.Create(scene.networkId, "LogCollector");
+        this.broadcastId = new NetworkId("685a5b84-fec057d0");
         this.destinationId = NetworkId.Null;
         this.clock = 0;
 
@@ -73,7 +73,7 @@ class LogCollector extends EventEmitter{
                 objectMode: true,
                 write: (msg,_,done) =>{
                     collector.context.send({
-                        objectId: collector.destinationId,
+                        networkId: collector.destinationId,
                         componentId: collector.componentId
                     },
                     msg);
@@ -101,7 +101,9 @@ class LogCollector extends EventEmitter{
         );
         this._writingStream.collector = this;
 
-        this.context = scene.register(this);
+        this.scene = scene;
+        scene.register(this, this.networkId);
+        scene.register(this, this.broadcastId);
         this.registerRoomClientEvents();
     }
 
@@ -110,7 +112,7 @@ class LogCollector extends EventEmitter{
     }
 
     registerRoomClientEvents(){
-        this.roomClient = this.context.scene.findComponent("RoomClient");
+        this.roomClient = this.scene.findComponent("RoomClient");
         if(this.roomClient == undefined){
             throw "RoomClient must be added to the scene before LogCollector";
         }
@@ -122,12 +124,12 @@ class LogCollector extends EventEmitter{
     }
 
     isPrimary(){
-        return NetworkId.Compare(this.destinationId, this.objectId);
+        return NetworkId.Compare(this.destinationId, this.networkId);
     }
 
     // Sets this LogCollector as the Primary Collector, receiving all events from the Peer Group and writing them to the provided Stream.
     startCollection(){
-        this.sendSnapshot(this.objectId);
+        this.sendSnapshot(this.networkId);
     }
 
     // Unsets this LogCollector as the Primary Collector and stops writing to the stream.
@@ -148,7 +150,7 @@ class LogCollector extends EventEmitter{
         this.clock++;
         this.destinationChanged();
         for(const peer of this.roomClient.getPeers()){
-            this.context.send(peer.networkId, this.componentId, LogCollectorMessage.Create(0x1, {clock: this.clock, state: destinationId}));
+            this.scene.send(this.broadcastId, LogCollectorMessage.Create(0x1, {clock: this.clock, state: destinationId}));
         };
     }
 
@@ -167,7 +169,7 @@ class LogCollector extends EventEmitter{
                 }else{
                     if(cc.clock == this.clock && this.isPrimary()){
                         this.clock += Math.floor(Math.random() * 10);
-                        this.sendSnapshot(this.objectId);
+                        this.sendSnapshot(this.networkId);
                     }
                 }
                 break;
@@ -182,15 +184,15 @@ class LogCollector extends EventEmitter{
                 else{
                     // The ping is a request
                     if(this.isPrimary()){
-                        ping.Responder = this.objectId;
+                        ping.Responder = this.networkId;
                         ping.Written = this.written();
-                        this.context.send(ping.Source, this.componentId, LogCollectorMessage.Create(0x3, ping));
+                        this.scene.send(ping.Source, LogCollectorMessage.Create(0x3, ping));
                     }else if(NetworkId.Valid(this.destinationId)){
                         this._eventStream.push(msg);
                     }else{
-                        ping.Responder = this.objectId;
+                        ping.Responder = this.networkId;
                         ping.Aborted = true;
-                        this.context.send(ping.Source, this.componentId, LogCollectorMessage.Create(0x3, ping));
+                        this.scene.send(ping.Source, LogCollectorMessage.Create(0x3, ping));
                     }
                 }
                 break;

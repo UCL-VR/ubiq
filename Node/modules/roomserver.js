@@ -1,4 +1,4 @@
-const { Message, NetworkId, Schema, SerialisedDictionary, Uuid } = require("./ubiq");
+const { Message, NetworkId, Schema, SerialisedDictionary, Uuid } = require("ubiq");
 const { EventEmitter } = require('events');
 const { args } = require("commander");
 const { debug, info } = require("console");
@@ -162,7 +162,7 @@ class RoomServer extends EventEmitter{
         super();
         this.roomDatabase = new RoomDatabase();
         this.version = VERSION_STRING;
-        this.objectId = new NetworkId(RoomServerReservedId);
+        this.networkId = new NetworkId(RoomServerReservedId);
         this.status = {
             connections: 0,
             rooms: 0,
@@ -384,7 +384,7 @@ class RoomPeer{
         this.server.status.messages += 1;
         this.server.status.bytesIn += message.length;
         this.server.statusPoll();
-        if(NetworkId.Compare(message.objectId, this.server.objectId)){
+        if(NetworkId.Compare(message.networkId, this.server.networkId)){
             try {
                 message.object = message.toObject();
             } catch {
@@ -494,7 +494,7 @@ class RoomPeer{
         this.setRoom(new EmptyRoom());
     }
 
-    getObjectId(){
+    getNetworkId(){
         return this.clientid;
     }
 
@@ -506,7 +506,7 @@ class RoomPeer{
     }
 
     sendRejected(joinArgs,reason){
-        this.send(Message.Create(this.getObjectId(),
+        this.send(Message.Create(this.getNetworkId(),
         {
             type: "Rejected",
             args: JSON.stringify({
@@ -517,7 +517,7 @@ class RoomPeer{
     }
 
     sendSetRoom(){
-        this.send(Message.Create(this.getObjectId(),
+        this.send(Message.Create(this.getNetworkId(),
         {
             type: "SetRoom",
             args: JSON.stringify({
@@ -527,7 +527,7 @@ class RoomPeer{
     }
 
     sendDiscoveredRooms(args){
-        this.send(Message.Create(this.getObjectId(),
+        this.send(Message.Create(this.getNetworkId(),
         {
             type: "Rooms",
             args: JSON.stringify(args)
@@ -535,7 +535,7 @@ class RoomPeer{
     }
 
     sendPeerAdded(peer){
-        this.send(Message.Create(this.getObjectId(),
+        this.send(Message.Create(this.getNetworkId(),
         {
             type: "PeerAdded",
             args: JSON.stringify({
@@ -545,7 +545,7 @@ class RoomPeer{
     }
 
     sendPeerRemoved(peer){
-        this.send(Message.Create(this.getObjectId(),
+        this.send(Message.Create(this.getNetworkId(),
         {
             type: "PeerRemoved",
             args: JSON.stringify({
@@ -555,7 +555,7 @@ class RoomPeer{
     }
 
     sendRoomPropertiesAppended(keys,values){
-        this.send(Message.Create(this.getObjectId(),
+        this.send(Message.Create(this.getNetworkId(),
         {
             type: "RoomPropertiesAppended",
             args: JSON.stringify({
@@ -566,7 +566,7 @@ class RoomPeer{
     }
 
     sendPeerPropertiesAppended(peer,keys,values){
-        this.send(Message.Create(this.getObjectId(),
+        this.send(Message.Create(this.getNetworkId(),
         {
             type: "PeerPropertiesAppended",
             args: JSON.stringify({
@@ -578,7 +578,7 @@ class RoomPeer{
     }
 
     sendBlob(uuid,blob){
-        this.send(Message.Create(this.getObjectId(),
+        this.send(Message.Create(this.getNetworkId(),
         {
             type: "Blob",
             args: JSON.stringify({
@@ -589,7 +589,7 @@ class RoomPeer{
     }
 
     sendPing(){
-        this.send(Message.Create(this.getObjectId(),
+        this.send(Message.Create(this.getNetworkId(),
         {
             type: "Ping",
             args: JSON.stringify({

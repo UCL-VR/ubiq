@@ -11,7 +11,9 @@
 // has left the room.
 
 // Import Ubiq types
-const { NetworkScene, RoomClient, LogCollector, UbiqTcpConnection } = require("../../ubiq");
+const { NetworkScene, UbiqTcpConnection } = require("../../ubiq");
+const { LogCollector } = require("../../components/logcollector");
+const { RoomClient } = require("../../components/roomclient");
 const fs = require('fs');
 
 // Configuration
@@ -19,7 +21,7 @@ eventType = 2;
 roomGuid = "6765c52b-3ad6-4fb0-9030-2c9a05dc4731";
 
 // Create a connection to a Server
-const connection = UbiqTcpConnection("nexus.cs.ucl.ac.uk", 8005);
+const connection = UbiqTcpConnection("localhost", 8009);
 
 // A NetworkScene
 const scene = new NetworkScene();
@@ -48,7 +50,11 @@ function closePeerFile(peer){
 }
 
 roomclient.addListener("OnJoinedRoom", room => {
-    console.log(room.joincode);
+    console.log("Joined Room with Join Code " + room.joincode);
+});
+
+roomclient.addListener("OnPeerAdded", peer =>{
+    console.log("New Peer in room " + peer.uuid);
 });
 
 roomclient.addListener("OnPeerRemoved", peer =>{

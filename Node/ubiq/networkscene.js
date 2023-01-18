@@ -2,69 +2,42 @@ const { Message, NetworkId } = require("./messaging");
 
 class NetworkContext{
     constructor(scene, object){
-        this.object = object;   // The NetworkObject that this context belongs to
+        this.object = object;   // The Networked Component that this context belongs to
         this.scene = scene;     // The NetworkScene that this context belongs to
     }
 
-    // Send a message to another Ubiq Networked Object. This method will intuit what to send based on the arguments.
-    // The arguments can be,
+    // Send a message to another Ubiq Component. This method will work out the
+    // Network Id to send to based on the arguments.
+    // The arguments can be a,
     //  NetworkId
     //  Number
     //  Object
-    //  Networked Object (object with an objectId and componentId properties)
-    // The last object must always be the message to send, and this must be,
+    //  Networked Component (object with an networkId property)
+    // The last argument must always be the message to send, and this must be a,
     //  JavaScript Object
     //  String
     //  Buffer.
     // You can call send in the following ways,
     //  this.context.send(this, message);
-    //  this.context.send({objectId: objectId, componentId: componentId}, message);
-    //  this.context.send(objectId, componentId, message);
-    //  this.context.send(componentId, objectId, message);
+    //  this.context.send({networkId: id}, message);
+    //  this.context.send(networkId, message);
     send(args){
-        var message = arguments[arguments.length - 1]; // The message is always the last argument
-        var objectId = this.object.objectId;
-        var componentId = this.object.componentId;
-
         if(arguments.length == 0){
             throw "Send must have at least one argument"
+        }else if(arguments == 1){
+            this.scene.send(this.object.networkId, arguments[0]);
+        }else{
+            this.scene.send(arguments[0], arguments[1]);
         }
-        else if(arguments.length == 1){
-            // Nothing to do here, all the arguments are set up correctly.
-            // Message.Create will intuit the correct encoding for the message on the wire
-        }
-        else{
-            for(var i = 0; i < arguments.length-1; i++){
-                var arg = arguments[i];
-                if(typeof(arg) == "number"){
-                    componentId = arg;
-                }
-                if(typeof(arg) == "object" && arg.hasOwnProperty("a") && arg.hasOwnProperty("b")){
-                    objectId = new NetworkId(arg);
-                }
-                if(typeof(arg) == "networkid"){
-                    objectId = arg;
-                }
-                if(typeof(arg) == "object" && arg.hasOwnProperty("objectId")){
-                    objectId = arg.objectId;
-                }
-                if(typeof(arg) == "object" && arg.hasOwnProperty("componentId")){
-                    componentId = arg.componentId;
-                }
-            }
-        }
-
-        this.scene.send(Message.Create(objectId, componentId, message));
     }
 }
 
-// A NetworkScene object provides the interface between a connection and the networked 
-// objects in the application.
-
+// A NetworkScene object provides the interface between a Connection and the 
+// Networked Components in the application.
 class NetworkScene{
     constructor(){
-        this.objectId = NetworkId.Unique();
-        this.objects = [];
+        this.networkId = NetworkId.Unique();
+        this.entries = [];
         this.connections = []
     }
 
@@ -76,10 +49,11 @@ class NetworkScene{
     }
 
     async onMessage(message){
-        var object = this.objects.find(object => NetworkId.Compare(object.objectId, message.objectId) && (object.componentId == message.componentId));
-        if(object !== undefined){
-            object.processMessage(message);
-        }
+        this.entries.forEach(entry => {
+            if(NetworkId.Compare(entry.networkId, message.networkId)){
+                entry.object.processMessage(message);
+            }
+        });
     }
 
     onClose(connection){
@@ -89,34 +63,59 @@ class NetworkScene{
         }
     }
 
-    send(buffer){
+    send(networkId, message){
+        // Try to infer the Network Id format
+        if(Object.getPrototypeOf(networkId).constructor.name == "NetworkId"){
+            // Nothing to do
+        }else if(typeof(networkId) == "number"){
+            networkId = new NetworkId(networkId);
+        }else if(typeof(networkId) == "object" && networkId.hasOwnProperty("a") && networkId.hasOwnProperty("b")){
+            networkId = new NetworkId(networkId);
+        }else if(typeof(networkId) == "object" && networkId.hasOwnProperty("networkId")){
+            networkId = new NetworkId(networkId.networkId);
+        }
+
+        // Message.Create will determine the correct encoding of the message
+        var buffer = Message.Create(networkId, message);
+
         this.connections.forEach(connection =>{
             connection.send(buffer);
         });
     }
 
-    register(component){
-        if(!component.hasOwnProperty("objectId")){
-            console.error("Component does not have an objectId Property");
-        }
-        if(!component.hasOwnProperty("componentId")){
-            console.error("Component does not have an objectId Property");
-        }
-        if(!component.processMessage){
-            console.error("Component does not implement the processMessage method")
-        }
-        
-        if(!this.objects.includes(component)){
-            this.objects.push(component);
+    // Registers a Networked Component so that it will recieve messages addressed
+    // to its specific NetworkId via its processMessage method.
+    // If a NetworkId is not specified, it is found from the networkId member.
+    register(args){
+        let entry = {
+            object: arguments[0]
+        };
+        if(arguments.length == 2){
+            // The user is trying to register with a specific Id
+            entry.networkId = arguments[1];
+        }else if(arguments.length == 1){
+            // The user is trying to register with the 'networkId' member
+            if(!entry.object.hasOwnProperty("networkId")){
+                console.error("Component does not have a networkId Property");
+                return;
+            }
+            entry.networkId = entry.object.networkId;   
         }
 
-        return new NetworkContext(this, component);
+        if(!entry.object.processMessage){
+            console.error("Component does not have a processMessage method");
+            return;
+        }
+        
+        this.entries.push(entry);
+
+        return new NetworkContext(this, entry.object);
     }
 
     findComponent(name){
-        return this.objects.find(object =>{
-                return object.constructor.name == name;
-            });
+        return this.entries.find(entry =>{
+                return entry.object.constructor.name == name;
+            }).object;
     }
 }
 

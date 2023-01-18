@@ -36,6 +36,12 @@ class NetworkId{
             this.b = data.readUInt32LE(4);
             return;
         }
+        if(ArrayBuffer.isView(data)){
+            var view = new Uint32Array(data.buffer);
+            this.a = view[0];
+            this.b = view[1];
+            return;
+        }
         if(typeof(data) == 'object' && data.hasOwnProperty("a") && typeof(data.a) == 'number' && data.hasOwnProperty("b") && typeof(data.b) == 'number'){
             this.a = data.a;
             this.b = data.b;
@@ -76,16 +82,18 @@ class NetworkId{
 
     static Create(namespace, service){
         var bytes = Buffer.from(service,'utf8');
-        var order = false;
         var id = new NetworkId(namespace);
-        for(var i = 0; i < bytes._length_; i++){
-            if(i % 2 == 0){
-                id.a = id.a * bytes[i] + id.b;
+        var data = new Uint32Array(2);
+        data[0] = id.a;
+        data[1] = id.b;
+        for(var i = 0; i < bytes.length; i++){
+            if(i % 2 != 0){
+                data[0] = Math.imul(data[0], bytes[i]);
             }else{
-                id.b = id.b * bytes[i] + id.a;
+                data[1] = Math.imul(data[1], bytes[i]);
             }
         }
-        return id;
+        return new NetworkId(data);
     }
 
     static Null = new NetworkId(0);
@@ -107,12 +115,12 @@ class Message{
         var msg = new Message();
         msg.buffer = data;
         msg.length = data.readInt32LE(0)
-        msg.objectId = new NetworkId(data.slice(4));
+        msg.networkId = new NetworkId(data.slice(4));
         msg.message = data.slice(12);
         return msg;
     }
 
-    static Create(objectId, message){
+    static Create(networkId, message){
         var msg = new Message();
         
         if(!Buffer.isBuffer(message)){
@@ -127,18 +135,18 @@ class Message{
         var length = message.length + MESSAGE_HEADER_SIZE;
         var buffer = Buffer.alloc(length + 4);
 
-        if(typeof(objectId) == "string"){
-            objectId = new NetworkId(objectId);
+        if(typeof(networkId) == "string"){
+            networkId = new NetworkId(networkId);
         }
 
         buffer.writeInt32LE(length, 0);
-        buffer.writeNetworkId(objectId, 4);
+        buffer.writeNetworkId(networkId, 4);
         message.copy(buffer, 12);
 
         var msg = new Message();
         msg.buffer = buffer;
         msg.length = length;
-        msg.objectId = objectId;
+        msg.networkId = networkId;
         msg.message = message;
 
         return msg;

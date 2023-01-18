@@ -242,11 +242,11 @@ namespace Ubiq.Messaging
             {
                 if (i % 2 != 0)
                 {
-                    id.a = id.a * bytes[i] + id.b;
+                    id.a = id.a * bytes[i];
                 }
                 else
                 {
-                    id.b = id.b * bytes[i] + id.a;
+                    id.b = id.b * bytes[i];
                 }
             }
 

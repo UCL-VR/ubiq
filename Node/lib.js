@@ -26,20 +26,20 @@ class NetworkContext{
 
     // send to the counterpart of this component
     send1(message){
-        // this.scene.send(Message.Create(this.object.objectId, this.component.componentId, message));
-        this.scene.send(Message.Create(this.object.objectId, message));
+        // this.scene.send(Message.Create(this.object.networkId, this.component.componentId, message));
+        this.scene.send(Message.Create(this.object.networkId, message));
     }
 
     // send to the counterpart of this component on a specific gameobject
-    send2(objectId, message){
-        // this.scene.send(Message.Create(objectId, this.component.componentId, message));
-        this.scene.send(Message.Create(objectId, message));
+    send2(networkId, message){
+        // this.scene.send(Message.Create(networkId, this.component.componentId, message));
+        this.scene.send(Message.Create(networkId, message));
     }
 
     // send to an arbitrary, specific component instance
-    send3(objectId, componentId, message){
-        // this.scene.send(Message.Create(objectId, componentId, message));
-        this.scene.send(Message.Create(objectId, message));
+    send3(networkId, componentId, message){
+        // this.scene.send(Message.Create(networkId, componentId, message));
+        this.scene.send(Message.Create(networkId, message));
     }
 }
 
@@ -47,13 +47,13 @@ class NetworkScene{
     constructor(connection){
         this.connection = connection; // the js implementation supports only one uplink
         this.connection.onMessage.push(this.onMessage.bind(this));
-        this.objectId = 0;
+        this.networkId = 0;
         this.scene = this;
         this.objects = [];
     }
 
     async onMessage(message){
-        var object = this.objects.find(object => NetworkId.Compare(object.objectId, message.objectId));
+        var object = this.objects.find(object => NetworkId.Compare(object.networkId, message.networkId));
         if(object !== undefined){
             var component = object.components[message.componentId];
             if(component !== undefined){
@@ -68,13 +68,13 @@ class NetworkScene{
 
     register(component){
         var object = null;
-        if(component.hasOwnProperty("objectId")){
+        if(component.hasOwnProperty("networkId")){
             object = component;
         }
         if(object == null){
             var parent = component;
             while(parent.hasOwnProperty("parent")){
-                if(parent.hasOwnProperty("objectId")){
+                if(parent.hasOwnProperty("networkId")){
                     object = parent;
                     break;
                 }
@@ -106,10 +106,10 @@ class RoomClient{
         // this.componentId = 1; // fixed at design time
         this.parent = parent;
         this.context = parent.scene.register(this);
-        this.context.object.objectId = NetworkId.Unique();
+        this.context.object.networkId = NetworkId.Unique();
         this.peer = new Object();
         this.peer.uuid = Uuid.generate();
-        this.peer.networkObject = this.context.object.objectId;
+        this.peer.networkObject = this.context.object.networkId;
         this.peer.component = this.context.component.componentId;
         this.peer.properties = new Object();
         this.peer.properties.keys = [];
@@ -176,13 +176,13 @@ class WebRtcPeerConnectionManager{
         this.roomclient.peers.map( peer => {
             if(peer.uuid != this.roomclient.peer.uuid){
                 var pc = this.onMakePeerConnection();
-                pc.objectId = NetworkScene.generateUniqueId();
+                pc.networkId = NetworkScene.generateUniqueId();
                 pc.isnegotiator = true;
                 pc.annoucementswaiting = 1;
 
-                this.context.send2(peer.networkObject, { type: "RequestPeerConnection", objectId: pc.objectId, uuid: this.roomclient.peer.uuid, x_webclient: true });
+                this.context.send2(peer.networkObject, { type: "RequestPeerConnection", networkId: pc.networkId, uuid: this.roomclient.peer.uuid, x_webclient: true });
 
-                console.log("Requesting PeerConnection " + pc.objectId);
+                console.log("Requesting PeerConnection " + pc.networkId);
 
                 this.onPeerConnection(pc);
             }
@@ -194,9 +194,9 @@ class WebRtcPeerConnectionManager{
         switch(message.type){
             case "RequestPeerConnection":
                 var pc = this.onMakePeerConnection();
-                pc.objectId = message.objectId;
+                pc.networkId = message.networkId;
 
-                console.log("Received PeerConnectionRequest " + pc.objectId);
+                console.log("Received PeerConnectionRequest " + pc.networkId);
 
                 if(message.x_webclient == true){
                     break;
@@ -218,7 +218,7 @@ class WebRtcPeerConnection
     constructor(parent){
         this.parent = parent;
         this.componentId = 7;
-        this.objectId = -1; // webrtcpeerconnection must be a networkobject
+        this.networkId = -1; // webrtcpeerconnection must be a networkobject
         this.context = parent.scene.register(this);
         this.pc = new RTCPeerConnection();
         this.onAudioTrack = [];
