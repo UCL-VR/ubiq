@@ -44,11 +44,11 @@ class NetworkScene{
     // The Connection is expected to be a wrapped connection
     addConnection(connection){
         this.connections.push(connection);
-        connection.onMessage.push(this.onMessage.bind(this));
-        connection.onClose.push(this.onClose.bind(this, connection));
+        connection.onMessage.push(this.#onMessage.bind(this));
+        connection.onClose.push(this.#onClose.bind(this, connection));
     }
 
-    async onMessage(message){
+    async #onMessage(message){
         this.entries.forEach(entry => {
             if(NetworkId.Compare(entry.networkId, message.networkId)){
                 entry.object.processMessage(message);
@@ -56,7 +56,7 @@ class NetworkScene{
         });
     }
 
-    onClose(connection){
+    #onClose(connection){
         var index = this.connections.indexOf(connection);
         if(index > -1){
             this.connections.slice(index, 1);

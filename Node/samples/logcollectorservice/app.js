@@ -12,8 +12,7 @@
 
 // Import Ubiq types
 const { NetworkScene, UbiqTcpConnection } = require("../../ubiq");
-const { LogCollector } = require("../../components/logcollector");
-const { RoomClient } = require("../../components/roomclient");
+const { LogCollector, RoomClient } = require("../../components");
 const fs = require('fs');
 
 // Configuration
@@ -21,7 +20,7 @@ eventType = 2;
 roomGuid = "6765c52b-3ad6-4fb0-9030-2c9a05dc4731";
 
 // Create a connection to a Server
-const connection = UbiqTcpConnection("nexus.cs.ucl.ac.uk", 8009);
+const connection = UbiqTcpConnection("localhost", 8009);
 
 // A NetworkScene
 const scene = new NetworkScene();
