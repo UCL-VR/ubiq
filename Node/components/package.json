@@ -1,0 +1,10 @@
+{
+  "name": "components",
+  "version": "0.0.1",
+  "description": "Ubiq Peer Components for Node",
+  "main": "index.js",
+  "keywords": [],
+  "author": "UCL VECG",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/UCL-VR/ubiq"
+}
