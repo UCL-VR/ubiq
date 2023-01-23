@@ -1,7 +1,5 @@
-const { Message, NetworkId, Schema, SerialisedDictionary, Uuid } = require("ubiq");
+const { Message, NetworkId, Schema, Uuid } = require("ubiq");
 const { EventEmitter } = require('events');
-const { args } = require("commander");
-const { debug, info } = require("console");
 const fs = require('fs');
 
 const VERSION_STRING = "0.0.4";

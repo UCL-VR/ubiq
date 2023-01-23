@@ -34,10 +34,6 @@ const {
     NetworkScene
 } = require("./networkscene");
 
-const {
-    SerialisedDictionary
-} = require("./dictionary");
-
 module.exports = {
     WebSocketConnectionWrapper,
     WrappedSecureWebSocketServer,
@@ -48,7 +44,6 @@ module.exports = {
     NetworkContext,
     NetworkScene,
     Schema,
-    SerialisedDictionary,
     Uuid,
     UbiqTcpConnection    
 }
