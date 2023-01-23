@@ -11,7 +11,7 @@ const { RoomClient } = require("../../components");
 roomGuid = "6765c52b-3ad6-4fb0-9030-2c9a05dc4731";
 
 // Create a connection to a Server
-const connection = UbiqTcpConnection("localhost", 8009);
+const connection = UbiqTcpConnection("nexus.cs.ucl.ac.uk", 8009);
 
 // A NetworkScene
 const scene = new NetworkScene();
