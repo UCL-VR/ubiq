@@ -1,7 +1,6 @@
-const { write } = require('fs');
-const { nextTick } = require('process');
-const { Stream, EventEmitter, Writable } = require('stream');
-const { NetworkId } = require("ubiq/messaging")
+const { EventEmitter } = require('events')
+const { Stream } = require('stream')
+const { NetworkId } = require("ubiq")
 
 class LogCollectorMessage{
     constructor(message){

@@ -1,8 +1,7 @@
-const { exception, assert } = require('console');
 const { TextDecoder } = require('util');
 const { Schema } = require('./schema');
 const { performance } = require('perf_hooks');
-const { type } = require('os');
+const { Buffer } = require('buffer');
 
 const MESSAGE_HEADER_SIZE = 8;
 
@@ -47,11 +46,10 @@ class NetworkId{
             this.b = data.b;
             return;
         }
-        throw exception();
+        throw `Cannot construct NetworkId from ${data}`;
     }
 
     static Compare(x, y){
-        assert(x !== undefined && y !== undefined);
         return(x.a == y.a && x.b == y.b);
     }
 
@@ -99,14 +97,6 @@ class NetworkId{
     static Null = new NetworkId(0);
 }
 
-Buffer.prototype.writeNetworkId = function(networkId, offset){
-    NetworkId.WriteBuffer(networkId, this, offset);
-}
-
-Buffer.prototype.readNetworkId = function(offset){
-    return new NetworkId(this.slice(offset));
-}
-
 class Message{
     constructor(){
     }
@@ -140,7 +130,7 @@ class Message{
         }
 
         buffer.writeInt32LE(length, 0);
-        buffer.writeNetworkId(networkId, 4);
+        NetworkId.WriteBuffer(networkId, buffer, 4);
         message.copy(buffer, 12);
 
         var msg = new Message();

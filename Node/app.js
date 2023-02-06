@@ -1,5 +1,5 @@
-const { WrappedSecureWebSocketServer, WrappedTcpServer } = require("./ubiq")
-const { RoomServer, IceServerProvider } = require("./modules");
+const { WrappedSecureWebSocketServer, WrappedTcpServer } = require("ubiq")
+const { RoomServer, IceServerProvider } = require("modules");
 const nconf = require('nconf');
 
 // nconf loads the configuration hierarchically - settings that load *first* 

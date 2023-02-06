@@ -2,8 +2,8 @@ const { Message } = require('./messaging');
 const WebSockets = require('ws');
 const Tcp = require('net');
 const { createServer } = require('https');
-const path = require('node:path');
-const fs = require('node:fs');
+const path = require('path');
+const fs = require('fs');
 
 // All WrappedConnection types implement two callbacks,
 // onMessage and onClose, and one function, Send.
@@ -65,22 +65,40 @@ class WrappedSecureWebSocketServer{
 
 class WebSocketConnectionWrapper{
     constructor(ws){
-        this.onMessage = [] 
-        this.onClose = []
-        
+        this.onMessage = [];
+        this.onClose = [];
+        this.state = ws.readyState;
         this.socket = ws;
+        this.pending = [];
 
-        this.socket.on("message", function(data){
-            this.onMessage.map(callback => callback(Message.Wrap(data)));
-        }.bind(this));
+        this.socket.onmessage = function(event){
+            this.onMessage.map(callback => callback(Message.Wrap(event.data)));
+        }.bind(this);
 
-        this.socket.on("close", function(event){
+        this.socket.onclose = function(event){
+            this.state = WebSocketConnectionWrapper.CLOSED;
             this.onClose.map(callback => callback());
-        }.bind(this));
+        }.bind(this);
+
+        this.socket.onopen = function(event){
+            this.state = WebSocketConnectionWrapper.OPEN;
+            this.pending.forEach(element => {
+                this.socket.send(element);
+            });
+            this.pending = [];
+        }.bind(this);
     }
 
+    static CONNECTING = 0;
+    static OPEN = 1;
+    static CLOSED = 2;
+
     send(message){
-        this.socket.send(message.buffer);
+        if(this.state == WebSocketConnectionWrapper.OPEN){
+            this.socket.send(message.buffer);
+        }else if(this.state == WebSocketConnectionWrapper.CONNECTING){
+            this.pending.push(message.buffer);
+        }
     }
 
     endpoint(){

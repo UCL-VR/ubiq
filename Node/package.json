@@ -1,17 +1,27 @@
 {
-  "name": "ubiqserver",
+  "name": "ubiq",
   "version": "0.1.0",
-  "description": "Ubiq Server",
+  "description": "Ubiq Resources and Samples for Node",
   "main": "app.js",
   "author": "UCL VECG",
   "license": "Apache-2.0",
   "dependencies": {
+    "bufferutil": "^4.0.7",
     "commander": "^7.2.0",
+    "components": "file:components",
     "fs": "0.0.1-security",
     "https": "^1.0.0",
     "jsonschema": "^1.4.0",
+    "modules": "file:modules",
     "nconf": "^0.11.3",
     "ubiq": "file:ubiq",
+    "utf-8-validate": "^5.0.10",
     "wrtc": "^0.4.6"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^24.0.1",
+    "@rollup/plugin-node-resolve": "^15.0.1",
+    "rollup": "^3.12.1",
+    "rollup-plugin-polyfill-node": "^0.12.0"
   }
 }
