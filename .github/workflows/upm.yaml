@@ -7,8 +7,10 @@ jobs:
     name: Build and commit to upm branch
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout master
-        uses: actions/checkout@master
+      - name: Checkout release
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
       - name: Fetch branch
         run: git fetch origin upm:upm || true
       - name: Create upm branch if it does not yet exist
