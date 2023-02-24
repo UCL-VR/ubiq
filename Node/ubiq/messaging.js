@@ -1,4 +1,3 @@
-const { TextDecoder } = require('util');
 const { Schema } = require('./schema');
 const { performance } = require('perf_hooks');
 const { Buffer } = require('buffer');

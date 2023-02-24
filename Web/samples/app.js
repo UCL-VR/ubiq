@@ -1,3 +1,48 @@
+import Ubiq from "/bundle.js"
+
+const connection = new Ubiq.WebSocketConnectionWrapper(new WebSocket("wss://192.168.1.2:8010"));
+
+const scene = new Ubiq.NetworkScene();
+scene.addConnection(connection);
+
+const roomclient = new Ubiq.RoomClient(scene);
+
+roomclient.addListener("OnJoinedRoom", room => {
+    console.log("Joined Room with Join Code " + room.joincode);
+});
+
+roomclient.addListener("OnPeerAdded", peer => {
+    console.log("New Peer: " + peer.uuid);
+})
+
+
+class WebSampleComponent{
+    constructor(scene){
+        this.networkId = new Ubiq.NetworkId("d184c9e2-d4e096fd");
+        this.context = scene.register(this);
+    }
+
+    processMessage(m){
+        console.log(m);
+    }
+
+    send(){
+        this.context.send("Hello World!");
+    }
+}
+
+const component = new WebSampleComponent(scene);
+
+document.getElementById("sendbutton").onclick = () =>{
+    component.send();
+};
+
+const roomGuid = "6765c52b-3ad6-4fb0-9030-2c9a05dc4732";
+
+roomclient.join(roomGuid);
+
+/*
+
 const socket = new WebSocketConnection();
 const context = new AudioContext();
 
@@ -134,4 +179,8 @@ class VirtualWorld{
 RtcPeerConnectionComponent.prototype.onLoaded = async function () {
     this.world = new VirtualWorld(document.getElementById("avatarcanvas"));
     requestAnimationFrame(this.world.animate.bind(this.world));
+}
+*/
+export function hello(){
+    alert("Hello World");
 }

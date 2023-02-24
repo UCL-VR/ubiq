@@ -24,7 +24,7 @@ class NetworkContext{
     send(args){
         if(arguments.length == 0){
             throw "Send must have at least one argument"
-        }else if(arguments == 1){
+        }else if(arguments.length == 1){
             this.scene.send(this.object.networkId, arguments[0]);
         }else{
             this.scene.send(arguments[0], arguments[1]);

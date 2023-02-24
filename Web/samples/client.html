@@ -6,9 +6,11 @@
     <title>UCL CVE WebRTC Client Example</title>
   </head>
   <body>
-    <script src="../connections.js" ></script> <!--ucl cve components-->
-    <script src="../lib.js" ></script> <!--ucl cve components-->
-    <script src="main.js" ></script> <!--example implementation-->
+    <!--This script tag stores all the exports of app on the globally accessible window object-->
+    <script type="module">
+      import * as app from "./app.js";
+      window.app = app;
+    </script>
     <div>
       UCL CVE Browser Examples
     </div>
@@ -18,7 +20,7 @@
       </div>
       <canvas id="avatarcanvas" width="300" height="300" style="border:1px solid" ></canvas>
       <button id="avatarbutton" onclick="pc1.callVirtualAvatar()">Start Avatar</button>
-      <audio id="audioplayer" controls src="audio/scott_holmes_hotshot.mp3"></audio>
+      <audio id="audioplayer" controls src="/audio/scott_holmes_hotshot.mp3"></audio>
       <button id="playbutton" onclick="pc1.playAudioFile()">Play</button>
 
       
@@ -32,10 +34,6 @@
         <input id="messagebox">
         <button id="sendbutton">Send</button>
       </div>
-    </div>
-    <script type="text/javascript">
-      pc1.onLoaded();
-    </script>
-    
+    </div>    
   </body>
 </html>
