@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.Security.Cryptography;
+using UnityEngine.SceneManagement;
 
 namespace Ubiq.Messaging
 {
@@ -313,24 +314,39 @@ namespace Ubiq.Messaging
             }
         }
 
+        private static IEnumerable<Transform> GetSiblings(Transform transform)
+        {
+            if (transform.parent != null)
+            {
+                foreach (Transform sibling in transform.parent)
+                {
+                    yield return sibling;
+                }
+            }
+            else
+            {
+                foreach (Transform sibling in SceneManager.GetActiveScene().GetRootGameObjects().Select(g => g.transform))
+                {
+                    yield return sibling;
+                }
+            }
+        }
+
         private static void GetAncestors(Transform transform, List<Node> ancestors)
         {
             var node = new Node();
             node.Transform = transform;
             node.Index = 0;
 
-            if(node.Transform.parent != null)
+            foreach (Transform sibling in GetSiblings(node.Transform))
             {
-                foreach (Transform sibling in node.Transform.parent)
+                if (sibling == transform)
                 {
-                    if(sibling == transform)
-                    {
-                        break;
-                    }
-                    if(sibling.name == transform.name)
-                    {
-                        node.Index++;
-                    }
+                    break;
+                }
+                if (sibling.name == transform.name)
+                {
+                    node.Index++;
                 }
             }
 
@@ -406,9 +422,12 @@ namespace Ubiq.Messaging
             // Now we can resolve the list of nodes to unique breadcrumbs
 
             var address = "root";
-            for (int i = ancestors.IndexOf(root) + 1; i < ancestors.Count; i++)
+            for (int i = ancestors.IndexOf(root); i < ancestors.Count; i++)
             {
-                address += "/" + ancestors[i].GetName();
+                if (!ancestors[i].Common)
+                {
+                    address += "/" + ancestors[i].GetName();
+                }
             }
 
             return address;
