@@ -31,5 +31,9 @@ namespace Ubiq.Avatars
                 context.Send(message);
             }
         }
+
+        public void ProcessMessage (ReferenceCountedSceneGraphMessage msg)
+        {
+        }
     }
 }
