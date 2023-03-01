@@ -30,3 +30,11 @@ You're connected! For next steps see the Getting Started guide in our docs at ht
 ## Awards
 
 <img src="Documentation/docs/images/8e9dfe00-e9d5-4980-8373-e264c7f4c1e1.png" width=20%/>
+
+## Do you use Ubiq?
+
+Having a list of projects using Ubiq helps when applying for funding. 
+
+If you use Ubiq in any way, please consider telling us using the form below. It only takes 30 seconds, all responses are anonymous, all fields optional, and the data will only be used in aggregate for applications.
+
+https://forms.gle/DsnFZVA3RvtNhge37
