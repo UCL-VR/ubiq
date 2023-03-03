@@ -37,6 +37,76 @@ document.getElementById("sendbutton").onclick = () =>{
     component.send();
 };
 
+
+
+const peerconnectionmanager = new Ubiq.PeerConnectionManager(scene);
+
+peerconnectionmanager.addListener("OnPeerConnection", async component =>{
+    let pc = new RTCPeerConnection({
+        sdpSemantics: 'unified-plan',
+      });
+
+    // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Connectivity
+    
+    // Set up the listeners first
+
+    component.addListener("OnIceCandidate", async c =>{
+        // (The current version of wrtc requires the candidate to be prefixed
+        // as below.)
+        // Todo: which is out of spec, wrtc or sipsorcery?
+        if(c !== null && c.candidate !== ''){
+            c.candidate = "candidate:" + c.candidate;
+        }
+        pc.addIceCandidate(c);
+        console.log("Received ice candidate");
+    });
+
+    component.addListener("OnSignallingMessage", async m =>{
+        if(m.type == "offer"){
+            await pc.setRemoteDescription(m);
+            let answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            component.sendAnswer(answer);
+            component.startCandidates();
+        }
+        if(m.type == "answer"){
+            await pc.setRemoteDescription(m);
+            component.startCandidates();
+        }
+        //Todo: rollback functionality
+    });
+
+    pc.addEventListener("message", m =>{
+        component.sendSignallingMessage(m);
+    });
+
+    pc.addEventListener("icecandidate", e =>{
+        component.sendIceCandidate(e.candidate);
+        console.log("sending ice candidate");
+    });
+
+    pc.addEventListener("track", e =>{
+        document.getElementById("audioelement").srcObject = e.streams[0];
+    });
+
+    pc.addEventListener("negotiationneeded", async e=>{
+        let offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        component.sendOffer(offer);
+        component.startCandidates();
+    });
+
+    // Create the channels, if we are the polite peer
+
+    if(!component.polite){
+        // Create the audio sources and sinks
+        let dc = pc.createDataChannel("myChannel");
+    }
+});
+
+
+
+
 const roomGuid = "6765c52b-3ad6-4fb0-9030-2c9a05dc4732";
 
 roomclient.join(roomGuid);

@@ -2,7 +2,7 @@
 // the Browser with Rollup.
 
 const { NetworkId, NetworkScene, WebSocketConnectionWrapper } = require("ubiq");
-const { RoomClient } = require("components");
+const { RoomClient, PeerConnectionManager } = require("components");
 
 // This file is intended to bundle almost all the Ubiq Components and 
 // dependencies for use in the browser, for the convenience of the Web Samples.
@@ -36,5 +36,6 @@ module.exports = {
     NetworkId,
     NetworkScene,
     RoomClient,
-    WebSocketConnectionWrapper
+    WebSocketConnectionWrapper,
+    PeerConnectionManager
 }

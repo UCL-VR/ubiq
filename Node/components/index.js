@@ -8,8 +8,10 @@
 
 const { LogCollector} = require("./logcollector")
 const { RoomClient } = require("./roomclient")
+const { PeerConnectionManager } = require("./peerconnectionmanager")
 
 module.exports = {
     LogCollector,
-    RoomClient  
+    RoomClient,
+    PeerConnectionManager
 }
