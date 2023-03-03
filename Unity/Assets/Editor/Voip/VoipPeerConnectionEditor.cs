@@ -12,8 +12,10 @@ namespace Ubiq.Voip
             if (!string.IsNullOrEmpty(pc.peerUuid))
             {
                 EditorGUILayout.LabelField("Peer", pc.peerUuid);
-                EditorGUILayout.LabelField("Peer State", pc.peerConnectionState.ToString());
+                EditorGUILayout.LabelField("Connection State", pc.peerConnectionState.ToString());
+                EditorGUILayout.LabelField("Signalling State", pc.peerSignallingState.ToString());
                 EditorGUILayout.LabelField("Ice State", pc.iceConnectionState.ToString());
+
             }
         }
     }

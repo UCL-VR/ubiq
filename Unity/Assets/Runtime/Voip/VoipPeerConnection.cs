@@ -33,6 +33,16 @@ namespace Ubiq.Voip
             connected = 5
         }
 
+        public enum PeerSignallingState : int
+        {
+            stable = 0,
+            have_local_offer = 1,
+            have_remote_offer = 2,
+            have_local_pranswer = 3,
+            have_remote_pranswer = 4,
+            closed = 5
+        }
+
         // Defined here as well as in Impl for external use
         public struct PlaybackStats
         {
@@ -63,6 +73,7 @@ namespace Ubiq.Voip
 
         public IceConnectionState iceConnectionState { get; private set; } = IceConnectionState.@new;
         public PeerConnectionState peerConnectionState { get; private set; } = PeerConnectionState.@new;
+        public PeerSignallingState peerSignallingState { get; private set; } = PeerSignallingState.stable;
 
         [Serializable] public class IceConnectionStateEvent : UnityEvent<IceConnectionState> { }
         [Serializable] public class PeerConnectionStateEvent : UnityEvent<PeerConnectionState> { }
@@ -168,6 +179,7 @@ namespace Ubiq.Voip
             impl.signallingMessageEmitted += OnImplMessageEmitted;
             impl.iceConnectionStateChanged += OnImplIceConnectionStateChanged;
             impl.peerConnectionStateChanged += OnImplPeerConnectionStateChanged;
+            impl.peerSignallingStateChanged += OnImplPeerSignallingStateChanged;
 
             networkScene.AddProcessor(networkId, ProcessMessage);
 
@@ -199,6 +211,11 @@ namespace Ubiq.Voip
         {
             peerConnectionState = (PeerConnectionState)state;
             OnPeerConnectionStateChanged.Invoke((PeerConnectionState)state);
+        }
+
+        private void OnImplPeerSignallingStateChanged(Implementations.PeerSignallingState state)
+        {
+            peerSignallingState = (PeerSignallingState)state;
         }
 
         /// <summary>
