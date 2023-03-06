@@ -172,6 +172,10 @@ class RoomClient extends EventEmitter{
         return this.room.properties.get(key);
     }
 
+    getRoomProperties(){
+        return Object.fromEntries(this.room.properties);
+    }
+
     // part of the interface for a network component
     processMessage(message){
         message = message.toObject();

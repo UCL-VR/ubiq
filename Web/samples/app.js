@@ -13,7 +13,51 @@ roomclient.addListener("OnJoinedRoom", room => {
 
 roomclient.addListener("OnPeerAdded", peer => {
     console.log("New Peer: " + peer.uuid);
-})
+});
+
+roomclient.addListener("OnPeerAdded", peer => {
+    const peerDiv = document.createElement("div");
+    peerDiv.setAttribute("id", peer.uuid);
+    document.getElementById("peers").appendChild(peerDiv);
+    updatePeerProperties(peer);
+});
+
+roomclient.addListener("OnPeerUpdated", peer => {
+    updatePeerProperties(peer);
+});
+
+roomclient.addListener("OnJoinedRoom", room => {
+    updateRoomProperties(room.properties);
+});
+
+roomclient.addListener("OnRoomUpdated", room => {
+    updateRoomProperties(room.properties);
+});
+
+
+
+function updateRoomProperties(map) {
+    const container = document.getElementById("roomdictionary");
+    container.innerHTML = "";
+    map.forEach((value,key) => {
+        const entry = document.createElement("div");
+        const disp = document.createTextNode(key + " " + value);
+        entry.appendChild(disp);
+        container.appendChild(entry);
+    });
+};
+
+function updatePeerProperties(peer){
+    const container = document.getElementById(peer.uuid);
+    container.innerHTML = "";
+    peer.properties.forEach((value,key) => {
+        const entry = document.createElement("div");
+        const disp = document.createTextNode(key + " " + value);
+        entry.appendChild(disp);
+        container.appendChild(entry);
+    });
+}
+
 
 
 class WebSampleComponent{
@@ -112,88 +156,6 @@ const roomGuid = "6765c52b-3ad6-4fb0-9030-2c9a05dc4732";
 roomclient.join(roomGuid);
 
 /*
-
-const socket = new WebSocketConnection();
-const context = new AudioContext();
-
-const pc1 = new RtcPeerConnectionComponent(new SceneGraphBusNode(socket, 1), 1);
-
-// Extend the peer connection component by defining more methods. These will be called by both the DOM and the Component itself.
-
-// Note how these additions are anonymous functions, not lambdas, which allows them to access the this member
-
-RtcPeerConnectionComponent.prototype.playAudioFile = async function () {
-    //Streams an MP3 to a peer via WebRTC. Uses the Web Audio MediaStreamAudioSourceNode and MediaStreamAudioDestinationNode types to get an Audio element
-    //as a media stream that can be provided to WebRTC as a track.
-    //The Audio element has an audio file set to play on it.
-
-    var player = document.getElementById("audioplayer");
-    var source = context.createMediaElementSource(player);
-    
-    //source.connect(context.destination); // uncomment to play out of the speakers
-
-    // destination is a node that can be added to the end of a graph, containing a media stream member that represents the output and can be forwarded to WebRTC
-    
-    var destination = context.createMediaStreamDestination();
-    source.connect(destination);
-    this.pc.addTrack(destination.stream.getAudioTracks()[0]); // By definition the destination stream has only one audio track.
-
-    player.play();
-    context.resume();
-}
-
-RtcPeerConnectionComponent.prototype.callLocalAudio  = async function () {
-    var constraints = {
-        audio: true,
-        video: false,
-        sampleRate: 44800
-    }
-    const localstream = await navigator.mediaDevices.getUserMedia(constraints);
-    for (const track of localstream.getTracks()) {
-        pc.addTrack(track, localstream);
-    }
-}
-
-RtcPeerConnectionComponent.prototype.sendChatText = async function() {
-    this.ch.send(new TextEncoder("utf-8").encode(document.getElementById("messagebox").value));
-}
-
-// Creates a data channel to send avatar updates as Json objects. The VirtualWorld is created automatically on startup.
-// It is assumed the counterpart can match based on the Data Channel label.
-RtcPeerConnectionComponent.prototype.callVirtualAvatar = async function() {
-    this.avatarDataChannel = this.pc.createDataChannel("avatarTransforms");
-    
-    // helper method added directly to the dataChannelObject
-    this.avatarDataChannel.encoder = new TextEncoder("utf-8");
-    this.avatarDataChannel.sendJson = function(message){
-        if(this.readystate = 'open'){
-            this.send(this.encoder.encode(JSON.stringify(message)));
-        }
-    }
-    window.setInterval(
-        function(){
-            this.avatarDataChannel.sendJson({ x: this.world.avatar.x, y: this.world.avatar.y });
-        }.bind(this),
-        30
-    )
-
-    this.avatarDataChannel.decoder = new TextDecoder("utf-8");
-    this.avatarDataChannel.onmessage = function(message){
-        this.world.onavatar(JSON.parse(this.avatarDataChannel.decoder.decode(message.data)));
-    }.bind(this)
-}
-
-RtcPeerConnectionComponent.prototype.onDataChannelMessage = async function (event) {
-    document.getElementById("conversation").innerText += new TextDecoder().decode(event.message.data) + "\n";
-}
-
-RtcPeerConnectionComponent.prototype.onAudioTrack = async function (track) {
-    document.getElementById("audioelement").srcObject= new MediaStream([track]);
-}
-
-RtcPeerConnectionComponent.prototype.onVideoTrack = async function (track) {
-    document.getElementById("videoelement").srcObject = new MediaStream([track]);
-}
 
 class VirtualWorldAvatar{
     constructor(){

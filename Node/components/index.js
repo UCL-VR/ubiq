@@ -9,9 +9,12 @@
 const { LogCollector} = require("./logcollector")
 const { RoomClient } = require("./roomclient")
 const { PeerConnectionManager } = require("./peerconnectionmanager")
+const { AvatarManager, ThreePointTrackedAvatar } = require("./avatarmanager")
 
 module.exports = {
     LogCollector,
     RoomClient,
-    PeerConnectionManager
+    PeerConnectionManager,
+    AvatarManager,
+    ThreePointTrackedAvatar
 }

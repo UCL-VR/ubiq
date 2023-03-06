@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>UCL CVE WebRTC Client Example</title>
+    <title>Ubiq Browser Client Sample</title>
   </head>
   <body>
     <!--This script tag stores all the exports of app on the globally accessible window object-->
@@ -12,23 +12,28 @@
       window.app = app;
     </script>
     <div>
-      UCL CVE Browser Examples
+      Ubiq Browser Client Sample
     </div>
     <div>
       <div>
-        Peer Connection 1
+        Peer
       </div>
-      <canvas id="avatarcanvas" width="300" height="300" style="border:1px solid" ></canvas>
-      <button id="avatarbutton" onclick="pc1.callVirtualAvatar()">Start Avatar</button>
-      <audio id="audioplayer" controls src="/audio/scott_holmes_hotshot.mp3"></audio>
-      <button id="playbutton" onclick="pc1.playAudioFile()">Play</button>
-
-      
-      <video id="videoelement" autoplay></video>
-      <audio id="audioelement" autoplay controls></audio>
-      <button id="callbutton">Call</button>
-      
-      <div>
+      <div id="roomdictionary" style="float:left; width:200px">
+        hello
+      </div>
+      <div id="peers" style="float:left; width:200px">
+        hello
+      </div>
+      <div style="float:left; width:400px">
+        <canvas id="avatarcanvas" width="300" height="300" style="border:1px solid"></canvas>
+        <button id="avatarbutton" onclick="pc1.callVirtualAvatar()">Start Avatar</button>
+        <audio id="audioplayer" controls src="/audio/scott_holmes_hotshot.mp3"></audio>
+        <button id="playbutton" onclick="pc1.playAudioFile()">Play</button>
+        <video id="videoelement" autoplay></video>
+        <audio id="audioelement" autoplay controls></audio>
+        <button id="callbutton">Call</button>
+      </div>
+      <div id="chat" style="float:left; width:100px">
         <div>Chat</div>
         <div id="conversation"></div>
         <input id="messagebox">
