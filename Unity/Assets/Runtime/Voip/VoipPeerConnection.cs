@@ -69,7 +69,9 @@ namespace Ubiq.Voip
             public SessionStatistics Video;
         }
 
-        public string peerUuid { get; private set; }
+        public string PeerUuid { get; private set; }
+
+        public bool Polite { get; private set; }
 
         public IceConnectionState iceConnectionState { get; private set; } = IceConnectionState.@new;
         public PeerConnectionState peerConnectionState { get; private set; } = PeerConnectionState.@new;
@@ -83,7 +85,6 @@ namespace Ubiq.Voip
 
         private NetworkId networkId;
         private NetworkScene networkScene;
-        private LogEmitter logger;
         private IPeerConnectionImpl impl;
 
         private bool isSetup;
@@ -169,10 +170,10 @@ namespace Ubiq.Voip
                 return;
             }
 
+            this.Polite = polite;
             this.networkId = networkId;
-            this.peerUuid = peerUuid;
+            this.PeerUuid = peerUuid;
             this.networkScene = scene;
-            this.logger = new NetworkEventLogger(networkId, networkScene, this);
 
             this.impl = PeerConnectionImplFactory.Create();
 
