@@ -48,6 +48,10 @@ class NetworkId{
         throw `Cannot construct NetworkId from ${data}`;
     }
 
+    toString(){
+        return `${this.a.toString(16)}-${this.b.toString(16)}`;
+    }
+
     static Compare(x, y){
         return(x.a == y.a && x.b == y.b);
     }
