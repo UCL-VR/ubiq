@@ -120,3 +120,7 @@ dist
 
 # Server local config file, not for source control
 config/local.json
+
+# Server local certificate for running secure WebSocket Servers
+cert.pem
+key.pem
