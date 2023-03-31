@@ -61,7 +61,7 @@ namespace Ubiq.Samples
 
         private void PeerConnectionManager_OnPeerConnection(VoipPeerConnection pc)
         {
-            if (pc == peerConnection || pc.peerUuid != avatar.Peer.uuid)
+            if (pc == peerConnection || pc.PeerUuid != avatar.Peer.uuid)
             {
                 return;
             }
