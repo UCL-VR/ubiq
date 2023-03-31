@@ -11,16 +11,17 @@
 // has left the room.
 
 // Import Ubiq types
-const { NetworkScene, UbiqTcpConnection } = require("../../ubiq");
-const { LogCollector, RoomClient } = require("../../components");
+const { NetworkScene, UbiqTcpConnection } = require("ubiq");
+const { LogCollector, RoomClient } = require("components");
 const fs = require('fs');
+
+const config = JSON.parse(fs.readFileSync(__dirname + "/../config.json"));
 
 // Configuration
 eventType = 2;
-roomGuid = "6765c52b-3ad6-4fb0-9030-2c9a05dc4731";
 
 // Create a connection to a Server
-const connection = UbiqTcpConnection("nexus.cs.ucl.ac.uk", 8009);
+const connection = UbiqTcpConnection(config.tcp.uri, config.tcp.port);
 
 // A NetworkScene
 const scene = new NetworkScene();
@@ -79,4 +80,4 @@ logcollector.lockCollection();
 
 // Join by UUID. Use an online generator to create a new one for your 
 // experiment.
-roomclient.join(roomGuid); 
+roomclient.join(config.room); 

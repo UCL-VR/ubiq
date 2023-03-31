@@ -4,14 +4,14 @@
 // It uses the RoomClient class to set properties in both the Peer and the
 // Room. It will also respond to specific properties set on other Peers.
 
-const { NetworkScene, UbiqTcpConnection } = require("../../ubiq");
-const { RoomClient } = require("../../components");
+const { NetworkScene, UbiqTcpConnection } = require("ubiq");
+const { RoomClient } = require("components");
+const fs = require('fs')
 
-// Configuration
-roomGuid = "6765c52b-3ad6-4fb0-9030-2c9a05dc4731";
+const config = JSON.parse(fs.readFileSync(__dirname + "/../config.json"));
 
 // Create a connection to a Server
-const connection = UbiqTcpConnection("nexus.cs.ucl.ac.uk", 8009);
+const connection = UbiqTcpConnection(config.tcp.uri, config.tcp.port);
 
 // A NetworkScene
 const scene = new NetworkScene();
@@ -36,4 +36,4 @@ roomclient.addListener("OnPeerUpdated", peer =>{
     }
 })
 
-roomclient.join(roomGuid);
+roomclient.join(config.room);

@@ -82,7 +82,7 @@ class PeerConnectionManager extends EventEmitter{
         this.networkId = NetworkId.Create(scene.networkId, this.serviceId);
         this.scene = scene;
         this.scene.register(this);
-        this.roomclient = this.scene.findComponent("RoomClient");
+        this.roomclient = this.scene.getComponent("RoomClient");
         this.roomclient.addListener("OnPeerAdded", this.OnPeerAdded.bind(this));
         this.roomclient.addListener("OnPeerRemoved", this.OnPeerRemoved.bind(this));
         this.peers = {};

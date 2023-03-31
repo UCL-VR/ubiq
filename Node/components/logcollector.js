@@ -111,7 +111,7 @@ class LogCollector extends EventEmitter{
     }
 
     registerRoomClientEvents(){
-        this.roomClient = this.scene.findComponent("RoomClient");
+        this.roomClient = this.scene.getComponent("RoomClient");
         if(this.roomClient == undefined){
             throw "RoomClient must be added to the scene before LogCollector";
         }
