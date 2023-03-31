@@ -1,4 +1,5 @@
 const { Message, NetworkId } = require("./messaging");
+const { EventEmitter } = require('events');
 
 class NetworkContext{
     constructor(scene, object){
@@ -34,11 +35,13 @@ class NetworkContext{
 
 // A NetworkScene object provides the interface between a Connection and the 
 // Networked Components in the application.
-class NetworkScene{
+class NetworkScene extends EventEmitter{
     constructor(){
+        super();
         this.networkId = NetworkId.Unique();
         this.entries = [];
         this.connections = []
+        
     }
 
     // The Connection is expected to be a wrapped connection
@@ -54,6 +57,7 @@ class NetworkScene{
                 entry.object.processMessage(message);
             }
         });
+        this.emit("OnMessage", message);
     }
 
     #onClose(connection){
@@ -112,7 +116,16 @@ class NetworkScene{
         return new NetworkContext(this, entry.object);
     }
 
-    findComponent(name){
+    unregister(component){
+        const i = this.entries.findIndex(entry =>{
+            return entry.object === component;
+        });
+        if(i > -1){
+            this.entries.splice(i, 1);
+        }
+    }
+
+    getComponent(name){
         return this.entries.find(entry =>{
                 return entry.object.constructor.name == name;
             }).object;
