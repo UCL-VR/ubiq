@@ -156,10 +156,18 @@ function createObjectTree(parentNode, obj, level = 0){
 
 const peerConnectionManager = new Ubiq.PeerConnectionManager(scene);
 
+peerConnectionManager.addListener("OnPeerConnectionRemoved", component =>{
+    for(let element of component.elements){
+        element.remove();
+    }
+});
+
 peerConnectionManager.addListener("OnPeerConnection", async component =>{
     let pc = new RTCPeerConnection({
         sdpSemantics: 'unified-plan',
       });
+
+      component.elements = [];
 
     // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Connectivity
     
@@ -188,7 +196,6 @@ peerConnectionManager.addListener("OnPeerConnection", async component =>{
             await pc.setRemoteDescription(m);
             component.startCandidates();
         }
-        //Todo: rollback functionality
     });
 
     pc.addEventListener("message", m =>{
@@ -203,7 +210,12 @@ peerConnectionManager.addListener("OnPeerConnection", async component =>{
     pc.addEventListener("track", e =>{
         switch(e.track.kind){
             case 'audio':
-                document.getElementById("audioelement").srcObject = new MediaStream([e.track]);
+                const prototpye = document.getElementById("audio-prototype");
+                const audioplayer = prototpye.cloneNode(true);
+                audioplayer.srcObject = new MediaStream([e.track]);
+                audioplayer.classList.toggle("hidden");
+                document.getElementById("audioelements").appendChild(audioplayer);
+                component.elements.push(audioplayer);
         }
     });
 
@@ -222,17 +234,23 @@ peerConnectionManager.addListener("OnPeerConnection", async component =>{
         }
     });
 
+    pc.addEventListener("connectionstatechange", e =>{
+        if(e.target.connectionState == "disconnected"){
+            for(let element of component.elements){
+                element.remove();
+            }
+        }
+    });
+
     // Add our local microphone. Adding a track will create a transciever, which
     // will create both a sender and receiver, the receiver we can attach to
     // the local audio player.
     const microphoneStream = await navigator.mediaDevices.getUserMedia({
         audio: true
     });
-    for(const track of microphoneStream.getAudioTracks()){
-        //pc.addTrack('audio', [new MediaStream([track);
+    for(let track of microphoneStream.getAudioTracks()){
+        pc.addTrack(track);
     }
-    const transceiver = pc.addTransceiver('audio', new MediaStream(microphoneStream.getAudioTracks()));
-    transceiver.direction = "sendrecv";
 });
 
 

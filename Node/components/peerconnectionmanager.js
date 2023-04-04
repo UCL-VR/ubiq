@@ -106,8 +106,8 @@ class PeerConnectionManager extends EventEmitter{
     }
 
     OnPeerRemoved(peer){
+        this.emit("OnPeerConnectionRemoved", this.peers[peer.uuid])
         delete this.peers[peer.uuid];
-        // Todo: remove actual PeerConnection Component
     }
 
     processMessage(m){

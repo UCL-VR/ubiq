@@ -8,9 +8,8 @@
     grid-template-rows: min-content min-content max-content auto;
 }
 
-
-.audio-element{
-    height: min-content;
+audio {
+    height: 25px;
 }
 
 .flatland{

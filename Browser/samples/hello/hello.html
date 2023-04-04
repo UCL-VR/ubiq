@@ -27,7 +27,7 @@
       
       <!--The header that spans the top of the screen-->
       <div style="grid-column: 1/-1;" class="block title">
-        Ubiq Hello Browser Sample
+        Ubiq Hello Browser Sample 👋
       </div>
 
       <!--The left hand menu shows information about the room and the peers 
@@ -43,7 +43,9 @@
       <!--The middle menu is a 2D view into the 3D world-->
       <div id="worldview" class="block vertical-list worldview-list">
         <canvas id="flatlandcanvas" class="flatland"></canvas>
-        <audio id="audioelement" autoplay controls style="margin: auto;"></audio>
+        <div id="audioelements" class="block vertical-list">
+          <audio id="audio-prototype" autoplay controls style="margin: auto;" class="audio hidden"></audio>
+        </div>
         <div id="messagestatistics" class="address-grid">
           <div class="header-2">NetworkId</div>
           <div class="header-2">Messages Recieved</div>
