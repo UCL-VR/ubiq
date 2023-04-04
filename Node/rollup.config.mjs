@@ -12,7 +12,7 @@ import nodePolyfills from 'rollup-plugin-polyfill-node';
 export default {
 	input: 'lib.js',
 	output: {
-		file: '../Web/bundle.js',
+		file: '../Browser/bundle.js',
 		format: 'es'
 	},
 	plugins: [
