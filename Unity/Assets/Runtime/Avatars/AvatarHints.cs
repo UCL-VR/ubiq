@@ -193,7 +193,7 @@ namespace Ubiq.Avatars
 
 #if UNITY_EDITOR
     [CustomPropertyDrawer(typeof(AvatarHints))]
-    public class AvatarHints2PropertyDrawer : PropertyDrawer
+    public class AvatarHintsPropertyDrawer : PropertyDrawer
     {
         private ReorderableList _list;
 
@@ -244,12 +244,7 @@ namespace Ubiq.Avatars
             var prevEnabled = GUI.enabled;
             GUI.enabled = !Application.isPlaying;
 
-            property.serializedObject.Update();
             GetList(property).DoList(position);
-
-            if (EditorGUI.EndChangeCheck()) {
-                property.serializedObject.ApplyModifiedProperties();
-            }
 
             GUI.enabled = prevEnabled;
         }
