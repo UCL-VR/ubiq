@@ -21,7 +21,7 @@ https://github.com/UCL-VR/ubiq.git#upm
 ```
 2. In the UPM window, select Ubiq from the package list and import the Samples.
 
-3. Open the `Assets/Samples/Ubiq/0.4.0/Samples/Start Here.unity` scene.
+3. Open the `Assets/Samples/Ubiq/x.y.z/Samples/Start Here.unity` scene.
 
 4. Click `Play`.
 
