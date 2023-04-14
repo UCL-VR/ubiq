@@ -16,18 +16,7 @@ class KnnRoom extends Room{
             values.splice(i,1);
             peer.position = JSON.parse(position);
         }
-        if(keys.length > 0){
-            this.peers.forEach(otherpeer => {
-                if (otherpeer !== peer){
-                    otherpeer.sendPeerPropertiesAppended(peer,keys,values);
-                }
-            });
-            this.observers.forEach(otherpeer =>{
-                if (otherpeer !== peer){
-                    otherpeer.sendPeerPropertiesAppended(peer,keys,values);
-                }
-            });
-        }
+        super.broadcastPeerProperties(peer, keys, values);
     }
 
     appendProperties(keys,values){
@@ -42,11 +31,6 @@ class KnnRoom extends Room{
         peer.kNearestPeerTimeouts = {};
         peer.kObservers = [];
 
-        // If the peer is an observer, then upgrade the peer in place...
-        if(this.observers.includes(peer)){
-            arrayRemove(this.observers, peer);
-            peer.unsetObserved(this);
-        }
         this.peers.push(peer);
         peer.setRoom(this);
     }
