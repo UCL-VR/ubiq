@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Ubiq Browser Client Sample</title>
+    <link rel="stylesheet" href="/ubiq.css">
+    <link rel="stylesheet" href="hello.css">
+  </head>
+  <body>
+    <!--This script tag first downloads the config file, which tells the browser
+    app which server to connect to, and room to join. It then imports the js app
+    and assigns its exports to the global window object (under ubiq.app) so it
+    can be interacted with via the console. The process of importing executes
+    hello.js, where all the initialisation takes place. -->
+    <script>
+      fetch("/config.json").then(x => x.text()).then(config =>{
+        window.ubiq = {
+          config: JSON.parse(config),
+          app:  import("./hello.js")
+        }
+      })
+    </script>
+
+    <!--This sample uses the grid display system to present a number of tiles-->
+    <div class="page-grid client-grid">
+      
+      <!--The header that spans the top of the screen-->
+      <div style="grid-column: 1/-1;" class="block title">
+        Ubiq Hello Browser Sample 👋
+      </div>
+
+      <!--The left hand menu shows information about the room and the peers 
+      occupying it-->
+      <div id="properties" class="vertical-list" >
+        <div class="block">
+          <div class="header-1">Room Properties</div>
+          <div id="room" class="dictionary-list"></div>
+        </div>
+        <div id="peers" class="block" style="display: contents;"></div>
+      </div>
+
+      <!--The middle menu is a 2D view into the 3D world-->
+      <div id="worldview" class="block vertical-list worldview-list">
+        <canvas id="flatlandcanvas" class="flatland"></canvas>
+        <div id="audioelements" class="block vertical-list">
+          <audio id="audio-prototype" autoplay controls style="margin: auto;" class="audio hidden"></audio>
+        </div>
+        <div id="messagestatistics" class="address-grid">
+          <div class="header-2">NetworkId</div>
+          <div class="header-2">Messages Recieved</div>
+        </div>
+        <div id="spacer"></div>
+      </div>
+
+      <!--The right hand menu allows users to create and register generic 
+      'Components'. These entries can be used to monitor the traffic to 
+      particular NetworkIds, or send messages. -->
+
+      <div id="listenersview" class="block vertical-list listeners-view">
+        <button id="createlistenerbutton" class="listener-createbutton">New Component</button>
+        <div id="listeners" class="listeners-list">          
+          <!--This element is a prototype that can be cloned when instantiating
+          new listeners. This saves creating these elements explicitly in code.
+          Remove the style override to edit the layout, but remember it won't be
+          hooked up to any events-->
+          <div id="listener-prototype" class="listener" style="display: none;">
+            <div class="listener-header" contenteditable>Network Id</div>
+            <div class="listener-close">x</div>
+            <div class="listener-messages" >No messages received</div>
+            <div class="listener-format" contenteditable>string</div>
+            <textarea class="listener-input"></textarea>
+            <button class="listener-send">Send</button>
+          </div>
+
+        </div>
+      </div>
+
+      <div style="grid-column: 1/-1;" class="block footer">
+        <div><a href="https://ubiq.online/">Welcome to Ubiq</a> UCL Virtual Environments and Computer Graphics Group</div> 
+      </div>
+    </div>    
+  </body>
+</html>

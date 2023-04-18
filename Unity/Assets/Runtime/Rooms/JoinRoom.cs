@@ -10,15 +10,15 @@ namespace Ubiq.Rooms
     /// </summary>
     public class JoinRoom : MonoBehaviour
     {
-        public string Guid;
+        public RoomGuid Guid;
 
         private void Start()
         {
-            if (Guid.Length > 0)
+            if (Guid.Guid.Length > 0)
             {
                 try
                 {
-                    RoomClient.Find(this).Join(new Guid(Guid));
+                    RoomClient.Find(this).Join(Guid);
                 }
                 catch (NullReferenceException)
                 {

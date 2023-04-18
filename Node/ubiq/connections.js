@@ -4,6 +4,7 @@ const Tcp = require('net');
 const { createServer } = require('https');
 const path = require('path');
 const fs = require('fs');
+const { Buffer } = require('buffer');
 
 // All WrappedConnection types implement two callbacks,
 // onMessage and onClose, and one function, Send.
@@ -69,10 +70,15 @@ class WebSocketConnectionWrapper{
         this.onClose = [];
         this.state = ws.readyState;
         this.socket = ws;
+        this.socket.binaryType = "arraybuffer"; // This has no effect in Node, but correctly configures the event type in the browser
         this.pending = [];
 
         this.socket.onmessage = function(event){
-            this.onMessage.map(callback => callback(Message.Wrap(event.data)));
+            let data = event.data;
+            if(event.data instanceof ArrayBuffer){
+                data = Buffer.from(data);
+            }
+            this.onMessage.map(callback => callback(Message.Wrap(data)));
         }.bind(this);
 
         this.socket.onclose = function(event){

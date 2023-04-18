@@ -9,6 +9,7 @@ namespace Ubiq.Voip.Implementations.Null
         public event MessageEmittedDelegate signallingMessageEmitted;
         public event IceConnectionStateChangedDelegate iceConnectionStateChanged;
         public event PeerConnectionStateChangedDelegate peerConnectionStateChanged;
+        public event PeerSignallingStateChangedDelegate peerSignallingStateChanged;
 #pragma warning restore CS0067
         public void Dispose() {}
         public PlaybackStats GetLastFramePlaybackStats() => new PlaybackStats();

@@ -1,11 +1,11 @@
+using SIPSorcery.Net;
 using System;
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
 using UnityEngine;
-using SIPSorcery.Net;
 
 namespace Ubiq.Voip.Implementations.Dotnet
 {
@@ -26,6 +26,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
         public event MessageEmittedDelegate signallingMessageEmitted;
         public event IceConnectionStateChangedDelegate iceConnectionStateChanged;
         public event PeerConnectionStateChangedDelegate peerConnectionStateChanged;
+        public event PeerSignallingStateChangedDelegate peerSignallingStateChanged;
 
         private ConcurrentQueue<Action> mainThreadActions = new ConcurrentQueue<Action>();
         private Queue<SignallingMessage> messageQueue = new Queue<SignallingMessage>();
@@ -207,6 +208,14 @@ namespace Ubiq.Voip.Implementations.Dotnet
                 sink.SetAudioSinkFormat(formats[0]);
             };
 
+            pc.onsignalingstatechange += () =>
+            {
+                mainThreadActions.Enqueue(() =>
+                {
+                    peerSignallingStateChanged((PeerSignallingState)pc.signalingState);
+                });
+            };
+
             pc.onconnectionstatechange += (state) =>
             {
                 mainThreadActions.Enqueue(() =>
@@ -225,7 +234,10 @@ namespace Ubiq.Voip.Implementations.Dotnet
 
                 if (state == RTCPeerConnectionState.connected)
                 {
-                    source.OnAudioSourceEncodedSample += pc.SendAudio;
+                    if (pc.HasAudio)
+                    {
+                        source.OnAudioSourceEncodedSample += pc.SendAudio;
+                    }
                 }
                 else if (state == RTCPeerConnectionState.closed || state == RTCPeerConnectionState.failed)
                 {
@@ -392,7 +404,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
                     usernameFragment = iceCandidate.usernameFragment
                 };
 
-                Debug.Log($"Got remote Ice Candidate, uri {ssIceCandidate.candidate}");
+                Debug.Log($"Got remote Ice Candidate {ssIceCandidate.sdpMid} {ssIceCandidate.sdpMLineIndex} {ssIceCandidate.candidate}");
                 rtcPeerConnection.addIceCandidate(ssIceCandidate);
             }
         }

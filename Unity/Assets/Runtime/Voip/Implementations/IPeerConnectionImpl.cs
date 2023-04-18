@@ -24,6 +24,16 @@ namespace Ubiq.Voip.Implementations
         connected = 5
     }
 
+    public enum PeerSignallingState : int
+    {
+        stable = 0,
+        have_local_offer = 1,
+        have_remote_offer = 2,
+        have_local_pranswer = 3,
+        have_remote_pranswer = 4,
+        closed = 5
+    }
+
     [Serializable]
     public class IceServerDetails
     {
@@ -226,12 +236,14 @@ namespace Ubiq.Voip.Implementations
     public delegate void MessageEmittedDelegate(SignallingMessage message);
     public delegate void IceConnectionStateChangedDelegate(IceConnectionState state);
     public delegate void PeerConnectionStateChangedDelegate(PeerConnectionState state);
+    public delegate void PeerSignallingStateChangedDelegate(PeerSignallingState state);
 
     public interface IPeerConnectionImpl : IDisposable
     {
         event MessageEmittedDelegate signallingMessageEmitted;
         event IceConnectionStateChangedDelegate iceConnectionStateChanged;
         event PeerConnectionStateChangedDelegate peerConnectionStateChanged;
+        event PeerSignallingStateChangedDelegate peerSignallingStateChanged;
 
         void Setup(MonoBehaviour context,
             bool polite,
