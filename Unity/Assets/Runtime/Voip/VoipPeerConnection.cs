@@ -11,6 +11,19 @@ namespace Ubiq.Voip
 {
     public class VoipPeerConnection : MonoBehaviour
     {
+        private class PeerConnectionContext : IPeerConnectionContext
+        {
+            MonoBehaviour IPeerConnectionContext.behaviour => (MonoBehaviour)peerConnection;
+            void IPeerConnectionContext.Send(SignallingMessage message) => peerConnection.SendFromImpl(message);
+
+            private VoipPeerConnection peerConnection;
+
+            public PeerConnectionContext (VoipPeerConnection peerConnection)
+            {
+                this.peerConnection = peerConnection;
+            }
+        }
+
         // Defined here as well as in Impl for external use
         public enum IceConnectionState
         {
@@ -19,7 +32,8 @@ namespace Ubiq.Voip
             disconnected = 2,
             @new = 3,
             checking = 4,
-            connected = 5
+            connected = 5,
+            completed = 6
         }
 
         // Defined here as well as in Impl for external use
@@ -31,16 +45,6 @@ namespace Ubiq.Voip
             @new = 3,
             connecting = 4,
             connected = 5
-        }
-
-        public enum PeerSignallingState : int
-        {
-            stable = 0,
-            have_local_offer = 1,
-            have_remote_offer = 2,
-            have_local_pranswer = 3,
-            have_remote_pranswer = 4,
-            closed = 5
         }
 
         // Defined here as well as in Impl for external use
@@ -75,7 +79,6 @@ namespace Ubiq.Voip
 
         public IceConnectionState iceConnectionState { get; private set; } = IceConnectionState.@new;
         public PeerConnectionState peerConnectionState { get; private set; } = PeerConnectionState.@new;
-        public PeerSignallingState peerSignallingState { get; private set; } = PeerSignallingState.stable;
 
         [Serializable] public class IceConnectionStateEvent : UnityEvent<IceConnectionState> { }
         [Serializable] public class PeerConnectionStateEvent : UnityEvent<PeerConnectionState> { }
@@ -177,14 +180,12 @@ namespace Ubiq.Voip
 
             this.impl = PeerConnectionImplFactory.Create();
 
-            impl.signallingMessageEmitted += OnImplMessageEmitted;
             impl.iceConnectionStateChanged += OnImplIceConnectionStateChanged;
             impl.peerConnectionStateChanged += OnImplPeerConnectionStateChanged;
-            impl.peerSignallingStateChanged += OnImplPeerSignallingStateChanged;
 
             networkScene.AddProcessor(networkId, ProcessMessage);
 
-            impl.Setup(this,polite,iceServers);
+            impl.Setup(new PeerConnectionContext(this),polite,iceServers);
             isSetup = true;
         }
 
@@ -197,7 +198,7 @@ namespace Ubiq.Voip
             }
         }
 
-        private void OnImplMessageEmitted (SignallingMessage message)
+        private void SendFromImpl (SignallingMessage message)
         {
             networkScene.SendJson(networkId,message);
         }
@@ -212,11 +213,6 @@ namespace Ubiq.Voip
         {
             peerConnectionState = (PeerConnectionState)state;
             OnPeerConnectionStateChanged.Invoke((PeerConnectionState)state);
-        }
-
-        private void OnImplPeerSignallingStateChanged(Implementations.PeerSignallingState state)
-        {
-            peerSignallingState = (PeerSignallingState)state;
         }
 
         /// <summary>

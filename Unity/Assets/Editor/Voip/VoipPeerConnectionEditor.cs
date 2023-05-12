@@ -13,7 +13,6 @@ namespace Ubiq.Voip
             {
                 EditorGUILayout.LabelField("Peer", pc.PeerUuid);
                 EditorGUILayout.LabelField("Connection State", pc.peerConnectionState.ToString());
-                EditorGUILayout.LabelField("Signalling State", pc.peerSignallingState.ToString());
                 EditorGUILayout.LabelField("Ice State", pc.iceConnectionState.ToString());
                 if (pc.Polite)
                 {

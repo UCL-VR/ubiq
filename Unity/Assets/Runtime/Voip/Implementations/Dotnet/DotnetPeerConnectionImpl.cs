@@ -23,16 +23,14 @@ namespace Ubiq.Voip.Implementations.Dotnet
 
     public class DotnetPeerConnectionImpl : IPeerConnectionImpl {
 
-        public event MessageEmittedDelegate signallingMessageEmitted;
         public event IceConnectionStateChangedDelegate iceConnectionStateChanged;
         public event PeerConnectionStateChangedDelegate peerConnectionStateChanged;
-        public event PeerSignallingStateChangedDelegate peerSignallingStateChanged;
 
         private ConcurrentQueue<Action> mainThreadActions = new ConcurrentQueue<Action>();
         private Queue<SignallingMessage> messageQueue = new Queue<SignallingMessage>();
         private Task<RTCPeerConnection> setupTask;
 
-        private MonoBehaviour context;
+        private IPeerConnectionContext context;
         private Coroutine updateCoroutine;
 
         // SipSorcery Peer Connection
@@ -45,7 +43,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
         {
             if (updateCoroutine != null)
             {
-                context.StopCoroutine(updateCoroutine);
+                context.behaviour.StopCoroutine(updateCoroutine);
                 updateCoroutine = null;
             }
 
@@ -56,7 +54,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
             }
         }
 
-        public void Setup(MonoBehaviour context,
+        public void Setup(IPeerConnectionContext context,
             bool polite, List<IceServerDetails> iceServers)
         {
             if (setupTask != null)
@@ -77,13 +75,11 @@ namespace Ubiq.Voip.Implementations.Dotnet
                     password: iceServers[i].password));
             }
 
-            var manager = context.transform.parent;
-
             RequireSource();
             RequireSink();
 
             setupTask = Task.Run(() => DoSetup(polite,iceServersCopy));
-            updateCoroutine = context.StartCoroutine(Update());
+            updateCoroutine = context.behaviour.StartCoroutine(Update());
         }
 
         private void RequireSource ()
@@ -93,7 +89,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
                 return;
             }
 
-            var manager = context.transform.parent;
+            var manager = context.behaviour.transform.parent;
 
             // First, see if an source already exists among siblings
             source = manager.GetComponentInChildren<IDotnetVoipSource>();
@@ -126,14 +122,14 @@ namespace Ubiq.Voip.Implementations.Dotnet
                 return;
             }
 
-            var manager = context.transform.parent;
+            var manager = context.behaviour.transform.parent;
 
             // First, check if a hint exists and use it
             var hint = manager.GetComponent<DotnetVoipSinkHint>();
             if (hint && hint.prefab)
             {
                 var go = GameObject.Instantiate(hint.prefab);
-                go.transform.parent = context.transform;
+                go.transform.parent = context.behaviour.transform;
                 sink = go.GetComponentInChildren<IDotnetVoipSink>();
             }
 
@@ -141,7 +137,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
             if (sink == null)
             {
                 var go = new GameObject("Dotnet Voip Output");
-                go.transform.parent = context.transform;
+                go.transform.parent = context.behaviour.transform;
                 sink = go.AddComponent<AudioSourceDotnetVoipSink>();
             }
         }
@@ -206,14 +202,6 @@ namespace Ubiq.Voip.Implementations.Dotnet
             {
                 source.SetAudioSourceFormat(formats[0]);
                 sink.SetAudioSinkFormat(formats[0]);
-            };
-
-            pc.onsignalingstatechange += () =>
-            {
-                mainThreadActions.Enqueue(() =>
-                {
-                    peerSignallingStateChanged((PeerSignallingState)pc.signalingState);
-                });
             };
 
             pc.onconnectionstatechange += (state) =>
@@ -330,7 +318,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
                 case RTCSdpType.pranswer : offer.type = SessionDescriptionArgs.TYPE_PRANSWER; break;
                 case RTCSdpType.rollback : offer.type = SessionDescriptionArgs.TYPE_ROLLBACK; break;
             }
-            signallingMessageEmitted(SignallingMessage.FromSessionDescription(offer));
+            context.Send(SignallingMessage.FromSessionDescription(offer));
         }
 
         private void SendIceCandidate(RTCIceCandidate iceCandidate)
@@ -342,7 +330,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
                 sdpMLineIndex = iceCandidate.sdpMLineIndex,
                 usernameFragment = iceCandidate.usernameFragment
             };
-            signallingMessageEmitted(SignallingMessage.FromIceCandidate(args));
+            context.Send(SignallingMessage.FromIceCandidate(args));
         }
 
         private void ReceiveSessionDescription(SignallingMessage message)

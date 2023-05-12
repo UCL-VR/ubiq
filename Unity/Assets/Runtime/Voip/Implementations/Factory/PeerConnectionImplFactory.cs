@@ -11,7 +11,7 @@ namespace Ubiq.Voip.Factory
             return new Ubiq.Voip.Implementations.Null.NullPeerConnectionImpl();
     #endif
 #else
-            return new Ubiq.Voip.Implementations.Dotnet.DotnetPeerConnectionImpl();
+            return new Ubiq.Voip.Implementations.Unity.UnityPeerConnectionImpl();
 #endif
         }
     }

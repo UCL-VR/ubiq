@@ -4,6 +4,12 @@ using UnityEngine;
 
 namespace Ubiq.Voip.Implementations
 {
+    public interface IPeerConnectionContext
+    {
+        MonoBehaviour behaviour { get; }
+        void Send(SignallingMessage message);
+    }
+
     public enum IceConnectionState
     {
         closed = 0,
@@ -11,7 +17,8 @@ namespace Ubiq.Voip.Implementations
         disconnected = 2,
         @new = 3,
         checking = 4,
-        connected = 5
+        connected = 5,
+        completed = 6
     }
 
     public enum PeerConnectionState
@@ -77,37 +84,10 @@ namespace Ubiq.Voip.Implementations
         H263 = 34
     }
 
-    // public struct Stats
-    // {
-    //     public float volume;
-    //     public int samples;
-    //     public int sampleRate;
-    // }
-
-    // public interface IAudioStats
-    // {
-    //     Stats lastFrameStats  {get; }
-    // }
-
     public interface IOutputVolume
     {
         float Volume { get; set; }
     }
-
-    // public enum MediaStreamStatus
-    // {
-    //     Inactive,
-    //     RecvOnly,
-    //     SendOnly,
-    //     SendRecv
-    // }
-
-    // public interface IPeerConnection
-    // {
-    //     void Setup()
-    //     void AddTrack(List<MediaFormat> formats,MediaStreamStatus streamStatus);
-    //     event Action<List<MediaFormat>> AudioFormatsNegotiated;
-    // }
 
     [System.Serializable]
     public struct SessionDescriptionArgs
@@ -129,17 +109,6 @@ namespace Ubiq.Voip.Implementations
         public ushort sdpMLineIndex;
         public string usernameFragment;
     }
-
-    // public class MessageBus
-    // {
-    //     public delegate void MessageDelegate(Message message);
-    //     public event MessageDelegate onMessage;
-
-    //     public void Send(Message message)
-    //     {
-    //         onMessage(message);
-    //     }
-    // }
 
     [System.Serializable]
     public struct SignallingMessage
@@ -171,60 +140,44 @@ namespace Ubiq.Voip.Implementations
             };
         }
 
-        public bool ParseSessionDescription(out SessionDescriptionArgs offer)
+        public bool ParseSessionDescription(out SessionDescriptionArgs description)
         {
             if (type != Type.SessionDescription)
             {
-                offer = new SessionDescriptionArgs();
+                description = new SessionDescriptionArgs();
                 return false;
             }
             try
             {
-                offer = JsonUtility.FromJson<SessionDescriptionArgs>(args);
+                description = JsonUtility.FromJson<SessionDescriptionArgs>(args);
                 return true;
             }
             catch
             {
-                offer = new SessionDescriptionArgs();
+                description = new SessionDescriptionArgs();
                 return false;
             }
         }
 
-        public bool ParseIceCandidate(out IceCandidateArgs iceCandidate)
+        public bool ParseIceCandidate(out IceCandidateArgs candidate)
         {
             if (type != Type.IceCandidate)
             {
-                iceCandidate = new IceCandidateArgs();
+                candidate = new IceCandidateArgs();
                 return false;
             }
             try
             {
-                iceCandidate = JsonUtility.FromJson<IceCandidateArgs>(args);
+                candidate = JsonUtility.FromJson<IceCandidateArgs>(args);
                 return true;
             }
             catch
             {
-                iceCandidate = new IceCandidateArgs();
+                candidate = new IceCandidateArgs();
                 return false;
             }
         }
     }
-
-    // public abstract class PeerConnection : MonoBehaviour
-    // {
-    //     public IAudioSink audioSink { get; protected set; }
-    //     public IAudioSource audioSource { get; protected set; }
-    //     public string peerUuid { get; protected set; }
-    //     public IceConnectionState iceConnectionState { get; protected set; } = IceConnectionState.@new;
-    //     public PeerConnectionState peerConnectionState { get; protected set; } = PeerConnectionState.@new;
-    //     [Serializable] public class IceConnectionStateEvent : UnityEvent<IceConnectionState> { }
-    //     [Serializable] public class PeerConnectionStateEvent : UnityEvent<PeerConnectionState> { }
-    //     public IceConnectionStateEvent OnIceConnectionStateChanged = new IceConnectionStateEvent();
-    //     public PeerConnectionStateEvent OnPeerConnectionStateChanged = new PeerConnectionStateEvent();
-
-    //     public abstract void Setup (NetworkId objectId, string peerUuid, bool polite, IAudioSink sink, IAudioSource source);
-    //     public abstract void Teardown();
-    // }
 
     public struct PlaybackStats
     {
@@ -233,20 +186,15 @@ namespace Ubiq.Voip.Implementations
         public int sampleRate;
     }
 
-    public delegate void MessageEmittedDelegate(SignallingMessage message);
     public delegate void IceConnectionStateChangedDelegate(IceConnectionState state);
     public delegate void PeerConnectionStateChangedDelegate(PeerConnectionState state);
-    public delegate void PeerSignallingStateChangedDelegate(PeerSignallingState state);
 
     public interface IPeerConnectionImpl : IDisposable
     {
-        event MessageEmittedDelegate signallingMessageEmitted;
         event IceConnectionStateChangedDelegate iceConnectionStateChanged;
         event PeerConnectionStateChangedDelegate peerConnectionStateChanged;
-        event PeerSignallingStateChangedDelegate peerSignallingStateChanged;
 
-        void Setup(MonoBehaviour context,
-            bool polite,
+        void Setup(IPeerConnectionContext context, bool polite,
             List<IceServerDetails> iceServers);
 
         void ProcessSignallingMessage (SignallingMessage message);
@@ -257,31 +205,4 @@ namespace Ubiq.Voip.Implementations
 
         PlaybackStats GetLastFramePlaybackStats();
     }
-
-        // delegate void EncodedSampleDelegate(uint durationRtpUnits, byte[] sample);
-
-        // event EncodedSampleDelegate AudioSourceEncodedSample;
-
-        // Action CloseAudio();
-        // // void ExternalAudioSourceRawSample(AudioSamplingRatesEnum samplingRate, uint durationMilliseconds, short[] sample);
-        // List<AudioFormat> GetAudioSourceFormats();
-        // bool HasEncodedAudioSubscribers();
-        // bool IsAudioSourcePaused();
-        // Action PauseAudio();
-        // void RestrictFormats(Func<AudioFormat, bool> filter);
-        // Action ResumeAudio();
-        // void SetAudioSourceFormat(AudioFormat audioFormat);
-        // Action StartAudio();
-
-
-        // event SourceErrorDelegate OnAudioSinkError;
-
-        // Action CloseAudioSink();
-        // List<AudioFormat> GetAudioSinkFormats();
-        // void GotAudioRtp(IPEndPoint remoteEndPoint, uint ssrc, uint seqnum, uint timestamp, int payloadID, bool marker, byte[] payload);
-        // Action PauseAudioSink();
-        // void RestrictFormats(Func<AudioFormat, bool> filter);
-        // Action ResumeAudioSink();
-        // void SetAudioSinkFormat(AudioFormat audioFormat);
-        // Action StartAudioSink();
 }
