@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Ubiq.Voip.Implementations.Null
 {
-    public class NullPeerConnectionImpl : IPeerConnectionImpl
+    public class PeerConnectionImpl : IPeerConnectionImpl
     {
 #pragma warning disable CS0067
         public event IceConnectionStateChangedDelegate iceConnectionStateChanged;
@@ -12,7 +12,8 @@ namespace Ubiq.Voip.Implementations.Null
         public void Dispose() {}
         public PlaybackStats GetLastFramePlaybackStats() => new PlaybackStats();
         public void ProcessSignallingMessage(SignallingMessage message) {}
-        public void Setup(IPeerConnectionContext context, bool polite, List<IceServerDetails> iceServers) {
+        public void Setup(IPeerConnectionContext context, bool polite, List<IceServerDetails> iceServers)
+        {
             // Pretend we are connected to silence/hide warnings
             if (iceConnectionStateChanged != null)
             {

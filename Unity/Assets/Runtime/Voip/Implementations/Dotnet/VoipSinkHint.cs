@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Ubiq.Voip.Implementations.Dotnet
 {
-    public class DotnetVoipSinkHint : MonoBehaviour
+    public class VoipSinkHint : MonoBehaviour
     {
         public GameObject prefab;
     }

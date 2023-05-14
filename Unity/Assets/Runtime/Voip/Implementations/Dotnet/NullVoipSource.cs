@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Ubiq.Voip.Implementations.Dotnet
 {
-    public class NullDotnetVoipSource : MonoBehaviour, IDotnetVoipSource
+    public class NullVoipSource : MonoBehaviour, IVoipSource
     {
         private G722AudioEncoder audioEncoder;
         private MediaFormatManager<AudioFormat> audioFormatManager;

@@ -9,7 +9,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
     /// <summary>
     /// Plays back an Audio clip as an Audio Source
     /// </summary>
-    public class AudioClipDotnetVoipSource : MonoBehaviour, IDotnetVoipSource
+    public class AudioClipVoipSource : MonoBehaviour, IVoipSource
     {
         public AudioClip Clip;
         public bool IsPaused;

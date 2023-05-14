@@ -5,11 +5,10 @@ using System.Net;
 using System.Threading.Tasks;
 using SIPSorceryMedia.Abstractions;
 using UnityEngine;
-using Ubiq.Voip.Implementations;
 
 namespace Ubiq.Voip.Implementations.Dotnet
 {
-    public class AudioSourceDotnetVoipSink : MonoBehaviour, IDotnetVoipSink
+    public class AudioSourceVoipSink : MonoBehaviour, IVoipSink
     {
         // IAudioSink implementation starts
         // Thread safe and can be called before Awake() and after OnDestroy()

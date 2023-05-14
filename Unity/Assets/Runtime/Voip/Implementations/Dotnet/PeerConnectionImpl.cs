@@ -9,19 +9,7 @@ using UnityEngine;
 
 namespace Ubiq.Voip.Implementations.Dotnet
 {
-    public interface IDotnetVoipSink : SIPSorceryMedia.Abstractions.IAudioSink
-    {
-        PlaybackStats GetLastFramePlaybackStats();
-        void UpdateSpatialization(Vector3 sourcePosition, Quaternion sourceRotation,
-            Vector3 listenerPosition, Quaternion listenerRotation);
-    }
-
-    public interface IDotnetVoipSource : SIPSorceryMedia.Abstractions.IAudioSource
-    {
-    }
-
-
-    public class DotnetPeerConnectionImpl : IPeerConnectionImpl {
+    public class PeerConnectionImpl : IPeerConnectionImpl {
 
         public event IceConnectionStateChangedDelegate iceConnectionStateChanged;
         public event PeerConnectionStateChangedDelegate peerConnectionStateChanged;
@@ -36,8 +24,8 @@ namespace Ubiq.Voip.Implementations.Dotnet
         // SipSorcery Peer Connection
         private RTCPeerConnection rtcPeerConnection;
 
-        private IDotnetVoipSink sink;
-        private IDotnetVoipSource source;
+        private IVoipSink sink;
+        private IVoipSource source;
 
         public async void Dispose()
         {
@@ -92,17 +80,17 @@ namespace Ubiq.Voip.Implementations.Dotnet
             var manager = context.behaviour.transform.parent;
 
             // First, see if an source already exists among siblings
-            source = manager.GetComponentInChildren<IDotnetVoipSource>();
+            source = manager.GetComponentInChildren<IVoipSource>();
 
             // If not, check if a hint exists and use it
             if (source == null)
             {
-                var hint = manager.GetComponent<DotnetVoipSourceHint>();
+                var hint = manager.GetComponent<VoipSourceHint>();
                 if (hint && hint.prefab)
                 {
                     var go = GameObject.Instantiate(hint.prefab);
                     go.transform.parent = manager;
-                    source = go.GetComponentInChildren<IDotnetVoipSource>();
+                    source = go.GetComponentInChildren<IVoipSource>();
                 }
             }
 
@@ -111,7 +99,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
             {
                 var go = new GameObject("Microphone Dotnet Voip Source");
                 go.transform.parent = manager;
-                source = go.AddComponent<MicrophoneDotnetVoipSource>();
+                source = go.AddComponent<MicrophoneVoipSource>();
             }
         }
 
@@ -125,12 +113,12 @@ namespace Ubiq.Voip.Implementations.Dotnet
             var manager = context.behaviour.transform.parent;
 
             // First, check if a hint exists and use it
-            var hint = manager.GetComponent<DotnetVoipSinkHint>();
+            var hint = manager.GetComponent<VoipSinkHint>();
             if (hint && hint.prefab)
             {
                 var go = GameObject.Instantiate(hint.prefab);
                 go.transform.parent = context.behaviour.transform;
-                sink = go.GetComponentInChildren<IDotnetVoipSink>();
+                sink = go.GetComponentInChildren<IVoipSink>();
             }
 
             // If still nothing, use default
@@ -138,7 +126,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
             {
                 var go = new GameObject("Dotnet Voip Output");
                 go.transform.parent = context.behaviour.transform;
-                sink = go.AddComponent<AudioSourceDotnetVoipSink>();
+                sink = go.AddComponent<AudioSourceVoipSink>();
             }
         }
 

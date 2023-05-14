@@ -1,8 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net;
-using System.Threading.Tasks;
 using UnityEngine;
 
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -11,7 +9,7 @@ using UnityEngine.Android;
 
 namespace Ubiq.Voip.Implementations.Unity
 {
-    public class UnityPeerConnectionMicrophone : MonoBehaviour
+    public class PeerConnectionMicrophone : MonoBehaviour
     {
         public enum State
         {

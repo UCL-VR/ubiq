@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Ubiq.Voip.Implementations.Web
 {
-    public class WebPeerConnectionImpl : IPeerConnectionImpl
+    public class PeerConnectionImpl : IPeerConnectionImpl
     {
         [DllImport("__Internal")]
         public static extern int JS_WebRTC_New();

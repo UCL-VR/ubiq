@@ -1,15 +1,11 @@
-using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Net;
-using System.Threading.Tasks;
 using UnityEngine;
 using Unity.WebRTC;
 
 namespace Ubiq.Voip.Implementations.Unity
 {
-    public class UnityPeerConnectionImpl : IPeerConnectionImpl {
+    public class PeerConnectionImpl : IPeerConnectionImpl {
 
         private class SignallingEvent
         {
@@ -40,7 +36,7 @@ namespace Ubiq.Voip.Implementations.Unity
 
         private AudioSource receiverAudioSource;
         private AudioSource senderAudioSource;
-        private UnityPeerConnectionMicrophone microphone;
+        private PeerConnectionMicrophone microphone;
 
         private bool polite;
 
@@ -137,10 +133,10 @@ namespace Ubiq.Voip.Implementations.Unity
         {
             var manager = context.behaviour.transform.parent.gameObject;
 
-            microphone = manager.GetComponent<UnityPeerConnectionMicrophone>();
+            microphone = manager.GetComponent<PeerConnectionMicrophone>();
             if (!microphone)
             {
-                microphone = manager.AddComponent<UnityPeerConnectionMicrophone>();
+                microphone = manager.AddComponent<PeerConnectionMicrophone>();
             }
 
             yield return microphone.AddUser(context.behaviour.gameObject);

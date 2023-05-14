@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using Ubiq.Messaging;
 using Ubiq.Logging;
-using Ubiq.Voip.Factory;
 using Ubiq.Voip.Implementations;
 
 namespace Ubiq.Voip

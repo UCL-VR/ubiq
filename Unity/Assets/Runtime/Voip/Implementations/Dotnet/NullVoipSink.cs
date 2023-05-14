@@ -11,7 +11,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
     /// <summary>
     /// An Audio Sink that drops all audio data.
     /// </summary>
-    public class NullDotnetVoipSink : MonoBehaviour, IDotnetVoipSink
+    public class NullVoipSink : MonoBehaviour, IVoipSink
     {
 #pragma warning disable 67
         public event SourceErrorDelegate OnAudioSinkError;

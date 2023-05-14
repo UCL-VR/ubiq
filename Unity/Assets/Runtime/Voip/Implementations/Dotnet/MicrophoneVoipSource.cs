@@ -16,7 +16,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
     // samples without encoding/sending. At the moment, mic is never switched
     // off. To complicate matters, C# event thread safety is an issue.
     // TODO What happens when the audio device is changed while listening?
-    public class MicrophoneDotnetVoipSource : MonoBehaviour, IDotnetVoipSource
+    public class MicrophoneVoipSource : MonoBehaviour, IVoipSource
     {
         // IAudioSource implementation starts
         // Thread safe and can be called before Awake() and after OnDestroy()
