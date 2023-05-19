@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Runtime.InteropServices;
+using Ubiq.Voip.Implementations.JsonHelpers;
 
 namespace Ubiq.Voip.Implementations.Web
 {
@@ -122,9 +123,9 @@ namespace Ubiq.Voip.Implementations.Web
             updateCoroutine = context.behaviour.StartCoroutine(Update());
         }
 
-        public void ProcessSignallingMessage (SignallingMessage message)
+        public void ProcessSignallingMessage (string json)
         {
-            messageQueue.Enqueue(message);
+            messageQueue.Enqueue(JsonHelpers.SignallingMessageHelper.FromJson(json));
         }
 
         private void ProcessSignallingMessages()
@@ -136,7 +137,7 @@ namespace Ubiq.Voip.Implementations.Web
 
                 // Workaround for chrome issue, buffer candidates if remote desc
                 // not yet set https://stackoverflow.com/questions/38198751
-                if (!hasRemoteDescription && msg.type == SignallingMessage.Type.IceCandidate) {
+                if (!hasRemoteDescription && msg.candidate != null) {
                     // Peer Connection isn't ready for this message yet - try again later
                     messageQueue.Enqueue(msg);
                     continue;
@@ -201,10 +202,10 @@ namespace Ubiq.Voip.Implementations.Web
             // Check for new ice candidates provided by the peer connection
             while (JS_WebRTC_SignallingMessages_Has(peerConnectionId))
             {
-                context.Send(new SignallingMessage{
+                context.Send(SignallingMessageHelper.ToJson(new SignallingMessage{
                     type = (SignallingMessage.Type)JS_WebRTC_SignallingMessages_GetType(peerConnectionId),
                     args = JS_WebRTC_SignallingMessages_GetArgs(peerConnectionId)
-                });
+                }));
 
                 JS_WebRTC_SignallingMessages_Pop(peerConnectionId);
             }

@@ -1,4 +1,3 @@
-using SIPSorcery.Net;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -6,6 +5,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using UnityEngine;
+using SIPSorcery.Net;
+using Ubiq.Voip.Implementations.JsonHelpers;
 
 namespace Ubiq.Voip.Implementations.Dotnet
 {
@@ -15,7 +16,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
         public event PeerConnectionStateChangedDelegate peerConnectionStateChanged;
 
         private ConcurrentQueue<Action> mainThreadActions = new ConcurrentQueue<Action>();
-        private Queue<SignallingMessage> messageQueue = new Queue<SignallingMessage>();
+        private Queue<string> messageQueue = new Queue<string>();
         private Task<RTCPeerConnection> setupTask;
 
         private IPeerConnectionContext context;
@@ -131,25 +132,61 @@ namespace Ubiq.Voip.Implementations.Dotnet
         }
 
 
-        public void ProcessSignallingMessage (SignallingMessage message)
+        public void ProcessSignallingMessage (string json)
         {
             // Buffer messages until the RtcPeerConnection is initialised
             if (setupTask == null || !setupTask.IsCompleted)
             {
-                messageQueue.Enqueue(message);
+                messageQueue.Enqueue(json);
             }
             else
             {
-                DoReceiveSignallingMessage(message);
+                DoReceiveSignallingMessage(json);
             }
         }
 
-        private void DoReceiveSignallingMessage(SignallingMessage message)
+        private void DoReceiveSignallingMessage(string json)
         {
-            switch(message.type)
+            var msg = SignallingMessageHelper.FromJson(json);
+            if (msg.type != null) // Session description
             {
-                case SignallingMessage.Type.SessionDescription: ReceiveSessionDescription(message); break;
-                case SignallingMessage.Type.IceCandidate: ReceiveIceCandidate(message); break;
+                var sd = SessionDescriptionUbiqToPkg(msg);
+
+                Debug.Log($"Got remote SDP, type {sd.type}");
+                switch(sd.type)
+                {
+                    case RTCSdpType.answer:
+                    {
+                        var result = rtcPeerConnection.setRemoteDescription(sd);
+                        if (result != SetDescriptionResultEnum.OK)
+                        {
+                            Debug.Log($"Failed to set remote description, {result}.");
+                            rtcPeerConnection.Close("Failed to set remote description");
+                        }
+                        break;
+                    }
+                    case RTCSdpType.offer:
+                    {
+                        var result = rtcPeerConnection.setRemoteDescription(sd);
+                        if (result != SetDescriptionResultEnum.OK)
+                        {
+                            Debug.Log($"Failed to set remote description, {result}.");
+                            rtcPeerConnection.Close("Failed to set remote description");
+                        }
+
+                        var answerSdp = rtcPeerConnection.createAnswer();
+                        rtcPeerConnection.setLocalDescription(answerSdp);
+                        Send(answerSdp);
+                        break;
+                    }
+                }
+            }
+            else // Ice candidate
+            {
+                // Convert to sipsorcery format
+                var ic = IceCandidateUbiqToPkg(msg);
+                Debug.Log($"Got remote Ice Candidate {ic.sdpMid} {ic.sdpMLineIndex} {ic.candidate}");
+                rtcPeerConnection.addIceCandidate(ic);
             }
         }
 
@@ -225,7 +262,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
             {
                 if (iceCandidate != null && !string.IsNullOrEmpty(iceCandidate.candidate))
                 {
-                    mainThreadActions.Enqueue(() => SendIceCandidate(iceCandidate));
+                    mainThreadActions.Enqueue(() => Send(iceCandidate));
                 }
             };
 
@@ -263,7 +300,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
             {
                 var offer = pc.createOffer();
                 await pc.setLocalDescription(offer).ConfigureAwait(false);
-                mainThreadActions.Enqueue(() => SendOffer(offer));
+                mainThreadActions.Enqueue(() => Send(offer));
             }
 
             return pc;
@@ -295,94 +332,64 @@ namespace Ubiq.Voip.Implementations.Dotnet
             }
         }
 
-        private void SendOffer(RTCSessionDescriptionInit ssOffer)
+        private static string SdpTypeToString(RTCSdpType type)
         {
-            var offer = new SessionDescriptionArgs();
-            offer.sdp = ssOffer.sdp;
-            switch(ssOffer.type)
+            switch(type)
             {
-                case RTCSdpType.answer : offer.type = SessionDescriptionArgs.TYPE_ANSWER; break;
-                case RTCSdpType.offer : offer.type = SessionDescriptionArgs.TYPE_OFFER; break;
-                case RTCSdpType.pranswer : offer.type = SessionDescriptionArgs.TYPE_PRANSWER; break;
-                case RTCSdpType.rollback : offer.type = SessionDescriptionArgs.TYPE_ROLLBACK; break;
+                case RTCSdpType.answer : return "answer";
+                case RTCSdpType.offer : return "offer";
+                case RTCSdpType.pranswer : return "pranswer";
+                case RTCSdpType.rollback : return "rollback";
+                default : return null;
             }
-            context.Send(SignallingMessage.FromSessionDescription(offer));
         }
 
-        private void SendIceCandidate(RTCIceCandidate iceCandidate)
+        private static RTCSdpType StringToSdpType(string type)
         {
-            var args = new IceCandidateArgs
+            switch(type)
             {
-                candidate = iceCandidate.candidate,
-                sdpMid = iceCandidate.sdpMid,
-                sdpMLineIndex = iceCandidate.sdpMLineIndex,
-                usernameFragment = iceCandidate.usernameFragment
+                case "answer" : return RTCSdpType.answer;
+                case "offer" : return RTCSdpType.offer;
+                case "pranswer" : return RTCSdpType.pranswer;
+                case "rollback" : return RTCSdpType.rollback;
+                default : return RTCSdpType.offer;
+            }
+        }
+
+        private static RTCIceCandidateInit IceCandidateUbiqToPkg(SignallingMessage msg)
+        {
+            return new RTCIceCandidateInit()
+            {
+                candidate = msg.candidate,
+                sdpMid = msg.sdpMid,
+                sdpMLineIndex = msg.sdpMLineIndex ?? 0
             };
-            context.Send(SignallingMessage.FromIceCandidate(args));
         }
 
-        private void ReceiveSessionDescription(SignallingMessage message)
+        private static RTCSessionDescriptionInit SessionDescriptionUbiqToPkg(SignallingMessage msg)
         {
-            if (message.ParseSessionDescription(out var offer))
-            {
-                // Convert to sipsorcery format
-                var ssOffer = new RTCSessionDescriptionInit();
-                ssOffer.sdp = offer.sdp;
-                switch(offer.type)
-                {
-                    case SessionDescriptionArgs.TYPE_ANSWER : ssOffer.type = RTCSdpType.answer; break;
-                    case SessionDescriptionArgs.TYPE_OFFER : ssOffer.type = RTCSdpType.offer; break;
-                    case SessionDescriptionArgs.TYPE_PRANSWER : ssOffer.type = RTCSdpType.pranswer; break;
-                    case SessionDescriptionArgs.TYPE_ROLLBACK : ssOffer.type = RTCSdpType.rollback; break;
-                }
-
-                Debug.Log($"Got remote SDP, type {ssOffer.type}");
-                switch(ssOffer.type)
-                {
-                    case RTCSdpType.answer:
-                    {
-                        var result = rtcPeerConnection.setRemoteDescription(ssOffer);
-                        if (result != SetDescriptionResultEnum.OK)
-                        {
-                            Debug.Log($"Failed to set remote description, {result}.");
-                            rtcPeerConnection.Close("Failed to set remote description");
-                        }
-                        break;
-                    }
-                    case RTCSdpType.offer:
-                    {
-                        var result = rtcPeerConnection.setRemoteDescription(ssOffer);
-                        if (result != SetDescriptionResultEnum.OK)
-                        {
-                            Debug.Log($"Failed to set remote description, {result}.");
-                            rtcPeerConnection.Close("Failed to set remote description");
-                        }
-
-                        var answerSdp = rtcPeerConnection.createAnswer();
-                        rtcPeerConnection.setLocalDescription(answerSdp);
-                        SendOffer(answerSdp);
-                        break;
-                    }
-                }
-            }
+            return new RTCSessionDescriptionInit{
+                sdp = msg.sdp,
+                type = StringToSdpType(msg.type)
+            };
         }
 
-        private void ReceiveIceCandidate(SignallingMessage message)
+        private void Send(RTCSessionDescriptionInit sd)
         {
-            if (message.ParseIceCandidate(out var iceCandidate))
-            {
-                // Convert to sipsorcery format
-                var ssIceCandidate = new RTCIceCandidateInit
-                {
-                    candidate = iceCandidate.candidate,
-                    sdpMid = iceCandidate.sdpMid,
-                    sdpMLineIndex = iceCandidate.sdpMLineIndex,
-                    usernameFragment = iceCandidate.usernameFragment
-                };
+            context.Send(SignallingMessageHelper.ToJson(new SignallingMessage{
+                sdp = sd.sdp,
+                type = SdpTypeToString(sd.type)
+            }));
+        }
 
-                Debug.Log($"Got remote Ice Candidate {ssIceCandidate.sdpMid} {ssIceCandidate.sdpMLineIndex} {ssIceCandidate.candidate}");
-                rtcPeerConnection.addIceCandidate(ssIceCandidate);
-            }
+        private void Send(RTCIceCandidate ic)
+        {
+            context.Send(SignallingMessageHelper.ToJson(new SignallingMessage{
+                candidate = ic.candidate,
+                sdpMid = ic.sdpMid,
+                sdpMLineIndex = (ushort?)ic.sdpMLineIndex,
+                usernameFragment = ic.usernameFragment
+            }));
         }
 
         public void UpdateSpatialization(Vector3 sourcePosition, Quaternion sourceRotation, Vector3 listenerPosition, Quaternion listenerRotation)

@@ -13,7 +13,7 @@ namespace Ubiq.Voip
         private class PeerConnectionContext : IPeerConnectionContext
         {
             MonoBehaviour IPeerConnectionContext.behaviour => (MonoBehaviour)peerConnection;
-            void IPeerConnectionContext.Send(SignallingMessage message) => peerConnection.SendFromImpl(message);
+            void IPeerConnectionContext.Send(string json) => peerConnection.SendFromImpl(json);
 
             private VoipPeerConnection peerConnection;
 
@@ -192,14 +192,13 @@ namespace Ubiq.Voip
         {
             if (impl != null)
             {
-                var message = data.FromJson<SignallingMessage>();
-                impl.ProcessSignallingMessage(message);
+                impl.ProcessSignallingMessage(data.ToString());
             }
         }
 
-        private void SendFromImpl (SignallingMessage message)
+        private void SendFromImpl(string json)
         {
-            networkScene.SendJson(networkId,message);
+            networkScene.Send(networkId,json);
         }
 
         private void OnImplIceConnectionStateChanged (Ubiq.Voip.Implementations.IceConnectionState state)

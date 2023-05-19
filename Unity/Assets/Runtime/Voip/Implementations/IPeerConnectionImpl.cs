@@ -7,7 +7,7 @@ namespace Ubiq.Voip.Implementations
     public interface IPeerConnectionContext
     {
         MonoBehaviour behaviour { get; }
-        void Send(SignallingMessage message);
+        void Send(string json);
     }
 
     public enum IceConnectionState
@@ -29,16 +29,6 @@ namespace Ubiq.Voip.Implementations
         @new = 3,
         connecting = 4,
         connected = 5
-    }
-
-    public enum PeerSignallingState : int
-    {
-        stable = 0,
-        have_local_offer = 1,
-        have_remote_offer = 2,
-        have_local_pranswer = 3,
-        have_remote_pranswer = 4,
-        closed = 5
     }
 
     [Serializable]
@@ -101,84 +91,6 @@ namespace Ubiq.Voip.Implementations
         public string sdp;
     }
 
-    [System.Serializable]
-    public struct IceCandidateArgs
-    {
-        public string candidate;
-        public string sdpMid;
-        public ushort sdpMLineIndex;
-        public string usernameFragment;
-    }
-
-    [System.Serializable]
-    public struct SignallingMessage
-    {
-        public enum Type
-        {
-            SessionDescription = 0,
-            IceCandidate = 1
-        }
-
-        public Type type;
-        public string args;
-
-        public static SignallingMessage FromSessionDescription(SessionDescriptionArgs args)
-        {
-            return new SignallingMessage
-            {
-                type = Type.SessionDescription,
-                args = JsonUtility.ToJson(args)
-            };
-        }
-
-        public static SignallingMessage FromIceCandidate(IceCandidateArgs args)
-        {
-            return new SignallingMessage
-            {
-                type = Type.IceCandidate,
-                args = JsonUtility.ToJson(args)
-            };
-        }
-
-        public bool ParseSessionDescription(out SessionDescriptionArgs description)
-        {
-            if (type != Type.SessionDescription)
-            {
-                description = new SessionDescriptionArgs();
-                return false;
-            }
-            try
-            {
-                description = JsonUtility.FromJson<SessionDescriptionArgs>(args);
-                return true;
-            }
-            catch
-            {
-                description = new SessionDescriptionArgs();
-                return false;
-            }
-        }
-
-        public bool ParseIceCandidate(out IceCandidateArgs candidate)
-        {
-            if (type != Type.IceCandidate)
-            {
-                candidate = new IceCandidateArgs();
-                return false;
-            }
-            try
-            {
-                candidate = JsonUtility.FromJson<IceCandidateArgs>(args);
-                return true;
-            }
-            catch
-            {
-                candidate = new IceCandidateArgs();
-                return false;
-            }
-        }
-    }
-
     public struct PlaybackStats
     {
         public int sampleCount;
@@ -197,7 +109,7 @@ namespace Ubiq.Voip.Implementations
         void Setup(IPeerConnectionContext context, bool polite,
             List<IceServerDetails> iceServers);
 
-        void ProcessSignallingMessage (SignallingMessage message);
+        void ProcessSignallingMessage (string json);
 
         void UpdateSpatialization (Vector3 sourcePosition,
             Quaternion sourceRotation, Vector3 listenerPosition,

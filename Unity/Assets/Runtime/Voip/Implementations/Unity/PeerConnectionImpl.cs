@@ -2,12 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.WebRTC;
+using Ubiq.Voip.Implementations;
+using Ubiq.Voip.Implementations.JsonHelpers;
 
 namespace Ubiq.Voip.Implementations.Unity
 {
     public class PeerConnectionImpl : IPeerConnectionImpl {
 
-        private class SignallingEvent
+        private class Event
         {
             public enum Type
             {
@@ -16,13 +18,13 @@ namespace Ubiq.Voip.Implementations.Unity
             }
 
             public readonly Type type;
-            public readonly SignallingMessage message;
+            public readonly string json;
 
-            public SignallingEvent(SignallingMessage message) : this(Type.SignallingMessage,message) { }
-            public SignallingEvent(Type type, SignallingMessage message = new SignallingMessage())
+            public Event(string json) : this(Type.SignallingMessage,json) { }
+            public Event(Type type, string json = null)
             {
                 this.type = type;
-                this.message = message;
+                this.json = json;
             }
         }
 
@@ -40,7 +42,7 @@ namespace Ubiq.Voip.Implementations.Unity
 
         private bool polite;
 
-        private List<SignallingEvent> events = new List<SignallingEvent>();
+        private List<Event> events = new List<Event>();
         private List<Coroutine> coroutines = new List<Coroutine>();
 
         public void Dispose()
@@ -107,7 +109,7 @@ namespace Ubiq.Voip.Implementations.Unity
                 },
                 OnNegotiationNeeded = () =>
                 {
-                    events.Add(new SignallingEvent(SignallingEvent.Type.NegotiationNeeded));
+                    events.Add(new Event(Event.Type.NegotiationNeeded));
                 },
                 OnIceGatheringStateChange = (RTCIceGatheringState state) =>
                 {
@@ -167,7 +169,7 @@ namespace Ubiq.Voip.Implementations.Unity
                 var e = events[0];
                 events.RemoveAt(0);
 
-                if (e.type == SignallingEvent.Type.NegotiationNeeded)
+                if (e.type == Event.Type.NegotiationNeeded)
                 {
                     var op = peerConnection.SetLocalDescription();
                     yield return op;
@@ -176,20 +178,21 @@ namespace Ubiq.Voip.Implementations.Unity
                 }
 
                 // e.type == Signalling message
-                if (e.message.ParseSessionDescription(out var description))
+                var msg = SignallingMessageHelper.FromJson(e.json);
+                if (msg.type != null)
                 {
                     ignoreOffer = !polite
-                        && description.type == "offer"
+                        && msg.type == "offer"
                         && peerConnection.SignalingState != RTCSignalingState.Stable;
                     if (ignoreOffer)
                     {
                         continue;
                     }
 
-                    var desc = SessionDescriptionUbiqToPkg(description);
+                    var desc = SessionDescriptionUbiqToPkg(msg);
                     var op = peerConnection.SetRemoteDescription(ref desc);
                     yield return op;
-                    if (description.type == "offer")
+                    if (msg.type == "offer")
                     {
                         op = peerConnection.SetLocalDescription();
                         yield return op;
@@ -199,11 +202,11 @@ namespace Ubiq.Voip.Implementations.Unity
                     continue;
                 }
 
-                if (e.message.ParseIceCandidate(out var candidate))
+                if (msg.candidate != null)
                 {
                     if (!ignoreOffer)
                     {
-                        peerConnection.AddIceCandidate(IceCandidateUbiqToPkg(candidate));
+                        peerConnection.AddIceCandidate(IceCandidateUbiqToPkg(msg));
                     }
                     continue;
                 }
@@ -238,9 +241,9 @@ namespace Ubiq.Voip.Implementations.Unity
             receiverAudioSource.clip.SetData(samples,0);
         }
 
-        public void ProcessSignallingMessage (SignallingMessage message)
+        public void ProcessSignallingMessage (string json)
         {
-            events.Add(new SignallingEvent(message));
+            events.Add(new Event(json));
         }
 
         private static RTCConfiguration GetConfiguration(List<IceServerDetails> iceServers)
@@ -272,32 +275,23 @@ namespace Ubiq.Voip.Implementations.Unity
             // }
         }
 
-        private static RTCSessionDescription SessionDescriptionUbiqToPkg(SessionDescriptionArgs descriptionArgs)
+        private static RTCIceCandidate IceCandidateUbiqToPkg(SignallingMessage msg)
         {
-            var desc = new RTCSessionDescription();
-            desc.sdp = descriptionArgs.sdp;
-            switch(descriptionArgs.type)
+            Debug.Log($"candidate: {msg.candidate}, sdpMid: {msg.sdpMid}, sdpMLineIndex: {msg.sdpMLineIndex}");
+            return new RTCIceCandidate (new RTCIceCandidateInit()
             {
-                case SessionDescriptionArgs.TYPE_ANSWER : desc.type = RTCSdpType.Answer; break;
-                case SessionDescriptionArgs.TYPE_OFFER : desc.type = RTCSdpType.Offer; break;
-                case SessionDescriptionArgs.TYPE_PRANSWER : desc.type = RTCSdpType.Pranswer; break;
-                case SessionDescriptionArgs.TYPE_ROLLBACK : desc.type = RTCSdpType.Rollback; break;
-            }
-            return desc;
+                candidate = msg.candidate,
+                sdpMid = msg.sdpMid,
+                sdpMLineIndex = msg.sdpMLineIndex
+            });
         }
 
-        private static PeerConnectionState PeerConnectionStatePkgToUbiq(RTCPeerConnectionState state)
+        private static RTCSessionDescription SessionDescriptionUbiqToPkg(SignallingMessage msg)
         {
-            switch(state)
-            {
-                case RTCPeerConnectionState.Closed : return PeerConnectionState.closed;
-                case RTCPeerConnectionState.Failed : return PeerConnectionState.failed;
-                case RTCPeerConnectionState.Disconnected : return PeerConnectionState.disconnected;
-                case RTCPeerConnectionState.New : return PeerConnectionState.@new;
-                case RTCPeerConnectionState.Connecting : return PeerConnectionState.connecting;
-                case RTCPeerConnectionState.Connected : return PeerConnectionState.connected;
-                default : return PeerConnectionState.failed;
-            }
+            return new RTCSessionDescription{
+                sdp = msg.sdp,
+                type = StringToSdpType(msg.type)
+            };
         }
 
         private static RTCIceServer IceServerUbiqToPkg(IceServerDetails details)
@@ -320,14 +314,18 @@ namespace Ubiq.Voip.Implementations.Unity
             }
         }
 
-        private static RTCIceCandidate IceCandidateUbiqToPkg(IceCandidateArgs candidate)
+        private static PeerConnectionState PeerConnectionStatePkgToUbiq(RTCPeerConnectionState state)
         {
-            return new RTCIceCandidate (new RTCIceCandidateInit()
+            switch(state)
             {
-                candidate = candidate.candidate,
-                sdpMid = candidate.sdpMid,
-                sdpMLineIndex = candidate.sdpMLineIndex
-            });
+                case RTCPeerConnectionState.Closed : return PeerConnectionState.closed;
+                case RTCPeerConnectionState.Failed : return PeerConnectionState.failed;
+                case RTCPeerConnectionState.Disconnected : return PeerConnectionState.disconnected;
+                case RTCPeerConnectionState.New : return PeerConnectionState.@new;
+                case RTCPeerConnectionState.Connecting : return PeerConnectionState.connecting;
+                case RTCPeerConnectionState.Connected : return PeerConnectionState.connected;
+                default : return PeerConnectionState.failed;
+            }
         }
 
         private static IceConnectionState IceConnectionStatePkgToUbiq(RTCIceConnectionState state)
@@ -345,33 +343,45 @@ namespace Ubiq.Voip.Implementations.Unity
             }
         }
 
-        private static void Send(IPeerConnectionContext context, RTCSessionDescription sd)
+        private static string SdpTypeToString(RTCSdpType type)
         {
-            var offer = new SessionDescriptionArgs();
-            offer.sdp = sd.sdp;
-            switch(sd.type)
+            switch(type)
             {
-                case RTCSdpType.Answer : offer.type = SessionDescriptionArgs.TYPE_ANSWER; break;
-                case RTCSdpType.Offer : offer.type = SessionDescriptionArgs.TYPE_OFFER; break;
-                case RTCSdpType.Pranswer : offer.type = SessionDescriptionArgs.TYPE_PRANSWER; break;
-                case RTCSdpType.Rollback : offer.type = SessionDescriptionArgs.TYPE_ROLLBACK; break;
+                case RTCSdpType.Answer : return "answer";
+                case RTCSdpType.Offer : return "offer";
+                case RTCSdpType.Pranswer : return "pranswer";
+                case RTCSdpType.Rollback : return "rollback";
+                default : return null;
             }
-            context.Send(SignallingMessage.FromSessionDescription(offer));
         }
 
-        private static void Send(IPeerConnectionContext context, RTCIceCandidate iceCandidate)
+        private static RTCSdpType StringToSdpType(string type)
         {
-            if (iceCandidate == null || string.IsNullOrEmpty(iceCandidate.Candidate))
+            switch(type)
             {
-                return;
+                case "answer" : return RTCSdpType.Answer;
+                case "offer" : return RTCSdpType.Offer;
+                case "pranswer" : return RTCSdpType.Pranswer;
+                case "rollback" : return RTCSdpType.Rollback;
+                default : return RTCSdpType.Offer;
             }
+        }
 
-            context.Send(SignallingMessage.FromIceCandidate(new IceCandidateArgs
-            {
-                candidate = iceCandidate.Candidate,
-                sdpMid = iceCandidate.SdpMid,
-                sdpMLineIndex = (ushort)iceCandidate.SdpMLineIndex,
-                usernameFragment = iceCandidate.UserNameFragment
+        private static void Send(IPeerConnectionContext context, RTCSessionDescription sd)
+        {
+            context.Send(SignallingMessageHelper.ToJson(new SignallingMessage{
+                sdp = sd.sdp,
+                type = SdpTypeToString(sd.type)
+            }));
+        }
+
+        private static void Send(IPeerConnectionContext context, RTCIceCandidate ic)
+        {
+            context.Send(SignallingMessageHelper.ToJson(new SignallingMessage{
+                candidate = ic.Candidate,
+                sdpMid = ic.SdpMid,
+                sdpMLineIndex = (ushort?)ic.SdpMLineIndex,
+                usernameFragment = ic.UserNameFragment
             }));
         }
 
