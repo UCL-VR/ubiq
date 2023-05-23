@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.WebRTC;
 
 #if UNITY_ANDROID && !UNITY_EDITOR
 using UnityEngine.Android;
@@ -42,6 +43,7 @@ namespace Ubiq.Voip.Implementations.Unity
         private bool microphoneAuthorized;
 
         public AudioSource audioSource;
+        public AudioStreamTrack audioStreamTrack;
 
         private void Awake()
         {
@@ -80,6 +82,7 @@ namespace Ubiq.Voip.Implementations.Unity
                 {
                     audioSource.loop = true;
                     audioSource.Play();
+                    audioStreamTrack = new AudioStreamTrack(audioSource);
                 }
             }
 
@@ -89,6 +92,8 @@ namespace Ubiq.Voip.Implementations.Unity
                 Microphone.End("");
                 Destroy(audioSource.clip);
                 audioSource.clip = null;
+                audioStreamTrack.Dispose();
+                audioStreamTrack = null;
             }
         }
 

@@ -7,8 +7,8 @@ using Ubiq.Voip.Implementations.JsonHelpers;
 
 namespace Ubiq.Voip.Implementations.Unity
 {
-    public class PeerConnectionImpl : IPeerConnectionImpl {
-
+    public class PeerConnectionImpl : IPeerConnectionImpl
+    {
         private class Event
         {
             public enum Type
@@ -142,11 +142,7 @@ namespace Ubiq.Voip.Implementations.Unity
             }
 
             yield return microphone.AddUser(context.behaviour.gameObject);
-            senderAudioSource = microphone.audioSource;
-
-            var senderStream = new MediaStream();
-            var senderAudioTrack = new AudioStreamTrack(senderAudioSource);
-            peerConnection.AddTrack(senderAudioTrack,senderStream);
+            peerConnection.AddTrack(microphone.audioStreamTrack);
         }
 
         private bool ignoreOffer;
@@ -202,7 +198,7 @@ namespace Ubiq.Voip.Implementations.Unity
                     continue;
                 }
 
-                if (msg.candidate != null)
+                if (msg.candidate != null && !string.IsNullOrWhiteSpace(msg.candidate))
                 {
                     if (!ignoreOffer)
                     {
@@ -278,6 +274,7 @@ namespace Ubiq.Voip.Implementations.Unity
         private static RTCIceCandidate IceCandidateUbiqToPkg(SignallingMessage msg)
         {
             Debug.Log($"candidate: {msg.candidate}, sdpMid: {msg.sdpMid}, sdpMLineIndex: {msg.sdpMLineIndex}");
+
             return new RTCIceCandidate (new RTCIceCandidateInit()
             {
                 candidate = msg.candidate,
