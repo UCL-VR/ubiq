@@ -275,6 +275,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
                 stream: false);
             unityAudioSource.loop = true;
             unityAudioSource.ignoreListenerPause = true;
+            unityAudioSource.spatialBlend = 1.0f;
             unityAudioSource.Play();
 
             rtpBufferer = new RtpBufferer(latencySamples,syncSamples);

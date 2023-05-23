@@ -10,7 +10,26 @@ using Ubiq.Voip.Implementations.JsonHelpers;
 
 namespace Ubiq.Voip.Implementations.Dotnet
 {
-    public class PeerConnectionImpl : IPeerConnectionImpl {
+    public class PeerConnectionImpl : IPeerConnectionImpl
+    {
+        private class Event
+        {
+            public enum Type
+            {
+                NegotiationNeeded,
+                SignallingMessage
+            }
+
+            public readonly Type type;
+            public readonly string json;
+
+            public Event(string json) : this(Type.SignallingMessage,json) { }
+            public Event(Type type, string json = null)
+            {
+                this.type = type;
+                this.json = json;
+            }
+        }
 
         public event IceConnectionStateChangedDelegate iceConnectionStateChanged;
         public event PeerConnectionStateChangedDelegate peerConnectionStateChanged;
@@ -20,21 +39,31 @@ namespace Ubiq.Voip.Implementations.Dotnet
         private Task<RTCPeerConnection> setupTask;
 
         private IPeerConnectionContext context;
+        private bool polite;
         private Coroutine updateCoroutine;
 
         // SipSorcery Peer Connection
-        private RTCPeerConnection rtcPeerConnection;
+        private RTCPeerConnection peerConnection;
 
         private IVoipSink sink;
         private IVoipSource source;
 
+        private List<Event> events = new List<Event>();
+        private List<Coroutine> coroutines = new List<Coroutine>();
+
         public async void Dispose()
         {
-            if (updateCoroutine != null)
+            if (context.behaviour)
             {
-                context.behaviour.StopCoroutine(updateCoroutine);
-                updateCoroutine = null;
+                foreach(var coroutine in coroutines)
+                {
+                    if (context.behaviour)
+                    {
+                        context.behaviour.StopCoroutine(coroutine);
+                    }
+                }
             }
+            coroutines.Clear();
 
             if (setupTask != null)
             {
@@ -53,6 +82,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
             }
 
             this.context = context;
+            this.polite = polite;
 
             // Copy ice servers before entering multithreaded context
             var iceServersCopy = new List<IceServerDetails>();
@@ -68,7 +98,9 @@ namespace Ubiq.Voip.Implementations.Dotnet
             RequireSink();
 
             setupTask = Task.Run(() => DoSetup(polite,iceServersCopy));
-            updateCoroutine = context.behaviour.StartCoroutine(Update());
+
+            coroutines.Add(context.behaviour.StartCoroutine(CompleteSetup()));
+            // coroutines.Add(context.behaviour.StartCoroutine(StartMicrophoneTrack()));
         }
 
         private void RequireSource ()
@@ -134,63 +166,10 @@ namespace Ubiq.Voip.Implementations.Dotnet
 
         public void ProcessSignallingMessage (string json)
         {
-            // Buffer messages until the RtcPeerConnection is initialised
-            if (setupTask == null || !setupTask.IsCompleted)
-            {
-                messageQueue.Enqueue(json);
-            }
-            else
-            {
-                DoReceiveSignallingMessage(json);
-            }
+            events.Add(new Event(json));
         }
 
-        private void DoReceiveSignallingMessage(string json)
-        {
-            var msg = SignallingMessageHelper.FromJson(json);
-            if (msg.type != null) // Session description
-            {
-                var sd = SessionDescriptionUbiqToPkg(msg);
-
-                Debug.Log($"Got remote SDP, type {sd.type}");
-                switch(sd.type)
-                {
-                    case RTCSdpType.answer:
-                    {
-                        var result = rtcPeerConnection.setRemoteDescription(sd);
-                        if (result != SetDescriptionResultEnum.OK)
-                        {
-                            Debug.Log($"Failed to set remote description, {result}.");
-                            rtcPeerConnection.Close("Failed to set remote description");
-                        }
-                        break;
-                    }
-                    case RTCSdpType.offer:
-                    {
-                        var result = rtcPeerConnection.setRemoteDescription(sd);
-                        if (result != SetDescriptionResultEnum.OK)
-                        {
-                            Debug.Log($"Failed to set remote description, {result}.");
-                            rtcPeerConnection.Close("Failed to set remote description");
-                        }
-
-                        var answerSdp = rtcPeerConnection.createAnswer();
-                        rtcPeerConnection.setLocalDescription(answerSdp);
-                        Send(answerSdp);
-                        break;
-                    }
-                }
-            }
-            else // Ice candidate
-            {
-                // Convert to sipsorcery format
-                var ic = IceCandidateUbiqToPkg(msg);
-                Debug.Log($"Got remote Ice Candidate {ic.sdpMid} {ic.sdpMLineIndex} {ic.candidate}");
-                rtcPeerConnection.addIceCandidate(ic);
-            }
-        }
-
-        private async Task<RTCPeerConnection> DoSetup(bool polite,
+        private RTCPeerConnection DoSetup(bool polite,
             List<IceServerDetails> iceServers)
         {
             // Convert to sipsorcery ice server format
@@ -220,9 +199,6 @@ namespace Ubiq.Voip.Implementations.Dotnet
                 iceServers = ssIceServers,
             });
 
-            pc.addTrack(new MediaStreamTrack(
-                source.GetAudioSourceFormats(),
-                MediaStreamStatusEnum.SendRecv));
             pc.OnAudioFormatsNegotiated += (formats) =>
             {
                 source.SetAudioSourceFormat(formats[0]);
@@ -258,12 +234,17 @@ namespace Ubiq.Voip.Implementations.Dotnet
                 }
             };
 
+            pc.onnegotiationneeded += () =>
+            {
+                mainThreadActions.Enqueue(() => events.Add(new Event(Event.Type.NegotiationNeeded)));
+            };
+
             pc.onicecandidate += (iceCandidate) =>
             {
-                if (iceCandidate != null && !string.IsNullOrEmpty(iceCandidate.candidate))
-                {
-                    mainThreadActions.Enqueue(() => Send(iceCandidate));
-                }
+                // if (iceCandidate != null && !string.IsNullOrEmpty(iceCandidate.candidate))
+                // {
+                mainThreadActions.Enqueue(() => Send(context,iceCandidate));
+                // }
             };
 
             pc.OnRtpPacketReceived += (IPEndPoint rep, SDPMediaTypesEnum media, RTPPacket rtpPkt) =>
@@ -281,7 +262,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
             pc.OnSendReport += (media, sr) => mainThreadActions.Enqueue(
                 () => Debug.Log($"RTCP Send for {media}\n{sr.GetDebugSummary()}"));
             pc.GetRtpChannel().OnStunMessageReceived += (msg, ep, isRelay) => mainThreadActions.Enqueue(
-                () => Debug.Log($"STUN {msg.Header.MessageType} received from {ep}."));
+                () => Debug.Log($"STUN {msg.Header.MessageType} received from {ep}:{msg.ToString()}"));
             pc.oniceconnectionstatechange += (state) => mainThreadActions.Enqueue(() =>
             {
                 switch(state)
@@ -296,40 +277,145 @@ namespace Ubiq.Voip.Implementations.Dotnet
                 Debug.Log($"ICE connection state change to {state}.");
             });
 
-            if (!polite)
-            {
-                var offer = pc.createOffer();
-                await pc.setLocalDescription(offer).ConfigureAwait(false);
-                mainThreadActions.Enqueue(() => Send(offer));
-            }
+            pc.addTrack(new MediaStreamTrack(source.GetAudioSourceFormats()));
+
+            mainThreadActions.Enqueue(() => {
+                Debug.Log($"{pc.connectionState} | {pc.signalingState} | {pc.iceConnectionState} | {pc.iceGatheringState} ");
+
+                // Seems like SipSorcery doesn't generate these when it should,
+                // so we'll do it manually.
+                events.Add(new Event(Event.Type.NegotiationNeeded));
+            });
 
             return pc;
         }
 
-        private IEnumerator Update()
+        private IEnumerator CompleteSetup()
         {
             while(setupTask == null || !setupTask.IsCompleted)
             {
                 yield return null;
             }
 
-            rtcPeerConnection = setupTask.Result;
+            peerConnection = setupTask.Result;
+            coroutines.Add(context.behaviour.StartCoroutine(DoSignalling()));
+            coroutines.Add(context.behaviour.StartCoroutine(DoMainThreadActions()));
+        }
 
-            // Process buffered messages now that the peer connection is initialised
-            while (messageQueue.Count > 0)
-            {
-                DoReceiveSignallingMessage(messageQueue.Dequeue());
-            }
-
+        private IEnumerator DoMainThreadActions()
+        {
+            var time = Time.realtimeSinceStartup;
             while(true)
             {
                 while (mainThreadActions.TryDequeue(out Action action))
                 {
                     action();
                 }
-
+                if (Time.realtimeSinceStartup > time + 5)
+                {
+                    Debug.Log($"{peerConnection.connectionState} | {peerConnection.signalingState} | {peerConnection.iceConnectionState} | {peerConnection.iceGatheringState} ");
+                    time = Time.realtimeSinceStartup;
+                }
                 yield return null;
             }
+        }
+
+        private bool ignoreOffer;
+
+        // Manage all signalling, sending and receiving offers.
+        // Attempt to implement 'Perfect Negotiation', but with some changes
+        // as we fully finish consuming each signalling message before starting
+        // on the next.
+        // https://w3c.github.io/webrtc-pc/#example-18
+        private IEnumerator DoSignalling()
+        {
+            while (true)
+            {
+                if(events.Count == 0)
+                {
+                    yield return null;
+                    continue;
+                }
+
+                var e = events[0];
+                events.RemoveAt(0);
+
+                Debug.Log($"{peerConnection.connectionState} | {peerConnection.signalingState} | {peerConnection.iceConnectionState} | {peerConnection.iceGatheringState} ");
+
+                if (e.type == Event.Type.NegotiationNeeded)
+                {
+                    Debug.Log("NEGOTIATION NEEDED");
+                    Debug.Log("SETTING local description");
+                    yield return SetLocalDescription(peerConnection);
+                    Debug.Log("SENDING local description");
+                    Send(context,peerConnection.localDescription);
+                    continue;
+                }
+
+                // e.type == Signalling message
+                var msg = SignallingMessageHelper.FromJson(e.json);
+                Debug.Log($"msg: {msg.type} | {msg.sdp}");
+                if (msg.type != null)
+                {
+                    Debug.Log("SDP");
+                    ignoreOffer = !polite
+                        && msg.type == "offer"
+                        && !(peerConnection.signalingState == RTCSignalingState.stable
+                            || peerConnection.signalingState == RTCSignalingState.closed);
+                    if (ignoreOffer)
+                    {
+                        Debug.Log("SDP: IGNORING");
+                        continue;
+                    }
+
+                    var desc = SessionDescriptionUbiqToPkg(msg);
+                    var result = peerConnection.setRemoteDescription(desc);
+                    Debug.Log($"set remote sdp result:: {result}");
+                    if (msg.type == "offer")
+                    {
+                        Debug.Log("SDP: SETTING local description from offer");
+                        yield return SetLocalDescription(peerConnection);
+                        Send(context,peerConnection.localDescription);
+                    }
+                    continue;
+                }
+
+                if (msg.candidate != null && !string.IsNullOrWhiteSpace(msg.candidate))
+                {
+                    Debug.Log("ICE CANDIDATE");
+                    if (!ignoreOffer)
+                    {
+                        Debug.Log("ICE CANDIDATE: ADDING");
+                        peerConnection.addIceCandidate(IceCandidateUbiqToPkg(msg));
+                    }
+                    continue;
+                }
+            }
+        }
+
+        private static IEnumerator SetLocalDescription(RTCPeerConnection pc)
+        {
+            // Should just be able to call setLocalDescription() here
+            // and have the implementation generate an offer or an answer
+            // as appropriate but SipSorcery doesn't implement the spec
+            // completely. Instead need to call createOffer() or
+            // createAnswer() depending on SignalingState, and then
+            // setLocalDescription().
+            // https://w3c.github.io/webrtc-pc/#dom-peerconnection-setlocaldescription
+            RTCSessionDescriptionInit sd = null;
+            if (pc.signalingState == RTCSignalingState.closed
+                || pc.signalingState == RTCSignalingState.stable
+                || pc.signalingState == RTCSignalingState.have_local_offer
+                || pc.signalingState == RTCSignalingState.have_remote_pranswer)
+            {
+                sd = pc.createOffer();
+            }
+            else
+            {
+                sd = pc.createAnswer();
+            }
+            var op = Task.Run(() => pc.setLocalDescription(sd));
+            yield return new WaitUntil(() => op.IsCompleted);
         }
 
         private static string SdpTypeToString(RTCSdpType type)
@@ -362,7 +448,8 @@ namespace Ubiq.Voip.Implementations.Dotnet
             {
                 candidate = msg.candidate,
                 sdpMid = msg.sdpMid,
-                sdpMLineIndex = msg.sdpMLineIndex ?? 0
+                sdpMLineIndex = msg.sdpMLineIndex ?? 0,
+                usernameFragment = msg.usernameFragment
             };
         }
 
@@ -374,18 +461,19 @@ namespace Ubiq.Voip.Implementations.Dotnet
             };
         }
 
-        private void Send(RTCSessionDescriptionInit sd)
+        private static void Send(IPeerConnectionContext context, RTCSessionDescription sd)
         {
+            Debug.Log($"Sending sdp: {sd.sdp.RawString()} | {SdpTypeToString(sd.type)}");
             context.Send(SignallingMessageHelper.ToJson(new SignallingMessage{
-                sdp = sd.sdp,
+                sdp = sd.sdp.RawString(),
                 type = SdpTypeToString(sd.type)
             }));
         }
 
-        private void Send(RTCIceCandidate ic)
+        private static void Send(IPeerConnectionContext context, RTCIceCandidate ic)
         {
             context.Send(SignallingMessageHelper.ToJson(new SignallingMessage{
-                candidate = ic.candidate,
+                candidate = $"candidate:{ic.candidate}",
                 sdpMid = ic.sdpMid,
                 sdpMLineIndex = (ushort?)ic.sdpMLineIndex,
                 usernameFragment = ic.usernameFragment
