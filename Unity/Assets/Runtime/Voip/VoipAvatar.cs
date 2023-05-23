@@ -31,7 +31,7 @@ namespace Ubiq.Avatars
         private void OnPeerConnection(VoipPeerConnection peerConnection)
         {
             // If we're very unlucky, this is called after we're destroyed
-            if (!enabled)
+            if (!this || !enabled)
             {
                 return;
             }
