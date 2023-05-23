@@ -164,20 +164,14 @@ var unityWebRtcInteropLibrary = {
         instance.isSettingRemoteAnswerPending = false;
 
         instance.pc.onicecandidate = ({candidate}) => {
-            instance.msgs.push({
-                type: context.signallingMessageType.iceCandidate,
-                args: JSON.stringify(candidate)
-            });
+            instance.msgs.push({candidate});
         };
 
         instance.pc.onnegotiationneeded = async () => {
             try {
                 instance.makingOffer = true;
                 await instance.pc.setLocalDescription();
-                instance.msgs.push({
-                    type: context.signallingMessageType.sessionDescription,
-                    args: JSON.stringify(instance.pc.localDescription)
-                });
+                instance.msgs.push({description: instance.pc.localDescription});
             }
             catch (err) {
                 console.error(err);
@@ -250,23 +244,27 @@ var unityWebRtcInteropLibrary = {
 
     JS_WebRTC_IsStarted: function(id) {
         let instance = context.instances[id];
-        // return Boolean(instance && instance.isReady);
         return Boolean(instance && instance.pc);
     },
 
-    JS_WebRTC_ProcessSignallingMessage: async function (id,type,args) {
+    JS_WebRTC_ProcessSignallingMessage: async function (id,_candidate,sdpMid,
+        sdpMLineIndexIsNull,sdpMLineIndex,usernameFragment,type,sdp) {
+
         let instance = context.instances[id];
         if (!instance || !instance.pc) {
             return;
         }
 
-        let description = null;
-        let candidate = null;
-        if (type === context.signallingMessageType.sessionDescription) {
-            description = JSON.parse(UTF8ToString(args));
-        } else {
-            candidate = JSON.parse(UTF8ToString(args));
-        }
+        let description = type ? {
+            type: UTF8ToString(type),
+            sdp: UTF8ToString(sdp),
+        } : null;
+        let candidate = _candidate ? {
+            candidate: UTF8ToString(_candidate),
+            sdpMid: UTF8ToString(sdpMid),
+            sdpMLineIndex: sdpMLineIndexIsNull ? null : sdpMLineIndex,
+            usernameFragment: UTF8ToString(usernameFragment),
+        } : null;
 
         // w3c.github.io/webrtc-pc/#perfect-negotiation-example
         try {
@@ -288,10 +286,7 @@ var unityWebRtcInteropLibrary = {
                 instance.isSettingRemoteAnswerPending = false;
                 if (description.type == "offer") {
                     await instance.pc.setLocalDescription();
-                    instance.msgs.push({
-                        type: context.signallingMessageType.sessionDescription,
-                        args: JSON.stringify(instance.pc.localDescription)
-                    });
+                    instance.msgs.push({description: instance.pc.localDescription});
                 }
             } else if (candidate) {
                 try {
@@ -348,31 +343,108 @@ var unityWebRtcInteropLibrary = {
         }
     },
 
+    // Notes on this SignallingMessage code:
+    // =====================================
+    // Longwinded workaround for Unity's JsonUtility lack of support for null
+    // values. Browser-to-browser, just sending the JSON would be fine, but
+    // we want this implementation to play nicely with the WebRTC plugins for
+    // other platforms, which we've written with JsonUtility. So we pass the
+    // required variables up to be handled by the workaround we on the C# side.
+
+    // Could bundle another JSON lib but good to avoid the dependency.
+
+    // Note about the mallocs here: Unity assures us that the memory will be
+    // automatically freed so long as the string is a return value:
+    // https://docs.unity3d.com/Manual/webgl-interactingwithbrowserscripting.html
+
     JS_WebRTC_SignallingMessages_Has: function(id) {
         let instance = context.instances[id];
         return instance && instance.pc && instance.msgs.length > 0;
     },
 
-    JS_WebRTC_SignallingMessages_GetArgs: function(id) {
+    JS_WebRTC_SignallingMessages_GetCandidate: function(id) {
         let instance = context.instances[id];
-        if (!instance || !instance.pc || instance.msgs.length === 0) {
+        if (!instance || !instance.pc || instance.msgs.length === 0
+            || !instance.msgs[instance.msgs.length-1].candidate) {
+            return null;
+        }
+
+        let candidate = instance.msgs[instance.msgs.length-1].candidate.candidate;
+        let bufferSize = lengthBytesUTF8(candidate) + 1;
+        let buffer = _malloc(bufferSize);
+        stringToUTF8(candidate, buffer, bufferSize);
+        return buffer;
+    },
+
+    JS_WebRTC_SignallingMessages_GetSdpMid: function(id) {
+        let instance = context.instances[id];
+        if (!instance || !instance.pc || instance.msgs.length === 0
+            || !instance.msgs[instance.msgs.length-1].candidate
+            || !instance.msgs[instance.msgs.length-1].candidate.sdpMid) {
+            return null;
+        }
+
+        let sdpMid = instance.msgs[instance.msgs.length-1].candidate.sdpMid;
+        let bufferSize = lengthBytesUTF8(sdpMid) + 1;
+        let buffer = _malloc(bufferSize);
+        stringToUTF8(sdpMid, buffer, bufferSize);
+        return buffer;
+    },
+
+    JS_WebRTC_SignallingMessages_GetSdpMLineIndex: function(id) {
+        let instance = context.instances[id];
+        if (!instance || !instance.pc || instance.msgs.length === 0
+            || !instance.msgs[instance.msgs.length-1].candidate
+            || !instance.msgs[instance.msgs.length-1].candidate.sdpMLineIndex) {
             return -1;
         }
 
-        let args = instance.msgs[instance.msgs.length-1].args;
-        let bufferSize = lengthBytesUTF8(args) + 1;
+        return Number(instance.msgs[instance.msgs.length-1].candidate.sdpMLineIndex);
+    },
+
+    JS_WebRTC_SignallingMessages_GetUsernameFragment: function(id) {
+        let instance = context.instances[id];
+        if (!instance || !instance.pc || instance.msgs.length === 0
+            || !instance.msgs[instance.msgs.length-1].candidate
+            || !instance.msgs[instance.msgs.length-1].candidate.usernameFragment) {
+            return null;
+        }
+
+        let usernameFragment = instance.msgs[instance.msgs.length-1].candidate.usernameFragment;
+        let bufferSize = lengthBytesUTF8(usernameFragment) + 1;
         let buffer = _malloc(bufferSize);
-        stringToUTF8(args, buffer, bufferSize);
+        stringToUTF8(usernameFragment, buffer, bufferSize);
         return buffer;
     },
 
     JS_WebRTC_SignallingMessages_GetType: function(id) {
         let instance = context.instances[id];
-        if (!instance || !instance.pc || instance.msgs.length === 0) {
-            return -1;
+        if (!instance || !instance.pc || instance.msgs.length === 0
+            || !instance.msgs[instance.msgs.length-1].description
+            || !instance.msgs[instance.msgs.length-1].description.type) {
+            return null;
         }
 
-        return instance.msgs[instance.msgs.length-1].type;
+        let type = instance.msgs[instance.msgs.length-1].description.type;
+        let bufferSize = lengthBytesUTF8(type) + 1;
+        let buffer = _malloc(bufferSize);
+        stringToUTF8(type, buffer, bufferSize);
+        return buffer;
+    },
+
+    JS_WebRTC_SignallingMessages_GetSdp: function(id) {
+        let instance = context.instances[id];
+        if (!instance || !instance.pc || instance.msgs.length === 0
+            || !instance.msgs[instance.msgs.length-1].description
+            || !instance.msgs[instance.msgs.length-1].description.sdp) {
+            return null;
+        }
+
+        let sdp = instance.msgs[instance.msgs.length-1].description.sdp;
+        let bufferSize = lengthBytesUTF8(sdp) + 1;
+        let buffer = _malloc(bufferSize);
+        stringToUTF8(sdp, buffer, bufferSize);
+        return buffer;
     },
 
     JS_WebRTC_SignallingMessages_Pop: function(id) {

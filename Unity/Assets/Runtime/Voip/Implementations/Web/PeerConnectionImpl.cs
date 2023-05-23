@@ -11,7 +11,8 @@ namespace Ubiq.Voip.Implementations.Web
         [DllImport("__Internal")]
         public static extern int JS_WebRTC_New();
         [DllImport("__Internal")]
-        public static extern void JS_WebRTC_New_AddIceCandidate(int pc, string uri, string username, string password);
+        public static extern void JS_WebRTC_New_AddIceCandidate(int pc,
+            string uri, string username, string password);
         [DllImport("__Internal")]
         public static extern void JS_WebRTC_New_SetPolite(int pc, bool polite);
         [DllImport("__Internal")]
@@ -23,7 +24,9 @@ namespace Ubiq.Voip.Implementations.Web
         [DllImport("__Internal")]
         public static extern bool JS_WebRTC_IsStarted(int pc);
         [DllImport("__Internal")]
-        public static extern bool JS_WebRTC_ProcessSignallingMessage(int pc, int type, string args);
+        public static extern bool JS_WebRTC_ProcessSignallingMessage(int pc,
+            string candidate, string sdpMid, bool sdpMLineIndexIsNull,
+            int sdpMLineIndex, string usernameFragment, string type, string sdp);
         [DllImport("__Internal")]
         public static extern bool JS_WebRTC_HasRemoteDescription(int pc);
         [DllImport("__Internal")]
@@ -33,9 +36,17 @@ namespace Ubiq.Voip.Implementations.Web
         [DllImport("__Internal")]
         public static extern bool JS_WebRTC_SignallingMessages_Has(int pc);
         [DllImport("__Internal")]
-        public static extern string JS_WebRTC_SignallingMessages_GetArgs(int pc);
+        public static extern string JS_WebRTC_SignallingMessages_GetCandidate(int pc);
         [DllImport("__Internal")]
-        public static extern int JS_WebRTC_SignallingMessages_GetType(int pc);
+        public static extern string JS_WebRTC_SignallingMessages_GetSdpMid(int pc);
+        [DllImport("__Internal")]
+        public static extern int JS_WebRTC_SignallingMessages_GetSdpMLineIndex(int pc);
+        [DllImport("__Internal")]
+        public static extern string JS_WebRTC_SignallingMessages_GetUsernameFragment(int pc);
+        [DllImport("__Internal")]
+        public static extern string JS_WebRTC_SignallingMessages_GetType(int pc);
+        [DllImport("__Internal")]
+        public static extern string JS_WebRTC_SignallingMessages_GetSdp(int pc);
         [DllImport("__Internal")]
         public static extern void JS_WebRTC_SignallingMessages_Pop(int pc);
         [DllImport("__Internal")]
@@ -143,8 +154,9 @@ namespace Ubiq.Voip.Implementations.Web
                     continue;
                 }
 
-                JS_WebRTC_ProcessSignallingMessage(peerConnectionId,
-                    (int)msg.type,msg.args);
+                JS_WebRTC_ProcessSignallingMessage(peerConnectionId,msg.candidate,
+                    msg.sdpMid,msg.sdpMLineIndex == null, msg.sdpMLineIndex ?? 0,
+                    msg.usernameFragment,msg.type,msg.sdp);
             }
         }
 
@@ -202,9 +214,14 @@ namespace Ubiq.Voip.Implementations.Web
             // Check for new ice candidates provided by the peer connection
             while (JS_WebRTC_SignallingMessages_Has(peerConnectionId))
             {
+                var sdpMLineIndex = JS_WebRTC_SignallingMessages_GetSdpMLineIndex(peerConnectionId);
                 context.Send(SignallingMessageHelper.ToJson(new SignallingMessage{
-                    type = (SignallingMessage.Type)JS_WebRTC_SignallingMessages_GetType(peerConnectionId),
-                    args = JS_WebRTC_SignallingMessages_GetArgs(peerConnectionId)
+                    candidate = JS_WebRTC_SignallingMessages_GetCandidate(peerConnectionId),
+                    sdpMid = JS_WebRTC_SignallingMessages_GetSdpMid(peerConnectionId),
+                    sdpMLineIndex = sdpMLineIndex < 0 ? null : (ushort?)sdpMLineIndex ,
+                    usernameFragment = JS_WebRTC_SignallingMessages_GetUsernameFragment(peerConnectionId),
+                    type = JS_WebRTC_SignallingMessages_GetType(peerConnectionId),
+                    sdp = JS_WebRTC_SignallingMessages_GetSdp(peerConnectionId)
                 }));
 
                 JS_WebRTC_SignallingMessages_Pop(peerConnectionId);
