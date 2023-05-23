@@ -4,16 +4,22 @@
     "references": [
         "GUID:d43c05b6cc104384f8f68e8dad6a32fb"
     ],
-    "includePlatforms": [
-        "WebGL"
+    "includePlatforms": [],
+    "excludePlatforms": [
+        "Android",
+        "Editor",
+        "iOS",
+        "LinuxStandalone64",
+        "macOSStandalone",
+        "WebGL",
+        "WindowsStandalone64"
     ],
-    "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [
-        "!UNITY_2021_3_OR_NEWER"
+        "!UNITY_WEBGL || !UNITY_2021_3_OR_NEWER"
     ],
     "versionDefines": [],
     "noEngineReferences": false
