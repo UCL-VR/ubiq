@@ -1,0 +1,24 @@
+{
+    "name": "Ubiq.Voip.Implementations.Dotnet",
+    "rootNamespace": "",
+    "references": [
+        "GUID:d43c05b6cc104384f8f68e8dad6a32fb"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [
+        "Android",
+        "Editor",
+        "iOS",
+        "LinuxStandalone64",
+        "macOSStandalone",
+        "WebGL",
+        "WindowsStandalone64"
+    ],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
