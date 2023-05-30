@@ -105,33 +105,6 @@ namespace Ubiq.Voip
             }
         }
 
-        // todo-remotepeer just take relative co-ords
-        // public void SetRemotePeerPosition(Vector3 worldPosition, Quaternion worldRotation)
-        // {
-        //     if (!networkScene)
-        //     {
-        //         return;
-        //     }
-
-        //     var avatarManager = networkScene.GetComponentInChildren<Ubiq.Avatars.AvatarManager>();
-        //     if (!avatarManager)
-        //     {
-        //         return;
-        //     }
-
-        //     var localVoipAvatar = avatarManager.LocalAvatar.GetComponent<Ubiq.Avatars.VoipAvatar>();
-        //     if (!localVoipAvatar)
-        //     {
-        //         return;
-        //     }
-
-        //     var listener = localVoipAvatar.audioSourcePosition;
-        //     var relativePosition = listener.InverseTransformPoint(worldPosition);
-        //     var relativeRotation = Quaternion.Inverse(listener.rotation) * worldRotation;
-
-        //     impl.SetRemotePeerRelativePosition(relativePosition,relativeRotation);
-        // }
-
         public void UpdateSpatialization(Vector3 sourcePosition,
             Quaternion sourceRotation, Vector3 listenerPosition,
             Quaternion listenerRotation)
@@ -139,30 +112,6 @@ namespace Ubiq.Voip
             impl.UpdateSpatialization(sourcePosition,sourceRotation,
                 listenerPosition,listenerRotation);
         }
-
-        // todo
-//         public VoipAudioSourceOutput.Stats GetLastFrameStats ()
-//         {
-// #if UNITY_WEBGL && !UNITY_EDITOR
-//             if (impl != null)
-//             {
-//                 return impl.GetStats();
-//             }
-//             else
-//             {
-//                 return new VoipAudioSourceOutput.Stats {samples = 0, volume = 0};
-//             }
-// #else
-//             if (audioSink)
-//             {
-//                 return audioSink.lastFrameStats;
-//             }
-//             else
-//             {
-//                 return new VoipAudioSourceOutput.Stats {samples = 0, volume = 0};
-//             }
-// #endif
-//         }
 
         public void Setup (NetworkId networkId, NetworkScene scene,
             string peerUuid, bool polite, List<IceServerDetails> iceServers)
@@ -192,7 +141,7 @@ namespace Ubiq.Voip
         {
             if (impl != null)
             {
-                impl.ProcessSignallingMessage(data.ToString());
+                impl.ProcessSignalingMessage(data.ToString());
             }
         }
 

@@ -24,7 +24,9 @@ namespace Ubiq.Voip.Implementations.Web
         [DllImport("__Internal")]
         public static extern bool JS_WebRTC_IsStarted(int pc);
         [DllImport("__Internal")]
-        public static extern bool JS_WebRTC_ProcessSignallingMessage(int pc,
+        public static extern void JS_WebRTC_SetPolite(int pc, bool polite);
+        [DllImport("__Internal")]
+        public static extern bool JS_WebRTC_ProcessSignalingMessage(int pc,
             string candidate, string sdpMid, bool sdpMLineIndexIsNull,
             int sdpMLineIndex, string usernameFragment, string type, string sdp);
         [DllImport("__Internal")]
@@ -34,21 +36,21 @@ namespace Ubiq.Voip.Implementations.Web
         [DllImport("__Internal")]
         public static extern int JS_WebRTC_GetPeerConnectionState(int pc);
         [DllImport("__Internal")]
-        public static extern bool JS_WebRTC_SignallingMessages_Has(int pc);
+        public static extern bool JS_WebRTC_SignalingMessages_Has(int pc);
         [DllImport("__Internal")]
-        public static extern string JS_WebRTC_SignallingMessages_GetCandidate(int pc);
+        public static extern string JS_WebRTC_SignalingMessages_GetCandidate(int pc);
         [DllImport("__Internal")]
-        public static extern string JS_WebRTC_SignallingMessages_GetSdpMid(int pc);
+        public static extern string JS_WebRTC_SignalingMessages_GetSdpMid(int pc);
         [DllImport("__Internal")]
-        public static extern int JS_WebRTC_SignallingMessages_GetSdpMLineIndex(int pc);
+        public static extern int JS_WebRTC_SignalingMessages_GetSdpMLineIndex(int pc);
         [DllImport("__Internal")]
-        public static extern string JS_WebRTC_SignallingMessages_GetUsernameFragment(int pc);
+        public static extern string JS_WebRTC_SignalingMessages_GetUsernameFragment(int pc);
         [DllImport("__Internal")]
-        public static extern string JS_WebRTC_SignallingMessages_GetType(int pc);
+        public static extern string JS_WebRTC_SignalingMessages_GetType(int pc);
         [DllImport("__Internal")]
-        public static extern string JS_WebRTC_SignallingMessages_GetSdp(int pc);
+        public static extern string JS_WebRTC_SignalingMessages_GetSdp(int pc);
         [DllImport("__Internal")]
-        public static extern void JS_WebRTC_SignallingMessages_Pop(int pc);
+        public static extern void JS_WebRTC_SignalingMessages_Pop(int pc);
         [DllImport("__Internal")]
         public static extern void JS_WebRTC_SetPanner(int pc, float x, float y, float z);
         [DllImport("__Internal")]
@@ -58,10 +60,17 @@ namespace Ubiq.Voip.Implementations.Web
         [DllImport("__Internal")]
         public static extern void JS_WebRTC_EndStats(int pc);
 
+        private enum Implementation
+        {
+            Unknown,
+            Dotnet,
+            Other
+        }
+
         public event IceConnectionStateChangedDelegate iceConnectionStateChanged;
         public event PeerConnectionStateChangedDelegate peerConnectionStateChanged;
 
-        private Queue<SignallingMessage> messageQueue = new Queue<SignallingMessage>();
+        private Queue<SignalingMessage> messageQueue = new Queue<SignalingMessage>();
 
         private IPeerConnectionContext context;
 
@@ -70,6 +79,8 @@ namespace Ubiq.Voip.Implementations.Web
 
         private PeerConnectionState lastPeerConnectionState = PeerConnectionState.@new;
         private IceConnectionState lastIceConnectionState = IceConnectionState.@new;
+
+        private Implementation otherPeerImplementation = Implementation.Unknown;
 
         // Workaround for chrome issue, buffer candidates if remote desc
         // not yet set https://stackoverflow.com/questions/38198751
@@ -121,6 +132,7 @@ namespace Ubiq.Voip.Implementations.Web
             }
 
             this.context = context;
+
             peerConnectionId = JS_WebRTC_New();
             for (int i = 0; i < iceServers.Count; i++)
             {
@@ -134,17 +146,34 @@ namespace Ubiq.Voip.Implementations.Web
             updateCoroutine = context.behaviour.StartCoroutine(Update());
         }
 
-        public void ProcessSignallingMessage (string json)
+        public void ProcessSignalingMessage (string json)
         {
-            messageQueue.Enqueue(JsonHelpers.SignallingMessageHelper.FromJson(json));
+            messageQueue.Enqueue(JsonHelpers.SignalingMessageHelper.FromJson(json));
         }
 
-        private void ProcessSignallingMessages()
+        private void ProcessSignalingMessages()
         {
             var queueCount = messageQueue.Count;
             for (int i = 0; i < queueCount; i++)
             {
                 var msg = messageQueue.Dequeue();
+
+                // Id the other implementation as Dotnet requires special treatment
+                if (otherPeerImplementation == Implementation.Unknown)
+                {
+                    otherPeerImplementation = msg.implementation == "dotnet"
+                        ? Implementation.Dotnet
+                        : Implementation.Other;
+
+                    if (otherPeerImplementation == Implementation.Dotnet)
+                    {
+                        // If the other implementation isn't dotnet, the
+                        // non-dotnet peer always takes on the role of polite
+                        // peer as the dotnet implementaton isn't smart enough
+                        // to handle rollback
+                        JS_WebRTC_SetPolite(peerConnectionId,true);
+                    }
+                }
 
                 // Workaround for chrome issue, buffer candidates if remote desc
                 // not yet set https://stackoverflow.com/questions/38198751
@@ -154,7 +183,7 @@ namespace Ubiq.Voip.Implementations.Web
                     continue;
                 }
 
-                JS_WebRTC_ProcessSignallingMessage(peerConnectionId,msg.candidate,
+                JS_WebRTC_ProcessSignalingMessage(peerConnectionId,msg.candidate,
                     msg.sdpMid,msg.sdpMLineIndex == null, msg.sdpMLineIndex ?? 0,
                     msg.usernameFragment,msg.type,msg.sdp);
             }
@@ -170,8 +199,8 @@ namespace Ubiq.Voip.Implementations.Web
 
                 JS_WebRTC_ResumeAudioContext();
 
-                ProcessSignallingMessages();
-                SendSignallingMessages();
+                ProcessSignalingMessages();
+                SendSignalingMessages();
 
                 JS_WebRTC_EndStats(peerConnectionId);
 
@@ -209,22 +238,22 @@ namespace Ubiq.Voip.Implementations.Web
             }
         }
 
-        private void SendSignallingMessages()
+        private void SendSignalingMessages()
         {
             // Check for new ice candidates provided by the peer connection
-            while (JS_WebRTC_SignallingMessages_Has(peerConnectionId))
+            while (JS_WebRTC_SignalingMessages_Has(peerConnectionId))
             {
-                var sdpMLineIndex = JS_WebRTC_SignallingMessages_GetSdpMLineIndex(peerConnectionId);
-                context.Send(SignallingMessageHelper.ToJson(new SignallingMessage{
-                    candidate = JS_WebRTC_SignallingMessages_GetCandidate(peerConnectionId),
-                    sdpMid = JS_WebRTC_SignallingMessages_GetSdpMid(peerConnectionId),
+                var sdpMLineIndex = JS_WebRTC_SignalingMessages_GetSdpMLineIndex(peerConnectionId);
+                context.Send(SignalingMessageHelper.ToJson(new SignalingMessage{
+                    candidate = JS_WebRTC_SignalingMessages_GetCandidate(peerConnectionId),
+                    sdpMid = JS_WebRTC_SignalingMessages_GetSdpMid(peerConnectionId),
                     sdpMLineIndex = sdpMLineIndex < 0 ? null : (ushort?)sdpMLineIndex ,
-                    usernameFragment = JS_WebRTC_SignallingMessages_GetUsernameFragment(peerConnectionId),
-                    type = JS_WebRTC_SignallingMessages_GetType(peerConnectionId),
-                    sdp = JS_WebRTC_SignallingMessages_GetSdp(peerConnectionId)
+                    usernameFragment = JS_WebRTC_SignalingMessages_GetUsernameFragment(peerConnectionId),
+                    type = JS_WebRTC_SignalingMessages_GetType(peerConnectionId),
+                    sdp = JS_WebRTC_SignalingMessages_GetSdp(peerConnectionId)
                 }));
 
-                JS_WebRTC_SignallingMessages_Pop(peerConnectionId);
+                JS_WebRTC_SignalingMessages_Pop(peerConnectionId);
             }
         }
     }

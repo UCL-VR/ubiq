@@ -7,11 +7,6 @@ var unityWebRtcInteropLibrary = {
         audioContext: null,
         whenUserMedia: null,
 
-        signallingMessageType: {
-            sessionDescription: 0,
-            iceCandidate: 1
-        },
-
         iceConnectionState: {
             closed: 0,
             failed: 1,
@@ -180,7 +175,7 @@ var unityWebRtcInteropLibrary = {
                 instance.makingOffer = false;
             }
         };
-        // Negotiation continued in JS_WebRTC_ProcessSignallingMessage
+        // Negotiation continued in JS_WebRTC_ProcessSignalingMessage
 
         context.whenUserMedia
         .then((stream) => {
@@ -247,7 +242,16 @@ var unityWebRtcInteropLibrary = {
         return Boolean(instance && instance.pc);
     },
 
-    JS_WebRTC_ProcessSignallingMessage: async function (id,_candidate,sdpMid,
+    JS_WebRTC_SetPolite: function(id,polite) {
+        let instance = context.instances[id];
+        if (!instance) {
+            return;
+        }
+
+        instance.polite = polite;
+    },
+
+    JS_WebRTC_ProcessSignalingMessage: async function (id,_candidate,sdpMid,
         sdpMLineIndexIsNull,sdpMLineIndex,usernameFragment,type,sdp) {
 
         let instance = context.instances[id];
@@ -343,7 +347,7 @@ var unityWebRtcInteropLibrary = {
         }
     },
 
-    // Notes on this SignallingMessage code:
+    // Notes on this SignalingMessage code:
     // =====================================
     // Longwinded workaround for Unity's JsonUtility lack of support for null
     // values. Browser-to-browser, just sending the JSON would be fine, but
@@ -357,12 +361,12 @@ var unityWebRtcInteropLibrary = {
     // automatically freed so long as the string is a return value:
     // https://docs.unity3d.com/Manual/webgl-interactingwithbrowserscripting.html
 
-    JS_WebRTC_SignallingMessages_Has: function(id) {
+    JS_WebRTC_SignalingMessages_Has: function(id) {
         let instance = context.instances[id];
         return instance && instance.pc && instance.msgs.length > 0;
     },
 
-    JS_WebRTC_SignallingMessages_GetCandidate: function(id) {
+    JS_WebRTC_SignalingMessages_GetCandidate: function(id) {
         let instance = context.instances[id];
         if (!instance || !instance.pc || instance.msgs.length === 0
             || !instance.msgs[instance.msgs.length-1].candidate) {
@@ -376,7 +380,7 @@ var unityWebRtcInteropLibrary = {
         return buffer;
     },
 
-    JS_WebRTC_SignallingMessages_GetSdpMid: function(id) {
+    JS_WebRTC_SignalingMessages_GetSdpMid: function(id) {
         let instance = context.instances[id];
         if (!instance || !instance.pc || instance.msgs.length === 0
             || !instance.msgs[instance.msgs.length-1].candidate
@@ -391,7 +395,7 @@ var unityWebRtcInteropLibrary = {
         return buffer;
     },
 
-    JS_WebRTC_SignallingMessages_GetSdpMLineIndex: function(id) {
+    JS_WebRTC_SignalingMessages_GetSdpMLineIndex: function(id) {
         let instance = context.instances[id];
         if (!instance || !instance.pc || instance.msgs.length === 0
             || !instance.msgs[instance.msgs.length-1].candidate
@@ -402,7 +406,7 @@ var unityWebRtcInteropLibrary = {
         return Number(instance.msgs[instance.msgs.length-1].candidate.sdpMLineIndex);
     },
 
-    JS_WebRTC_SignallingMessages_GetUsernameFragment: function(id) {
+    JS_WebRTC_SignalingMessages_GetUsernameFragment: function(id) {
         let instance = context.instances[id];
         if (!instance || !instance.pc || instance.msgs.length === 0
             || !instance.msgs[instance.msgs.length-1].candidate
@@ -417,7 +421,7 @@ var unityWebRtcInteropLibrary = {
         return buffer;
     },
 
-    JS_WebRTC_SignallingMessages_GetType: function(id) {
+    JS_WebRTC_SignalingMessages_GetType: function(id) {
         let instance = context.instances[id];
         if (!instance || !instance.pc || instance.msgs.length === 0
             || !instance.msgs[instance.msgs.length-1].description
@@ -432,7 +436,7 @@ var unityWebRtcInteropLibrary = {
         return buffer;
     },
 
-    JS_WebRTC_SignallingMessages_GetSdp: function(id) {
+    JS_WebRTC_SignalingMessages_GetSdp: function(id) {
         let instance = context.instances[id];
         if (!instance || !instance.pc || instance.msgs.length === 0
             || !instance.msgs[instance.msgs.length-1].description
@@ -447,7 +451,7 @@ var unityWebRtcInteropLibrary = {
         return buffer;
     },
 
-    JS_WebRTC_SignallingMessages_Pop: function(id) {
+    JS_WebRTC_SignalingMessages_Pop: function(id) {
         let instance = context.instances[id];
         if (!instance || !instance.pc) {
             return;

@@ -1,15 +1,27 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Ubiq.Voip.Implementations.JsonHelpers
 {
-    // Optional helper class to provide SignallingMessage structs, working
+    // Optional helper class to provide SignalingMessage structs, working
     // around a deficiency in Unity's JSONUtility
-    public static class SignallingMessageHelper
+
+    // IceCandidate and SessionDescription params work as expected for WebRTC
+
+    // Ubiq params are not required for WebRTC and are instead used to identify
+    // the implementation in use. The purpose of this system is to help
+    // workaround some issues in the dotnet implementation. To identify itself,
+    // an implementation can send a message with the 'implementation' param.
+    // This must be the FIRST message sent in the peer connection. All other
+    // params in that message will be ignored. If no such message is sent, it is
+    // assumed the implementation requires no special workarounds
+    public static class SignalingMessageHelper
     {
-        private struct SignallingMessageInternal
+        private struct SignalingMessageInternal
         {
+            // Ubiq vars, not required for WebRTC
+            public string implementation;
+            public bool hasImplementation;
+
             // IceCandidate
             public string candidate;
             public bool hasCandidate;
@@ -27,11 +39,12 @@ namespace Ubiq.Voip.Implementations.JsonHelpers
             public bool hasSdp;
         }
 
-        public static SignallingMessage FromJson(string json)
+        public static SignalingMessage FromJson(string json)
         {
-            var inter = JsonUtility.FromJson<SignallingMessageInternal>(json);
-            return new SignallingMessage
+            var inter = JsonUtility.FromJson<SignalingMessageInternal>(json);
+            return new SignalingMessage
             {
+                implementation = inter.hasImplementation ? inter.implementation : null,
                 candidate = inter.hasCandidate ? inter.candidate : null,
                 sdpMid = inter.hasSdpMid ? inter.sdpMid : null,
                 sdpMLineIndex = inter.hasSdpMLineIndex ? (ushort?)inter.sdpMLineIndex : null,
@@ -41,10 +54,12 @@ namespace Ubiq.Voip.Implementations.JsonHelpers
             };
         }
 
-        public static string ToJson(SignallingMessage message)
+        public static string ToJson(SignalingMessage message)
         {
-            return JsonUtility.ToJson(new SignallingMessageInternal
+            return JsonUtility.ToJson(new SignalingMessageInternal
             {
+                implementation = message.implementation,
+                hasImplementation = message.implementation != null,
                 candidate = message.candidate,
                 hasCandidate = message.candidate != null,
                 sdpMid = message.sdpMid,
@@ -64,8 +79,11 @@ namespace Ubiq.Voip.Implementations.JsonHelpers
     // Optional helper struct to act as a JSON object, working around a
     // deficiency in Unity's JSONUtility. Do not directly serialize/deserialize
     // this. Use the accompanying helper class.
-    public struct SignallingMessage
+    public struct SignalingMessage
     {
+        // Ubiq vars, not required for WebRTC, ignored by most implementations
+        public string implementation;
+
         // IceCandidate
         public string candidate;
         public string sdpMid;

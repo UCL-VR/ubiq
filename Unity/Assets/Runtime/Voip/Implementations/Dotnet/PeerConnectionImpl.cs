@@ -14,16 +14,19 @@ namespace Ubiq.Voip.Implementations.Dotnet
     {
         private class Event
         {
+            // Ideally we'd let the implementation guide us on when to negotiate
+            // with the OnNegotiationNeeded event, but SipSorcery seems to never
+            // generate these events, so comment out for now and workaround it
             public enum Type
             {
-                NegotiationNeeded,
-                SignallingMessage
+                // NegotiationNeeded,
+                SignalingMessage
             }
 
             public readonly Type type;
             public readonly string json;
 
-            public Event(string json) : this(Type.SignallingMessage,json) { }
+            public Event(string json) : this(Type.SignalingMessage,json) { }
             public Event(Type type, string json = null)
             {
                 this.type = type;
@@ -31,10 +34,18 @@ namespace Ubiq.Voip.Implementations.Dotnet
             }
         }
 
+        private enum Implementation
+        {
+            Unknown,
+            Dotnet,
+            Other
+        }
+
         public event IceConnectionStateChangedDelegate iceConnectionStateChanged;
         public event PeerConnectionStateChangedDelegate peerConnectionStateChanged;
 
         private ConcurrentQueue<Action> mainThreadActions = new ConcurrentQueue<Action>();
+        private ConcurrentQueue<Event> events = new ConcurrentQueue<Event>();
         private Queue<string> messageQueue = new Queue<string>();
         private Task<RTCPeerConnection> setupTask;
 
@@ -48,8 +59,9 @@ namespace Ubiq.Voip.Implementations.Dotnet
         private IVoipSink sink;
         private IVoipSource source;
 
-        private List<Event> events = new List<Event>();
         private List<Coroutine> coroutines = new List<Coroutine>();
+
+        private Implementation otherPeerImplementation = Implementation.Unknown;
 
         public async void Dispose()
         {
@@ -99,7 +111,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
 
             setupTask = Task.Run(() => DoSetup(polite,iceServersCopy));
 
-            coroutines.Add(context.behaviour.StartCoroutine(CompleteSetup()));
+            coroutines.Add(context.behaviour.StartCoroutine(DoUpdate()));
             // coroutines.Add(context.behaviour.StartCoroutine(StartMicrophoneTrack()));
         }
 
@@ -164,9 +176,9 @@ namespace Ubiq.Voip.Implementations.Dotnet
         }
 
 
-        public void ProcessSignallingMessage (string json)
+        public void ProcessSignalingMessage (string json)
         {
-            events.Add(new Event(json));
+            events.Enqueue(new Event(json));
         }
 
         private RTCPeerConnection DoSetup(bool polite,
@@ -234,10 +246,13 @@ namespace Ubiq.Voip.Implementations.Dotnet
                 }
             };
 
-            pc.onnegotiationneeded += () =>
-            {
-                mainThreadActions.Enqueue(() => events.Add(new Event(Event.Type.NegotiationNeeded)));
-            };
+            // Ideally we'd let the implementation guide us on when to negotiate
+            // with the OnNegotiationNeeded event, but SipSorcery seems to never
+            // generate these events, so comment out for now and workaround it
+            // pc.onnegotiationneeded += () =>
+            // {
+            //     events.Enqueue(new Event(Event.Type.NegotiationNeeded));
+            // };
 
             pc.onicecandidate += (iceCandidate) =>
             {
@@ -279,18 +294,10 @@ namespace Ubiq.Voip.Implementations.Dotnet
 
             pc.addTrack(new MediaStreamTrack(source.GetAudioSourceFormats()));
 
-            mainThreadActions.Enqueue(() => {
-                Debug.Log($"{pc.connectionState} | {pc.signalingState} | {pc.iceConnectionState} | {pc.iceGatheringState} ");
-
-                // Seems like SipSorcery doesn't generate these when it should,
-                // so we'll do it manually.
-                events.Add(new Event(Event.Type.NegotiationNeeded));
-            });
-
             return pc;
         }
 
-        private IEnumerator CompleteSetup()
+        private IEnumerator DoUpdate()
         {
             while(setupTask == null || !setupTask.IsCompleted)
             {
@@ -298,12 +305,10 @@ namespace Ubiq.Voip.Implementations.Dotnet
             }
 
             peerConnection = setupTask.Result;
-            coroutines.Add(context.behaviour.StartCoroutine(DoSignalling()));
-            coroutines.Add(context.behaviour.StartCoroutine(DoMainThreadActions()));
-        }
 
-        private IEnumerator DoMainThreadActions()
-        {
+            // Send id message as this implementation needs special workarounds
+            Send(context,implementation:"dotnet");
+
             var time = Time.realtimeSinceStartup;
             while(true)
             {
@@ -311,6 +316,12 @@ namespace Ubiq.Voip.Implementations.Dotnet
                 {
                     action();
                 }
+
+                while (events.TryDequeue(out Event ev))
+                {
+                    yield return HandleSignalingEvent(ev);
+                }
+
                 if (Time.realtimeSinceStartup > time + 5)
                 {
                     Debug.Log($"{peerConnection.connectionState} | {peerConnection.signalingState} | {peerConnection.iceConnectionState} | {peerConnection.iceGatheringState} ");
@@ -322,74 +333,67 @@ namespace Ubiq.Voip.Implementations.Dotnet
 
         private bool ignoreOffer;
 
-        // Manage all signalling, sending and receiving offers.
+        // Manage all signaling, sending and receiving offers.
         // Attempt to implement 'Perfect Negotiation', but with some changes
-        // as we fully finish consuming each signalling message before starting
+        // as we fully finish consuming each signaling message before starting
         // on the next.
         // https://w3c.github.io/webrtc-pc/#example-18
-        private IEnumerator DoSignalling()
+        private IEnumerator HandleSignalingEvent(Event e)
         {
-            while (true)
+            // e.type == Signaling message
+            var msg = SignalingMessageHelper.FromJson(e.json);
+
+            // Id the other implementation as Dotnet requires special treatment
+            if (otherPeerImplementation == Implementation.Unknown)
             {
-                if(events.Count == 0)
+                otherPeerImplementation = msg.implementation == "dotnet"
+                    ? Implementation.Dotnet
+                    : Implementation.Other;
+
+                if (otherPeerImplementation == Implementation.Dotnet && !polite)
                 {
-                    yield return null;
-                    continue;
-                }
-
-                var e = events[0];
-                events.RemoveAt(0);
-
-                Debug.Log($"{peerConnection.connectionState} | {peerConnection.signalingState} | {peerConnection.iceConnectionState} | {peerConnection.iceGatheringState} ");
-
-                if (e.type == Event.Type.NegotiationNeeded)
-                {
-                    Debug.Log("NEGOTIATION NEEDED");
-                    Debug.Log("SETTING local description");
                     yield return SetLocalDescription(peerConnection);
-                    Debug.Log("SENDING local description");
                     Send(context,peerConnection.localDescription);
-                    continue;
+                    yield break;
                 }
-
-                // e.type == Signalling message
-                var msg = SignallingMessageHelper.FromJson(e.json);
-                Debug.Log($"msg: {msg.type} | {msg.sdp}");
-                if (msg.type != null)
+                else
                 {
-                    Debug.Log("SDP");
-                    ignoreOffer = !polite
-                        && msg.type == "offer"
-                        && !(peerConnection.signalingState == RTCSignalingState.stable
-                            || peerConnection.signalingState == RTCSignalingState.closed);
-                    if (ignoreOffer)
-                    {
-                        Debug.Log("SDP: IGNORING");
-                        continue;
-                    }
-
-                    var desc = SessionDescriptionUbiqToPkg(msg);
-                    var result = peerConnection.setRemoteDescription(desc);
-                    Debug.Log($"set remote sdp result:: {result}");
-                    if (msg.type == "offer")
-                    {
-                        Debug.Log("SDP: SETTING local description from offer");
-                        yield return SetLocalDescription(peerConnection);
-                        Send(context,peerConnection.localDescription);
-                    }
-                    continue;
+                    // If the other implementation isn't dotnet, the
+                    // non-dotnet peer always takes on the role of polite
+                    // peer as the dotnet implementaton isn't smart enough
+                    // to handle rollback
+                    polite = false;
                 }
+            }
 
-                if (msg.candidate != null && !string.IsNullOrWhiteSpace(msg.candidate))
+            if (msg.type != null)
+            {
+                ignoreOffer = !polite
+                    && msg.type == "offer"
+                    && !(peerConnection.signalingState == RTCSignalingState.stable
+                        || peerConnection.signalingState == RTCSignalingState.closed);
+                if (ignoreOffer)
                 {
-                    Debug.Log("ICE CANDIDATE");
-                    if (!ignoreOffer)
-                    {
-                        Debug.Log("ICE CANDIDATE: ADDING");
-                        peerConnection.addIceCandidate(IceCandidateUbiqToPkg(msg));
-                    }
-                    continue;
+                    yield break;
                 }
+
+                var desc = SessionDescriptionUbiqToPkg(msg);
+                var result = peerConnection.setRemoteDescription(desc);
+                if (msg.type == "offer")
+                {
+                    yield return SetLocalDescription(peerConnection);
+                    Send(context,peerConnection.localDescription);
+                }
+                yield break;
+            }
+
+            if (msg.candidate != null && !string.IsNullOrWhiteSpace(msg.candidate))
+            {
+                if (!ignoreOffer)
+                {
+                    peerConnection.addIceCandidate(IceCandidateUbiqToPkg(msg));
+                }
+                yield break;
             }
         }
 
@@ -442,7 +446,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
             }
         }
 
-        private static RTCIceCandidateInit IceCandidateUbiqToPkg(SignallingMessage msg)
+        private static RTCIceCandidateInit IceCandidateUbiqToPkg(SignalingMessage msg)
         {
             return new RTCIceCandidateInit()
             {
@@ -453,7 +457,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
             };
         }
 
-        private static RTCSessionDescriptionInit SessionDescriptionUbiqToPkg(SignallingMessage msg)
+        private static RTCSessionDescriptionInit SessionDescriptionUbiqToPkg(SignalingMessage msg)
         {
             return new RTCSessionDescriptionInit{
                 sdp = msg.sdp,
@@ -461,10 +465,17 @@ namespace Ubiq.Voip.Implementations.Dotnet
             };
         }
 
+        private static void Send(IPeerConnectionContext context, string implementation)
+        {
+            // Optionally send
+            context.Send(SignalingMessageHelper.ToJson(new SignalingMessage{
+                implementation = implementation
+            }));
+        }
+
         private static void Send(IPeerConnectionContext context, RTCSessionDescription sd)
         {
-            Debug.Log($"Sending sdp: {sd.sdp.RawString()} | {SdpTypeToString(sd.type)}");
-            context.Send(SignallingMessageHelper.ToJson(new SignallingMessage{
+            context.Send(SignalingMessageHelper.ToJson(new SignalingMessage{
                 sdp = sd.sdp.RawString(),
                 type = SdpTypeToString(sd.type)
             }));
@@ -472,7 +483,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
 
         private static void Send(IPeerConnectionContext context, RTCIceCandidate ic)
         {
-            context.Send(SignallingMessageHelper.ToJson(new SignallingMessage{
+            context.Send(SignalingMessageHelper.ToJson(new SignalingMessage{
                 candidate = $"candidate:{ic.candidate}",
                 sdpMid = ic.sdpMid,
                 sdpMLineIndex = (ushort?)ic.sdpMLineIndex,

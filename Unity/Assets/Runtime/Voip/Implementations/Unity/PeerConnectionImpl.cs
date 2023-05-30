@@ -14,18 +14,25 @@ namespace Ubiq.Voip.Implementations.Unity
             public enum Type
             {
                 NegotiationNeeded,
-                SignallingMessage
+                SignalingMessage
             }
 
             public readonly Type type;
             public readonly string json;
 
-            public Event(string json) : this(Type.SignallingMessage,json) { }
+            public Event(string json) : this(Type.SignalingMessage,json) { }
             public Event(Type type, string json = null)
             {
                 this.type = type;
                 this.json = json;
             }
+        }
+
+        private enum Implementation
+        {
+            Unknown,
+            Dotnet,
+            Other,
         }
 
         public event IceConnectionStateChangedDelegate iceConnectionStateChanged;
@@ -44,6 +51,8 @@ namespace Ubiq.Voip.Implementations.Unity
 
         private List<Event> events = new List<Event>();
         private List<Coroutine> coroutines = new List<Coroutine>();
+
+        private Implementation otherPeerImplementation = Implementation.Unknown;
 
         public void Dispose()
         {
@@ -117,7 +126,7 @@ namespace Ubiq.Voip.Implementations.Unity
                 }
             };
 
-            coroutines.Add(context.behaviour.StartCoroutine(DoSignalling()));
+            coroutines.Add(context.behaviour.StartCoroutine(DoSignaling()));
             coroutines.Add(context.behaviour.StartCoroutine(StartMicrophoneTrack()));
 
             // peerConnection.AddTrack(senderAudioTrack,senderStream);
@@ -147,12 +156,12 @@ namespace Ubiq.Voip.Implementations.Unity
 
         private bool ignoreOffer;
 
-        // Manage all signalling, sending and receiving offers.
+        // Manage all signaling, sending and receiving offers.
         // Attempt to implement 'Perfect Negotiation', but with some changes
-        // as we fully finish consuming each signalling message before starting
+        // as we fully finish consuming each signaling message before starting
         // on the next.
         // https://w3c.github.io/webrtc-pc/#example-18
-        private IEnumerator DoSignalling()
+        private IEnumerator DoSignaling()
         {
             while(true)
             {
@@ -173,8 +182,26 @@ namespace Ubiq.Voip.Implementations.Unity
                     continue;
                 }
 
-                // e.type == Signalling message
-                var msg = SignallingMessageHelper.FromJson(e.json);
+                // e.type == Signaling message
+                var msg = SignalingMessageHelper.FromJson(e.json);
+
+                // Id the other implementation as Dotnet requires special treatment
+                if (otherPeerImplementation == Implementation.Unknown)
+                {
+                    otherPeerImplementation = msg.implementation == "dotnet"
+                        ? Implementation.Dotnet
+                        : Implementation.Other;
+
+                    if (otherPeerImplementation == Implementation.Dotnet)
+                    {
+                        // If the other implementation isn't dotnet, the
+                        // non-dotnet peer always takes on the role of polite
+                        // peer as the dotnet implementaton isn't smart enough
+                        // to handle rollback
+                        polite = true;
+                    }
+                }
+
                 if (msg.type != null)
                 {
                     ignoreOffer = !polite
@@ -237,7 +264,7 @@ namespace Ubiq.Voip.Implementations.Unity
             receiverAudioSource.clip.SetData(samples,0);
         }
 
-        public void ProcessSignallingMessage (string json)
+        public void ProcessSignalingMessage (string json)
         {
             events.Add(new Event(json));
         }
@@ -271,7 +298,7 @@ namespace Ubiq.Voip.Implementations.Unity
             // }
         }
 
-        private static RTCIceCandidate IceCandidateUbiqToPkg(SignallingMessage msg)
+        private static RTCIceCandidate IceCandidateUbiqToPkg(SignalingMessage msg)
         {
             Debug.Log($"candidate: {msg.candidate}, sdpMid: {msg.sdpMid}, sdpMLineIndex: {msg.sdpMLineIndex}");
 
@@ -283,7 +310,7 @@ namespace Ubiq.Voip.Implementations.Unity
             });
         }
 
-        private static RTCSessionDescription SessionDescriptionUbiqToPkg(SignallingMessage msg)
+        private static RTCSessionDescription SessionDescriptionUbiqToPkg(SignalingMessage msg)
         {
             return new RTCSessionDescription{
                 sdp = msg.sdp,
@@ -366,7 +393,7 @@ namespace Ubiq.Voip.Implementations.Unity
 
         private static void Send(IPeerConnectionContext context, RTCSessionDescription sd)
         {
-            context.Send(SignallingMessageHelper.ToJson(new SignallingMessage{
+            context.Send(SignalingMessageHelper.ToJson(new SignalingMessage{
                 sdp = sd.sdp,
                 type = SdpTypeToString(sd.type)
             }));
@@ -374,7 +401,7 @@ namespace Ubiq.Voip.Implementations.Unity
 
         private static void Send(IPeerConnectionContext context, RTCIceCandidate ic)
         {
-            context.Send(SignallingMessageHelper.ToJson(new SignallingMessage{
+            context.Send(SignalingMessageHelper.ToJson(new SignalingMessage{
                 candidate = ic.Candidate,
                 sdpMid = ic.SdpMid,
                 sdpMLineIndex = (ushort?)ic.SdpMLineIndex,

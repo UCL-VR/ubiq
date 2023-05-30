@@ -109,7 +109,7 @@ namespace Ubiq.Voip.Implementations
         void Setup(IPeerConnectionContext context, bool polite,
             List<IceServerDetails> iceServers);
 
-        void ProcessSignallingMessage (string json);
+        void ProcessSignalingMessage (string json);
 
         void UpdateSpatialization (Vector3 sourcePosition,
             Quaternion sourceRotation, Vector3 listenerPosition,
