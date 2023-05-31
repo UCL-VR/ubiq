@@ -35,52 +35,91 @@ roomclient.addListener("OnPeerAdded", peer =>{
 // This next section creates an RTCPeerConnection for each PeerConnection
 // Component, and connects up their events so the PeerConnection acts as the
 // signalling system.
+// Implements https://w3c.github.io/webrtc-pc/#perfect-negotiation-example
 
 const peerconnectionmanager = new PeerConnectionManager(scene);
 peerconnectionmanager.addListener("OnPeerConnection", async component =>{
     let pc = new RTCPeerConnection({
         sdpSemantics: 'unified-plan'
-      });
+    });
 
-    component.addListener("OnIceCandidate", async c =>{
-        // Sending a null candidate signals that candidate exchange has ended,
-        // however wrtc does not accept null here so the end is ignored.
-        if(c !== null){
-            pc.addIceCandidate(c);
+    component.makingOffer = false;
+    component.ignoreOffer = false;
+    component.isSettingRemoteAnswerPending = false;
+
+    // Special handling for dotnet peers
+    component.otherPeerId = undefined;
+
+    pc.onicecandidate = ({candidate}) => component.sendIceCandidate(candidate);
+    pc.ontrack = ({track, streams}) => console.log("Added track " + track.kind);
+    pc.onnegotiationneeded = async () => {
+        try {
+            component.makingOffer = true;
+            await pc.setLocalDescription();
+            component.sendSdp(pc.localDescription);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            component.makingOffer = false;
         }
-    });
+    };
 
-    component.addListener("OnSignallingMessage", async m =>{
-        if(m.type == "offer"){
-            await pc.setRemoteDescription(m);
-            let answer = await pc.createAnswer();
-            await pc.setLocalDescription(answer);
-            component.sendAnswer(answer);
+    component.addListener("OnSignallingMessage", async m => {
+
+        // Special handling for dotnet peers
+        if (component.otherPeerId === undefined) {
+            component.otherPeerId = m.implementation ? m.implementation : null;
+            if (component.otherPeerId == "dotnet") {
+                // If just one of the two peers is dotnet, the
+                // non-dotnet peer always takes on the role of polite
+                // peer as the dotnet implementaton isn't smart enough
+                // to handle rollback
+                component.polite = true;
+            }
         }
-        if(m.type == "answer"){
-            await pc.setRemoteDescription(m);
-        }
-        component.startCandidates();
-    });
 
-    pc.addEventListener("message", m =>{
-        component.sendSignallingMessage(m);
-    });
+        let description = m.type ? {
+            type: m.type,
+            sdp: m.sdp
+        } : undefined;
 
-    pc.addEventListener("icecandidate", e =>{
-        component.sendIceCandidate(e.candidate);
-    });
+        let candidate = m.candidate ? {
+            candidate: m.candidate,
+            sdpMid: m.sdpMid,
+            sdpMLineIndex: m.sdpMLineIndex,
+            usernameFragment: m.usernameFragment
+        } : undefined;
 
-    pc.addEventListener("track", e =>{
-        console.log("Added track " + e.track.kind);
-    });
+        try {
+            if (description) {
+              // An offer may come in while we are busy processing SRD(answer).
+              // In this case, we will be in "stable" by the time the offer is processed
+              // so it is safe to chain it on our Operations Chain now.
+                const readyForOffer =
+                    !component.makingOffer &&
+                    (pc.signalingState == "stable" || component.isSettingRemoteAnswerPending);
+                const offerCollision = description.type == "offer" && !readyForOffer;
 
-    pc.addEventListener("negotiationneeded", async e=>{
-        if(!component.polite){
-            let offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-            component.sendOffer(offer);
-            component.startCandidates();
+                component.ignoreOffer = !component.polite && offerCollision;
+                if (component.ignoreOffer) {
+                    return;
+                }
+                component.isSettingRemoteAnswerPending = description.type == "answer";
+                await pc.setRemoteDescription(description); // SRD rolls back as needed
+                component.isSettingRemoteAnswerPending = false;
+                if (description.type == "offer") {
+                    await pc.setLocalDescription();
+                    component.sendSdp(pc.localDescription);
+                }
+            } else if (candidate) {
+                try {
+                    await pc.addIceCandidate(candidate);
+                } catch (err) {
+                    if (!component.ignoreOffer) throw err; // Suppress ignored offer's candidates
+                }
+            }
+        } catch (err) {
+            console.error(err);
         }
     });
 

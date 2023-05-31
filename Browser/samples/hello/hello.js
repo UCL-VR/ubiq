@@ -1,6 +1,6 @@
 import Ubiq from "/bundle.js"
 
-// This creates a typical Browser WebSocket, with a wrapper that can 
+// This creates a typical Browser WebSocket, with a wrapper that can
 // parse Ubiq messages.
 
 // The config is downloaded before the module is dynamically imported
@@ -44,7 +44,7 @@ roomClient.addListener("OnRoomUpdated", room => {
     updateRoomProperties(room.properties);
 });
 
-// Creates a new DOM node to represent a Peer. This includes a header and a 
+// Creates a new DOM node to represent a Peer. This includes a header and a
 // dictionary for its properties.
 function updatePeerProperties(peer) {
     let entry = document.getElementById(peer.uuid);
@@ -61,7 +61,7 @@ function updatePeerProperties(peer) {
         const dict = document.createElement("div");
         dict.classList.add("dictionary-list");
         entry.appendChild(dict);
-    
+
         const container = document.getElementById("peers");
         container.appendChild(entry);
     }
@@ -96,14 +96,14 @@ function updateDictionaryElement(container, map) {
         const valueNode = document.createElement("div");
         valueNode.className = "list-value";
         valueNode.style = `grid-row: ${row} column 2`;
-        
+
         row++;
 
         try{
             createObjectTree(valueNode, JSON.parse(value));
         }catch(e){
             valueNode.innerHTML = value;
-        }        
+        }
 
         container.appendChild(keyNode);
         container.appendChild(valueNode);
@@ -119,7 +119,7 @@ function createObjectTree(parentNode, obj, level = 0){
         let value = obj[key];
 
         const pairNode = document.createElement("div");
-        pairNode.innerHTML = key + ": " + value;        
+        pairNode.innerHTML = key + ": " + value;
 
         if(level > 0){
             pairNode.classList.add("nested");
@@ -127,7 +127,7 @@ function createObjectTree(parentNode, obj, level = 0){
 
         parentNode.appendChild(pairNode);
 
-        // If the value type is an object, create a child node to display that 
+        // If the value type is an object, create a child node to display that
         // object's members
 
         if(typeof(value) === "object"){
@@ -148,9 +148,9 @@ function createObjectTree(parentNode, obj, level = 0){
     }
 }
 
-// This section binds the Ubiq PeerConnection Component to the actual 
+// This section binds the Ubiq PeerConnection Component to the actual
 // RTCPeerConnection instance created by the browser. This is done by connecting
-// the complementary APIs of the two types. Once this is done, the browser code 
+// the complementary APIs of the two types. Once this is done, the browser code
 // can interact with the RTCPeerConnection - adding outgoing tracks, listening
 // for incoming ones - as if were any other.
 
@@ -165,82 +165,109 @@ peerConnectionManager.addListener("OnPeerConnectionRemoved", component =>{
 peerConnectionManager.addListener("OnPeerConnection", async component =>{
     let pc = new RTCPeerConnection({
         sdpSemantics: 'unified-plan',
-      });
+    });
 
-      component.elements = [];
+    component.elements = [];
 
-    // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Connectivity
-    
-    // Set up the listeners before adding our own media sources, as doing this
-    // will generate the onnegotiationneeded event.
+    component.makingOffer = false;
+    component.ignoreOffer = false;
+    component.isSettingRemoteAnswerPending = false;
 
-    component.addListener("OnIceCandidate", async c =>{
-        // (The SipSorcery implementation misses the candidate: prefix, so add
-        // it here if necessary)
-        if(c !== null && c.candidate !== '' && !c.candidate.startsWith("candidate:")){
-            c.candidate = "candidate:" + c.candidate;
+    // Special handling for dotnet peers
+    component.otherPeerId = undefined;
+
+    pc.onicecandidate = ({candidate}) => component.sendIceCandidate(candidate);
+    // pc.ontrack = ({track, streams}) => console.log("Added track " + track.kind);
+    pc.onnegotiationneeded = async () => {
+        try {
+            component.makingOffer = true;
+            await pc.setLocalDescription();
+            component.sendSdp(pc.localDescription);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            component.makingOffer = false;
         }
-        pc.addIceCandidate(c);
-        console.log("Received ice candidate");
-    });
+    };
 
-    component.addListener("OnSignallingMessage", async m =>{
-        if(m.type == "offer"){
-            await pc.setRemoteDescription(m);
-            let answer = await pc.createAnswer();
-            await pc.setLocalDescription(answer);
-            component.sendAnswer(answer);
-            component.startCandidates();
+    component.addListener("OnSignallingMessage", async m => {
+
+        // Special handling for dotnet peers
+        if (component.otherPeerId === undefined) {
+            component.otherPeerId = m.implementation ? m.implementation : null;
+            if (component.otherPeerId == "dotnet") {
+                // If just one of the two peers is dotnet, the
+                // non-dotnet peer always takes on the role of polite
+                // peer as the dotnet implementaton isn't smart enough
+                // to handle rollback
+                component.polite = true;
+            }
         }
-        if(m.type == "answer"){
-            await pc.setRemoteDescription(m);
-            component.startCandidates();
+
+        let description = m.type ? {
+            type: m.type,
+            sdp: m.sdp
+        } : undefined;
+
+        let candidate = m.candidate ? {
+            candidate: m.candidate,
+            sdpMid: m.sdpMid,
+            sdpMLineIndex: m.sdpMLineIndex,
+            usernameFragment: m.usernameFragment
+        } : undefined;
+
+        try {
+            if (description) {
+              // An offer may come in while we are busy processing SRD(answer).
+              // In this case, we will be in "stable" by the time the offer is processed
+              // so it is safe to chain it on our Operations Chain now.
+                const readyForOffer =
+                    !component.makingOffer &&
+                    (pc.signalingState == "stable" || component.isSettingRemoteAnswerPending);
+                const offerCollision = description.type == "offer" && !readyForOffer;
+
+                component.ignoreOffer = !component.polite && offerCollision;
+                if (component.ignoreOffer) {
+                    return;
+                }
+                component.isSettingRemoteAnswerPending = description.type == "answer";
+                await pc.setRemoteDescription(description); // SRD rolls back as needed
+                component.isSettingRemoteAnswerPending = false;
+                if (description.type == "offer") {
+                    await pc.setLocalDescription();
+                    component.sendSdp(pc.localDescription);
+                }
+            } else if (candidate) {
+                try {
+                    await pc.addIceCandidate(candidate);
+                } catch (err) {
+                    if (!component.ignoreOffer) throw err; // Suppress ignored offer's candidates
+                }
+            }
+        } catch (err) {
+            console.error(err);
         }
     });
 
-    pc.addEventListener("message", m =>{
-        component.sendSignallingMessage(m);
-    });
-
-    pc.addEventListener("icecandidate", e =>{
-        component.sendIceCandidate(e.candidate);
-        console.log("sending ice candidate");
-    });
-
-    pc.addEventListener("track", e =>{
-        switch(e.track.kind){
+    pc.ontrack = ({track, streams}) => {
+        switch(track.kind){
             case 'audio':
                 const prototpye = document.getElementById("audio-prototype");
                 const audioplayer = prototpye.cloneNode(true);
-                audioplayer.srcObject = new MediaStream([e.track]);
+                audioplayer.srcObject = new MediaStream([track]);
                 audioplayer.classList.toggle("hidden");
                 document.getElementById("audioelements").appendChild(audioplayer);
                 component.elements.push(audioplayer);
         }
-    });
+    }
 
-    pc.addEventListener("negotiationneeded", async e => {
-        // Only the impolite peer makes the offer, in order to avoid glare. In 
-        // most cases, both Peers will try to establish the same streams on 
-        // start-up, and afterwards the connection will not need to be changed. 
-        // However, with the implementation below the polite peer will not be 
-        // able to change an established connection - another approach will be
-        // needed if this is necessary!
-        if(!component.polite){
-            let offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-            component.sendOffer(offer);
-            component.startCandidates();
-        }
-    });
-
-    pc.addEventListener("connectionstatechange", e =>{
+    pc.onconnectionstatechange = e => {
         if(e.target.connectionState == "disconnected"){
             for(let element of component.elements){
                 element.remove();
             }
         }
-    });
+    };
 
     // Add our local microphone. Adding a track will create a transciever, which
     // will create both a sender and receiver, the receiver we can attach to
@@ -357,11 +384,11 @@ class WebComponent{
         closenode.addEventListener("click", (e)=>{
             e.stopPropagation();
             this.node.remove();
-            
+
         });
         headernode.addEventListener("paste",(e)=>{
             e.preventDefault();
-            var clipboarddata =  window.event.clipboardData.getData('text/plain');  
+            var clipboarddata =  window.event.clipboardData.getData('text/plain');
             e.target.textContent = clipboarddata;
             e.target.dispatchEvent(new InputEvent("input"));
         })
@@ -394,7 +421,7 @@ class WebComponent{
 
 document.getElementById("createlistenerbutton").onclick = () =>{
     const prototype = document.getElementById("listener-prototype");
-    const node = prototype.cloneNode(true); 
+    const node = prototype.cloneNode(true);
     node.style.display = "grid";
 
     const headernode = node.querySelector(".listener-header");
@@ -405,9 +432,9 @@ document.getElementById("createlistenerbutton").onclick = () =>{
     const formatnode = node.querySelector(".listener-format");
 
     const listeners = document.getElementById("listeners");
-    listeners.append(node); 
+    listeners.append(node);
 
-    const listener = new WebComponent(scene, 
+    const listener = new WebComponent(scene,
         node,
         headernode,
         sendnode,

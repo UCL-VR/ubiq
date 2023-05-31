@@ -27,7 +27,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
             public readonly string json;
 
             public Event(string json) : this(Type.SignalingMessage,json) { }
-            public Event(Type type, string json = null)
+            public Event(Type type, string json = null, RTCIceCandidate iceCandidate = null)
             {
                 this.type = type;
                 this.json = json;
@@ -62,6 +62,8 @@ namespace Ubiq.Voip.Implementations.Dotnet
         private List<Coroutine> coroutines = new List<Coroutine>();
 
         private Implementation otherPeerImplementation = Implementation.Unknown;
+        private List<RTCIceCandidate> bufferedIceCandidates = new List<RTCIceCandidate>();
+        private bool hasSentLocalSdp;
 
         public async void Dispose()
         {
@@ -256,10 +258,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
 
             pc.onicecandidate += (iceCandidate) =>
             {
-                // if (iceCandidate != null && !string.IsNullOrEmpty(iceCandidate.candidate))
-                // {
-                mainThreadActions.Enqueue(() => Send(context,iceCandidate));
-                // }
+                mainThreadActions.Enqueue(() => Send(iceCandidate));
             };
 
             pc.OnRtpPacketReceived += (IPEndPoint rep, SDPMediaTypesEnum media, RTPPacket rtpPkt) =>
@@ -307,7 +306,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
             peerConnection = setupTask.Result;
 
             // Send id message as this implementation needs special workarounds
-            Send(context,implementation:"dotnet");
+            Send(implementation:"dotnet");
 
             var time = Time.realtimeSinceStartup;
             while(true)
@@ -353,12 +352,12 @@ namespace Ubiq.Voip.Implementations.Dotnet
                 if (otherPeerImplementation == Implementation.Dotnet && !polite)
                 {
                     yield return SetLocalDescription(peerConnection);
-                    Send(context,peerConnection.localDescription);
+                    Send(peerConnection.localDescription);
                     yield break;
                 }
                 else
                 {
-                    // If the other implementation isn't dotnet, the
+                    // If just one of the two peers is dotnet, the
                     // non-dotnet peer always takes on the role of polite
                     // peer as the dotnet implementaton isn't smart enough
                     // to handle rollback
@@ -382,7 +381,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
                 if (msg.type == "offer")
                 {
                     yield return SetLocalDescription(peerConnection);
-                    Send(context,peerConnection.localDescription);
+                    Send(peerConnection.localDescription);
                 }
                 yield break;
             }
@@ -394,6 +393,37 @@ namespace Ubiq.Voip.Implementations.Dotnet
                     peerConnection.addIceCandidate(IceCandidateUbiqToPkg(msg));
                 }
                 yield break;
+            }
+        }
+
+        private void Send(string implementation)
+        {
+            context.Send(SignalingMessageHelper.ToJson(new SignalingMessage{
+                implementation = implementation
+            }));
+        }
+
+        private void Send(RTCIceCandidate ic)
+        {
+            if (hasSentLocalSdp)
+            {
+                InternalSend(context,ic);
+            }
+            else
+            {
+                bufferedIceCandidates.Add(ic);
+            }
+        }
+
+        private void Send(RTCSessionDescription sd)
+        {
+            InternalSend(context,sd);
+            hasSentLocalSdp = true;
+            while (bufferedIceCandidates.Count > 0)
+            {
+                var ic = bufferedIceCandidates[0];
+                bufferedIceCandidates.RemoveAt(0);
+                InternalSend(context,ic);
             }
         }
 
@@ -465,15 +495,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
             };
         }
 
-        private static void Send(IPeerConnectionContext context, string implementation)
-        {
-            // Optionally send
-            context.Send(SignalingMessageHelper.ToJson(new SignalingMessage{
-                implementation = implementation
-            }));
-        }
-
-        private static void Send(IPeerConnectionContext context, RTCSessionDescription sd)
+        private static void InternalSend(IPeerConnectionContext context, RTCSessionDescription sd)
         {
             context.Send(SignalingMessageHelper.ToJson(new SignalingMessage{
                 sdp = sd.sdp.RawString(),
@@ -481,7 +503,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
             }));
         }
 
-        private static void Send(IPeerConnectionContext context, RTCIceCandidate ic)
+        private static void InternalSend(IPeerConnectionContext context, RTCIceCandidate ic)
         {
             context.Send(SignalingMessageHelper.ToJson(new SignalingMessage{
                 candidate = $"candidate:{ic.candidate}",

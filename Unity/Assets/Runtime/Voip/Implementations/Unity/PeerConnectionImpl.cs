@@ -14,17 +14,21 @@ namespace Ubiq.Voip.Implementations.Unity
             public enum Type
             {
                 NegotiationNeeded,
+                OnIceCandidate,
                 SignalingMessage
             }
 
             public readonly Type type;
             public readonly string json;
+            public readonly RTCIceCandidate iceCandidate;
 
             public Event(string json) : this(Type.SignalingMessage,json) { }
-            public Event(Type type, string json = null)
+            public Event(RTCIceCandidate iceCandidate) : this(Type.OnIceCandidate,null,iceCandidate) { }
+            public Event(Type type, string json = null, RTCIceCandidate iceCandidate = null)
             {
                 this.type = type;
                 this.json = json;
+                this.iceCandidate = iceCandidate;
             }
         }
 
@@ -110,7 +114,7 @@ namespace Ubiq.Voip.Implementations.Unity
                 },
                 OnIceCandidate = (RTCIceCandidate candidate) =>
                 {
-                    Send(context,candidate);
+                    events.Add(new Event(candidate));
                 },
                 OnTrack = (RTCTrackEvent e) =>
                 {
@@ -174,6 +178,12 @@ namespace Ubiq.Voip.Implementations.Unity
                 var e = events[0];
                 events.RemoveAt(0);
 
+                if (e.type == Event.Type.OnIceCandidate)
+                {
+                    Send(context,e.iceCandidate);
+                    continue;
+                }
+
                 if (e.type == Event.Type.NegotiationNeeded)
                 {
                     var op = peerConnection.SetLocalDescription();
@@ -194,7 +204,7 @@ namespace Ubiq.Voip.Implementations.Unity
 
                     if (otherPeerImplementation == Implementation.Dotnet)
                     {
-                        // If the other implementation isn't dotnet, the
+                        // If just one of the two peers is dotnet, the
                         // non-dotnet peer always takes on the role of polite
                         // peer as the dotnet implementaton isn't smart enough
                         // to handle rollback
@@ -300,8 +310,6 @@ namespace Ubiq.Voip.Implementations.Unity
 
         private static RTCIceCandidate IceCandidateUbiqToPkg(SignalingMessage msg)
         {
-            Debug.Log($"candidate: {msg.candidate}, sdpMid: {msg.sdpMid}, sdpMLineIndex: {msg.sdpMLineIndex}");
-
             return new RTCIceCandidate (new RTCIceCandidateInit()
             {
                 candidate = msg.candidate,

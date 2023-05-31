@@ -16,57 +16,59 @@ class PeerConnection extends EventEmitter{
         this.uuid = uuid;
         this.polite = polite;
         this.context = this.scene.register(this);
-        this.candidatesPaused = true;
-        this.candidatesBuffer = [];
     }
 
     processMessage(m){
         m = m.toObject();
-        switch(m.type){
-            case 0: // Session Description
-                this.emit("OnSignallingMessage", JSON.parse(m.args));
-                break;
-            case 1: // Ice Candidate
-                let candidate = JSON.parse(m.args);
-                if(this.candidatesPaused){
-                    this.candidatesBuffer.push(candidate)
-                }else{
-                    this.emit("OnIceCandidate", candidate);
-                }
-                break;
+
+        // Convert Unity JsonUtility-friendly object into regular js object
+        this.emit("OnSignallingMessage", {
+            implementation: m.hasImplementation ? m.implementation : undefined,
+            candidate: m.hasCandidate ? m.candidate : undefined,
+            sdpMid: m.hasSdpMid ? m.sdpMid : undefined,
+            sdpMLineIndex: m.hasSdpMLineIndex ? m.sdpMLineIndex : undefined,
+            usernameFragment: m.hasUsernameFragment ? m.usernameFragment : undefined,
+            type: m.hasType ? m.type : undefined,
+            sdp: m.hasSdp ? m.sdp : undefined,
+        });
+    }
+
+    sendIceCandidate(m){
+
+        // A null iceCandidate means no further candidates, but support for
+        // this is all over the place, so we just won't send it
+        if (!m) {
+            return;
         }
-    }
 
-    pauseCandidates(){
-        this.candidatesPaused = true;
-    }
-
-    startCandidates(){
-        this.candidatesPaused = false;
-        this.candidatesBuffer.forEach(candidate =>{
-            this.emit("OnIceCandidate", candidate);
+        // Convert regular js object into Unity JsonUtility-friendly object
+        this.context.send({
+            hasImplementation: false,
+            candidate: m.candidate ? m.candidate : null,
+            hasCandidate: m.candidate ? true : false,
+            sdpMid: m.sdpMid ? m.sdpMid : null,
+            hasSdpMid: m.sdpMid ? true : false,
+            sdpMLineIndex: m.sdpMLineIndex ? m.sdpMLineIndex : null,
+            hasSdpMLineIndex: m.sdpMLineIndex ? true : false,
+            usernameFragment: m.usernameFragment ? m.usernameFragment : null,
+            hasUsernameFragment: m.usernameFragment ? true : false,
+            hasType: false,
+            hasSdp: false,
         });
     }
 
-    sendSignallingMessage(m){
+    sendSdp(m){
+        // Convert regular js object into Unity JsonUtility-friendly object
         this.context.send({
-            type: 0,
-            args: JSON.stringify(m)
-        });
-    }
-
-    sendOffer(offer){
-        this.sendSignallingMessage(offer);
-    }
-
-    sendAnswer(answer){
-        this.sendSignallingMessage(answer);
-    }
-
-    sendIceCandidate(candidate){
-        this.context.send({
-            type: 1,
-            args: JSON.stringify(candidate)
+            hasImplementation: false,
+            hasCandidate: false,
+            hasSdpMid: false,
+            hasSdpMLineIndex: false,
+            hasUsernameFragment: false,
+            hasType: m.type ? true : false,
+            type: m.type ? m.type : null,
+            hasSdp: m.sdp ? true : false,
+            sdp: m.sdp ? m.sdp : null,
         });
     }
 }

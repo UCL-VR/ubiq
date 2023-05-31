@@ -167,7 +167,7 @@ namespace Ubiq.Voip.Implementations.Web
 
                     if (otherPeerImplementation == Implementation.Dotnet)
                     {
-                        // If the other implementation isn't dotnet, the
+                        // If just one of the two peers is dotnet, the
                         // non-dotnet peer always takes on the role of polite
                         // peer as the dotnet implementaton isn't smart enough
                         // to handle rollback
