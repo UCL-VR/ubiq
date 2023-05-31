@@ -43,11 +43,6 @@ peerconnectionmanager.addListener("OnPeerConnection", async component =>{
       });
 
     component.addListener("OnIceCandidate", async c =>{
-        // (The SipSorcery implementation misses the candidate: prefix, so add
-        // it here if necessary)
-        if(c !== null && c.candidate !== '' && !c.candidate.startsWith("candidate:")){
-            c.candidate = "candidate:" + c.candidate;
-        }
         // Sending a null candidate signals that candidate exchange has ended,
         // however wrtc does not accept null here so the end is ignored.
         if(c !== null){
@@ -91,11 +86,11 @@ peerconnectionmanager.addListener("OnPeerConnection", async component =>{
 
     // Now the RTCPeerConnection has been connected to the PeerConnection
     // signalling system, we can use it as we like.
-    
+
     // This creates a recv-only audio stream. We assume the other Peer will
     // create an audio stream for the microphone, as most of the samples do.
 
-    // See the node-webtrc-examples, such as the PitchDetector, for more 
+    // See the node-webtrc-examples, such as the PitchDetector, for more
     // examples of what can be done.
 
     const transceiver = pc.addTransceiver('audio');
