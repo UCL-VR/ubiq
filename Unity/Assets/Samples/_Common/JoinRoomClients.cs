@@ -11,24 +11,20 @@ namespace Ubiq.Samples
     {
         public bool JoinOnStart = false;
 
-        public string Guid = null;
+        public RoomGuid Guid = null;
 
         private void Start()
         {
-            if(Guid == null || Guid == "")
-            {
-                Guid = System.Guid.NewGuid().ToString();
-            }
             foreach (var forest in SceneManager.GetActiveScene().GetRootGameObjects())
             {
                 foreach (var item in forest.GetComponentsInChildren<RoomClient>())
                 {
-                    item.Join(System.Guid.Parse(Guid));
+                    item.Join(Guid);
                 }
             }
             if(NetworkScene.Find(this) is NetworkScene ns)
             {
-                ns.GetComponent<RoomClient>().Join(System.Guid.Parse(Guid));
+                ns.GetComponent<RoomClient>().Join(Guid);
             }
         }
     }

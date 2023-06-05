@@ -1,7 +1,6 @@
-const { write } = require('fs');
-const { nextTick } = require('process');
-const { Stream, EventEmitter, Writable } = require('stream');
-const { NetworkId } = require("ubiq/messaging")
+const { EventEmitter } = require('events')
+const { Stream } = require('stream')
+const { NetworkId } = require("ubiq")
 
 class LogCollectorMessage{
     constructor(message){
@@ -112,7 +111,7 @@ class LogCollector extends EventEmitter{
     }
 
     registerRoomClientEvents(){
-        this.roomClient = this.scene.findComponent("RoomClient");
+        this.roomClient = this.scene.getComponent("RoomClient");
         if(this.roomClient == undefined){
             throw "RoomClient must be added to the scene before LogCollector";
         }

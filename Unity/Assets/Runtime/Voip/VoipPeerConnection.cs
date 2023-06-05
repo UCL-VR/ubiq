@@ -4,13 +4,25 @@ using UnityEngine;
 using UnityEngine.Events;
 using Ubiq.Messaging;
 using Ubiq.Logging;
-using Ubiq.Voip.Factory;
 using Ubiq.Voip.Implementations;
 
 namespace Ubiq.Voip
 {
     public class VoipPeerConnection : MonoBehaviour
     {
+        private class PeerConnectionContext : IPeerConnectionContext
+        {
+            MonoBehaviour IPeerConnectionContext.behaviour => (MonoBehaviour)peerConnection;
+            void IPeerConnectionContext.Send(string json) => peerConnection.SendFromImpl(json);
+
+            private VoipPeerConnection peerConnection;
+
+            public PeerConnectionContext (VoipPeerConnection peerConnection)
+            {
+                this.peerConnection = peerConnection;
+            }
+        }
+
         // Defined here as well as in Impl for external use
         public enum IceConnectionState
         {
@@ -19,7 +31,8 @@ namespace Ubiq.Voip
             disconnected = 2,
             @new = 3,
             checking = 4,
-            connected = 5
+            connected = 5,
+            completed = 6
         }
 
         // Defined here as well as in Impl for external use
@@ -59,7 +72,9 @@ namespace Ubiq.Voip
             public SessionStatistics Video;
         }
 
-        public string peerUuid { get; private set; }
+        public string PeerUuid { get; private set; }
+
+        public bool Polite { get; private set; }
 
         public IceConnectionState iceConnectionState { get; private set; } = IceConnectionState.@new;
         public PeerConnectionState peerConnectionState { get; private set; } = PeerConnectionState.@new;
@@ -72,7 +87,6 @@ namespace Ubiq.Voip
 
         private NetworkId networkId;
         private NetworkScene networkScene;
-        private LogEmitter logger;
         private IPeerConnectionImpl impl;
 
         private bool isSetup;
@@ -91,33 +105,6 @@ namespace Ubiq.Voip
             }
         }
 
-        // todo-remotepeer just take relative co-ords
-        // public void SetRemotePeerPosition(Vector3 worldPosition, Quaternion worldRotation)
-        // {
-        //     if (!networkScene)
-        //     {
-        //         return;
-        //     }
-
-        //     var avatarManager = networkScene.GetComponentInChildren<Ubiq.Avatars.AvatarManager>();
-        //     if (!avatarManager)
-        //     {
-        //         return;
-        //     }
-
-        //     var localVoipAvatar = avatarManager.LocalAvatar.GetComponent<Ubiq.Avatars.VoipAvatar>();
-        //     if (!localVoipAvatar)
-        //     {
-        //         return;
-        //     }
-
-        //     var listener = localVoipAvatar.audioSourcePosition;
-        //     var relativePosition = listener.InverseTransformPoint(worldPosition);
-        //     var relativeRotation = Quaternion.Inverse(listener.rotation) * worldRotation;
-
-        //     impl.SetRemotePeerRelativePosition(relativePosition,relativeRotation);
-        // }
-
         public void UpdateSpatialization(Vector3 sourcePosition,
             Quaternion sourceRotation, Vector3 listenerPosition,
             Quaternion listenerRotation)
@@ -125,30 +112,6 @@ namespace Ubiq.Voip
             impl.UpdateSpatialization(sourcePosition,sourceRotation,
                 listenerPosition,listenerRotation);
         }
-
-        // todo
-//         public VoipAudioSourceOutput.Stats GetLastFrameStats ()
-//         {
-// #if UNITY_WEBGL && !UNITY_EDITOR
-//             if (impl != null)
-//             {
-//                 return impl.GetStats();
-//             }
-//             else
-//             {
-//                 return new VoipAudioSourceOutput.Stats {samples = 0, volume = 0};
-//             }
-// #else
-//             if (audioSink)
-//             {
-//                 return audioSink.lastFrameStats;
-//             }
-//             else
-//             {
-//                 return new VoipAudioSourceOutput.Stats {samples = 0, volume = 0};
-//             }
-// #endif
-//         }
 
         public void Setup (NetworkId networkId, NetworkScene scene,
             string peerUuid, bool polite, List<IceServerDetails> iceServers)
@@ -158,20 +121,19 @@ namespace Ubiq.Voip
                 return;
             }
 
+            this.Polite = polite;
             this.networkId = networkId;
-            this.peerUuid = peerUuid;
+            this.PeerUuid = peerUuid;
             this.networkScene = scene;
-            this.logger = new NetworkEventLogger(networkId, networkScene, this);
 
             this.impl = PeerConnectionImplFactory.Create();
 
-            impl.signallingMessageEmitted += OnImplMessageEmitted;
             impl.iceConnectionStateChanged += OnImplIceConnectionStateChanged;
             impl.peerConnectionStateChanged += OnImplPeerConnectionStateChanged;
 
             networkScene.AddProcessor(networkId, ProcessMessage);
 
-            impl.Setup(this,polite,iceServers);
+            impl.Setup(new PeerConnectionContext(this),polite,iceServers);
             isSetup = true;
         }
 
@@ -179,14 +141,13 @@ namespace Ubiq.Voip
         {
             if (impl != null)
             {
-                var message = data.FromJson<SignallingMessage>();
-                impl.ProcessSignallingMessage(message);
+                impl.ProcessSignalingMessage(data.ToString());
             }
         }
 
-        private void OnImplMessageEmitted (SignallingMessage message)
+        private void SendFromImpl(string json)
         {
-            networkScene.SendJson(networkId,message);
+            networkScene.Send(networkId,json);
         }
 
         private void OnImplIceConnectionStateChanged (Ubiq.Voip.Implementations.IceConnectionState state)

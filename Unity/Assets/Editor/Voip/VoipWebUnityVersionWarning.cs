@@ -2,9 +2,6 @@ using UnityEditor;
 
 namespace Ubiq.Voip
 {
-    // Warn the user if they're using Mono rather than IL2CPP as their scripting
-    // backend. The Mono backend takes a long time to generate certificates
-    // when used with our VOIP library on Android.
     public static class VoipWebUnityVersionWarning
     {
         [UnityEditor.Callbacks.DidReloadScripts]

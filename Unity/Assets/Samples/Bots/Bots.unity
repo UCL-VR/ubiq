@@ -263,7 +263,7 @@ MonoBehaviour:
   HideBotAvatars: 0
   AvatarUpdateRate: 60
   Padding: 0
-  EnableAudio: 1
+  EnableAudio: 0
 --- !u!1 &1567755669
 GameObject:
   m_ObjectHideFlags: 0
@@ -589,7 +589,8 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2243507130590225698, guid: dc901c96846c2344fa468212f583b3a7, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: dc901c96846c2344fa468212f583b3a7, type: 3}
 --- !u!1001 &4904968253623985163
 PrefabInstance:
@@ -598,21 +599,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 970569313930788201, guid: c1a55c9926c8d4843a76621513810efd,
-        type: 3}
-      propertyPath: networkId.a
-      value: 3966538821
-      objectReference: {fileID: 0}
-    - target: {fileID: 970569313930788201, guid: c1a55c9926c8d4843a76621513810efd,
-        type: 3}
-      propertyPath: networkId.b
-      value: 1740281163
-      objectReference: {fileID: 0}
-    - target: {fileID: 970569313930788201, guid: c1a55c9926c8d4843a76621513810efd,
-        type: 3}
-      propertyPath: __serializedGoid
-      value: GlobalObjectId_V1-2-775a5366984e5bf418fe14f12fd14a6f-970569313930788201-4904968253623985163
-      objectReference: {fileID: 0}
     - target: {fileID: 4904968254921343994, guid: c1a55c9926c8d4843a76621513810efd,
         type: 3}
       propertyPath: m_RootOrder

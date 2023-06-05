@@ -1,8 +1,6 @@
-const { exception, assert } = require('console');
-const { TextDecoder } = require('util');
 const { Schema } = require('./schema');
 const { performance } = require('perf_hooks');
-const { type } = require('os');
+const { Buffer } = require('buffer');
 
 const MESSAGE_HEADER_SIZE = 8;
 
@@ -47,11 +45,14 @@ class NetworkId{
             this.b = data.b;
             return;
         }
-        throw exception();
+        throw `Cannot construct NetworkId from ${data}`;
+    }
+
+    toString(){
+        return `${this.a.toString(16)}-${this.b.toString(16)}`;
     }
 
     static Compare(x, y){
-        assert(x !== undefined && y !== undefined);
         return(x.a == y.a && x.b == y.b);
     }
 
@@ -81,30 +82,31 @@ class NetworkId{
     }
 
     static Create(namespace, service){
-        var bytes = Buffer.from(service,'utf8');
         var id = new NetworkId(namespace);
         var data = new Uint32Array(2);
         data[0] = id.a;
         data[1] = id.b;
-        for(var i = 0; i < bytes.length; i++){
-            if(i % 2 != 0){
-                data[0] = Math.imul(data[0], bytes[i]);
-            }else{
-                data[1] = Math.imul(data[1], bytes[i]);
+        if(typeof(service) === 'number'){
+            data[0] = Math.imul(data[0], service);
+            data[1] = Math.imul(data[1], service);
+            return new NetworkId(data);
+        }else if(service instanceof NetworkId){
+            data[0] = Math.imul(data[0], service.b);
+            data[1] = Math.imul(data[1], service.a);
+            return new NetworkId(data);
+        }else if(typeof(service) === 'string'){
+            var bytes = Buffer.from(service,'utf8');
+            for(var i = 0; i < bytes.length; i++){
+                if(i % 2 != 0){
+                    data[0] = Math.imul(data[0], bytes[i]);
+                }else{
+                    data[1] = Math.imul(data[1], bytes[i]);
+                }
             }
+            return new NetworkId(data);
         }
-        return new NetworkId(data);
+        throw `Cannot construct namespaced NetworkId from ${namespace} and ${service}`;
     }
-
-    static Null = new NetworkId(0);
-}
-
-Buffer.prototype.writeNetworkId = function(networkId, offset){
-    NetworkId.WriteBuffer(networkId, this, offset);
-}
-
-Buffer.prototype.readNetworkId = function(offset){
-    return new NetworkId(this.slice(offset));
 }
 
 class Message{
@@ -140,7 +142,7 @@ class Message{
         }
 
         buffer.writeInt32LE(length, 0);
-        buffer.writeNetworkId(networkId, 4);
+        NetworkId.WriteBuffer(networkId, buffer, 4);
         message.copy(buffer, 12);
 
         var msg = new Message();

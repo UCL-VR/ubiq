@@ -2,8 +2,9 @@ const { Message } = require('./messaging');
 const WebSockets = require('ws');
 const Tcp = require('net');
 const { createServer } = require('https');
-const path = require('node:path');
-const fs = require('node:fs');
+const path = require('path');
+const fs = require('fs');
+const { Buffer } = require('buffer');
 
 // All WrappedConnection types implement two callbacks,
 // onMessage and onClose, and one function, Send.
@@ -65,22 +66,45 @@ class WrappedSecureWebSocketServer{
 
 class WebSocketConnectionWrapper{
     constructor(ws){
-        this.onMessage = [] 
-        this.onClose = []
-        
+        this.onMessage = [];
+        this.onClose = [];
+        this.state = ws.readyState;
         this.socket = ws;
+        this.socket.binaryType = "arraybuffer"; // This has no effect in Node, but correctly configures the event type in the browser
+        this.pending = [];
 
-        this.socket.on("message", function(data){
+        this.socket.onmessage = function(event){
+            let data = event.data;
+            if(event.data instanceof ArrayBuffer){
+                data = Buffer.from(data);
+            }
             this.onMessage.map(callback => callback(Message.Wrap(data)));
-        }.bind(this));
+        }.bind(this);
 
-        this.socket.on("close", function(event){
+        this.socket.onclose = function(event){
+            this.state = WebSocketConnectionWrapper.CLOSED;
             this.onClose.map(callback => callback());
-        }.bind(this));
+        }.bind(this);
+
+        this.socket.onopen = function(event){
+            this.state = WebSocketConnectionWrapper.OPEN;
+            this.pending.forEach(element => {
+                this.socket.send(element);
+            });
+            this.pending = [];
+        }.bind(this);
     }
 
+    static CONNECTING = 0;
+    static OPEN = 1;
+    static CLOSED = 2;
+
     send(message){
-        this.socket.send(message.buffer);
+        if(this.state == WebSocketConnectionWrapper.OPEN){
+            this.socket.send(message.buffer);
+        }else if(this.state == WebSocketConnectionWrapper.CONNECTING){
+            this.pending.push(message.buffer);
+        }
     }
 
     endpoint(){

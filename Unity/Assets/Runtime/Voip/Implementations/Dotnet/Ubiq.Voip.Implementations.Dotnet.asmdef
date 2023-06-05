@@ -6,7 +6,13 @@
     ],
     "includePlatforms": [],
     "excludePlatforms": [
-        "WebGL"
+        "Android",
+        "Editor",
+        "iOS",
+        "LinuxStandalone64",
+        "macOSStandalone",
+        "WebGL",
+        "WindowsStandalone64"
     ],
     "allowUnsafeCode": false,
     "overrideReferences": false,

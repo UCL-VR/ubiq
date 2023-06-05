@@ -81,6 +81,11 @@ namespace Ubiq.Avatars
             UpdateLocalAvatar();
         }
 
+        private void Update()
+        {
+            UpdateLocalAvatar();
+        }
+
         private void OnDestroy()
         {
             RoomClient.OnPeerUpdated.RemoveListener(OnPeerUpdated);
