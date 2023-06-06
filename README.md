@@ -13,6 +13,10 @@ Ubiq's goal is to enable your networked project. It includes message passing, ro
 
 Instructions for setting up your own server are included. Ubiq does not rely on any third-party services, making it GDPR-safe for your experiments.
 
+## Supported Unity Versions
+
+Ubiq supports Unity 2020.3 LTS or later. Unity 2021.3 LTS or later is required to build for WebGL (browser). 
+
 ## Quick Start
 
 1. Add a git package in the Unity package manager (UPM). See UPM instructions [here](https://docs.unity3d.com/Manual/upm-ui-giturl.html).
