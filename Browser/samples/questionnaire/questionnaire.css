@@ -1,0 +1,56 @@
+.client-grid{
+    grid-template-rows: max-content auto max-content;
+    grid-template-columns: 1fr;
+}
+
+.list{
+    gap: 25px;
+    grid-template-rows: max-content;
+    grid-template-columns: 1fr;
+}
+
+.item{
+    padding: 10px;
+    margin: 10px;
+    background: none;
+    box-shadow: 2px 2px 5px 1px #0000002b;
+}
+
+.question{
+
+}
+
+.instruction{
+
+}
+
+.button{
+    user-select: none; 
+    padding: 10px;
+    margin: 10px;
+    background: none;
+    box-shadow: 2px 2px 5px 1px #0000002b;
+    background-color: cornflowerblue;
+}
+
+.slider {
+    --SliderColor: Grey;
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 100%; /* Full-width */
+    height: 25px; /* Specified height */
+    background: #d3d3d3; /* Grey background */
+    outline: none; /* Remove outline */
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+  }
+
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 25px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    cursor: pointer; /* Cursor on hover */
+    background-color: var(--SliderColor);
+  }

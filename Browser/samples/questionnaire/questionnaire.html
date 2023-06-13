@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Ubiq Browser Client Sample</title>
+    <link rel="stylesheet" href="/ubiq.css">
+    <link rel="stylesheet" href="questionnaire.css">
+  </head>
+  <body>
+    <!--This script tag first downloads the config file, which tells the browser
+    app which server to connect to, and room to join. It then imports the js app
+    and assigns its exports to the global window object (under ubiq.app) so it
+    can be interacted with via the console. The process of importing executes
+    hello.js, where all the initialisation takes place. -->
+    <script>
+      fetch("/config.json").then(x => x.text()).then(config =>{
+        window.ubiq = {
+          config: JSON.parse(config),
+          app:  import("./questionnaire.js")
+        }
+      })
+    </script>
+
+    <!--This sample uses the grid display system to present a number of tiles-->
+    <div class="page-grid client-grid">
+      
+      <!--The header that spans the top of the screen-->
+      <div style="grid-column: 1/-1;" class="block title">
+        Ubiq Pseudo-haptics Experiment Example
+      </div>
+
+      <div id="questionnaire" class="block list">
+
+        <div id="instructions" class="item instruction">
+          Please follow the instructions in the Headset
+        </div>
+
+        <!--Multicoloured slider code based on
+          https://www.w3schools.com/howto/howto_js_rangeslider.asp
+          https://stackoverflow.com/questions/56851845/how-to-change-the-input-slider-thumb-colour-depending-on-value
+        -->
+
+        <div id="question1" class="item question" style="display: grid;">
+          Please place the cylinders where you think they belong on the scale below.
+          <input class="slider" id="slider1" type="range" style="--SliderColor: red"/>
+          <input class="slider" id="slider2" type="range" style="--SliderColor: green"/>
+          <input class="slider" id="slider3" type="range" style="--SliderColor: blue" />
+        </div>
+
+        <div id="question2" class="item question">
+          <div>In two sentances, please explain what you felt when lifting up the cylinders.</div>
+          <textarea id="question2response"></textarea>
+        </div>
+
+        <div id="submitbutton" class="item question button">
+          Submit
+        </div>
+      </div>
+
+      <div style="grid-column: 1/-1;" class="block footer">
+        <div><a href="https://ubiq.online/">Welcome to Ubiq</a> UCL Virtual Environments and Computer Graphics Group</div> 
+      </div>
+    </div>    
+  </body>
+</html>

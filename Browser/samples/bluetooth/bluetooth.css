@@ -1,0 +1,5 @@
+.client-grid{
+    grid-template-rows: max-content max-content min-content auto min-content;
+    grid-template-columns: 1fr;
+}
+

@@ -1,0 +1,75 @@
+.client-grid{
+    grid-template-rows: max-content max-content auto max-content;
+    grid-template-columns: 1fr;
+}
+
+.block-button{
+    padding: 10px;
+    margin: 2px;
+    background: none;
+    float: left;
+    box-shadow: 2px 2px 5px 1px #0000002b;
+    user-select: none;
+}
+
+.block-message{
+    padding: 10px;
+    margin: 2px;
+    float: left;
+    text-align: center;
+    vertical-align: middle;
+    width: max-content;
+}
+
+/* Calibration button styling */
+.Calibration{
+    width: 20px;
+    height: 20px;
+    -webkit-border-radius: 25px;
+    -moz-border-radius: 25px;
+    border-radius: 25px;
+    background-color: red;
+    opacity: 0.2;
+    border-color: black;
+    border-style: solid;
+    position:fixed;
+}
+
+/* Calibration point position */
+#Pt1{
+    top: 70px;
+    left:340px;
+}
+#Pt2{
+    top: 70px;
+    left:50vw;
+    margin-left: 340;
+}
+#Pt3{
+    top: 70px;
+    right:2vw;
+}
+#Pt4{
+    top:50vh;
+    left:2vw;
+}
+#Pt5{
+    top: 50vh;
+    left: 50vw;
+}
+#Pt6{
+    top: 50vh;
+    right:2vw;
+}
+#Pt7{
+    bottom:2vw;
+    left: 2vw;
+}
+#Pt8{
+    bottom:2vw;
+    left:50vw;
+}
+#Pt9{
+    bottom:2vw;
+    right:2vw;
+}

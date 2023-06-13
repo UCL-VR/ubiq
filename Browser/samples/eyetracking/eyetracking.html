@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Ubiq Browser Client Sample</title>
+    <link rel="stylesheet" href="/ubiq.css">
+    <link rel="stylesheet" href="eyetracking.css">
+  </head>
+  <body>
+    <!-- This element loads the webgazer library as the global webgazer object -->
+    <script src="./webgazer.js" type="text/javascript" ></script>
+
+    <!-- These tags make the threejs library available from the unpkg CDN. The 
+    library still needs to be imported. -->
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.153.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.153.0/examples/jsm/"
+        }
+      }
+    </script>
+
+    <!--This script tag first downloads the config file, which tells the browser
+    app which server to connect to, and room to join. It then imports the js app
+    and assigns its exports to the global window object (under ubiq.app) so it
+    can be interacted with via the console. The process of importing executes
+    hello.js, where all the initialisation takes place. -->
+    <script>
+      fetch("/config.json").then(x => x.text()).then(config =>{
+        window.ubiq = {
+          config: JSON.parse(config),
+          app:  import("./eyetracking.js")
+        }
+      })
+    </script>
+
+    <!--This sample uses the grid display system to present a number of tiles-->
+    <div class="page-grid client-grid">
+      
+      <!--The header that spans the top of the screen-->
+      <div style="grid-column: 1/-1;" class="block title">
+        Ubiq Control Panel Browser Sample
+      </div>
+
+      <div id="eyegaze-controls">
+        <div id="calibratebutton" class="block-button">Calibrate</div>
+        <div id="gazedotbutton" class="block-button">Toggle Gaze</div>
+        <div id="videopreviewbutton" class="block-button">Show Video</div>
+        <div id="instructions" class="block-message">Click Calibrate if this is the first time using WebGazer in this browser</div>
+      </div>
+
+     <div id="world" class="block" style="user-select: none;">
+     </div>
+
+      <div style="grid-column: 1/-1;" class="block footer" style="user-select: none;">
+        <div><a href="https://ubiq.online/">Welcome to Ubiq</a> UCL Virtual Environments and Computer Graphics Group</div> 
+      </div>
+    </div>
+    
+    <!-- Calibration points -->
+    <div class="calibrationDiv">
+      <input type="button" class="Calibration" id="Pt1"></input>
+      <input type="button" class="Calibration" id="Pt2"></input>
+      <input type="button" class="Calibration" id="Pt3"></input>
+      <input type="button" class="Calibration" id="Pt4"></input>
+      <input type="button" class="Calibration" id="Pt5"></input>
+      <input type="button" class="Calibration" id="Pt6"></input>
+      <input type="button" class="Calibration" id="Pt7"></input>
+      <input type="button" class="Calibration" id="Pt8"></input>
+      <input type="button" class="Calibration" id="Pt9"></input>
+  </div>
+    
+  </body>
+</html>

@@ -1,0 +1,12 @@
+.client-grid{
+    grid-template-rows: max-content min-content auto max-content;
+    grid-template-columns: 1fr;
+}
+
+audio {
+    height: 25px;
+}
+
+video {
+    width: 100%;
+}

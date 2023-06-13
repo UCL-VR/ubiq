@@ -1,0 +1,106 @@
+.client-grid{
+    grid-template-rows: max-content auto max-content;
+    grid-template-columns: 1fr;
+}
+
+.worldview-list{
+    gap: 25px;
+    grid-template-rows: min-content min-content max-content auto;
+}
+
+audio {
+    height: 25px;
+}
+
+.flatland{
+    width: 100%;
+    border-width: 1px;
+    border-style: solid;
+}
+
+.listeners-view{
+    grid-template-rows: min-content 1fr;
+}
+
+.listeners-list{
+    display: grid;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    row-gap: 10px;
+}
+
+.listener{
+    display: grid;
+    padding: 0px;
+    margin: 2px;
+    column-gap: 0;
+    row-gap: 5px;
+    grid-template-columns: 1fr 0.3fr;
+    grid-template-rows: min-content 10fr 3fr;
+    grid-template-areas: 'header close' 'messages format' 'input send';
+    box-shadow: 2px 2px 10px #00000083; 
+    background-color: aliceblue;
+}
+
+.listener-createbutton{
+    height: max-content;
+    min-height: 30px;
+}
+
+.listener-header{
+    grid-area: header;
+    padding: 10px;
+}
+
+.listener-close{
+    grid-area: close;
+    background-color: #df4c73;
+    user-select: none;
+    text-align: center;
+    padding: 10px;
+    vertical-align: middle;
+}
+
+.listener-messages{
+    grid-area: messages;
+    overflow: auto;
+    overflow-wrap: break-word;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: small;
+    padding: 10px;
+}
+
+.listener-format{
+    grid-area: format;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: small;
+    padding: 10px;
+}
+
+.listener-input{
+    grid-area: input;
+    resize: none;
+    padding: 10px;
+}
+
+.listener-send{
+    grid-area: send;
+    background-color: rgb(244, 244, 244);
+}
+
+.listener-bold{
+    font-weight: bold;
+}
+
+.address-grid{
+    display: grid;
+    grid-template-columns: 1.5fr 2fr;
+    gap: 7px;
+    grid-template-rows: max-content auto;
+    margin: 15px;
+}
+
+.address-grid-entry{
+    display: contents;
+}

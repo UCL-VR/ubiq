@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Ubiq Browser Client Sample</title>
+    <link rel="stylesheet" href="/ubiq.css">
+    <link rel="stylesheet" href="panel.css">
+  </head>
+  <body>
+    <!--This script tag first downloads the config file, which tells the browser
+    app which server to connect to, and room to join. It then imports the js app
+    and assigns its exports to the global window object (under ubiq.app) so it
+    can be interacted with via the console. The process of importing executes
+    hello.js, where all the initialisation takes place. -->
+    <script>
+      fetch("/config.json").then(x => x.text()).then(config =>{
+        window.ubiq = {
+          config: JSON.parse(config),
+          app:  import("./panel.js")
+        }
+      })
+    </script>
+
+    <!--This sample uses the grid display system to present a number of tiles-->
+    <div class="page-grid client-grid">
+      
+      <!--The header that spans the top of the screen-->
+      <div style="grid-column: 1/-1;" class="block title">
+        Ubiq Control Panel Browser Sample
+      </div>
+
+      <!--The left hand menu shows information about the room and the peers 
+      occupying it-->
+      <div id="roominfo" class="block" >
+        <div class="header-1">Room information</div>
+        <div id="roomuuid">Id</div>
+        <div id="roomjoincode">Join Code</div>
+      </div>
+
+      <!--The middle menu is a 2D view into the 3D world-->
+      <div id="worldview" class="block vertical-list">
+        <div id="Door1" class="block">Open Door 1</div>
+        <div id="Door2" class="block">Open Door 2</div>
+        <div id="Door3" class="block">Open Door 3</div>
+      </div>
+
+      <div style="grid-column: 1/-1;" class="block footer">
+        <div><a href="https://ubiq.online/">Welcome to Ubiq</a> UCL Virtual Environments and Computer Graphics Group</div> 
+      </div>
+    </div>    
+  </body>
+</html>
