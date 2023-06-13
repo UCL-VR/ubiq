@@ -11,7 +11,7 @@ namespace Ubiq.Voip.Implementations.Null
 #pragma warning restore CS0067
         public void Dispose() {}
         public PlaybackStats GetLastFramePlaybackStats() => new PlaybackStats();
-        public void ProcessSignalingMessage(SignalingMessage message) {}
+        public void ProcessSignalingMessage(string json) {}
         public void Setup(IPeerConnectionContext context, bool polite, List<IceServerDetails> iceServers)
         {
             // Pretend we are connected to silence/hide warnings

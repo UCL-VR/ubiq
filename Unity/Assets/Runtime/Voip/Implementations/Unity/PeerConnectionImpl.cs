@@ -45,6 +45,8 @@ namespace Ubiq.Voip.Implementations.Unity
         // Unity Peer Connection
         private RTCPeerConnection peerConnection;
 
+        public RTCPeerConnection PeerConnection => peerConnection;
+
         private IPeerConnectionContext context;
 
         private AudioSource receiverAudioSource;

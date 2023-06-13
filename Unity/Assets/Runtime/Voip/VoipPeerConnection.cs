@@ -89,6 +89,8 @@ namespace Ubiq.Voip
         private NetworkScene networkScene;
         private IPeerConnectionImpl impl;
 
+        public IPeerConnectionImpl Implementation => impl;
+
         private bool isSetup;
 
         private void OnDestroy()
