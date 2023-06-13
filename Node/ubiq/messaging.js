@@ -107,6 +107,8 @@ class NetworkId{
         }
         throw `Cannot construct namespaced NetworkId from ${namespace} and ${service}`;
     }
+
+    static Null = {a: 0, b: 0};
 }
 
 class Message{

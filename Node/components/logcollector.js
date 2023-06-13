@@ -1,6 +1,7 @@
 const { EventEmitter } = require('events')
 const { Stream } = require('stream')
 const { NetworkId } = require("ubiq")
+const { Buffer } = require('buffer');
 
 class LogCollectorMessage{
     constructor(message){
@@ -18,7 +19,7 @@ class LogCollectorMessage{
             content = Buffer.from(content, 'utf8');
             var buffer = Buffer.alloc(content.length + 2);
             buffer[0] = type;
-            buffer[1] = 0x0;
+            buffer[1] = 0x2; // Assume experiment for now
             content.copy(buffer,2);
             return buffer;
         }
@@ -70,12 +71,8 @@ class LogCollector extends EventEmitter{
         this._forwardingStream = new Stream.Writable(
             {
                 objectMode: true,
-                write: (msg,_,done) =>{
-                    collector.context.send({
-                        networkId: collector.destinationId,
-                        componentId: collector.componentId
-                    },
-                    msg);
+                write: (msg,_,done) => {
+                    this.scene.send(this.destinationId,msg);
                     done();
                 }
             }
@@ -207,6 +204,12 @@ class LogCollector extends EventEmitter{
                 this._eventStream.pipe(this._forwardingStream);
             }
         }
+    }
+
+    log(ev){
+        this._eventStream.push(
+            LogCollectorMessage.Create(0x2, ev)
+        );
     }
 }
 

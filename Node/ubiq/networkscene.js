@@ -2,9 +2,10 @@ const { Message, NetworkId } = require("./messaging");
 const { EventEmitter } = require('events');
 
 class NetworkContext{
-    constructor(scene, object){
+    constructor(scene, object, networkId){
         this.object = object;   // The Networked Component that this context belongs to
         this.scene = scene;     // The NetworkScene that this context belongs to
+        this.networkId = networkId; // The NetworkId that this object is registered under
     }
 
     // Send a message to another Ubiq Component. This method will work out the
@@ -26,7 +27,7 @@ class NetworkContext{
         if(arguments.length == 0){
             throw "Send must have at least one argument"
         }else if(arguments.length == 1){
-            this.scene.send(this.object.networkId, arguments[0]);
+            this.scene.send(this.networkId, arguments[0]);
         }else{
             this.scene.send(arguments[0], arguments[1]);
         }
@@ -113,7 +114,7 @@ class NetworkScene extends EventEmitter{
         
         this.entries.push(entry);
 
-        return new NetworkContext(this, entry.object);
+        return new NetworkContext(this, entry.object, entry.networkId);
     }
 
     unregister(component){

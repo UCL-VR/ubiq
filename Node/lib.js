@@ -11,7 +11,8 @@ const {
     RoomClient, 
     PeerConnectionManager,
     AvatarManager,
-    ThreePointTrackedAvatar
+    ThreePointTrackedAvatar,
+    LogCollector
  } = require("components");
 
 // This file is intended to bundle almost all the Ubiq Components and 
@@ -49,5 +50,6 @@ module.exports = {
     WebSocketConnectionWrapper,
     PeerConnectionManager,
     AvatarManager,
-    ThreePointTrackedAvatar
+    ThreePointTrackedAvatar,
+    LogCollector
 }
