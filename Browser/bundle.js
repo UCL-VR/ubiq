@@ -5740,11 +5740,11 @@ var _polyfillNode_perf_hooks$1 = /*#__PURE__*/Object.freeze({
 
 var require$$1$3 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_perf_hooks$1);
 
-var require$$6 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_buffer);
+var require$$3$1 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_buffer);
 
 const { Schema: Schema$1 } = schema;
 const { performance } = require$$1$3;
-const { Buffer: Buffer$2 } = require$$6;
+const { Buffer: Buffer$2 } = require$$3$1;
 
 const MESSAGE_HEADER_SIZE = 8;
 
@@ -5851,6 +5851,8 @@ let NetworkId$7 = class NetworkId{
         }
         throw `Cannot construct namespaced NetworkId from ${namespace} and ${service}`;
     }
+
+    static Null = {a: 0, b: 0};
 };
 
 let Message$3 = class Message{
@@ -20438,7 +20440,7 @@ const Tcp = require$$2$1;
 const { createServer } = require$$3;
 const path = require$$4;
 const fs = require$$5;
-const { Buffer: Buffer$1 } = require$$6;
+const { Buffer: Buffer$1 } = require$$3$1;
 
 // All WrappedConnection types implement two callbacks,
 // onMessage and onClose, and one function, Send.
@@ -21284,9 +21286,10 @@ const { Message: Message$1, NetworkId: NetworkId$6 } = messaging;
 const { EventEmitter: EventEmitter$4 } = require$$1$2;
 
 let NetworkContext$1 = class NetworkContext{
-    constructor(scene, object){
+    constructor(scene, object, networkId){
         this.object = object;   // The Networked Component that this context belongs to
         this.scene = scene;     // The NetworkScene that this context belongs to
+        this.networkId = networkId; // The NetworkId that this object is registered under
     }
 
     // Send a message to another Ubiq Component. This method will work out the
@@ -21308,7 +21311,7 @@ let NetworkContext$1 = class NetworkContext{
         if(arguments.length == 0){
             throw "Send must have at least one argument"
         }else if(arguments.length == 1){
-            this.scene.send(this.object.networkId, arguments[0]);
+            this.scene.send(this.networkId, arguments[0]);
         }else {
             this.scene.send(arguments[0], arguments[1]);
         }
@@ -21393,7 +21396,7 @@ let NetworkScene$2 = class NetworkScene extends EventEmitter$4{
         
         this.entries.push(entry);
 
-        return new NetworkContext$1(this, entry.object);
+        return new NetworkContext$1(this, entry.object, entry.networkId);
     }
 
     unregister(component){
@@ -21470,6 +21473,7 @@ var ubiq = {
 const { EventEmitter: EventEmitter$3 } = require$$1$2;
 const { Stream } = require$$1;
 const { NetworkId: NetworkId$4 } = ubiq;
+const { Buffer } = require$$3$1;
 
 class LogCollectorMessage{
     constructor(message){
@@ -21487,7 +21491,7 @@ class LogCollectorMessage{
             content = Buffer.from(content, 'utf8');
             var buffer = Buffer.alloc(content.length + 2);
             buffer[0] = type;
-            buffer[1] = 0x0;
+            buffer[1] = 0x2; // Assume experiment for now
             content.copy(buffer,2);
             return buffer;
         }
@@ -21512,7 +21516,7 @@ class LogCollectorMessage{
 // Until this is done, or resume() is called, the streams will be paused. In paused mode
 // the streams will discard any events, so make sure to connect the streams to the sink
 // before calling startCollection().
-let LogCollector$1 = class LogCollector extends EventEmitter$3{
+let LogCollector$2 = class LogCollector extends EventEmitter$3{
     constructor(scene){
         super();
         this.networkId = NetworkId$4.Create(scene.networkId, "LogCollector");
@@ -21539,12 +21543,8 @@ let LogCollector$1 = class LogCollector extends EventEmitter$3{
         this._forwardingStream = new Stream.Writable(
             {
                 objectMode: true,
-                write: (msg,_,done) =>{
-                    collector.context.send({
-                        networkId: collector.destinationId,
-                        componentId: collector.componentId
-                    },
-                    msg);
+                write: (msg,_,done) => {
+                    this.scene.send(this.destinationId,msg);
                     done();
                 }
             }
@@ -21674,10 +21674,16 @@ let LogCollector$1 = class LogCollector extends EventEmitter$3{
             }
         }
     }
+
+    log(ev){
+        this._eventStream.push(
+            LogCollectorMessage.Create(0x2, ev)
+        );
+    }
 };
 
 var logcollector = {
-    LogCollector: LogCollector$1
+    LogCollector: LogCollector$2
 };
 
 const { EventEmitter: EventEmitter$2 } = require$$1$2;
@@ -21922,57 +21928,59 @@ class PeerConnection extends EventEmitter$1{
         this.uuid = uuid;
         this.polite = polite;
         this.context = this.scene.register(this);
-        this.candidatesPaused = true;
-        this.candidatesBuffer = [];
     }
 
     processMessage(m){
         m = m.toObject();
-        switch(m.type){
-            case 0: // Session Description
-                this.emit("OnSignallingMessage", JSON.parse(m.args));
-                break;
-            case 1: // Ice Candidate
-                let candidate = JSON.parse(m.args);
-                if(this.candidatesPaused){
-                    this.candidatesBuffer.push(candidate);
-                }else {
-                    this.emit("OnIceCandidate", candidate);
-                }
-                break;
+
+        // Convert Unity JsonUtility-friendly object into regular js object
+        this.emit("OnSignallingMessage", {
+            implementation: m.hasImplementation ? m.implementation : undefined,
+            candidate: m.hasCandidate ? m.candidate : undefined,
+            sdpMid: m.hasSdpMid ? m.sdpMid : undefined,
+            sdpMLineIndex: m.hasSdpMLineIndex ? m.sdpMLineIndex : undefined,
+            usernameFragment: m.hasUsernameFragment ? m.usernameFragment : undefined,
+            type: m.hasType ? m.type : undefined,
+            sdp: m.hasSdp ? m.sdp : undefined,
+        });
+    }
+
+    sendIceCandidate(m){
+
+        // A null iceCandidate means no further candidates, but support for
+        // this is all over the place, so we just won't send it
+        if (!m) {
+            return;
         }
-    }
 
-    pauseCandidates(){
-        this.candidatesPaused = true;
-    }
-
-    startCandidates(){
-        this.candidatesPaused = false;
-        this.candidatesBuffer.forEach(candidate =>{
-            this.emit("OnIceCandidate", candidate);
+        // Convert regular js object into Unity JsonUtility-friendly object
+        this.context.send({
+            hasImplementation: false,
+            candidate: m.candidate ? m.candidate : null,
+            hasCandidate: m.candidate ? true : false,
+            sdpMid: m.sdpMid ? m.sdpMid : null,
+            hasSdpMid: m.sdpMid ? true : false,
+            sdpMLineIndex: m.sdpMLineIndex ? m.sdpMLineIndex : null,
+            hasSdpMLineIndex: m.sdpMLineIndex ? true : false,
+            usernameFragment: m.usernameFragment ? m.usernameFragment : null,
+            hasUsernameFragment: m.usernameFragment ? true : false,
+            hasType: false,
+            hasSdp: false,
         });
     }
 
-    sendSignallingMessage(m){
+    sendSdp(m){
+        // Convert regular js object into Unity JsonUtility-friendly object
         this.context.send({
-            type: 0,
-            args: JSON.stringify(m)
-        });
-    }
-
-    sendOffer(offer){
-        this.sendSignallingMessage(offer);
-    }
-
-    sendAnswer(answer){
-        this.sendSignallingMessage(answer);
-    }
-
-    sendIceCandidate(candidate){
-        this.context.send({
-            type: 1,
-            args: JSON.stringify(candidate)
+            hasImplementation: false,
+            hasCandidate: false,
+            hasSdpMid: false,
+            hasSdpMLineIndex: false,
+            hasUsernameFragment: false,
+            hasType: m.type ? true : false,
+            type: m.type ? m.type : null,
+            hasSdp: m.sdp ? true : false,
+            sdp: m.sdp ? m.sdp : null,
         });
     }
 }
@@ -22176,13 +22184,13 @@ var avatarmanager = {
 
 // This package can be used to build typical Ubiq Peers for Node.
 
-const { LogCollector} = logcollector;
+const { LogCollector: LogCollector$1} = logcollector;
 const { RoomClient: RoomClient$1 } = roomclient;
 const { PeerConnectionManager: PeerConnectionManager$1 } = peerconnectionmanager;
 const { AvatarManager: AvatarManager$1, ThreePointTrackedAvatar: ThreePointTrackedAvatar$1 } = avatarmanager;
 
 var components = {
-    LogCollector,
+    LogCollector: LogCollector$1,
     RoomClient: RoomClient$1,
     PeerConnectionManager: PeerConnectionManager$1,
     AvatarManager: AvatarManager$1,
@@ -22202,7 +22210,8 @@ const {
     RoomClient, 
     PeerConnectionManager,
     AvatarManager,
-    ThreePointTrackedAvatar
+    ThreePointTrackedAvatar,
+    LogCollector
  } = components;
 
 // This file is intended to bundle almost all the Ubiq Components and 
@@ -22240,7 +22249,8 @@ var lib = {
     WebSocketConnectionWrapper,
     PeerConnectionManager,
     AvatarManager,
-    ThreePointTrackedAvatar
+    ThreePointTrackedAvatar,
+    LogCollector
 };
 
 export { lib as default };
