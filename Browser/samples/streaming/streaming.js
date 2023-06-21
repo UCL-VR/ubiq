@@ -152,15 +152,16 @@ class StreamingCameraControls {
         this.networkId = new Ubiq.NetworkId("e09e9c92-30b82547");
         this.context = scene.register(this);
         videoplayer.addEventListener("mousemove",(ev)=>{
+            if(ev.buttons==1){
              this.context.send({
                 x: ev.clientX,
                 y: ev.clientY
              });
+            }
         });
     }
 
     processMessage(m){
-
     }
 }
 

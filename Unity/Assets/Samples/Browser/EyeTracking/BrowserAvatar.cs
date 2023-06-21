@@ -15,11 +15,12 @@ public class BrowserAvatar : MonoBehaviour
 
     private Quaternion localHeadRotation;
 
-    private SimpleMovingAverage eyeGazeLocation;
+    private SimpleMovingAverage eyeGazeDirection;
+    private Vector3 eyeGazeLocation;
 
     private void Awake()
     {
-        eyeGazeLocation = new SimpleMovingAverage(100);
+        eyeGazeDirection = new SimpleMovingAverage(50);
     }
 
     // Start is called before the first frame update
@@ -65,25 +66,30 @@ public class BrowserAvatar : MonoBehaviour
         // remote camera (i.e. they need the rotation applied as well).
 
         var direction = message.eyes;
-        direction.z = 1f / Mathf.Tan(message.eyes.z * Mathf.Deg2Rad);
+
+        // Clamp how far the eyes can move to avoid terrifying the VR user...
+
+        direction.x = Mathf.Clamp(direction.x, -0.20f, 0.20f);
+        direction.y = Mathf.Clamp(direction.y, -0.15f, 0.05f);
+        direction.z = 1f / Mathf.Tan(direction.z * Mathf.Deg2Rad);
         direction.Normalize();
 
-        direction  = Quaternion.Euler(-pitch, -yaw, roll) * direction;
+        var worldDirection  = Quaternion.Euler(-pitch, -yaw, roll) * eyeGazeDirection.Update(direction);
 
         // The gaze direction is quite noisy, so we should filter it to avoid
         // disturbing the vr users.
 
-        var target = eyeGazeLocation.Update(RemoteCameraTransform.position + direction);
+        eyeGazeLocation = (RemoteCameraTransform.position + worldDirection);
 
-        LeftEye.LookAt(target);
-        RightEye.LookAt(target);
+        LeftEye.LookAt(eyeGazeLocation);
+        RightEye.LookAt(eyeGazeLocation);
     }
 
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.green;
-        Gizmos.DrawLine(LeftEye.transform.position, eyeGazeLocation.v);
-        Gizmos.DrawLine(RightEye.transform.position, eyeGazeLocation.v);
+        Gizmos.DrawLine(LeftEye.transform.position, eyeGazeLocation);
+        Gizmos.DrawLine(RightEye.transform.position, eyeGazeLocation);
         Gizmos.DrawWireSphere(LeftEye.transform.position, 0.02f);
         Gizmos.DrawWireSphere(RightEye.transform.position, 0.02f);
     }

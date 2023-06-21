@@ -33,5 +33,11 @@ public class StreamingSampleCamera : MonoBehaviour
         pc.AddTrack(track);
         StartCoroutine(WebRTC.Update());
     }
+#else
+    private void Awake()
+    {
+        Debug.LogError("The current target is WebGL - this sample will not start in WebGL");
+    }
 #endif
+
 }

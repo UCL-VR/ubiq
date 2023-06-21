@@ -205,6 +205,12 @@ const avatars = [];
 
 avatarManager.addListener("OnAvatarCreated", avatar => {
 	loader.load("./Avatar.fbx", function(object){
+		var material = new THREE.MeshStandardMaterial( { color: 0xffffff, metalness: 0.9, roughness: 0.5, name: 'white' } );
+		object.traverse(o =>{
+			if(o.isMesh){
+				o.material = material;
+			}
+		});
 		threejsscene.add(object);
 		object.threePointTrackedAvatar = new Ubiq.ThreePointTrackedAvatar(scene, avatar.networkId);
 		object.scale.set(1,1,1);
