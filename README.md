@@ -15,7 +15,7 @@ Instructions for setting up your own server are included. Ubiq does not rely on 
 
 ## Supported Unity Versions
 
-Ubiq supports Unity 2020.3 LTS or later. Unity 2021.3 LTS or later is required to build for WebGL (browser). 
+Ubiq supports Unity 2021.3 LTS or later.
 
 ## Quick Start
 
@@ -37,7 +37,7 @@ You're connected! For next steps see the Getting Started guide in our docs at ht
 
 ## Do you use Ubiq?
 
-Having a list of projects using Ubiq helps when applying for funding. 
+Having a list of projects using Ubiq helps when applying for funding.
 
 If you use Ubiq in any way, please consider telling us using the form below. It only takes 30 seconds, all responses are anonymous, all fields optional, and the data will only be used in aggregate for applications.
 
