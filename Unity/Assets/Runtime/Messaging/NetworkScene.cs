@@ -246,26 +246,6 @@ namespace Ubiq.Messaging
             connections.Add(connection);
         }
 
-        /// <summary>
-        /// Public method instructing the network scene to drop all current connections and dispose of them.
-        /// Used to recover from a connection loss to Nexus.
-        /// </summary>
-        public void ResetConnections()
-        {
-            foreach (var c in connections)
-            {
-                try
-                {
-                    c.Dispose();
-                }
-                catch
-                {
-
-                }
-            }
-            connections.Clear();
-        }
-
         private void Update()
         {
             OnUpdate.Invoke();

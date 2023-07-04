@@ -1,6 +1,4 @@
-﻿using Codice.Client.Commands;
-using JetBrains.Annotations;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Ubiq.Dictionaries;
@@ -242,20 +240,6 @@ namespace Ubiq.Rooms
         private float heartbeatSent => Time.realtimeSinceStartup - pingSent;
         public static float HeartbeatTimeout = 5f;
         public static float HeartbeatInterval = 1f;
-
-        // Parameters private and public for the reconnection process.
-        private enum ReconnectionStatus { Off, Reset, Received, Rejoining};
-        private ReconnectionStatus reconnectionStatus = ReconnectionStatus.Off;
-        private float lastResetTime = 0;
-        private float timeSinceLastReset => Time.realtimeSinceStartup - lastResetTime;
-        private float lastRejoinTime = 0;
-        private float timeSinceLastRejoin => Time.realtimeSinceStartup - lastRejoinTime;
-        private Guid previousRoomGUID = Guid.Empty;
-        public static bool AttemtReconnecting = true; // Whether the RoomClient attemtps to reconnect to the server on connection loss.
-        public static float ReconnectTimeout = 5f; // How long a timeout can last until the reconnect procedure is triggered.
-        public static float ReconnectInterval = 5f; // The intervals in which reconnect attempts are done.
-        public static float RejoinInterval = 5f; // The intervals in which rejoin attempts are done.
-
         private PeerInterfaceFriend me = new PeerInterfaceFriend(Guid.NewGuid().ToString());
         private RoomInterfaceFriend room = new RoomInterfaceFriend();
         private NetworkScene scene;
@@ -563,11 +547,6 @@ namespace Ubiq.Rooms
                 case "Ping":
                     {
                         pingReceived = Time.realtimeSinceStartup;
-
-                        // Set flag for first ping after connection loss
-                        if (reconnectionStatus == ReconnectionStatus.Reset)
-                            reconnectionStatus = ReconnectionStatus.Received;
-
                         PlayerNotifications.Delete(ref notification);
                         var response = JsonUtility.FromJson<PingResponseArgs>(container.args);
                         OnPingResponse(response);
@@ -656,38 +635,6 @@ namespace Ubiq.Rooms
             scene.AddConnection(Connections.Resolve(connection));
         }
 
-        /// <summary>
-        /// Method to reset all current connections and reconnect to the ones defined by the user in the Unity UI.
-        /// </summary>
-        public void ResetAndReconnect()
-        {
-            ResetAndReconnect(servers);
-        }
-
-        /// <summary>
-        /// Method to reset all current connections and reconnect to the ones defined in the connection definition passed as argument.
-        /// </summary>
-        /// <param name="connectionDefinitions">The connection definition that will be connected after the reset.</param>
-        public void ResetAndReconnect(ConnectionDefinition[] connectionDefinitions)
-        {
-            // Drop all connections
-            scene.ResetConnections();
-
-            // Reconnect all connections
-            foreach (var item in connectionDefinitions)
-            {
-                try
-                {
-                    Connect(item);
-                }
-                catch(Exception e)
-                {
-                    Debug.LogError(e.ToString());
-                }
-            }
-        }
-
-
         private void Update()
         {
             actions.ForEach(a => a());
@@ -730,52 +677,6 @@ namespace Ubiq.Rooms
                 if (notification == null)
                 {
                     notification = PlayerNotifications.Show(new TimeoutNotification(this));
-                }
-            }
-
-            // Reconnection behaviour
-            // Test if dynamic reconnection is enabled
-            if(AttemtReconnecting)
-            {
-                // If enabled, check for current reconnection status
-                switch (reconnectionStatus)
-                {
-                    // Reconnection off: If reconnect timeout is exceeded, old room GUID is stored, reset initiated, and next state is initiaded.
-                    case ReconnectionStatus.Off:
-                        if(heartbeatReceived > ReconnectTimeout)
-                        {
-                            previousRoomGUID = new Guid(room.UUID);
-                            ResetAndReconnect();
-                            lastResetTime = Time.realtimeSinceStartup;
-                            reconnectionStatus = ReconnectionStatus.Reset;
-                        }
-                        break;
-                    // Reconnection Reset: Connection is reset. While no response has been received, reset connection again in regular intervals.
-                    case ReconnectionStatus.Reset:
-                        if (timeSinceLastReset > ReconnectInterval)
-                        {
-                            ResetAndReconnect();
-                            lastResetTime = Time.realtimeSinceStartup;                            
-                        }
-                        break;
-                    // Reconnection Received: A response by Nexus has received. Attempt at rejoining room.
-                    case ReconnectionStatus.Received:
-                        Join(previousRoomGUID);
-                        lastRejoinTime = Time.realtimeSinceStartup;
-                        reconnectionStatus = ReconnectionStatus.Rejoining;
-                        break;
-                    // Reconnection Rejoining: Re-attempt rejoining room at regular intervals until succesful.
-                    case ReconnectionStatus.Rejoining:
-                        if(room.UUID == previousRoomGUID.ToString())
-                        {
-                            reconnectionStatus = ReconnectionStatus.Off;
-                        }
-                        else if(timeSinceLastRejoin > RejoinInterval)
-                        {
-                            Join(previousRoomGUID);
-                            lastRejoinTime = Time.realtimeSinceStartup;
-                        }
-                        break;
                 }
             }
         }
