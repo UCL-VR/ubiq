@@ -3,33 +3,18 @@ using UnityEngine;
 namespace Ubiq.Voip.Implementations.Unity
 {
     /// <summary>
-    ///
+    /// Part of the workaround for lack of spatialisation in Unity's WebRTC
+    /// implementation. This part stores the raw spatialisation information.
+    /// Requires an AudioClip filled with 1s
     /// </summary>
-    public class SpatialisationCacheAudioFilter : MonoBehaviour
+    public class SpatialisationCacheFilter : MonoBehaviour
     {
         public float[] cache = new float[4096];
-        private int m_sampleRate;
-
-        void OnEnable()
-        {
-            OnAudioConfigurationChanged(false);
-            AudioSettings.OnAudioConfigurationChanged += OnAudioConfigurationChanged;
-        }
-
-        void OnDisable()
-        {
-            AudioSettings.OnAudioConfigurationChanged -= OnAudioConfigurationChanged;
-        }
-
-        void OnAudioConfigurationChanged(bool deviceWasChanged)
-        {
-            m_sampleRate = AudioSettings.outputSampleRate;
-        }
 
         /// <summary>
         /// </summary>
         /// <note>
-        /// Call on the audio thread, not main thread.
+        /// Called on the audio thread, not the main thread.
         /// </note>
         /// <param name="data"></param>
         /// <param name="channels"></param>

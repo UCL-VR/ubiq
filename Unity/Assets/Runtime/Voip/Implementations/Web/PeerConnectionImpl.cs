@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -54,11 +55,33 @@ namespace Ubiq.Voip.Implementations.Web
         [DllImport("__Internal")]
         public static extern void JS_WebRTC_SetPanner(int pc, float x, float y, float z);
         [DllImport("__Internal")]
-        public static extern int JS_WebRTC_GetStatsSamples(int pc);
+        public static extern int JS_WebRTC_GetPlaybackStatsSampleCount(int pc);
         [DllImport("__Internal")]
-        public static extern float JS_WebRTC_GetStatsVolume(int pc);
+        public static extern float JS_WebRTC_GetPlaybackStatsVolumeSum(int pc);
         [DllImport("__Internal")]
-        public static extern void JS_WebRTC_EndStats(int pc);
+        public static extern int JS_WebRTC_GetPlaybackStatsSampleRate(int pc);
+        [DllImport("__Internal")]
+        public static extern int JS_WebRTC_GetRecordStatsSampleCount();
+        [DllImport("__Internal")]
+        public static extern float JS_WebRTC_GetRecordStatsVolumeSum();
+        [DllImport("__Internal")]
+        public static extern int JS_WebRTC_GetRecordStatsSampleRate();
+        [DllImport("__Internal")]
+        public static extern void JS_WebRTC_EndStats(int pc, int frameCount);
+
+        private class Context
+        {
+            public IPeerConnectionContext context;
+            public Action<AudioStats> playbackStatsPushed;
+            public Action<AudioStats> recordStatsPushed;
+            public Action<IceConnectionState> iceConnectionStateChanged;
+            public Action<PeerConnectionState> peerConnectionStateChanged;
+            public bool polite;
+
+            public MonoBehaviour behaviour => context.behaviour;
+            public GameObject gameObject => context.behaviour.gameObject;
+            public Transform transform => context.behaviour.transform;
+        }
 
         private enum Implementation
         {
@@ -67,12 +90,7 @@ namespace Ubiq.Voip.Implementations.Web
             Other
         }
 
-        public event IceConnectionStateChangedDelegate iceConnectionStateChanged;
-        public event PeerConnectionStateChangedDelegate peerConnectionStateChanged;
-
         private Queue<SignalingMessage> messageQueue = new Queue<SignalingMessage>();
-
-        private IPeerConnectionContext context;
 
         private Coroutine updateCoroutine;
         private int peerConnectionId = -1;
@@ -86,11 +104,16 @@ namespace Ubiq.Voip.Implementations.Web
         // not yet set https://stackoverflow.com/questions/38198751
         private bool hasRemoteDescription = false;
 
+        private Context ctx;
+
         public void Dispose()
         {
             if (updateCoroutine != null)
             {
-                context.behaviour.StopCoroutine(updateCoroutine);
+                if (ctx != null && ctx.behaviour)
+                {
+                    ctx.behaviour.StopCoroutine(updateCoroutine);
+                }
                 updateCoroutine = null;
             }
 
@@ -99,17 +122,19 @@ namespace Ubiq.Voip.Implementations.Web
                 JS_WebRTC_Close(peerConnectionId);
                 peerConnectionId = -1;
             }
+
+            ctx = null;
         }
 
-        public PlaybackStats GetLastFramePlaybackStats ()
-        {
-            return new PlaybackStats
-            {
-                sampleCount = JS_WebRTC_GetStatsSamples(peerConnectionId),
-                volumeSum = JS_WebRTC_GetStatsVolume(peerConnectionId),
-                sampleRate = 16000
-            };
-        }
+        // public PlaybackStats GetLastFramePlaybackStats ()
+        // {
+        //     return new PlaybackStats
+        //     {
+        //         sampleCount = JS_WebRTC_GetStatsSamples(peerConnectionId),
+        //         volumeSum = JS_WebRTC_GetStatsVolume(peerConnectionId),
+        //         sampleRate = 16000
+        //     };
+        // }
 
         public void UpdateSpatialization(Vector3 sourcePosition,
             Quaternion sourceRotation, Vector3 listenerPosition,
@@ -122,16 +147,27 @@ namespace Ubiq.Voip.Implementations.Web
             JS_WebRTC_SetPanner(peerConnectionId,p.x,p.y,p.z);
         }
 
-        public void Setup(IPeerConnectionContext context, bool polite,
-            List<IceServerDetails> iceServers)
+        public void Setup(IPeerConnectionContext context,
+            bool polite,
+            List<IceServerDetails> iceServers,
+            Action<AudioStats> playbackStatsPushed,
+            Action<AudioStats> recordStatsPushed,
+            Action<IceConnectionState> iceConnectionStateChanged,
+            Action<PeerConnectionState> peerConnectionStateChanged)
         {
-            if (this.context != null)
+            if (ctx != null)
             {
-                // Already setup or setup in progress
+                // Already setup
                 return;
             }
 
-            this.context = context;
+            ctx = new Context();
+            ctx.context = context;
+            ctx.polite = polite;
+            ctx.playbackStatsPushed = playbackStatsPushed;
+            ctx.recordStatsPushed = recordStatsPushed;
+            ctx.iceConnectionStateChanged = iceConnectionStateChanged;
+            ctx.peerConnectionStateChanged = peerConnectionStateChanged;
 
             peerConnectionId = JS_WebRTC_New();
             for (int i = 0; i < iceServers.Count; i++)
@@ -143,7 +179,7 @@ namespace Ubiq.Voip.Implementations.Web
             JS_WebRTC_New_SetPolite(peerConnectionId,polite);
             JS_WebRTC_New_Start(peerConnectionId);
 
-            updateCoroutine = context.behaviour.StartCoroutine(Update());
+            updateCoroutine = ctx.behaviour.StartCoroutine(Update());
         }
 
         public void ProcessSignalingMessage (string json)
@@ -202,10 +238,33 @@ namespace Ubiq.Voip.Implementations.Web
                 ProcessSignalingMessages();
                 SendSignalingMessages();
 
-                JS_WebRTC_EndStats(peerConnectionId);
+                JS_WebRTC_EndStats(peerConnectionId,Time.frameCount);
+
+                PushPlaybackStats();
+                PushRecordStats();
 
                 yield return null;
             }
+        }
+
+        private void PushPlaybackStats()
+        {
+            ctx.playbackStatsPushed?.Invoke(new AudioStats
+            (
+                sampleCount: JS_WebRTC_GetPlaybackStatsSampleCount(peerConnectionId),
+                volumeSum: JS_WebRTC_GetPlaybackStatsVolumeSum(peerConnectionId),
+                sampleRate: JS_WebRTC_GetPlaybackStatsSampleRate(peerConnectionId)
+            ));
+        }
+
+        private void PushRecordStats()
+        {
+            ctx.recordStatsPushed?.Invoke(new AudioStats
+            (
+                sampleCount: JS_WebRTC_GetRecordStatsSampleCount(),
+                volumeSum: JS_WebRTC_GetRecordStatsVolumeSum(),
+                sampleRate: JS_WebRTC_GetRecordStatsSampleRate()
+            ));
         }
 
         private void UpdateHasRemoteDescription()
@@ -220,8 +279,7 @@ namespace Ubiq.Voip.Implementations.Web
                 JS_WebRTC_GetIceConnectionState(peerConnectionId);
             if (state != lastIceConnectionState)
             {
-                Debug.Log("ICE Connection State Changed: " + state);
-                iceConnectionStateChanged(state);
+                ctx.iceConnectionStateChanged?.Invoke(state);
                 lastIceConnectionState = state;
             }
         }
@@ -232,8 +290,7 @@ namespace Ubiq.Voip.Implementations.Web
                 JS_WebRTC_GetPeerConnectionState(peerConnectionId);
             if (state != lastPeerConnectionState)
             {
-                Debug.Log("Peer Connection State Changed: " + state);
-                peerConnectionStateChanged(state);
+                ctx.peerConnectionStateChanged?.Invoke(state);
                 lastPeerConnectionState = state;
             }
         }
@@ -243,15 +300,26 @@ namespace Ubiq.Voip.Implementations.Web
             // Check for new ice candidates provided by the peer connection
             while (JS_WebRTC_SignalingMessages_Has(peerConnectionId))
             {
-                var sdpMLineIndex = JS_WebRTC_SignalingMessages_GetSdpMLineIndex(peerConnectionId);
-                context.Send(SignalingMessageHelper.ToJson(new SignalingMessage{
-                    candidate = JS_WebRTC_SignalingMessages_GetCandidate(peerConnectionId),
-                    sdpMid = JS_WebRTC_SignalingMessages_GetSdpMid(peerConnectionId),
-                    sdpMLineIndex = sdpMLineIndex < 0 ? null : (ushort?)sdpMLineIndex ,
-                    usernameFragment = JS_WebRTC_SignalingMessages_GetUsernameFragment(peerConnectionId),
-                    type = JS_WebRTC_SignalingMessages_GetType(peerConnectionId),
-                    sdp = JS_WebRTC_SignalingMessages_GetSdp(peerConnectionId)
-                }));
+                var sdp = JS_WebRTC_SignalingMessages_GetSdp(peerConnectionId);
+                if (sdp != null)
+                {
+                    ctx.context.Send(SdpMessage.ToJson(new SdpMessage
+                    (
+                        type:JS_WebRTC_SignalingMessages_GetType(peerConnectionId),
+                        sdp:sdp
+                    )));
+                }
+                else
+                {
+                    var sdpMLineIndex = JS_WebRTC_SignalingMessages_GetSdpMLineIndex(peerConnectionId);
+                    ctx.context.Send(IceCandidateMessage.ToJson(new IceCandidateMessage
+                    (
+                        candidate:JS_WebRTC_SignalingMessages_GetCandidate(peerConnectionId),
+                        sdpMid:JS_WebRTC_SignalingMessages_GetSdpMid(peerConnectionId),
+                        sdpMLineIndex:sdpMLineIndex < 0 ? null : (ushort?)sdpMLineIndex,
+                        usernameFragment:JS_WebRTC_SignalingMessages_GetUsernameFragment(peerConnectionId)
+                    )));
+                }
 
                 JS_WebRTC_SignalingMessages_Pop(peerConnectionId);
             }

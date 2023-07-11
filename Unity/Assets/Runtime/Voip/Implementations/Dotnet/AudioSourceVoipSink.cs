@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using SIPSorceryMedia.Abstractions;
 using UnityEngine;
+using Ubiq.Voip.Implementations;
 
 namespace Ubiq.Voip.Implementations.Dotnet
 {
@@ -103,7 +104,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
                 stopwatch.Start();
             }
 
-            public PlaybackStats Commit (int currentTimeSamples, AudioClip audioClip)
+            public AudioStats Commit (int currentTimeSamples, AudioClip audioClip)
             {
                 var stats = Advance(currentTimeSamples, audioClip);
                 Flush(audioClip);
@@ -187,7 +188,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
             }
 
             // Step internal time trackers forward and zero out just-read samples
-            private PlaybackStats Advance (int timeSamples, AudioClip audioClip)
+            private AudioStats Advance (int timeSamples, AudioClip audioClip)
             {
                 if (absTimeSamples < 0)
                 {
@@ -227,10 +228,10 @@ namespace Ubiq.Voip.Implementations.Dotnet
                     lastTimeSamples = timeSamples;
 
                     // Calculate stats for the advance
-                    return new PlaybackStats { volumeSum=volume, sampleCount=deltaTimeSamples, sampleRate=audioClip.frequency};
+                    return new AudioStats(sampleCount:deltaTimeSamples,volumeSum:volume,sampleRate:audioClip.frequency);
                 }
 
-                return new PlaybackStats { volumeSum=0, sampleCount=0, sampleRate=audioClip.frequency};
+                return new AudioStats(sampleCount:0,volumeSum:0,sampleRate:audioClip.frequency);
             }
 
             public void AddRtp (AudioRtp rtp)
@@ -239,6 +240,8 @@ namespace Ubiq.Voip.Implementations.Dotnet
             }
         }
 
+        public event Action<AudioStats> statsPushed;
+
         public int sampleRate { get { return 16000; } }
         public int bufferSamples { get { return sampleRate * 2; } }
         public int latencySamples { get { return sampleRate / 5; } }
@@ -246,7 +249,6 @@ namespace Ubiq.Voip.Implementations.Dotnet
 
         public float gain = 1.0f;
         public AudioSource unityAudioSource { get; private set; }
-        public PlaybackStats lastFrameStats { get; private set; }
         public float Volume { get => unityAudioSource.volume; set => unityAudioSource.volume = value; }
 
         private G722AudioDecoder audioDecoder = new G722AudioDecoder();
@@ -320,7 +322,8 @@ namespace Ubiq.Voip.Implementations.Dotnet
 
             var timeSamples = unityAudioSource.timeSamples;
             var clip = unityAudioSource.clip;
-            lastFrameStats = rtpBufferer.Commit(timeSamples,clip);
+            var stats = rtpBufferer.Commit(timeSamples,clip);
+            statsPushed?.Invoke(stats);
         }
 
         private float PcmToFloat (short pcm)
@@ -366,11 +369,6 @@ namespace Ubiq.Voip.Implementations.Dotnet
         private Task GetCloseAudioTask()
         {
             return new Task(() => { });
-        }
-
-        public PlaybackStats GetLastFramePlaybackStats()
-        {
-            return lastFrameStats;
         }
 
         public void UpdateSpatialization(Vector3 sourcePosition,
