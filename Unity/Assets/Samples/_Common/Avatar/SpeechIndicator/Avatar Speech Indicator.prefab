@@ -219,12 +219,15 @@ MonoBehaviour:
   - {fileID: 4024233642343254899}
   - {fileID: 8014688428566232123}
   - {fileID: 6408185506489093665}
-  minIndicatorScale: {x: 0.0225, y: 0.0225, z: 0.0225}
-  maxIndicatorScale: {x: 0.0375, y: 0.0375, z: 0.0375}
-  minVolume: 0.005
-  minVolumeWhenOn: 0.002
-  maxVolume: 0.02
+  scaleAtVolumeFloor: {x: 0.0225, y: 0.0225, z: 0.0225}
+  scaleAtVolumeCeiling: {x: 0.0375, y: 0.0375, z: 0.0375}
+  triggerVolume: 0.005
+  persistVolume: 0.002
+  volumeFloor: 0.002
+  volumeCeiling: 0.02
   windowSeconds: 0.6
+  noiseAmplitude: 0.0075
+  noiseFrequency: 2
 --- !u!1 &7907522415751529872
 GameObject:
   m_ObjectHideFlags: 0

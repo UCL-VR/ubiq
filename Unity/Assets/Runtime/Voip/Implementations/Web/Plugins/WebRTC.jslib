@@ -204,7 +204,7 @@ var unityWebRtcInteropLibrary = {
 
             if (!context.processorNode) {
                 let audioContext = context.audioContext;
-                context.processorNode = audioContext.createScriptProcessor(4096, 1, 1);
+                context.processorNode = audioContext.createScriptProcessor(1024, 1, 1);
                 context.processorNode.onaudioprocess = ({inputBuffer}) => {
                     let arr = inputBuffer.getChannelData(0);
                     let length = arr.length;

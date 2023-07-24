@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,105 +5,116 @@ namespace Ubiq.Voip
 {
     public class VoipSpeechIndicator : MonoBehaviour
     {
+        private class SmoothVolumeEstimator
+        {
+            private VolumeEstimator prior;
+            private VolumeEstimator post;
+            private float priorTime;
+            private float postTime;
+            private VoipPeerConnection.AudioStats audioStats;
+
+            public SmoothVolumeEstimator(float delaySeconds, float lengthSeconds)
+            {
+                prior = new VolumeEstimator(delaySeconds,lengthSeconds);
+                post = new VolumeEstimator(delaySeconds,lengthSeconds);
+            }
+
+            public void Add(VoipPeerConnection.AudioStats audioStats, float time)
+            {
+                priorTime = postTime;
+                postTime = time;
+
+                prior.PushAudioStats(this.audioStats);
+                post.PushAudioStats(audioStats);
+                this.audioStats = audioStats;
+            }
+
+            public float GetVolume(float time)
+            {
+                var t = Mathf.InverseLerp(priorTime,postTime,time);
+                return Mathf.Lerp(prior.volume,post.volume,t);
+            }
+        }
+
+        [Tooltip("The indicators to enable and scale with VOIP volume. The lowest index is considered the most recent")]
         public List<Transform> volumeIndicators;
-
-        public Vector3 minIndicatorScale;
-        public Vector3 maxIndicatorScale;
-
-        public float minVolume = 0.005f;
-        public float minVolumeWhenOn = 0.002f; // Should be lower for hysteresis
-        public float maxVolume = 0.02f;
-
+        [Tooltip("The scale to set if the volume is at the VolumeFloor. Scales will be linearly interpolated between this and ScaleAtVolumeCeiling")]
+        public Vector3 scaleAtVolumeFloor;
+        [Tooltip("The scale to set if the volume is at the VolumeCeiling. Scales will be linearly interpolated between this and ScaleAtVolumeFloor")]
+        public Vector3 scaleAtVolumeCeiling;
+        [Tooltip("Above this volume, start showing the indicator")]
+        public float triggerVolume = 0.005f;
+        [Tooltip("Above this volume, keep showing the indicator, if we are already. Can be set lower than TriggerVolume for simple hysteresis")]
+        public float persistVolume = 0.002f;
+        [Tooltip("Lower bound of volume for size scaling. Most of the time, you'll want this to be the same as PersistVolume")]
+        public float volumeFloor = 0.002f;
+        [Tooltip("Upper bound of volume for size scaling")]
+        public float volumeCeiling = 0.02f;
+        [Tooltip("Total length of the sampling window. Samples older than this will be discarded")]
         public float windowSeconds = 0.6f;
+        [Tooltip("Proportion that a sub-window should overlap its neighbouring sub-windows, for smoother visuals. If 0, no overlap")]
+        public float windowOverlap = 0.3f;
+        [Tooltip("The max value of noise added or subtracted. Noise makes the indicators seem more dynamic at high framerates")]
+        public float noiseAmplitude = 0.05f;
+        [Tooltip("How quickly the noise appears to change. Noise makes the indicators seem more dynamic at high framerates")]
+        public float noiseFrequency = 1f;
 
         private List<VoipPeerConnection.AudioStats> stats = new List<VoipPeerConnection.AudioStats>();
-        private List<float> volumes = new List<float>();
+        private List<SmoothVolumeEstimator> volumeEstimators = new List<SmoothVolumeEstimator>();
+        private List<float> noises = new List<float>();
         private List<bool> indicatorStates = new List<bool>();
+        private float time = 0;
+
+        private const float NOISE_INIT_MULTIPLIER = 100.0f;
 
         void Update()
         {
+            time += Time.unscaledDeltaTime;
             UpdateVolumes();
+            UpdateNoise();
             UpdateIndicators();
             UpdatePosition();
         }
 
         private void UpdateVolumes()
         {
-            if (volumeIndicators.Count == 0 )
+            if (volumeEstimators.Count != volumeIndicators.Count)
             {
-                return;
-            }
-
-            var secondsPerIndicator = windowSeconds / volumeIndicators.Count;
-            if (volumes.Count != volumeIndicators.Count)
-            {
-                volumes.Clear();
+                volumeEstimators.Clear();
+                var secondsPerWindow = windowSeconds / volumeIndicators.Count;
                 for (int i = 0; i < volumeIndicators.Count; i++)
                 {
-                    volumes.Add(0);
-                }
-            }
-
-            for (int i = 0; i < volumes.Count; i++)
-            {
-                volumes[i] = 0;
-            }
-
-            if (stats.Count == 0)
-            {
-                return;
-            }
-
-            // Walk through the stats structs, calculate volume for each window
-            var samplesPerVolume = secondsPerIndicator * stats[0].sampleRate;
-            var volumeIdx = 0;
-            var sampleHead = 0.0f;
-            var volumeSum = 0.0f;
-            var endSamples = samplesPerVolume;
-            for (int i = stats.Count-1; i >= 0; i--)
-            {
-                var prevSampleHead = sampleHead;
-                while (sampleHead + stats[i].sampleCount > endSamples)
-                {
-                    // Volume window ends in this audio stats struct
-                    // Multiple volume windows may end in this stats struct
-                    var samplesToUse = endSamples - sampleHead;
-                    var proportion = samplesToUse / stats[i].sampleCount;
-                    volumeSum += stats[i].volumeSum * proportion;
-                    volumes[volumeIdx] = volumeSum / samplesPerVolume;
-
-                    volumeIdx++;
-                    volumeSum = 0;
-                    sampleHead = endSamples;
-                    endSamples += samplesPerVolume;
-
-                    // We've fully filled all volume windows. Now remove any
-                    // stats structs old enough to feature in no volume windows
-                    if (volumeIdx >= volumes.Count)
+                    var start = (i - windowOverlap) * secondsPerWindow;
+                    start = Mathf.Max(0,start);
+                    var length = (1 + windowOverlap) * secondsPerWindow;
+                    if (start + length > windowSeconds)
                     {
-                        stats.RemoveRange(0,i);
-                        break;
+                        length = windowSeconds - start;
                     }
+                    volumeEstimators.Add(new SmoothVolumeEstimator(start,length));
                 }
-
-                if (volumeIdx >= volumes.Count)
-                {
-                    break;
-                }
-
-                // Volume window stretches into next audio stats
-                var endSampleHead = prevSampleHead + stats[i].sampleCount;
-                var remainingSamples = endSampleHead - sampleHead;
-                volumeSum += stats[i].volumeSum * (remainingSamples / stats[i].sampleCount);
-                sampleHead = endSampleHead;
             }
+        }
 
-            // Zero out any unfilled volumes. Means we need a full audio stat
-            // window or a volume will be zero. Should always be the case after
-            // the first second or so.
-            for (int i = volumeIdx; i < volumes.Count; i++)
+        private void RefreshNoises(bool force)
+        {
+            if (force || noises.Count != volumeIndicators.Count)
             {
-                volumes[i] = 0;
+                noises.Clear();
+                for (int i = 0; i < volumeIndicators.Count; i++)
+                {
+                    noises.Add(Random.value * noiseFrequency * NOISE_INIT_MULTIPLIER);
+                }
+            }
+        }
+
+        private void UpdateNoise()
+        {
+            RefreshNoises(force:false);
+
+            for (int i = 0; i < noises.Count; i++)
+            {
+                noises[i] += noiseFrequency * Time.deltaTime;
             }
         }
 
@@ -121,16 +131,18 @@ namespace Ubiq.Voip
 
             for(int i = 0; i < volumeIndicators.Count; i++)
             {
-                var thresh = indicatorStates[i] ? minVolumeWhenOn : minVolume;
-                indicatorStates[i] = volumes[i] > thresh;
+                var vol = volumeEstimators[i].GetVolume(time);
+                var thresh = indicatorStates[i] ? persistVolume : triggerVolume;
+                indicatorStates[i] = vol > thresh;
 
                 if (indicatorStates[i])
                 {
+                    var noise = noiseAmplitude * Mathf.PerlinNoise(noises[i],0);
+                    var noiseVec = Vector3.one * noise;
                     volumeIndicators[i].gameObject.SetActive(true);
-                    var range = maxVolume - minVolumeWhenOn;
-                    var t = (volumes[i] - minVolumeWhenOn) / range;
-                    volumeIndicators[i].localScale = Vector3.Lerp(
-                        minIndicatorScale,maxIndicatorScale,t);
+                    volumeIndicators[i].localScale = noiseVec + Vector3.Lerp(
+                        scaleAtVolumeFloor,scaleAtVolumeCeiling,
+                        Mathf.InverseLerp(volumeFloor,volumeCeiling,vol));
                 }
                 else
                 {
@@ -159,6 +171,8 @@ namespace Ubiq.Voip
             if (!indicatorVisible)
             {
                 indicatorRootTransform.forward = headTransform.forward;
+                IndicatorsInvisibleThisFrame();
+                return;
             }
 
             // Rotate s.t. the indicator is always 90 deg from camera
@@ -182,27 +196,23 @@ namespace Ubiq.Voip
             indicatorRootTransform.forward = forward;
         }
 
+        // Called every frame the indicators are invisible
+        private void IndicatorsInvisibleThisFrame()
+        {
+            RefreshNoises(force:true);
+            time = 0;
+        }
+
         /// <summary>
         /// Pushes a new set of audio stats to the indicator. Treats the stats
         /// as a continuous stream, where these are the very latest stats.
         /// </summary>
         public void PushAudioStats(VoipPeerConnection.AudioStats stats)
         {
-            if (stats.sampleCount == 0)
+            for (int i = 0; i < volumeEstimators.Count; i++)
             {
-                return;
+                volumeEstimators[i].Add(stats,time);
             }
-
-            if (this.stats.Count > 0 && this.stats[0].sampleRate != stats.sampleRate)
-            {
-                // May happen if the audio device changes, which should be rare
-                // so just clear the buffer and start again. Will mean a small
-                // interruption in the indicator, but it ensure the entire stats
-                // buffer has the same sampleRate. Simplifies things a lot.
-                this.stats.Clear();
-            }
-
-            this.stats.Add(stats);
         }
     }
 }

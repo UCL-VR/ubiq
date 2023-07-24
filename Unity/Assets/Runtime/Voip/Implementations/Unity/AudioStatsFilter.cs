@@ -13,25 +13,23 @@ namespace Ubiq.Voip.Implementations.Unity
         private int sampleRate;
         private Action<AudioStats> statsPushed;
 
-        private volatile int channels;
-
-        void OnDestroy()
+        private void OnDestroy()
         {
             statsPushed = null;
         }
 
-        void OnEnable()
+        private void OnEnable()
         {
             OnAudioConfigurationChanged(false);
             AudioSettings.OnAudioConfigurationChanged += OnAudioConfigurationChanged;
         }
 
-        void OnDisable()
+        private void OnDisable()
         {
             AudioSettings.OnAudioConfigurationChanged -= OnAudioConfigurationChanged;
         }
 
-        void OnAudioConfigurationChanged(bool deviceWasChanged)
+        private void OnAudioConfigurationChanged(bool deviceWasChanged)
         {
             sampleRate = AudioSettings.outputSampleRate;
         }
@@ -44,8 +42,6 @@ namespace Ubiq.Voip.Implementations.Unity
                     stats.sampleCount,stats.volumeSum,sampleRate
                 ));
             }
-
-            Debug.Log(name + " " + channels);
         }
 
         public void SetStatsPushedCallback(Action<AudioStats> statsPushed)
@@ -60,17 +56,18 @@ namespace Ubiq.Voip.Implementations.Unity
         /// </note>
         /// <param name="data"></param>
         /// <param name="channels"></param>
-        void OnAudioFilterRead(float[] data, int channels)
+        private void OnAudioFilterRead(float[] data, int channels)
         {
-            this.channels = channels;
-
             var volumeSum = 0.0f;
             for (int i = 0; i < data.Length; i+=channels)
             {
                 volumeSum += Mathf.Abs(data[i]);
             }
 
-            statsQueue.Enqueue(new AudioStats(data.Length/channels,volumeSum,0));
+            var length = data.Length/channels;
+            volumeSum = volumeSum/channels;
+
+            statsQueue.Enqueue(new AudioStats(length,volumeSum,0));
         }
     }
 }
