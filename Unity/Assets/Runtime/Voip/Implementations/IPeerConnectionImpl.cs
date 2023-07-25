@@ -79,42 +79,62 @@ namespace Ubiq.Voip.Implementations
         float Volume { get; set; }
     }
 
-    [System.Serializable]
-    public struct SessionDescriptionArgs
+    [Serializable]
+    public struct AudioStats : IEquatable<AudioStats>
     {
-        public const string TYPE_ANSWER = "answer";
-        public const string TYPE_OFFER = "offer";
-        public const string TYPE_PRANSWER = "pranswer";
-        public const string TYPE_ROLLBACK = "rollback";
+        [field: SerializeField] public int sampleCount { get; private set; }
+        [field: SerializeField] public float volumeSum { get; private set; }
+        [field: SerializeField] public int sampleRate { get; private set; }
 
-        public string type;
-        public string sdp;
+        public AudioStats(int sampleCount, float volumeSum, int sampleRate)
+        {
+            this.sampleCount = sampleCount;
+            this.volumeSum = volumeSum;
+            this.sampleRate = sampleRate;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is AudioStats stats && Equals(stats);
+        }
+
+        public bool Equals(AudioStats other)
+        {
+            return sampleCount == other.sampleCount &&
+                   volumeSum == other.volumeSum &&
+                   sampleRate == other.sampleRate;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(sampleCount, volumeSum, sampleRate);
+        }
+
+        public static bool operator ==(AudioStats left, AudioStats right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(AudioStats left, AudioStats right)
+        {
+            return !(left == right);
+        }
     }
-
-    public struct PlaybackStats
-    {
-        public int sampleCount;
-        public float volumeSum;
-        public int sampleRate;
-    }
-
-    public delegate void IceConnectionStateChangedDelegate(IceConnectionState state);
-    public delegate void PeerConnectionStateChangedDelegate(PeerConnectionState state);
 
     public interface IPeerConnectionImpl : IDisposable
     {
-        event IceConnectionStateChangedDelegate iceConnectionStateChanged;
-        event PeerConnectionStateChangedDelegate peerConnectionStateChanged;
-
-        void Setup(IPeerConnectionContext context, bool polite,
-            List<IceServerDetails> iceServers);
+        void Setup(IPeerConnectionContext context,
+            bool polite,
+            List<IceServerDetails> iceServers,
+            Action<AudioStats> playbackStatsPushed,
+            Action<AudioStats> recordStatsPushed,
+            Action<IceConnectionState> iceConnectionStateChanged,
+            Action<PeerConnectionState> peerConnectionStateChanged);
 
         void ProcessSignalingMessage (string json);
 
         void UpdateSpatialization (Vector3 sourcePosition,
             Quaternion sourceRotation, Vector3 listenerPosition,
             Quaternion listenerRotation);
-
-        PlaybackStats GetLastFramePlaybackStats();
     }
 }
