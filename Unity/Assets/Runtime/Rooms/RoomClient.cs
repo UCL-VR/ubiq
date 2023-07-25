@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Ubiq.Dictionaries;
 using Ubiq.Messaging;
 using Ubiq.Networking;
 using Ubiq.Rooms.Messages;
 using Ubiq.XR.Notifications;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Ubiq.Rooms
 {
@@ -240,6 +240,18 @@ namespace Ubiq.Rooms
         private float heartbeatSent => Time.realtimeSinceStartup - pingSent;
         public static float HeartbeatTimeout = 5f;
         public static float HeartbeatInterval = 1f;
+
+        public enum ReconnectBehaviour
+        {
+            None,
+            Reconnect,
+            ReconnectAndReloadScenes
+        }
+
+        public ReconnectBehaviour reconnectBehaviour = ReconnectBehaviour.None;
+        public static float reconnectTimeout = 10.0f;
+        private float nextReconnectTimeout = reconnectTimeout;
+
         private PeerInterfaceFriend me = new PeerInterfaceFriend(Guid.NewGuid().ToString());
         private RoomInterfaceFriend room = new RoomInterfaceFriend();
         private NetworkScene scene;
@@ -262,7 +274,15 @@ namespace Ubiq.Rooms
             {
                 get
                 {
-                    return $"No Connection ({ client.heartbeatReceived.ToString("0") } seconds ago)";
+                    if (client.reconnectBehaviour == ReconnectBehaviour.None)
+                    {
+                        return $"Connection lost ({ client.heartbeatReceived.ToString("0") } seconds ago)";
+                    }
+                    else
+                    {
+                        var timeToReconnect = Mathf.Max(0,client.nextReconnectTimeout - client.heartbeatReceived);
+                        return $"Connection lost (Next reconnect attempt in { timeToReconnect.ToString("0") } seconds)";
+                    }
                 }
             }
         }
@@ -547,7 +567,7 @@ namespace Ubiq.Rooms
                 case "Ping":
                     {
                         pingReceived = Time.realtimeSinceStartup;
-                        PlayerNotifications.Delete(ref notification);
+
                         var response = JsonUtility.FromJson<PingResponseArgs>(container.args);
                         OnPingResponse(response);
                     }
@@ -635,6 +655,38 @@ namespace Ubiq.Rooms
             scene.AddConnection(Connections.Resolve(connection));
         }
 
+        /// <summary>
+        /// Method to reset all current connections and reconnect to the ones defined by the user in the Unity UI.
+        /// </summary>
+        public void ResetAndReconnect()
+        {
+            ResetAndReconnect(servers);
+        }
+
+        /// <summary>
+        /// Method to reset all current connections and reconnect to the ones defined in the connection definition passed as argument.
+        /// </summary>
+        /// <param name="connectionDefinitions">The connection definition that will be connected after the reset.</param>
+        public void ResetAndReconnect(ConnectionDefinition[] connectionDefinitions)
+        {
+            // Drop all connections
+            scene.ClearConnections();
+
+            // Reconnect all connections
+            foreach (var item in connectionDefinitions)
+            {
+                try
+                {
+                    Connect(item);
+                }
+                catch(Exception e)
+                {
+                    Debug.LogError(e.ToString());
+                }
+            }
+        }
+
+
         private void Update()
         {
             actions.ForEach(a => a());
@@ -674,9 +726,19 @@ namespace Ubiq.Rooms
 
             if (heartbeatReceived > HeartbeatTimeout)
             {
+                // There's been a long interval between server responses
+                // We may be disconnected, or there may be network issues
+
                 if (notification == null)
                 {
                     notification = PlayerNotifications.Show(new TimeoutNotification(this));
+                }
+
+                if (heartbeatReceived > nextReconnectTimeout
+                    && reconnectBehaviour != ReconnectBehaviour.None)
+                {
+                    ResetAndReconnect();
+                    nextReconnectTimeout += reconnectTimeout;
                 }
             }
         }
@@ -758,9 +820,30 @@ namespace Ubiq.Rooms
 
         private void OnPingResponse(PingResponseArgs args)
         {
+            PlayerNotifications.Delete(ref notification);
+            nextReconnectTimeout = reconnectTimeout;
+
             if(SessionId != args.sessionId && SessionId != null)
             {
-                Join(name:"",publish:false); // The RoomClient has re-established connectivity with the RoomServer, but under a different state. So, leave the room and let the user code re-establish any state.
+                // The RoomClient has re-established connectivity with
+                // the RoomServer, but under a different state.
+                if (reconnectBehaviour == ReconnectBehaviour.ReconnectAndReloadScenes)
+                {
+                    var scenes = new Scene[SceneManager.sceneCount];
+                    for (int i = 0; i < SceneManager.sceneCount; i++)
+                    {
+                        scenes[i] = SceneManager.GetSceneAt(i);
+                    }
+
+                    var first = true;
+                    for (int i = 0; i < scenes.Length; i++)
+                    {
+                        SceneManager.LoadScene(scenes[i].buildIndex,mode: first
+                            ? LoadSceneMode.Single
+                            : LoadSceneMode.Additive);
+                        first = false;
+                    }
+                }
             }
 
             SessionId = args.sessionId;
