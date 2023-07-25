@@ -7,9 +7,19 @@ var unityWebRtcInteropLibrary = {
         audioContext: null,
         whenUserMedia: null,
 
-        signallingMessageType: {
-            sessionDescription: 0,
-            iceCandidate: 1
+        // For record stats
+        processorNode: null,
+        gainNode: null,
+        src: null,
+        record: {
+            lastFrame: -1,
+            volumeSum: 0,
+            sampleCount: 0,
+            sampleRate: 0,
+            stats: {
+                sampleCount: 0,
+                volumeSum: 0
+            }
         },
 
         iceConnectionState: {
@@ -31,11 +41,7 @@ var unityWebRtcInteropLibrary = {
         },
 
         error: function (e) {
-            if (typeof e == typeof {}) {
-                alert("Oh no! " + JSON.stringify(e));
-            } else {
-                alert("Oh no! " + e);
-            }
+            console.error("Closing this Peer Connection. Reason: " + e);
         }
     },
 
@@ -46,17 +52,6 @@ var unityWebRtcInteropLibrary = {
                 polite: false,
                 iceServers: [],
             },
-            pc: null,
-            msgs: [],
-            panner: null,
-            samples: 0,
-            volume: 0,
-            stats: {
-                samples: 0,
-                volume: 0
-            },
-            sampleRate: 1,
-            isReady: false
         };
         return id;
     },
@@ -90,28 +85,6 @@ var unityWebRtcInteropLibrary = {
         instance.startArgs.polite = polite;
     },
 
-    // JS_WebRTC_Init: function() {
-    //     navigator.getUserMedia =
-    //         navigator.getUserMedia || navigator.webkitGetUserMedia ||
-    //         navigator.mozGetUserMedia || navigator.msGetUserMedia;
-
-    //     if (!navigator.getUserMedia){
-    //         return false;
-    //     }
-
-    //     if (context.audioContext.state == "closed") {
-    //         context.audioContext = new AudioContext();
-    //     }
-
-    //     if (context.audioContext.state == "suspended") {
-    //         context.audioContext.resume();
-    //     }
-
-    //     if (context.audioContext.state == "suspended") {
-    //         return false;
-    //     }
-    // }
-
     JS_WebRTC_New_Start: function(id) {
         let instance = context.instances[id];
         if (!instance || !instance.startArgs) {
@@ -131,6 +104,17 @@ var unityWebRtcInteropLibrary = {
             context.whenUserMedia = navigator.mediaDevices.getUserMedia({audio:true});
         }
 
+        instance.polite = polite;
+        instance.msgs = [];
+        instance.playback = {
+            volumeSum: 0,
+            sampleCount: 0,
+            sampleRate: 0,
+            stats: {
+                sampleCount: 0,
+                volumeSum: 0
+            }
+        }
         instance.panner = new PannerNode(context.audioContext, {
             panningModel: 'HRTF',
             distanceModel: 'inverse',
@@ -143,94 +127,72 @@ var unityWebRtcInteropLibrary = {
             refDistance: 1,
             maxDistance: 10000,
             rolloffFactor: 1,
-            // coneInnerAngle: innerCone,
-            // coneOuterAngle: outerCone,
-            // coneOuterGain: outerGain
         });
-        instance.pc = new RTCPeerConnection({
-            iceServers: iceServers
-        });
-        instance.pc.ontrack = function(event) {
-            console.log(JSON.stringify(event.track.getSettings()));
-            let stream = new MediaStream([event.track]);
 
-            // Workaround for Chrome issue where WebRTC streams won't play
-            // unless connected to a HTML5 audio element
-            // https://stackoverflow.com/questions/24287054/
-            // https://bugs.chromium.org/p/chromium/issues/detail?id=933677
-            let a = new Audio();
-            a.muted = true;
-            a.srcObject = stream;
-            a.addEventListener('canplaythrough', () => {
-                a = null;
-            });
+        instance.pc = new RTCPeerConnection({ iceServers: iceServers });
+        instance.pc.ontrack = ({track}) => {
+            track.onunmute = () => {
+                // Skip if we've already performed this setup
+                if (instance.src) return;
 
-            let audioContext = context.audioContext;
-            instance.processorNode = audioContext.createScriptProcessor(4096, 1, 1);
-            instance.processorNode.onaudioprocess = function(event) {
-                let arr = event.inputBuffer.getChannelData(0);
-                let length = arr.length;
-                for (let i = 0; i < length; i++) {
-                    instance.volume += Math.abs(arr[i]);
-                }
-                instance.samples += length;
-                instance.sampleRate = event.inputBuffer.sampleRate;
-            };
-            instance.gainNode = new GainNode(audioContext,{gain:0});
-            instance.src = audioContext.createMediaStreamSource(stream);
-            instance.src.connect(instance.processorNode);
-            instance.src.connect(instance.panner);
-            instance.processorNode.connect(instance.gainNode);
-            instance.gainNode.connect(audioContext.destination);
-            instance.panner.connect(audioContext.destination);
-            // instance.pc.getTransceivers().forEach(transceiver => {
-            //  console.log("tr: " + transceiver.receiver ? JSON.stringify(transceiver.receiver.getParameters()) : "no recv");
-            //  console.log("tr: " + transceiver.sender ? JSON.stringify(transceiver.sender.getParameters()) : "no send");
-            // });
+                let stream = new MediaStream([track]);
 
-
-
-            // var audioContext = context.audioContext;
-            // instance.processorNode = audioContext.createScriptProcessor(4096, 1, 1);
-            // instance.processorNode.onaudioprocess = function(event) {
-            //     var arr = event.inputBuffer.getChannelData(0);
-            //     var length = arr.length;
-
-            //     for (var i = 0; i < length; i++) {
-            //         instance.volume += Math.abs(arr[i]);
-            //     }
-
-            //     instance.samples += length;
-            //     instance.sampleRate = event.inputBuffer.sampleRate;
-            // }
-
-            // instance.src = audioContext.createMediaStreamSource(stream);
-            // instance.src.connect(instance.processorNode);
-            // instance.processorNode.connect(instance.panner);
-            // // instance.src.connect(instance.panner);
-            // instance.panner.connect(audioContext.destination);
-            // // instance.gain = new GainNode(instance.audioContext,{gain:1});
-            // // instance.src.connect(instance.gain);
-            // // instance.gain.connect(instance.audioContext.destination);
-            // // instance.src.connect(audioContext.destination);
-
-            // instance.pc.getTransceivers().forEach(transceiver => {
-            //     console.log("tr: " + transceiver.receiver ? JSON.stringify(transceiver.receiver.getParameters()) : "no recv");
-            //     console.log("tr: " + transceiver.sender ? JSON.stringify(transceiver.sender.getParameters()) : "no send");
-            // });
-        };
-        instance.pc.onicecandidate = function(event) {
-            if (event.candidate) {
-                instance.msgs.push({
-                    type: context.signallingMessageType.iceCandidate,
-                    args: JSON.stringify(event.candidate)
+                // Workaround for Chrome issue where WebRTC streams won't play
+                // unless connected to a HTML5 audio element
+                // https://stackoverflow.com/questions/24287054/
+                // https://bugs.chromium.org/p/chromium/issues/detail?id=933677
+                let a = new Audio();
+                a.muted = true;
+                a.srcObject = stream;
+                a.addEventListener('canplaythrough', () => {
+                    a = null;
                 });
+
+                // Setup processing for volume stats and panning for 3d audio
+                let audioContext = context.audioContext;
+                instance.processorNode = audioContext.createScriptProcessor(4096, 1, 1);
+                instance.processorNode.onaudioprocess = ({inputBuffer}) => {
+                    let arr = inputBuffer.getChannelData(0);
+                    let length = arr.length;
+                    for (let i = 0; i < length; i++) {
+                        instance.playback.volumeSum += Math.abs(arr[i]);
+                    }
+                    instance.playback.sampleCount += length;
+                    instance.playback.sampleRate = inputBuffer.sampleRate;
+                };
+                instance.gainNode = new GainNode(audioContext,{gain:0});
+                instance.src = audioContext.createMediaStreamSource(stream);
+                instance.src.connect(instance.processorNode);
+                instance.src.connect(instance.panner);
+                instance.processorNode.connect(instance.gainNode);
+                instance.gainNode.connect(audioContext.destination);
+                instance.panner.connect(audioContext.destination);
+            };
+        };
+
+        // Negotiation strategy: w3c.github.io/webrtc-pc/#perfect-negotiation-example
+        instance.makingOffer = false;
+        instance.ignoreOffer = false;
+        instance.isSettingRemoteAnswerPending = false;
+
+        instance.pc.onicecandidate = ({candidate}) => {
+            instance.msgs.push({candidate});
+        };
+
+        instance.pc.onnegotiationneeded = async () => {
+            try {
+                instance.makingOffer = true;
+                await instance.pc.setLocalDescription();
+                instance.msgs.push({description: instance.pc.localDescription});
+            }
+            catch (err) {
+                console.error(err);
+            }
+            finally {
+                instance.makingOffer = false;
             }
         };
-
-        // navigator.getUserMedia =
-        //     navigator.getUserMedia || navigator.webkitGetUserMedia ||
-        //     navigator.mozGetUserMedia || navigator.msGetUserMedia;
+        // Negotiation continued in JS_WebRTC_ProcessSignalingMessage
 
         context.whenUserMedia
         .then((stream) => {
@@ -240,24 +202,28 @@ var unityWebRtcInteropLibrary = {
                 return;
             }
 
+            if (!context.processorNode) {
+                let audioContext = context.audioContext;
+                context.processorNode = audioContext.createScriptProcessor(1024, 1, 1);
+                context.processorNode.onaudioprocess = ({inputBuffer}) => {
+                    let arr = inputBuffer.getChannelData(0);
+                    let length = arr.length;
+                    for (let i = 0; i < length; i++) {
+                        context.record.volumeSum += Math.abs(arr[i]);
+                    }
+                    context.record.sampleCount += length;
+                    context.record.sampleRate = inputBuffer.sampleRate;
+                };
+                context.gainNode = new GainNode(audioContext,{gain:0});
+                context.src = audioContext.createMediaStreamSource(stream);
+                context.src.connect(context.processorNode);
+                context.processorNode.connect(context.gainNode);
+                context.gainNode.connect(audioContext.destination);
+            }
+
             for (const track of stream.getTracks()) {
-                instance.pc.addTrack(track);
+                instance.pc.addTrack(track,stream);
             }
-
-            if (!polite) {
-                instance.pc.createOffer(function(offer) {
-                    console.log("Created offer" + JSON.stringify(offer));
-                    instance.pc.setLocalDescription(offer, function() {
-                        console.log("setLocalDescription, sending to remote");
-                        instance.msgs.push({
-                            type: context.signallingMessageType.sessionDescription,
-                            args: JSON.stringify(offer)
-                        });
-                    }, context.error);
-                }, context.error);
-            }
-
-            instance.isReady = true;
         })
         .catch((error) => {
             let instance = context.instances[id];
@@ -274,68 +240,6 @@ var unityWebRtcInteropLibrary = {
 
             console.error("Closing this Peer Connection. Reason: " + error);
         });
-        // navigator.getUserMedia({audio:true}, function(stream) {
-        //     let instance = context.instances[id];
-        //     if (!instance) {
-        //         // Close() called before getUserMedia returned
-        //         return;
-        //     }
-
-        //     for (const track of stream.getTracks()) {
-        //         instance.pc.addTrack(track);
-        //     }
-
-        //     if (!polite) {
-        //         instance.pc.createOffer(function(offer) {
-        //             console.log("Created offer" + JSON.stringify(offer));
-        //             instance.pc.setLocalDescription(offer, function() {
-        //                 console.log("setLocalDescription, sending to remote");
-        //                 instance.msgs.push({
-        //                     type: context.signallingMessageType.sessionDescription,
-        //                     args: JSON.stringify(offer)
-        //                 });
-        //             }, context.error);
-        //         }, context.error);
-        //     }
-
-            //
-            // var audioContext = context.audioContext;
-            // instance.debug = {};
-            // instance.debug.src = audioContext.createMediaStreamSource(stream);
-            // instance.debug.processorNode = audioContext.createScriptProcessor(4096, 1, 1);
-            // instance.debug.processorNode.onaudioprocess = function(event) {
-            //     var arr = event.inputBuffer.getChannelData(0);
-            //     var length = arr.length;
-            //     var volume = 0;
-
-            //     for (var i = 0; i < length; i++) {
-            //     volume += Math.abs(arr[i]);
-            //     }
-
-            //     console.log(volume/length);
-            // };
-            // instance.debug.gainNode = new GainNode(audioContext,{gain:0});
-
-            // instance.debug.src.connect(instance.debug.processorNode);
-            // instance.debug.processorNode.connect(instance.debug.gainNode);
-            // instance.debug.gainNode.connect(audioContext.destination);
-            // instance.processorNode.connect(instance.gainNode);
-            // instance.gainNode.connect(audioContext.destination);
-            //
-
-        //     if (!polite) {
-        //         instance.pc.createOffer(function(offer) {
-        //             console.log("Created offer" + JSON.stringify(offer));
-        //             instance.pc.setLocalDescription(offer, function() {
-        //                 console.log("setLocalDescription, sending to remote");
-        //                 instance.msgs.push({
-        //                     type: context.signallingMessageType.sessionDescription,
-        //                     args: JSON.stringify(offer)
-        //                 });
-        //             }, context.error);
-        //         }, context.error);
-        //     }
-        //   }, context.error);
     },
 
     JS_WebRTC_ResumeAudioContext: function() {
@@ -369,57 +273,78 @@ var unityWebRtcInteropLibrary = {
         delete context.instances[id];
     },
 
-    JS_WebRTC_IsSetup: function(id) {
+    JS_WebRTC_IsStarted: function(id) {
         let instance = context.instances[id];
-        return Boolean(instance && instance.isReady);
+        return Boolean(instance && instance.pc);
     },
 
-    JS_WebRTC_ProcessSignallingMessage: function(id,type,args) {
+    JS_WebRTC_SetPolite: function(id,polite) {
         let instance = context.instances[id];
-        if (!instance || !instance.isReady) {
-            return false;
+        if (!instance) {
+            return;
         }
 
-        switch(type) {
-            case context.signallingMessageType.sessionDescription:
-                let desc = JSON.parse(UTF8ToString(args));
-                switch(desc.type) {
-                    case "answer":
-                        instance.pc.setRemoteDescription((desc), function() {
-                            console.log("Call established!");
-                        }, context.error);
-                        break;
-                    case "offer":
-                        instance.pc.setRemoteDescription((desc), function() {
-                            console.log("setRemoteDescription, creating answer");
-                            instance.pc.createAnswer(function(answer) {
-                                instance.pc.setLocalDescription(answer, function() {
-                                    console.log("created Answer and setLocalDescription " + JSON.stringify(answer));
-                                    instance.msgs.push({
-                                        type: context.signallingMessageType.sessionDescription,
-                                        args: JSON.stringify(answer)
-                                    });
-                                }, context.error);
-                            }, context.error);
-                        }, context.error);
-                        break;
-                }
-                break;
-            case context.signallingMessageType.iceCandidate:
-                // Workaround for chrome issue, instruct calling context to
-                // buffer if remote description not yet sent
-                // https://stackoverflow.com/questions/38198751
-                if (!instance.pc.remoteDescription) {
-                    return false;
-                }
-                instance.pc.addIceCandidate(JSON.parse(UTF8ToString(args)))
-                .catch((error) => {
-                    console.warn("Ignoring ice candidate after add fail: " + error);
-                });
-                break;
+        instance.polite = polite;
+    },
+
+    JS_WebRTC_ProcessSignalingMessage: async function (id,_candidate,sdpMid,
+        sdpMLineIndexIsNull,sdpMLineIndex,usernameFragment,type,sdp) {
+
+        let instance = context.instances[id];
+        if (!instance || !instance.pc) {
+            return;
         }
 
-        return true;
+        let description = type ? {
+            type: UTF8ToString(type),
+            sdp: UTF8ToString(sdp),
+        } : null;
+        let candidate = _candidate ? {
+            candidate: UTF8ToString(_candidate),
+            sdpMid: UTF8ToString(sdpMid),
+            sdpMLineIndex: sdpMLineIndexIsNull ? null : sdpMLineIndex,
+            usernameFragment: UTF8ToString(usernameFragment),
+        } : null;
+
+        // w3c.github.io/webrtc-pc/#perfect-negotiation-example
+        try {
+            if (description) {
+                // An offer may come in while we are busy processing SRD(answer).
+                // In this case, we will be in "stable" by the time the offer is processed
+                // so it is safe to chain it on our Operations Chain now.
+                const readyForOffer =
+                    !instance.makingOffer &&
+                    (instance.pc.signalingState == "stable" || instance.isSettingRemoteAnswerPending);
+                const offerCollision = description.type == "offer" && !readyForOffer;
+
+                instance.ignoreOffer = !instance.polite && offerCollision;
+                if (instance.ignoreOffer) {
+                    return;
+                }
+                instance.isSettingRemoteAnswerPending = description.type == "answer";
+                await instance.pc.setRemoteDescription(description); // SRD rolls back as needed
+                instance.isSettingRemoteAnswerPending = false;
+                if (description.type == "offer") {
+                    await instance.pc.setLocalDescription();
+                    instance.msgs.push({description: instance.pc.localDescription});
+                }
+            } else if (candidate) {
+                try {
+                    await instance.pc.addIceCandidate(candidate);
+                } catch (err) {
+                    if (!instance.ignoreOffer) throw err; // Suppress ignored offer's candidates
+                }
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    },
+
+    // Workaround for chrome issue, buffer candidates if remote desc
+    // not yet set https://stackoverflow.com/questions/38198751
+    JS_WebRTC_HasRemoteDescription: function(id) {
+        let instance = context.instances[id];
+        return Boolean(instance && instance.pc && instance.pc.remoteDescription);
     },
 
     JS_WebRTC_GetIceConnectionState: function(id) {
@@ -458,36 +383,113 @@ var unityWebRtcInteropLibrary = {
         }
     },
 
-    JS_WebRTC_SignallingMessages_Has: function(id) {
+    // Notes on this SignalingMessage code:
+    // =====================================
+    // Longwinded workaround for Unity's JsonUtility lack of support for null
+    // values. Browser-to-browser, just sending the JSON would be fine, but
+    // we want this implementation to play nicely with the WebRTC plugins for
+    // other platforms, which we've written with JsonUtility. So we pass the
+    // required variables up to be handled by the workaround we on the C# side.
+
+    // Could bundle another JSON lib but good to avoid the dependency.
+
+    // Note about the mallocs here: Unity assures us that the memory will be
+    // automatically freed so long as the string is a return value:
+    // https://docs.unity3d.com/Manual/webgl-interactingwithbrowserscripting.html
+
+    JS_WebRTC_SignalingMessages_Has: function(id) {
         let instance = context.instances[id];
-        return instance && instance.msgs.length > 0;
+        return instance && instance.pc && instance.msgs.length > 0;
     },
 
-    JS_WebRTC_SignallingMessages_GetArgs: function(id) {
+    JS_WebRTC_SignalingMessages_GetCandidate: function(id) {
         let instance = context.instances[id];
-        if (!instance || instance.msgs.length === 0) {
-            return -1;
+        if (!instance || !instance.pc || instance.msgs.length === 0
+            || !instance.msgs[instance.msgs.length-1].candidate) {
+            return null;
         }
 
-        let args = instance.msgs[instance.msgs.length-1].args;
-        let bufferSize = lengthBytesUTF8(args) + 1;
+        let candidate = instance.msgs[instance.msgs.length-1].candidate.candidate;
+        let bufferSize = lengthBytesUTF8(candidate) + 1;
         let buffer = _malloc(bufferSize);
-        stringToUTF8(args, buffer, bufferSize);
+        stringToUTF8(candidate, buffer, bufferSize);
         return buffer;
     },
 
-    JS_WebRTC_SignallingMessages_GetType: function(id) {
+    JS_WebRTC_SignalingMessages_GetSdpMid: function(id) {
         let instance = context.instances[id];
-        if (!instance || instance.msgs.length === 0) {
+        if (!instance || !instance.pc || instance.msgs.length === 0
+            || !instance.msgs[instance.msgs.length-1].candidate
+            || !instance.msgs[instance.msgs.length-1].candidate.sdpMid) {
+            return null;
+        }
+
+        let sdpMid = instance.msgs[instance.msgs.length-1].candidate.sdpMid;
+        let bufferSize = lengthBytesUTF8(sdpMid) + 1;
+        let buffer = _malloc(bufferSize);
+        stringToUTF8(sdpMid, buffer, bufferSize);
+        return buffer;
+    },
+
+    JS_WebRTC_SignalingMessages_GetSdpMLineIndex: function(id) {
+        let instance = context.instances[id];
+        if (!instance || !instance.pc || instance.msgs.length === 0
+            || !instance.msgs[instance.msgs.length-1].candidate
+            || !instance.msgs[instance.msgs.length-1].candidate.sdpMLineIndex) {
             return -1;
         }
 
-        return instance.msgs[instance.msgs.length-1].type;
+        return Number(instance.msgs[instance.msgs.length-1].candidate.sdpMLineIndex);
     },
 
-    JS_WebRTC_SignallingMessages_Pop: function(id) {
+    JS_WebRTC_SignalingMessages_GetUsernameFragment: function(id) {
         let instance = context.instances[id];
-        if (!instance) {
+        if (!instance || !instance.pc || instance.msgs.length === 0
+            || !instance.msgs[instance.msgs.length-1].candidate
+            || !instance.msgs[instance.msgs.length-1].candidate.usernameFragment) {
+            return null;
+        }
+
+        let usernameFragment = instance.msgs[instance.msgs.length-1].candidate.usernameFragment;
+        let bufferSize = lengthBytesUTF8(usernameFragment) + 1;
+        let buffer = _malloc(bufferSize);
+        stringToUTF8(usernameFragment, buffer, bufferSize);
+        return buffer;
+    },
+
+    JS_WebRTC_SignalingMessages_GetType: function(id) {
+        let instance = context.instances[id];
+        if (!instance || !instance.pc || instance.msgs.length === 0
+            || !instance.msgs[instance.msgs.length-1].description
+            || !instance.msgs[instance.msgs.length-1].description.type) {
+            return null;
+        }
+
+        let type = instance.msgs[instance.msgs.length-1].description.type;
+        let bufferSize = lengthBytesUTF8(type) + 1;
+        let buffer = _malloc(bufferSize);
+        stringToUTF8(type, buffer, bufferSize);
+        return buffer;
+    },
+
+    JS_WebRTC_SignalingMessages_GetSdp: function(id) {
+        let instance = context.instances[id];
+        if (!instance || !instance.pc || instance.msgs.length === 0
+            || !instance.msgs[instance.msgs.length-1].description
+            || !instance.msgs[instance.msgs.length-1].description.sdp) {
+            return null;
+        }
+
+        let sdp = instance.msgs[instance.msgs.length-1].description.sdp;
+        let bufferSize = lengthBytesUTF8(sdp) + 1;
+        let buffer = _malloc(bufferSize);
+        stringToUTF8(sdp, buffer, bufferSize);
+        return buffer;
+    },
+
+    JS_WebRTC_SignalingMessages_Pop: function(id) {
+        let instance = context.instances[id];
+        if (!instance || !instance.pc) {
             return;
         }
 
@@ -496,7 +498,7 @@ var unityWebRtcInteropLibrary = {
 
     JS_WebRTC_SetPanner: function(id, x, y, z) {
         let instance = context.instances[id];
-        if (!instance || !instance.panner) {
+        if (!instance || !instance.pc) {
             return;
         }
 
@@ -505,182 +507,64 @@ var unityWebRtcInteropLibrary = {
         instance.panner.positionZ.value = z;
     },
 
-    JS_WebRTC_GetStatsSamples: function(id) {
+    JS_WebRTC_GetPlaybackStatsSampleCount: function(id) {
         let instance = context.instances[id];
-        if (!instance || instance.stats.samples === 0) {
+        if (!instance || !instance.pc) {
             return 0;
         }
 
-        return 16000 * (instance.stats.samples / instance.sampleRate);
+        return instance.playback.stats.sampleCount;
     },
 
-    JS_WebRTC_GetStatsVolume: function(id) {
+    JS_WebRTC_GetPlaybackStatsVolumeSum: function(id) {
         let instance = context.instances[id];
-        if (!instance || instance.stats.samples === 0) {
+        if (!instance || !instance.pc) {
             return 0;
         }
 
-        return 16000 * (instance.stats.volume / instance.sampleRate);
+        return instance.playback.stats.volumeSum;
     },
 
-    JS_WebRTC_EndStats: function(id) {
+    JS_WebRTC_GetPlaybackStatsSampleRate: function(id) {
         let instance = context.instances[id];
-        if (!instance) {
+        if (!instance || !instance.pc) {
+            return 0;
+        }
+
+        return instance.playback.sampleRate;
+    },
+
+    JS_WebRTC_GetRecordStatsSampleCount: function() {
+        return context.record.stats.sampleCount;
+    },
+
+    JS_WebRTC_GetRecordStatsVolumeSum: function() {
+        return context.record.stats.volumeSum;
+    },
+
+    JS_WebRTC_GetRecordStatsSampleRate: function() {
+        return context.record.sampleRate;
+    },
+
+    JS_WebRTC_EndStats: function(id, frameCount) {
+        let instance = context.instances[id];
+        if (!instance || !instance.pc) {
             return;
         }
 
-        instance.stats.volume = instance.volume;
-        instance.stats.samples = instance.samples;
-        instance.volume = 0;
-        instance.samples = 0;
+        instance.playback.stats.volumeSum = instance.playback.volumeSum;
+        instance.playback.stats.sampleCount = instance.playback.sampleCount;
+        instance.playback.volumeSum = 0;
+        instance.playback.sampleCount = 0;
+
+        if (frameCount != context.record.lastFrame) {
+            context.record.stats.volumeSum = context.record.volumeSum;
+            context.record.stats.sampleCount = context.record.sampleCount;
+            context.record.volumeSum = 0;
+            context.record.sampleCount = 0;
+            context.record.lastFrame = frameCount;
+        }
     }
-
-    // // Setup the audiocontext and all required objects. Should be called before
-    // // any of the other js microphone interface functions in this file. If this
-    // // returns true, it is possible to start an audio recording with Start()
-    // JS_Microphone_InitOrResumeContext: function() {
-    //     if (!WEBAudio || WEBAudio.audioWebEnabled == 0) {
-    //         // No WEBAudio object (Unity version changed?)
-    //         return false;
-    //     }
-
-    //     navigator.getUserMedia =
-    //         navigator.getUserMedia || navigator.webkitGetUserMedia ||
-    //         navigator.mozGetUserMedia || navigator.msGetUserMedia;
-    //     if (!navigator.getUserMedia){
-    //         return false;
-    //     }
-
-    //     var ctx = document.unityMicrophoneInteropContext;
-    //     if (!ctx) {
-    //         document.unityMicrophoneInteropContext = {};
-    //         ctx = document.unityMicrophoneInteropContext;
-    //     }
-
-    //     if (!ctx.audioContext || ctx.audioContext.state == "closed"){
-    //         ctx.audioContext = new AudioContext();
-    //     }
-
-    //     if (ctx.audioContext.state == "suspended") {
-    //         ctx.audioContext.resume();
-    //     }
-
-    //     if (ctx.audioContext.state == "suspended") {
-    //         return false;
-    //     }
-
-    //     return true;
-    // },
-
-    // // Returns the index of the most recently created audio clip so we can
-    // // write to it. Should be called immediately after creating the clip and
-    // // the value stored for indexing purposes.
-    // // Relies on undocumented/unexposed js code within Unity's WebGL code,
-    // // so may break with later versions
-    // JS_Microphone_GetBufferInstanceOfLastAudioClip: function() {
-    //     if (WEBAudio && WEBAudio.audioInstanceIdCounter) {
-    //         return WEBAudio.audioInstanceIdCounter;
-    //     }
-    //     return -1;
-    // },
-
-    // JS_Microphone_IsRecording: function(deviceIndex) {
-    //     var ctx = document.unityMicrophoneInteropContext;
-    //     return ctx && ctx.stream;
-    // },
-
-    // // Get the current index of the last recorded sample
-    // JS_Microphone_GetPosition: function(deviceIndex) {
-    //     var ctx = document.unityMicrophoneInteropContext;
-    //     if (ctx && ctx.stream) {
-    //         return ctx.stream.currentPosition;
-    //     }
-    //     return -1;
-    // },
-
-    // // Get the sample rate for this device
-    // // According to https://www.w3.org/TR/webaudio/ WebAudio implementations
-    // // must support 8khz to 96khz. In practice seems to be best to let the
-    // // browser pick the sample rate it prefers to avoid audio glitches
-    // JS_Microphone_GetSampleRate: function(deviceIndex) {
-    //     var ctx = document.unityMicrophoneInteropContext;
-    //     if (ctx && ctx.audioContext.state == "running") {
-    //         return ctx.audioContext.sampleRate;
-    //     }
-    //     return -1;
-    // },
-
-    // // Note samplesPerUpdate balances performance against latency, must be one of:
-    // // 256, 512, 1024, 2048, 4096, 8192, 16384
-    // // Note also that the clip sample count for the buffer instance should be
-    // // a multiple of samplesPerUpdate
-    // JS_Microphone_Start: function(deviceIndex,bufferInstance,samplesPerUpdate) {
-    //     var ctx = document.unityMicrophoneInteropContext;
-    //     if (ctx && ctx.stream) {
-    //         // We are already recording
-    //         return false;
-    //     }
-
-    //     var sound = WEBAudio.audioInstances[bufferInstance];
-    //     if (!sound || !sound.buffer) {
-    //         // No buffer for the given bufferInstance (Unity version changed?)
-    //         return false;
-    //     }
-
-    //     var outputArray = sound.buffer.getChannelData(0);
-    //     var outputArrayLen = outputArray.length;
-
-    //     navigator.getUserMedia(
-    //         {audio:true},
-    //         function(userMediaStream) {
-    //             var stream = {};
-    //             stream.userMediaStream = userMediaStream;
-    //             stream.microphoneSource = ctx.audioContext.createMediaStreamSource(userMediaStream);
-    //             stream.processorNode = ctx.audioContext.createScriptProcessor(samplesPerUpdate, 1, 1);
-    //             stream.currentPosition = 0;
-    //             stream.processorNode.onaudioprocess = function(event) {
-
-    //                 // Simple version for minimum delay
-    //                 // Assumes clip length is a multiple of samplesPerUpdate
-    //                 var inputArray = event.inputBuffer.getChannelData(0);
-    //                 var pos = stream.currentPosition;
-    //                 outputArray.set(inputArray,pos);
-    //                 pos = (pos + samplesPerUpdate) % outputArrayLen;
-    //                 stream.currentPosition = pos;
-    //             }
-
-    //             stream.microphoneSource.connect(stream.processorNode);
-
-    //             // Add a zero gain node and connect to destination
-    //             // Some browsers seem to ignore a solo processor node
-    //             stream.gainNode = new GainNode(ctx.audioContext,{gain:0});
-    //             stream.processorNode.connect(stream.gainNode);
-    //             stream.gainNode.connect(ctx.audioContext.destination);
-
-    //             ctx.stream = stream;
-    //         },
-    //         function(e) {
-    //             alert('Error capturing audio.');
-    //         }
-    //     );
-    // },
-
-    // JS_Microphone_End: function(deviceIndex) {
-    //     var ctx = document.unityMicrophoneInteropContext;
-    //     if (ctx && ctx.stream) {
-    //         ctx.stream.userMediaStream.getTracks().forEach(
-    //             function(track) {
-    //                 track.stop();
-    //             }
-    //         );
-
-    //         ctx.stream.gainNode.disconnect();
-    //         ctx.stream.processorNode.disconnect();
-    //         ctx.stream.microphoneSource.disconnect();
-
-    //         delete ctx.stream;
-    //     }
-    // }
 };
 
 autoAddDeps(unityWebRtcInteropLibrary, '$context');

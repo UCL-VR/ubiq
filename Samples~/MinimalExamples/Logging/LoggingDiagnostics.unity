@@ -910,10 +910,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0901c0c6ea7aa534489a3e2cfb1bb435, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  networkId:
-    a: 3375391916
-    b: 354721039
-  __serializedGoid: GlobalObjectId_V1-2-19a5bec7111094a429ab0a7d4be3fdb9-2085143818-0
 --- !u!4 &2085143819
 Transform:
   m_ObjectHideFlags: 0
@@ -940,7 +936,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31236ae480c068b47b3b029b89d511ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Guid: e5e0cafa-768f-46e1-8c03-b6108a7be268
+  Guid: {fileID: 11400000, guid: e629079f57e3bab4b9705738ba28a891, type: 2}
 --- !u!1 &2119777248
 GameObject:
   m_ObjectHideFlags: 0

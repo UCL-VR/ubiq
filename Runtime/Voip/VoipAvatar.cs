@@ -9,6 +9,7 @@ namespace Ubiq.Avatars
     public class VoipAvatar : MonoBehaviour
     {
         public Transform audioSourcePosition;
+        public VoipSpeechIndicator speechIndicator;
         public VoipPeerConnection peerConnection { get; private set; }
 
         private AvatarManager avatarManager;
@@ -16,6 +17,14 @@ namespace Ubiq.Avatars
         private VoipPeerConnectionManager peerConnectionManager;
 
         private VoipAvatar localVoipAvatar;
+
+        private void OnDestroy()
+        {
+            if (peerConnection)
+            {
+                peerConnection.playbackStatsPushed -= PeerConnection_PlaybackStatsPushed;
+            }
+        }
 
         private void Start()
         {
@@ -31,12 +40,13 @@ namespace Ubiq.Avatars
         private void OnPeerConnection(VoipPeerConnection peerConnection)
         {
             // If we're very unlucky, this is called after we're destroyed
-            if (!enabled)
+            if (!this || !enabled)
             {
                 return;
             }
 
             this.peerConnection = peerConnection;
+            peerConnection.playbackStatsPushed += PeerConnection_PlaybackStatsPushed;
         }
 
         private void LateUpdate()
@@ -68,6 +78,14 @@ namespace Ubiq.Avatars
             peerConnection.UpdateSpatialization(
                 source.position,source.rotation,
                 listener.position,listener.rotation);
+        }
+
+        private void PeerConnection_PlaybackStatsPushed(VoipPeerConnection.AudioStats stats)
+        {
+            if (speechIndicator && avatar && !avatar.IsLocal)
+            {
+                speechIndicator.PushAudioStats(stats);
+            }
         }
     }
 }

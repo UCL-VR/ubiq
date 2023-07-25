@@ -257,16 +257,16 @@ namespace Ubiq.Messaging
         public static NetworkId Create(NetworkId nameSpace, uint service)
         {
             NetworkId id;
-            id.a = nameSpace.a;
-            id.b = unchecked(nameSpace.b + service);
+            id.a = unchecked(nameSpace.a * service);
+            id.b = unchecked(nameSpace.b * service);
             return id;
         }
 
         public static NetworkId Create(NetworkId nameSpace, NetworkId service)
         {
             NetworkId id;
-            id.a = unchecked(nameSpace.a * service.b + service.a);
-            id.b = unchecked(nameSpace.b * service.a + service.b);
+            id.a = unchecked(nameSpace.a * service.b);
+            id.b = unchecked(nameSpace.b * service.a);
             return id;
         }
 

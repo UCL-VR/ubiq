@@ -186,7 +186,7 @@ namespace Ubiq.Voip
         {
             OnPeerConnection.AddListener((pc) =>
             {
-                if (pc.peerUuid == peerUUID)
+                if (pc.PeerUuid == peerUUID)
                 {
                     then.Invoke(pc);
                 }

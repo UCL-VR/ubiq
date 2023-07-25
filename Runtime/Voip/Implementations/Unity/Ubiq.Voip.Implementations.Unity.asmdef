@@ -1,0 +1,24 @@
+{
+    "name": "Ubiq.Voip.Implementations.Unity",
+    "rootNamespace": "",
+    "references": [
+        "GUID:d43c05b6cc104384f8f68e8dad6a32fb",
+        "GUID:f12aafacab75a87499e7e45c873ffab8"
+    ],
+    "includePlatforms": [
+        "Android",
+        "Editor",
+        "iOS",
+        "LinuxStandalone64",
+        "macOSStandalone",
+        "WindowsStandalone64"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

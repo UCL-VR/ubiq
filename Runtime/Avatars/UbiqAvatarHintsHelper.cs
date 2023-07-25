@@ -23,6 +23,14 @@ namespace Ubiq.Avatars
 
         private void Start()
         {
+            SetAllProviders();
+        }
+
+        /// <summary>
+        /// Private method to set all providers for the Ubiq Avatar Hints
+        /// </summary>
+        private void SetAllProviders()
+        {
             var pcs = FindObjectsOfType<XRPlayerController>(includeInactive:true);
 
             if (pcs.Length == 0)
@@ -49,6 +57,15 @@ namespace Ubiq.Avatars
             SetTransformProvider(rightHandPositionNode,rightHandRotationNode,rightHand);
             SetTransformProvider(rightWristPositionNode,rightWristRotationNode,rightWrist);
             SetGripProvider(rightGripNode,rightHc);
+        }
+
+        /// <summary>
+        /// Public method to reset all providers for the Ubiq Avatar Hints.
+        /// Useful when hints become invalid e.g. due to a scene change or the player rig being unavailable at start.
+        /// </summary>
+        public void ResetAllProviders()
+        {
+            SetAllProviders();
         }
 
         private void GetLeftHand(HandController[] handControllers,
