@@ -250,7 +250,7 @@ namespace Ubiq.Messaging
         /// Public method instructing the network scene to drop all current connections and dispose of them.
         /// Used to recover from a connection loss to Nexus.
         /// </summary>
-        public void ResetConnections()
+        public void ClearConnections()
         {
             foreach (var c in connections)
             {
@@ -349,18 +349,7 @@ namespace Ubiq.Messaging
 
         private void OnDestroy()
         {
-            foreach (var c in connections)
-            {
-                try
-                {
-                    c.Dispose();
-                }
-                catch
-                {
-
-                }
-            }
-            connections.Clear();
+            ClearConnections();
         }
     }
 }

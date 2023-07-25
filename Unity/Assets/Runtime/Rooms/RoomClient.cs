@@ -1,14 +1,12 @@
-﻿using Codice.Client.Commands;
-using JetBrains.Annotations;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Ubiq.Dictionaries;
 using Ubiq.Messaging;
 using Ubiq.Networking;
 using Ubiq.Rooms.Messages;
 using Ubiq.XR.Notifications;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Ubiq.Rooms
 {
@@ -243,18 +241,16 @@ namespace Ubiq.Rooms
         public static float HeartbeatTimeout = 5f;
         public static float HeartbeatInterval = 1f;
 
-        // Parameters private and public for the reconnection process.
-        private enum ReconnectionStatus { Off, Reset, Received, Rejoining};
-        private ReconnectionStatus reconnectionStatus = ReconnectionStatus.Off;
-        private float lastResetTime = 0;
-        private float timeSinceLastReset => Time.realtimeSinceStartup - lastResetTime;
-        private float lastRejoinTime = 0;
-        private float timeSinceLastRejoin => Time.realtimeSinceStartup - lastRejoinTime;
-        private Guid previousRoomGUID = Guid.Empty;
-        public static bool AttemtReconnecting = true; // Whether the RoomClient attemtps to reconnect to the server on connection loss.
-        public static float ReconnectTimeout = 5f; // How long a timeout can last until the reconnect procedure is triggered.
-        public static float ReconnectInterval = 5f; // The intervals in which reconnect attempts are done.
-        public static float RejoinInterval = 5f; // The intervals in which rejoin attempts are done.
+        public enum ReconnectBehaviour
+        {
+            None,
+            Reconnect,
+            ReconnectAndReloadScenes
+        }
+
+        public ReconnectBehaviour reconnectBehaviour = ReconnectBehaviour.None;
+        public static float reconnectTimeout = 10.0f;
+        private float nextReconnectTimeout = reconnectTimeout;
 
         private PeerInterfaceFriend me = new PeerInterfaceFriend(Guid.NewGuid().ToString());
         private RoomInterfaceFriend room = new RoomInterfaceFriend();
@@ -278,7 +274,15 @@ namespace Ubiq.Rooms
             {
                 get
                 {
-                    return $"No Connection ({ client.heartbeatReceived.ToString("0") } seconds ago)";
+                    if (client.reconnectBehaviour == ReconnectBehaviour.None)
+                    {
+                        return $"Connection lost ({ client.heartbeatReceived.ToString("0") } seconds ago)";
+                    }
+                    else
+                    {
+                        var timeToReconnect = Mathf.Max(0,client.nextReconnectTimeout - client.heartbeatReceived);
+                        return $"Connection lost (Next reconnect attempt in { timeToReconnect.ToString("0") } seconds)";
+                    }
                 }
             }
         }
@@ -564,11 +568,6 @@ namespace Ubiq.Rooms
                     {
                         pingReceived = Time.realtimeSinceStartup;
 
-                        // Set flag for first ping after connection loss
-                        if (reconnectionStatus == ReconnectionStatus.Reset)
-                            reconnectionStatus = ReconnectionStatus.Received;
-
-                        PlayerNotifications.Delete(ref notification);
                         var response = JsonUtility.FromJson<PingResponseArgs>(container.args);
                         OnPingResponse(response);
                     }
@@ -671,7 +670,7 @@ namespace Ubiq.Rooms
         public void ResetAndReconnect(ConnectionDefinition[] connectionDefinitions)
         {
             // Drop all connections
-            scene.ResetConnections();
+            scene.ClearConnections();
 
             // Reconnect all connections
             foreach (var item in connectionDefinitions)
@@ -727,55 +726,19 @@ namespace Ubiq.Rooms
 
             if (heartbeatReceived > HeartbeatTimeout)
             {
+                // There's been a long interval between server responses
+                // We may be disconnected, or there may be network issues
+
                 if (notification == null)
                 {
                     notification = PlayerNotifications.Show(new TimeoutNotification(this));
                 }
-            }
 
-            // Reconnection behaviour
-            // Test if dynamic reconnection is enabled
-            if(AttemtReconnecting)
-            {
-                // If enabled, check for current reconnection status
-                switch (reconnectionStatus)
+                if (heartbeatReceived > nextReconnectTimeout
+                    && reconnectBehaviour != ReconnectBehaviour.None)
                 {
-                    // Reconnection off: If reconnect timeout is exceeded, old room GUID is stored, reset initiated, and next state is initiaded.
-                    case ReconnectionStatus.Off:
-                        if(heartbeatReceived > ReconnectTimeout)
-                        {
-                            previousRoomGUID = new Guid(room.UUID);
-                            ResetAndReconnect();
-                            lastResetTime = Time.realtimeSinceStartup;
-                            reconnectionStatus = ReconnectionStatus.Reset;
-                        }
-                        break;
-                    // Reconnection Reset: Connection is reset. While no response has been received, reset connection again in regular intervals.
-                    case ReconnectionStatus.Reset:
-                        if (timeSinceLastReset > ReconnectInterval)
-                        {
-                            ResetAndReconnect();
-                            lastResetTime = Time.realtimeSinceStartup;                            
-                        }
-                        break;
-                    // Reconnection Received: A response by Nexus has received. Attempt at rejoining room.
-                    case ReconnectionStatus.Received:
-                        Join(previousRoomGUID);
-                        lastRejoinTime = Time.realtimeSinceStartup;
-                        reconnectionStatus = ReconnectionStatus.Rejoining;
-                        break;
-                    // Reconnection Rejoining: Re-attempt rejoining room at regular intervals until succesful.
-                    case ReconnectionStatus.Rejoining:
-                        if(room.UUID == previousRoomGUID.ToString())
-                        {
-                            reconnectionStatus = ReconnectionStatus.Off;
-                        }
-                        else if(timeSinceLastRejoin > RejoinInterval)
-                        {
-                            Join(previousRoomGUID);
-                            lastRejoinTime = Time.realtimeSinceStartup;
-                        }
-                        break;
+                    ResetAndReconnect();
+                    nextReconnectTimeout += reconnectTimeout;
                 }
             }
         }
@@ -857,9 +820,30 @@ namespace Ubiq.Rooms
 
         private void OnPingResponse(PingResponseArgs args)
         {
+            PlayerNotifications.Delete(ref notification);
+            nextReconnectTimeout = reconnectTimeout;
+
             if(SessionId != args.sessionId && SessionId != null)
             {
-                Join(name:"",publish:false); // The RoomClient has re-established connectivity with the RoomServer, but under a different state. So, leave the room and let the user code re-establish any state.
+                // The RoomClient has re-established connectivity with
+                // the RoomServer, but under a different state.
+                if (reconnectBehaviour == ReconnectBehaviour.ReconnectAndReloadScenes)
+                {
+                    var scenes = new Scene[SceneManager.sceneCount];
+                    for (int i = 0; i < SceneManager.sceneCount; i++)
+                    {
+                        scenes[i] = SceneManager.GetSceneAt(i);
+                    }
+
+                    var first = true;
+                    for (int i = 0; i < scenes.Length; i++)
+                    {
+                        SceneManager.LoadScene(scenes[i].buildIndex,mode: first
+                            ? LoadSceneMode.Single
+                            : LoadSceneMode.Additive);
+                        first = false;
+                    }
+                }
             }
 
             SessionId = args.sessionId;
