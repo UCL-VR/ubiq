@@ -135,8 +135,9 @@ namespace Ubiq.Samples
                 {
                     // var audioSink = peerConnection.audioSink;
 
-                    var stats  = peerConnection.GetLastFramePlaybackStats();
-                    var volume = stats.volume / stats.samples;
+                    // var stats  = new Ubiq.Voip.VoipPeerConnection.AudioStats();
+                    var volume = 0;
+                    // var volume = stats.volumeSum / stats.samples;
                     voipVolumeIndicator.Update(volume);
                     voipConnectionIndicator.Update((int)peerConnection.peerConnectionState);
 

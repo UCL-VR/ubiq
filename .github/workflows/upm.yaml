@@ -25,7 +25,7 @@ jobs:
         run: |
           git rm -rf Documentation
           git rm -rf Node
-          git rm -rf Web
+          git rm -rf Browser
           git rm -rf .github
           git rm -f README.md
           git rm -f LICENSE.txt

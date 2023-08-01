@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using Ubiq.Messaging;
-using Ubiq.Logging;
 using Ubiq.Voip.Implementations;
 
 namespace Ubiq.Voip
@@ -23,7 +22,7 @@ namespace Ubiq.Voip
             }
         }
 
-        // Defined here as well as in Impl for external use
+        // Defined here as well as in IPeerConnectionImpl for external use
         public enum IceConnectionState
         {
             closed = 0,
@@ -35,7 +34,7 @@ namespace Ubiq.Voip
             completed = 6
         }
 
-        // Defined here as well as in Impl for external use
+        // Defined here as well as in IPeerConnectionImpl for external use
         public enum PeerConnectionState
         {
             closed = 0,
@@ -46,30 +45,47 @@ namespace Ubiq.Voip
             connected = 5
         }
 
-        // Defined here as well as in Impl for external use
-        public struct PlaybackStats
+        // Defined here as well as in IPeerConnectionImpl for external use
+        [Serializable]
+        public struct AudioStats : IEquatable<AudioStats>
         {
-            public int samples;
-            public float volume;
-            public int sampleRate;
-        }
+            [field: SerializeField] public int sampleCount { get; private set; }
+            [field: SerializeField] public float volumeSum { get; private set; }
+            [field: SerializeField] public int sampleRate { get; private set; }
 
-        public struct SessionStatistics
-        {
-            public uint PacketsSent;
-            public uint BytesSent;
-            public uint PacketsRecieved;
-            public uint BytesReceived;
-        }
+            public AudioStats(int sampleCount, float volumeSum, int sampleRate)
+            {
+                this.sampleCount = sampleCount;
+                this.volumeSum = volumeSum;
+                this.sampleRate = sampleRate;
+            }
 
-        /// <summary>
-        /// Summarises the throughput for different sessions in this connection.
-        /// This is returned when the statistics are polled from this peer connection.
-        /// </summary>
-        public struct TransmissionStats
-        {
-            public SessionStatistics Audio;
-            public SessionStatistics Video;
+            public override bool Equals(object obj)
+            {
+                return obj is AudioStats stats && Equals(stats);
+            }
+
+            public bool Equals(AudioStats other)
+            {
+                return sampleCount == other.sampleCount &&
+                       volumeSum == other.volumeSum &&
+                       sampleRate == other.sampleRate;
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(sampleCount, volumeSum, sampleRate);
+            }
+
+            public static bool operator ==(AudioStats left, AudioStats right)
+            {
+                return left.Equals(right);
+            }
+
+            public static bool operator !=(AudioStats left, AudioStats right)
+            {
+                return !(left == right);
+            }
         }
 
         public string PeerUuid { get; private set; }
@@ -84,6 +100,12 @@ namespace Ubiq.Voip
 
         public IceConnectionStateEvent OnIceConnectionStateChanged = new IceConnectionStateEvent();
         public PeerConnectionStateEvent OnPeerConnectionStateChanged = new PeerConnectionStateEvent();
+
+        // C# events rather than Unity events as these will be potentially be
+        // called multiple times every frame, and Unity events are slow by
+        // comparison (https://www.jacksondunstan.com/articles/3335)
+        public event Action<AudioStats> playbackStatsPushed;
+        public event Action<AudioStats> recordStatsPushed;
 
         private NetworkId networkId;
         private NetworkScene networkScene;
@@ -128,12 +150,11 @@ namespace Ubiq.Voip
 
             this.impl = PeerConnectionImplFactory.Create();
 
-            impl.iceConnectionStateChanged += OnImplIceConnectionStateChanged;
-            impl.peerConnectionStateChanged += OnImplPeerConnectionStateChanged;
-
             networkScene.AddProcessor(networkId, ProcessMessage);
 
-            impl.Setup(new PeerConnectionContext(this),polite,iceServers);
+            impl.Setup(new PeerConnectionContext(this),polite,iceServers,
+                Impl_PlaybackStatsPushed,Impl_RecordStatsPushed,
+                Impl_IceConnectionStateChanged,Impl_PeerConnectionStateChanged);
             isSetup = true;
         }
 
@@ -150,61 +171,31 @@ namespace Ubiq.Voip
             networkScene.Send(networkId,json);
         }
 
-        private void OnImplIceConnectionStateChanged (Ubiq.Voip.Implementations.IceConnectionState state)
+        private static AudioStats ConvertStats(Implementations.AudioStats stats)
+        {
+            return new AudioStats(stats.sampleCount,stats.volumeSum,stats.sampleRate);
+        }
+
+        private void Impl_PlaybackStatsPushed (Implementations.AudioStats stats)
+        {
+            playbackStatsPushed?.Invoke(ConvertStats(stats));
+        }
+
+        private void Impl_RecordStatsPushed (Implementations.AudioStats stats)
+        {
+            recordStatsPushed?.Invoke(ConvertStats(stats));
+        }
+
+        private void Impl_IceConnectionStateChanged (Implementations.IceConnectionState state)
         {
             iceConnectionState = (IceConnectionState)state;
             OnIceConnectionStateChanged.Invoke((IceConnectionState)state);
         }
 
-        private void OnImplPeerConnectionStateChanged (Ubiq.Voip.Implementations.PeerConnectionState state)
+        private void Impl_PeerConnectionStateChanged (Implementations.PeerConnectionState state)
         {
             peerConnectionState = (PeerConnectionState)state;
             OnPeerConnectionStateChanged.Invoke((PeerConnectionState)state);
-        }
-
-        /// <summary>
-        /// Poll this PeerConnection for statistics about its bandwidth usage.
-        /// </summary>
-        /// <remarks>
-        /// This information is also available through RTCP Reports. This method allows the statistics to be polled,
-        /// rather than wait for a report. If this method is not never called, there is no performance overhead.
-        /// </remarks>
-        public TransmissionStats GetTransmissionStats()
-        {
-            TransmissionStats report = new TransmissionStats();
-            //todo
-
-            // if (rtcPeerConnection != null)
-            // {
-            //     if (rtcPeerConnection.AudioRtcpSession != null)
-            //     {
-            //         report.Audio.PacketsSent = rtcPeerConnection.AudioRtcpSession.PacketsSentCount;
-            //         report.Audio.PacketsRecieved = rtcPeerConnection.AudioRtcpSession.PacketsReceivedCount;
-            //         report.Audio.BytesSent = rtcPeerConnection.AudioRtcpSession.OctetsSentCount;
-            //         report.Audio.BytesReceived = rtcPeerConnection.AudioRtcpSession.OctetsReceivedCount;
-            //     }
-            //     if (rtcPeerConnection.VideoRtcpSession != null)
-            //     {
-            //         report.Video.PacketsSent = rtcPeerConnection.VideoRtcpSession.PacketsSentCount;
-            //         report.Video.PacketsRecieved = rtcPeerConnection.VideoRtcpSession.PacketsReceivedCount;
-            //         report.Video.BytesSent = rtcPeerConnection.VideoRtcpSession.OctetsSentCount;
-            //         report.Video.BytesReceived = rtcPeerConnection.VideoRtcpSession.OctetsReceivedCount;
-            //     }
-            // }
-            return report;
-        }
-
-        public PlaybackStats GetLastFramePlaybackStats()
-        {
-            var playbackStats = new PlaybackStats();
-            if (impl != null)
-            {
-                var implStats = impl.GetLastFramePlaybackStats();
-                playbackStats.volume = implStats.volumeSum;
-                playbackStats.samples = implStats.sampleCount;
-                playbackStats.sampleRate = implStats.sampleRate;
-            }
-            return playbackStats;
         }
     }
 }

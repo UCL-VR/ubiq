@@ -1,6 +1,6 @@
 {
     "name": "com.ucl.ubiq",
-    "version": "0.4.5",
+    "version": "0.5.0",
     "displayName": "Ubiq",
     "description": "Create networked VR experiences with Ubiq",
     "unity": "2021.3",

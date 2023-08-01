@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -32,6 +33,20 @@ namespace Ubiq.Voip.Implementations.Unity
             }
         }
 
+        private class Context
+        {
+            public IPeerConnectionContext context;
+            public Action<AudioStats> playbackStatsPushed;
+            public Action<AudioStats> recordStatsPushed;
+            public Action<IceConnectionState> iceConnectionStateChanged;
+            public Action<PeerConnectionState> peerConnectionStateChanged;
+            public bool polite;
+
+            public MonoBehaviour behaviour => context.behaviour;
+            public GameObject gameObject => context.behaviour.gameObject;
+            public Transform transform => context.behaviour.transform;
+        }
+
         private enum Implementation
         {
             Unknown,
@@ -39,53 +54,72 @@ namespace Ubiq.Voip.Implementations.Unity
             Other,
         }
 
-        public event IceConnectionStateChangedDelegate iceConnectionStateChanged;
-        public event PeerConnectionStateChangedDelegate peerConnectionStateChanged;
-
         // Unity Peer Connection
         private RTCPeerConnection peerConnection;
 
-        private IPeerConnectionContext context;
-
         private AudioSource receiverAudioSource;
-        private AudioSource senderAudioSource;
+        private SpatialisationCacheFilter cacheFilter;
+        private AudioStatsFilter statsFilter;
+        private SpatialisationRestoreFilter restoreFilter;
         private PeerConnectionMicrophone microphone;
 
-        private bool polite;
-
         private List<Event> events = new List<Event>();
-        private List<Coroutine> coroutines = new List<Coroutine>();
+        private List<Coroutine> coroutinesForCleanup = new List<Coroutine>();
+        private List<UnityEngine.Object> objectsForCleanup = new List<UnityEngine.Object>();
 
         private Implementation otherPeerImplementation = Implementation.Unknown;
 
+        private Context ctx;
+
         public void Dispose()
         {
-            if (context.behaviour)
+            if (ctx.behaviour)
             {
-                foreach(var coroutine in coroutines)
+                foreach(var coroutine in coroutinesForCleanup)
                 {
-                    if (context.behaviour)
-                    {
-                        context.behaviour.StopCoroutine(coroutine);
-                    }
+                    ctx.behaviour.StopCoroutine(coroutine);
                 }
+                coroutinesForCleanup.Clear();
 
-                microphone.RemoveUser(context.behaviour.gameObject);
+                if (microphone)
+                {
+                    microphone.statsPushed -= PeerConnectionMicrophone_OnStats;
+                    microphone.RemoveUser(ctx.gameObject);
+                }
             }
-            coroutines.Clear();
+
+            foreach(var obj in objectsForCleanup)
+            {
+                if (obj)
+                {
+                    UnityEngine.Object.Destroy(obj);
+                }
+            }
+            objectsForCleanup.Clear();
+
+            ctx = null;
         }
 
         public void Setup(IPeerConnectionContext context,
-            bool polite, List<IceServerDetails> iceServers)
+            bool polite, List<IceServerDetails> iceServers,
+            Action<AudioStats> playbackStatsPushed,
+            Action<AudioStats> recordStatsPushed,
+            Action<IceConnectionState> iceConnectionStateChanged,
+            Action<PeerConnectionState> peerConnectionStateChanged)
         {
-            if (this.context != null)
+            if (ctx != null)
             {
                 // Already setup
                 return;
             }
 
-            this.context = context;
-            this.polite = polite;
+            ctx = new Context();
+            ctx.context = context;
+            ctx.polite = polite;
+            ctx.playbackStatsPushed = playbackStatsPushed;
+            ctx.recordStatsPushed = recordStatsPushed;
+            ctx.iceConnectionStateChanged = iceConnectionStateChanged;
+            ctx.peerConnectionStateChanged = peerConnectionStateChanged;
 
             var configuration = GetConfiguration(iceServers);
 
@@ -93,10 +127,23 @@ namespace Ubiq.Voip.Implementations.Unity
             RequireReceiverAudioSource();
             receiverStream.OnAddTrack += (MediaStreamTrackEvent e) =>
             {
-                RequireComponent<SpatialisationCacheAudioFilter>(context.behaviour.gameObject);
+                if (e.Track.Kind != TrackKind.Audio)
+                {
+                    return;
+                }
+
+                // Restore spatialisation for Unity's WebRTC package. First,
+                // give the output AudioSource a clip full of 1s (elsewhere),
+                // then apply filters in order.
+                // 1. Cache the spatialised output
+                RequireCacheFilter();
+                // 2. Play back WebRTC audio (added through SetTrack)
                 receiverAudioSource.SetTrack(e.Track as AudioStreamTrack);
-                RequireComponent<SpatialisationRestoreAudioFilter>(context.behaviour.gameObject);
-                receiverAudioSource.loop = true;
+                // 3. (unrelated) Add a filter to gather audio stats
+                RequireStatsFilter();
+                // 4. Restore spatialisation by multiplying output of 2 with 1
+                RequireRestoreFilter();
+
                 receiverAudioSource.Play();
             };
 
@@ -104,13 +151,11 @@ namespace Ubiq.Voip.Implementations.Unity
             {
                 OnConnectionStateChange = (RTCPeerConnectionState state) =>
                 {
-                    peerConnectionStateChanged(PeerConnectionStatePkgToUbiq(state));
-                    Debug.Log($"Peer connection state change to {state}.");
+                    peerConnectionStateChanged?.Invoke(PeerConnectionStatePkgToUbiq(state));
                 },
                 OnIceConnectionChange = (RTCIceConnectionState state) =>
                 {
-                    iceConnectionStateChanged(IceConnectionStatePkgToUbiq(state));
-                    Debug.Log($"Ice connection state change to {state}.");
+                    iceConnectionStateChanged?.Invoke(IceConnectionStatePkgToUbiq(state));
                 },
                 OnIceCandidate = (RTCIceCandidate candidate) =>
                 {
@@ -124,29 +169,15 @@ namespace Ubiq.Voip.Implementations.Unity
                 {
                     events.Add(new Event(Event.Type.NegotiationNeeded));
                 },
-                OnIceGatheringStateChange = (RTCIceGatheringState state) =>
-                {
-                    Debug.Log($"Ice gathering state change to {state}.");
-                }
             };
 
-            coroutines.Add(context.behaviour.StartCoroutine(DoSignaling()));
-            coroutines.Add(context.behaviour.StartCoroutine(StartMicrophoneTrack()));
-
-            // peerConnection.AddTrack(senderAudioTrack,senderStream);
-
-            // Diagnostics.
-            // pc.OnReceiveReport += (re, media, rr) => mainThreadActions.Enqueue(
-            //     () => Debug.Log($"RTCP Receive for {media} from {re}\n{rr.GetDebugSummary()}"));
-            // pc.OnSendReport += (media, sr) => mainThreadActions.Enqueue(
-            //     () => Debug.Log($"RTCP Send for {media}\n{sr.GetDebugSummary()}"));
-            // pc.GetRtpChannel().OnStunMessageReceived += (msg, ep, isRelay) => mainThreadActions.Enqueue(
-            //     () => Debug.Log($"STUN {msg.Header.MessageType} received from {ep}."));
+            coroutinesForCleanup.Add(context.behaviour.StartCoroutine(DoSignaling()));
+            coroutinesForCleanup.Add(context.behaviour.StartCoroutine(StartMicrophoneTrack()));
         }
 
         private IEnumerator StartMicrophoneTrack()
         {
-            var manager = context.behaviour.transform.parent.gameObject;
+            var manager = ctx.transform.parent.gameObject;
 
             microphone = manager.GetComponent<PeerConnectionMicrophone>();
             if (!microphone)
@@ -154,8 +185,14 @@ namespace Ubiq.Voip.Implementations.Unity
                 microphone = manager.AddComponent<PeerConnectionMicrophone>();
             }
 
-            yield return microphone.AddUser(context.behaviour.gameObject);
+            yield return microphone.AddUser(ctx.gameObject);
+            microphone.statsPushed += PeerConnectionMicrophone_OnStats;
             peerConnection.AddTrack(microphone.audioStreamTrack);
+        }
+
+        private void PeerConnectionMicrophone_OnStats(AudioStats stats)
+        {
+            ctx.recordStatsPushed.Invoke(stats);
         }
 
         private bool ignoreOffer;
@@ -180,7 +217,7 @@ namespace Ubiq.Voip.Implementations.Unity
 
                 if (e.type == Event.Type.OnIceCandidate)
                 {
-                    Send(context,e.iceCandidate);
+                    Send(ctx.context,e.iceCandidate);
                     continue;
                 }
 
@@ -188,7 +225,7 @@ namespace Ubiq.Voip.Implementations.Unity
                 {
                     var op = peerConnection.SetLocalDescription();
                     yield return op;
-                    Send(context,peerConnection.LocalDescription);
+                    Send(ctx.context,peerConnection.LocalDescription);
                     continue;
                 }
 
@@ -208,13 +245,13 @@ namespace Ubiq.Voip.Implementations.Unity
                         // non-dotnet peer always takes on the role of polite
                         // peer as the dotnet implementaton isn't smart enough
                         // to handle rollback
-                        polite = true;
+                        ctx.polite = true;
                     }
                 }
 
                 if (msg.type != null)
                 {
-                    ignoreOffer = !polite
+                    ignoreOffer = !ctx.polite
                         && msg.type == "offer"
                         && peerConnection.SignalingState != RTCSignalingState.Stable;
                     if (ignoreOffer)
@@ -230,7 +267,7 @@ namespace Ubiq.Voip.Implementations.Unity
                         op = peerConnection.SetLocalDescription();
                         yield return op;
 
-                        Send(context,peerConnection.LocalDescription);
+                        Send(ctx.context,peerConnection.LocalDescription);
                     }
                     continue;
                 }
@@ -246,6 +283,43 @@ namespace Ubiq.Voip.Implementations.Unity
             }
         }
 
+        private void RequireCacheFilter()
+        {
+            if (cacheFilter)
+            {
+                return;
+            }
+
+            cacheFilter = ctx.gameObject.AddComponent<SpatialisationCacheFilter>();
+            cacheFilter.hideFlags = HideFlags.HideInInspector;
+            objectsForCleanup.Add(cacheFilter);
+        }
+
+        private void RequireStatsFilter()
+        {
+            if (statsFilter)
+            {
+                return;
+            }
+
+            statsFilter = ctx.gameObject.AddComponent<AudioStatsFilter>();
+            statsFilter.SetStatsPushedCallback(ctx.playbackStatsPushed);
+            statsFilter.hideFlags = HideFlags.HideInInspector;
+            objectsForCleanup.Add(statsFilter);
+        }
+
+        private void RequireRestoreFilter()
+        {
+            if (restoreFilter)
+            {
+                return;
+            }
+
+            restoreFilter = ctx.gameObject.AddComponent<SpatialisationRestoreFilter>();
+            restoreFilter.hideFlags = HideFlags.HideInInspector;
+            objectsForCleanup.Add(restoreFilter);
+        }
+
         private void RequireReceiverAudioSource ()
         {
             if (receiverAudioSource)
@@ -254,10 +328,11 @@ namespace Ubiq.Voip.Implementations.Unity
             }
 
             // Setup receive audio source
-            receiverAudioSource = context.behaviour.gameObject.AddComponent<AudioSource>();
+            receiverAudioSource = ctx.gameObject.AddComponent<AudioSource>();
 
             receiverAudioSource.spatialize = true;
             receiverAudioSource.spatialBlend = 1.0f;
+            receiverAudioSource.loop = true;
 
             // Use a clip filled with 1s
             // This helps us piggyback on Unity's spatialisation using filters
@@ -272,6 +347,9 @@ namespace Ubiq.Voip.Implementations.Unity
                 AudioSettings.outputSampleRate,
                 false);
             receiverAudioSource.clip.SetData(samples,0);
+
+            objectsForCleanup.Add(receiverAudioSource.clip);
+            objectsForCleanup.Add(receiverAudioSource);
         }
 
         public void ProcessSignalingMessage (string json)
@@ -292,20 +370,9 @@ namespace Ubiq.Voip.Implementations.Unity
 
         public void UpdateSpatialization(Vector3 sourcePosition, Quaternion sourceRotation, Vector3 listenerPosition, Quaternion listenerRotation)
         {
-            context.behaviour.transform.position = sourcePosition;
-            context.behaviour.transform.rotation = sourceRotation;
-        }
-
-        public PlaybackStats GetLastFramePlaybackStats ()
-        {
-            // if (sink != null)
-            // {
-            //     return sink.GetLastFramePlaybackStats();
-            // }
-            // else
-            // {
-                return new PlaybackStats();
-            // }
+            var t = ctx.transform;
+            t.position = sourcePosition;
+            t.rotation = sourceRotation;
         }
 
         private static RTCIceCandidate IceCandidateUbiqToPkg(SignalingMessage msg)
@@ -401,30 +468,22 @@ namespace Ubiq.Voip.Implementations.Unity
 
         private static void Send(IPeerConnectionContext context, RTCSessionDescription sd)
         {
-            context.Send(SignalingMessageHelper.ToJson(new SignalingMessage{
-                sdp = sd.sdp,
-                type = SdpTypeToString(sd.type)
-            }));
+            context.Send(SdpMessage.ToJson(new SdpMessage
+            (
+                type: SdpTypeToString(sd.type),
+                sdp: sd.sdp
+            )));
         }
 
         private static void Send(IPeerConnectionContext context, RTCIceCandidate ic)
         {
-            context.Send(SignalingMessageHelper.ToJson(new SignalingMessage{
-                candidate = ic.Candidate,
-                sdpMid = ic.SdpMid,
-                sdpMLineIndex = (ushort?)ic.SdpMLineIndex,
-                usernameFragment = ic.UserNameFragment
-            }));
-        }
-
-        private static T RequireComponent<T>(GameObject gameObject) where T : MonoBehaviour
-        {
-            var c = gameObject.GetComponent<T>();
-            if (c)
-            {
-                return c;
-            }
-            return gameObject.AddComponent<T>();
+            context.Send(IceCandidateMessage.ToJson(new IceCandidateMessage
+            (
+                candidate: ic.Candidate,
+                sdpMid: ic.SdpMid,
+                sdpMLineIndex: (ushort?)ic.SdpMLineIndex,
+                usernameFragment: ic.UserNameFragment
+            )));
         }
     }
 }
