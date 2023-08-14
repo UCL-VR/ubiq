@@ -31,6 +31,9 @@ namespace Ubiq.XR
         public Transform cameraContainer;
         public AnimationCurve cameraRubberBand;
 
+        [Tooltip("When enabled, the user can turn in increments by swiping the right stick left or right.")]
+        public bool EnableJoystickSnapTurn = true;
+
         private void Awake()
         {
             if(dontDestroyOnLoad)
@@ -107,7 +110,7 @@ namespace Ubiq.XR
             {
                 if (item.Right)
                 {
-                    if (item.JoystickSwipe.Trigger)
+                    if (EnableJoystickSnapTurn && item.JoystickSwipe.Trigger)
                     {
                         transform.RotateAround(headCamera.transform.position, Vector3.up, 45f * Mathf.Sign(item.JoystickSwipe.Value));
                     }
