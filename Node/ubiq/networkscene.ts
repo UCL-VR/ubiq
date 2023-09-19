@@ -1,8 +1,21 @@
-const { Message, NetworkId } = require("./messaging");
-const { EventEmitter } = require('events');
+import { ConnectionWrapper } from "./connections.js";
+import { LooseNetworkId, Message, NetworkId, NetworkIdObject } from "./messaging.js";
+import { EventEmitter } from 'events';
 
-class NetworkContext{
-    constructor(scene, object){
+interface INetworkContext {
+    scene: any
+    object: any
+}
+
+interface INetworkComponent {
+    networkId: LooseNetworkId
+    processMessage: (message : Message) => void
+}
+
+export class NetworkContext implements INetworkContext {
+    scene: NetworkScene;
+    object: any;
+    constructor(scene : NetworkScene, object : INetworkComponent){
         this.object = object;   // The Networked Component that this context belongs to
         this.scene = scene;     // The NetworkScene that this context belongs to
     }
@@ -22,7 +35,7 @@ class NetworkContext{
     //  this.context.send(this, message);
     //  this.context.send({networkId: id}, message);
     //  this.context.send(networkId, message);
-    send(args){
+    send(...args : any){
         if(arguments.length == 0){
             throw "Send must have at least one argument"
         }else if(arguments.length == 1){
@@ -33,9 +46,27 @@ class NetworkContext{
     }
 }
 
+export class NetworkComponent implements INetworkComponent{
+    networkId: LooseNetworkId;
+    constructor(){
+        this.networkId = NetworkId.Unique();
+    }
+    processMessage(message: Message): void {
+        throw new Error("Method not implemented.");
+    }
+}
+
+interface INetworkSceneEntry<T extends NetworkComponent> {
+    object: INetworkComponent
+    networkId: NetworkId
+}
+
 // A NetworkScene object provides the interface between a Connection and the 
 // Networked Components in the application.
-class NetworkScene extends EventEmitter{
+export class NetworkScene extends EventEmitter{
+    connections: ConnectionWrapper[]
+    entries: INetworkSceneEntry<NetworkComponent>[]
+    networkId: NetworkId
     constructor(){
         super();
         this.networkId = NetworkId.Unique();
@@ -45,40 +76,43 @@ class NetworkScene extends EventEmitter{
     }
 
     // The Connection is expected to be a wrapped connection
-    addConnection(connection){
+    addConnection(connection : ConnectionWrapper){
         this.connections.push(connection);
         connection.onMessage.push(this.#onMessage.bind(this));
         connection.onClose.push(this.#onClose.bind(this, connection));
     }
 
-    async #onMessage(message){
+    async #onMessage(message : Message){
         this.entries.forEach(entry => {
             if(NetworkId.Compare(entry.networkId, message.networkId)){
+                // At this point we can s
                 entry.object.processMessage(message);
             }
         });
         this.emit("OnMessage", message);
     }
 
-    #onClose(connection){
+    #onClose(connection : ConnectionWrapper){
         var index = this.connections.indexOf(connection);
         if(index > -1){
             this.connections.slice(index, 1);
         }
     }
 
-    send(networkId, message){
+    send(looseNetworkId: LooseNetworkId, message : object | string | Buffer){
+        let networkId : NetworkId | string = NetworkId.Unique();
         // Try to infer the Network Id format
-        if(Object.getPrototypeOf(networkId).constructor.name == "NetworkId"){
-            // Nothing to do
-        }else if(typeof(networkId) == "number"){
-            networkId = new NetworkId(networkId);
-        }else if(typeof(networkId) == "object" && networkId.hasOwnProperty("a") && networkId.hasOwnProperty("b")){
-            networkId = new NetworkId(networkId);
-        }else if(typeof(networkId) == "object" && networkId.hasOwnProperty("networkId")){
-            networkId = new NetworkId(networkId.networkId);
+        if(Object.getPrototypeOf(looseNetworkId).constructor.name == "NetworkId"){
+            networkId = looseNetworkId as NetworkId;
+        }else if(typeof(looseNetworkId) == "number"){
+            networkId = new NetworkId(looseNetworkId);
+        }else if(typeof(looseNetworkId) == "object" && looseNetworkId.hasOwnProperty("a") && looseNetworkId.hasOwnProperty("b")){
+            networkId = new NetworkId(looseNetworkId);
+        }else if(typeof(looseNetworkId) == "object" && looseNetworkId.hasOwnProperty("networkId")){
+            networkId = new NetworkId((looseNetworkId as NetworkIdObject).networkId);
+        }else if(typeof(looseNetworkId) == "string"){
+            networkId = looseNetworkId;
         }
-
         // Message.Create will determine the correct encoding of the message
         var buffer = Message.Create(networkId, message);
 
@@ -90,9 +124,10 @@ class NetworkScene extends EventEmitter{
     // Registers a Networked Component so that it will recieve messages addressed
     // to its specific NetworkId via its processMessage method.
     // If a NetworkId is not specified, it is found from the networkId member.
-    register(args){
-        let entry = {
-            object: arguments[0]
+    register(...args: any){
+        let entry : INetworkSceneEntry<NetworkComponent> = {
+            object: arguments[0],
+            networkId: NetworkId.Unique(),
         };
         if(arguments.length == 2){
             // The user is trying to register with a specific Id
@@ -103,7 +138,8 @@ class NetworkScene extends EventEmitter{
                 console.error("Component does not have a networkId Property");
                 return;
             }
-            entry.networkId = entry.object.networkId;   
+            //FIXME:
+            entry.networkId = entry.object.networkId as NetworkId;   
         }
 
         if(!entry.object.processMessage){
@@ -116,7 +152,7 @@ class NetworkScene extends EventEmitter{
         return new NetworkContext(this, entry.object);
     }
 
-    unregister(component){
+    unregister(component : INetworkComponent){
         const i = this.entries.findIndex(entry =>{
             return entry.object === component;
         });
@@ -125,14 +161,9 @@ class NetworkScene extends EventEmitter{
         }
     }
 
-    getComponent(name){
+    getComponent(name : string){
         return this.entries.find(entry =>{
                 return entry.object.constructor.name == name;
-            }).object;
+            })?.object;
     }
-}
-
-module.exports = {
-    NetworkScene,
-    NetworkContext
 }

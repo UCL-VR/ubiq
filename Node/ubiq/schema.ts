@@ -1,8 +1,11 @@
-const { Validator } = require('jsonschema');
+import { Validator } from "jsonschema";
 
-// The Schema class provides validation for server messages. It is common to multiple compoenents as Ubiq messages may be interdependent.
-class Schema {
-    static add(schema){
+
+// The Schema class provides validation for server messages. It is common to multiple components as Ubiq messages may be interdependent.
+export class Schema {
+    static validator: Validator | null
+    
+    static add(schema: any){
         if(Schema.validator == null){
             Schema.validator = new Validator();
         }
@@ -15,15 +18,15 @@ class Schema {
     }
 
     // Validate a Json message using a registered schema ID, passed as a string.
-    static validate(json, schema, failure){
+    static validate(json: any, schema: any, failure: (error: any) => void){
         try{
-            var argsResult = Schema.validator.validate(
+            var argsResult = Schema.validator?.validate(
                 json,
                 {
                     "type": "object",
                     "$ref": schema
                 });
-            if (argsResult.valid) {
+            if (argsResult?.valid) {
                 return true;
             } else {
                 throw argsResult;
@@ -38,8 +41,4 @@ class Schema {
             return failure(error);
         }
     }
-}
-
-module.exports = {
-    Schema
 }

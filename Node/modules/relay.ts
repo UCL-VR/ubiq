@@ -1,5 +1,5 @@
-const WebSocket = require('ws');
-const Tcp = require('net');
+import WebSocket from 'ws';
+import Tcp from 'net';
 
 class SingleWebsocketRelay{
     constructor(port){

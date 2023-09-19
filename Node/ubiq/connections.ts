@@ -1,10 +1,11 @@
-const { Message } = require('./messaging');
-const WebSockets = require('ws');
-const Tcp = require('net');
-const { createServer } = require('https');
-const path = require('path');
-const fs = require('fs');
-const { Buffer } = require('buffer');
+import { Message } from './messaging.js';
+import WebSocket, { WebSocketServer } from 'ws';
+import Tcp from 'net';
+import https from 'https';
+import path from 'path';
+import fs from 'fs';
+
+const createServer = https.createServer;
 
 // All WrappedConnection types implement two callbacks,
 // onMessage and onClose, and one function, Send.
@@ -15,17 +16,34 @@ const { Buffer } = require('buffer');
 // connection.onMessage.push(this.myOnMessageCallback.bind(this));
 // connection.onClose.push(this.myOnCloseCallback.bind(this));
 
+interface IWrappedSecureWebSocketServer {
+    onConnection: any[];
+    status: string;
+    port: number;
+}
 
-class WrappedSecureWebSocketServer{
+interface WebSocketConfig {
+    port: number;
+}
+
+interface SecureWebSocketConfig extends WebSocketConfig {
+    cert: string;
+    key: string;
+}
+
+export class WrappedSecureWebSocketServer implements IWrappedSecureWebSocketServer{
 
     // Opens a new Secure WebSocket Server through an HTTPS instance.
     // The certificate and key should be provided as paths in the config.
     
-    constructor(config){
+    onConnection: any[] = [];
+    status: string = "";
+    port: number = -1;
+    constructor(config : SecureWebSocketConfig){
         if(config == undefined){
             return;
         }
-
+        const self = this;
         this.onConnection = [];
         
         let certPath = path.resolve(config.cert);
@@ -52,20 +70,33 @@ class WrappedSecureWebSocketServer{
             res.end('Welcome to Ubiq! This is a Ubiq WebSocket Server. To use this endpoint, connect to it with a Ubiq Client.\n');
           }
         );
-        const wss = new WebSockets.WebSocketServer({ server }); // Take care to use the WebSocketServer member, as the import of ws provides the WebSocket *client* type.
+        const wss = new WebSocketServer({ server }); // Take care to use the WebSocketServer member, as the import of ws provides the WebSocket *client* type.
         this.port = config.port;
         server.listen(this.port);
 
-        wss.on("connection", function(ws) {
-            this.onConnection.map(callback => callback(new WebSocketConnectionWrapper(ws)));
-        }.bind(this));
+        wss.on("connection", function(ws : WebSocket) {
+            self.onConnection.map(callback => callback(new WebSocketConnectionWrapper(ws)));
+        });
 
         this.status = "LISTENING";
     }
 }
 
-class WebSocketConnectionWrapper{
-    constructor(ws){
+export interface ConnectionWrapper {
+    onMessage: any[]
+    onClose: any[]
+    send(message : Message): void
+    endpoint(): string | {address?: string, port?: number}
+}
+
+export class WebSocketConnectionWrapper implements ConnectionWrapper{
+
+    onMessage: any[]
+    onClose: any[]
+    state: number
+    socket: WebSocket
+    pending: any[]
+    constructor(ws: WebSocket){
         this.onMessage = [];
         this.onClose = [];
         this.state = ws.readyState;
@@ -73,33 +104,39 @@ class WebSocketConnectionWrapper{
         this.socket.binaryType = "arraybuffer"; // This has no effect in Node, but correctly configures the event type in the browser
         this.pending = [];
 
-        this.socket.onmessage = function(event){
-            let data = event.data;
-            if(event.data instanceof ArrayBuffer){
+        const self = this;
+        this.socket.on("message", function(event){
+            let data : WebSocket.RawData = event;
+            if(data instanceof ArrayBuffer){
                 data = Buffer.from(data);
             }
-            this.onMessage.map(callback => callback(Message.Wrap(data)));
-        }.bind(this);
+            if (Array.isArray(data)) {
+                data = Buffer.concat(data);
+            }
 
-        this.socket.onclose = function(event){
-            this.state = WebSocketConnectionWrapper.CLOSED;
-            this.onClose.map(callback => callback());
-        }.bind(this);
+            // We can safely assume that our data is of type Buffer now.
+            self.onMessage.map(callback => callback(Message.Wrap(data as Buffer)));
+        });
 
-        this.socket.onopen = function(event){
-            this.state = WebSocketConnectionWrapper.OPEN;
-            this.pending.forEach(element => {
-                this.socket.send(element);
+        this.socket.on('close', function(event){
+            self.state = WebSocketConnectionWrapper.CLOSED;
+            self.onClose.map(callback => callback());
+        })
+
+        this.socket.on('open', function(event : any){
+            self.state = WebSocketConnectionWrapper.OPEN;
+            self.pending.forEach(element => {
+                self.socket.send(element);
             });
-            this.pending = [];
-        }.bind(this);
+            self.pending = [];
+        })
     }
 
     static CONNECTING = 0;
     static OPEN = 1;
     static CLOSED = 2;
 
-    send(message){
+    send(message : Message){
         if(this.state == WebSocketConnectionWrapper.OPEN){
             this.socket.send(message.buffer);
         }else if(this.state == WebSocketConnectionWrapper.CONNECTING){
@@ -108,75 +145,91 @@ class WebSocketConnectionWrapper{
     }
 
     endpoint(){
-        return {
-            address: this.socket._socket.remoteAddress,
-            port: this.socket._socket.remotePort
-        };
+        return this.socket.url
     }
 }
 
-class WrappedTcpServer{
-    constructor(config){
+export class WrappedTcpServer{
+    onConnection: any[] = []
+    port: number = -1
+    status: string = ""
+    constructor(config : WebSocketConfig){
         if(config == undefined){
             return;
         }
+        const self = this;
         this.onConnection = [];
         this.port = config.port;
         var server = Tcp.createServer(); 
         server.on('connection', function(s){
-            this.onConnection.map(callback => callback(new TcpConnectionWrapper(s)));
-        }.bind(this));
+            self.onConnection.map(callback => callback(new TcpConnectionWrapper(s)));
+        });
         server.listen(this.port);
         this.status = "LISTENING";
     }
 }
 
-class TcpConnectionWrapper{
-    constructor(s){
+interface ITcpConnectionWrapper extends ConnectionWrapper{
+    socket: any
+    headersize: number
+    header: Buffer
+    data: any
+    closed: boolean
+}
+
+export class TcpConnectionWrapper implements ITcpConnectionWrapper{
+    onMessage: any[];
+    onClose: any[];
+    socket: Tcp.Socket;
+    headersize: number;
+    bufferRead: number;
+    header: Buffer;
+    data: any;
+    closed: boolean;
+    constructor(s: Tcp.Socket){
         this.onMessage = []
         this.onClose = []
         this.socket = s;
         this.headersize = 4;
         this.header = Buffer.alloc(this.headersize);
-        this.header.read = 0;
+        this.bufferRead = 0;
         this.data = null;
         this.closed = false;
-        
+        const self = this;
         this.socket.on("data", 
-            this.onData.bind(this));
+            self.onData.bind(this));
         
         this.socket.on("close", function(event){
-            if(!this.closed){
-                this.onClose.map(callback => callback());
-                this.closed = true;
+            if(!self.closed){
+                self.onClose.map(callback => callback());
+                self.closed = true;
             }
-        }.bind(this));
-
+        });
         this.socket.on("error", function(event){
-            if(!this.closed){
-                this.onClose.map(callback => callback());
-                this.closed = true;
+            if(!self.closed){
+                self.onClose.map(callback => callback());
+                self.closed = true;
             }
-        }.bind(this));
+        });
     }
 
-    onData(array){
+    onData(array: Buffer){
         var fragment = Buffer.from(array.buffer, array.byteOffset, array.byteLength);
         var offset = 0;
         var available = fragment.length - offset;
 
         while(available > 0){ // we could have multiple messages packed into one fragment
 
-            if(this.header.read < this.header.length){
-                var remaining = this.header.length - this.header.read;
+            if(this.bufferRead < this.header.length){
+                var remaining = this.header.length - this.bufferRead;
                 var toread = Math.min(remaining, available);
-                var read = fragment.copy(this.header, this.header.read, offset, offset + toread);
-                this.header.read += read;
+                var read = fragment.copy(this.header, this.bufferRead, offset, offset + toread);
+                this.bufferRead += read;
                 offset += read;
                 available = fragment.length - offset;
 
                 // we have just received the complete header
-                if(this.header.read == this.header.length)
+                if(this.bufferRead == this.header.length)
                 {
                     var length = this.header.readInt32LE(0);
                     this.data = Buffer.alloc(length + this.headersize);
@@ -197,14 +250,14 @@ class TcpConnectionWrapper{
                     if(this.data.read == this.data.length){
                         this.onMessage.map(callback => callback(Message.Wrap(this.data)));
                         this.data = null;
-                        this.header.read = 0;
+                        this.bufferRead = 0;
                     }
                 }
             }
         }
     }
 
-    send(message){
+    send(message : Message){
         this.socket.write(message.buffer);
     }
 
@@ -217,16 +270,8 @@ class TcpConnectionWrapper{
 }
 
 // Creates a new Ubiq Messaging Connection over TCP
-function UbiqTcpConnection(uri,port){
+export function UbiqTcpConnection(uri: string,port: number){
     var client = new Tcp.Socket();
     client.connect(port, uri);
     return new TcpConnectionWrapper(client);
-}
-
-module.exports = {
-    WebSocketConnectionWrapper,
-    WrappedSecureWebSocketServer,
-    TcpConnectionWrapper,
-    WrappedTcpServer,
-    UbiqTcpConnection
 }

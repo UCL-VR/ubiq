@@ -1,3 +1,7 @@
+function getDefaultExportFromCjs (x) {
+	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+}
+
 function getAugmentedNamespace(n) {
   if (n.__esModule) return n;
   var f = n.default;
@@ -25,8 +29,6 @@ function getAugmentedNamespace(n) {
 	});
 	return a;
 }
-
-var lib$1 = {};
 
 var global$1 = (typeof global !== "undefined" ? global :
   typeof self !== "undefined" ? self :
@@ -555,17 +557,17 @@ var INSPECT_MAX_BYTES = 50;
  * We detect these buggy browsers and set `Buffer.TYPED_ARRAY_SUPPORT` to `false` so they
  * get the Object implementation, which is slower but behaves correctly.
  */
-Buffer$3.TYPED_ARRAY_SUPPORT = global$1.TYPED_ARRAY_SUPPORT !== undefined
+Buffer$1.TYPED_ARRAY_SUPPORT = global$1.TYPED_ARRAY_SUPPORT !== undefined
   ? global$1.TYPED_ARRAY_SUPPORT
   : true;
 
 /*
  * Export kMaxLength after typed array support is determined.
  */
-var _kMaxLength = kMaxLength();
+kMaxLength();
 
 function kMaxLength () {
-  return Buffer$3.TYPED_ARRAY_SUPPORT
+  return Buffer$1.TYPED_ARRAY_SUPPORT
     ? 0x7fffffff
     : 0x3fffffff
 }
@@ -574,14 +576,14 @@ function createBuffer (that, length) {
   if (kMaxLength() < length) {
     throw new RangeError('Invalid typed array length')
   }
-  if (Buffer$3.TYPED_ARRAY_SUPPORT) {
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
     // Return an augmented `Uint8Array` instance, for best performance
     that = new Uint8Array(length);
-    that.__proto__ = Buffer$3.prototype;
+    that.__proto__ = Buffer$1.prototype;
   } else {
     // Fallback: Return an object instance of the Buffer class
     if (that === null) {
-      that = new Buffer$3(length);
+      that = new Buffer$1(length);
     }
     that.length = length;
   }
@@ -599,9 +601,9 @@ function createBuffer (that, length) {
  * The `Uint8Array` prototype remains unmodified.
  */
 
-function Buffer$3 (arg, encodingOrOffset, length) {
-  if (!Buffer$3.TYPED_ARRAY_SUPPORT && !(this instanceof Buffer$3)) {
-    return new Buffer$3(arg, encodingOrOffset, length)
+function Buffer$1 (arg, encodingOrOffset, length) {
+  if (!Buffer$1.TYPED_ARRAY_SUPPORT && !(this instanceof Buffer$1)) {
+    return new Buffer$1(arg, encodingOrOffset, length)
   }
 
   // Common case.
@@ -616,11 +618,11 @@ function Buffer$3 (arg, encodingOrOffset, length) {
   return from(this, arg, encodingOrOffset, length)
 }
 
-Buffer$3.poolSize = 8192; // not used by this implementation
+Buffer$1.poolSize = 8192; // not used by this implementation
 
 // TODO: Legacy, not needed anymore. Remove in next major version.
-Buffer$3._augment = function (arr) {
-  arr.__proto__ = Buffer$3.prototype;
+Buffer$1._augment = function (arr) {
+  arr.__proto__ = Buffer$1.prototype;
   return arr
 };
 
@@ -648,15 +650,15 @@ function from (that, value, encodingOrOffset, length) {
  * Buffer.from(buffer)
  * Buffer.from(arrayBuffer[, byteOffset[, length]])
  **/
-Buffer$3.from = function (value, encodingOrOffset, length) {
+Buffer$1.from = function (value, encodingOrOffset, length) {
   return from(null, value, encodingOrOffset, length)
 };
 
-if (Buffer$3.TYPED_ARRAY_SUPPORT) {
-  Buffer$3.prototype.__proto__ = Uint8Array.prototype;
-  Buffer$3.__proto__ = Uint8Array;
+if (Buffer$1.TYPED_ARRAY_SUPPORT) {
+  Buffer$1.prototype.__proto__ = Uint8Array.prototype;
+  Buffer$1.__proto__ = Uint8Array;
   if (typeof Symbol !== 'undefined' && Symbol.species &&
-      Buffer$3[Symbol.species] === Buffer$3) ;
+      Buffer$1[Symbol.species] === Buffer$1) ;
 }
 
 function assertSize (size) {
@@ -687,14 +689,14 @@ function alloc (that, size, fill, encoding) {
  * Creates a new filled Buffer instance.
  * alloc(size[, fill[, encoding]])
  **/
-Buffer$3.alloc = function (size, fill, encoding) {
+Buffer$1.alloc = function (size, fill, encoding) {
   return alloc(null, size, fill, encoding)
 };
 
 function allocUnsafe (that, size) {
   assertSize(size);
   that = createBuffer(that, size < 0 ? 0 : checked(size) | 0);
-  if (!Buffer$3.TYPED_ARRAY_SUPPORT) {
+  if (!Buffer$1.TYPED_ARRAY_SUPPORT) {
     for (var i = 0; i < size; ++i) {
       that[i] = 0;
     }
@@ -705,13 +707,13 @@ function allocUnsafe (that, size) {
 /**
  * Equivalent to Buffer(num), by default creates a non-zero-filled Buffer instance.
  * */
-Buffer$3.allocUnsafe = function (size) {
+Buffer$1.allocUnsafe = function (size) {
   return allocUnsafe(null, size)
 };
 /**
  * Equivalent to SlowBuffer(num), by default creates a non-zero-filled Buffer instance.
  */
-Buffer$3.allocUnsafeSlow = function (size) {
+Buffer$1.allocUnsafeSlow = function (size) {
   return allocUnsafe(null, size)
 };
 
@@ -720,7 +722,7 @@ function fromString (that, string, encoding) {
     encoding = 'utf8';
   }
 
-  if (!Buffer$3.isEncoding(encoding)) {
+  if (!Buffer$1.isEncoding(encoding)) {
     throw new TypeError('"encoding" must be a valid string encoding')
   }
 
@@ -767,10 +769,10 @@ function fromArrayBuffer (that, array, byteOffset, length) {
     array = new Uint8Array(array, byteOffset, length);
   }
 
-  if (Buffer$3.TYPED_ARRAY_SUPPORT) {
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
     // Return an augmented `Uint8Array` instance, for best performance
     that = array;
-    that.__proto__ = Buffer$3.prototype;
+    that.__proto__ = Buffer$1.prototype;
   } else {
     // Fallback: Return an object instance of the Buffer class
     that = fromArrayLike(that, array);
@@ -817,19 +819,12 @@ function checked (length) {
   }
   return length | 0
 }
-
-function SlowBuffer (length) {
-  if (+length != length) { // eslint-disable-line eqeqeq
-    length = 0;
-  }
-  return Buffer$3.alloc(+length)
-}
-Buffer$3.isBuffer = isBuffer;
+Buffer$1.isBuffer = isBuffer;
 function internalIsBuffer (b) {
   return !!(b != null && b._isBuffer)
 }
 
-Buffer$3.compare = function compare (a, b) {
+Buffer$1.compare = function compare (a, b) {
   if (!internalIsBuffer(a) || !internalIsBuffer(b)) {
     throw new TypeError('Arguments must be Buffers')
   }
@@ -852,7 +847,7 @@ Buffer$3.compare = function compare (a, b) {
   return 0
 };
 
-Buffer$3.isEncoding = function isEncoding (encoding) {
+Buffer$1.isEncoding = function isEncoding (encoding) {
   switch (String(encoding).toLowerCase()) {
     case 'hex':
     case 'utf8':
@@ -871,13 +866,13 @@ Buffer$3.isEncoding = function isEncoding (encoding) {
   }
 };
 
-Buffer$3.concat = function concat (list, length) {
+Buffer$1.concat = function concat (list, length) {
   if (!isArray$2(list)) {
     throw new TypeError('"list" argument must be an Array of Buffers')
   }
 
   if (list.length === 0) {
-    return Buffer$3.alloc(0)
+    return Buffer$1.alloc(0)
   }
 
   var i;
@@ -888,7 +883,7 @@ Buffer$3.concat = function concat (list, length) {
     }
   }
 
-  var buffer = Buffer$3.allocUnsafe(length);
+  var buffer = Buffer$1.allocUnsafe(length);
   var pos = 0;
   for (i = 0; i < list.length; ++i) {
     var buf = list[i];
@@ -944,7 +939,7 @@ function byteLength (string, encoding) {
     }
   }
 }
-Buffer$3.byteLength = byteLength;
+Buffer$1.byteLength = byteLength;
 
 function slowToString (encoding, start, end) {
   var loweredCase = false;
@@ -1018,7 +1013,7 @@ function slowToString (encoding, start, end) {
 
 // The property is used by `Buffer.isBuffer` and `is-buffer` (in Safari 5-7) to detect
 // Buffer instances.
-Buffer$3.prototype._isBuffer = true;
+Buffer$1.prototype._isBuffer = true;
 
 function swap (b, n, m) {
   var i = b[n];
@@ -1026,7 +1021,7 @@ function swap (b, n, m) {
   b[m] = i;
 }
 
-Buffer$3.prototype.swap16 = function swap16 () {
+Buffer$1.prototype.swap16 = function swap16 () {
   var len = this.length;
   if (len % 2 !== 0) {
     throw new RangeError('Buffer size must be a multiple of 16-bits')
@@ -1037,7 +1032,7 @@ Buffer$3.prototype.swap16 = function swap16 () {
   return this
 };
 
-Buffer$3.prototype.swap32 = function swap32 () {
+Buffer$1.prototype.swap32 = function swap32 () {
   var len = this.length;
   if (len % 4 !== 0) {
     throw new RangeError('Buffer size must be a multiple of 32-bits')
@@ -1049,7 +1044,7 @@ Buffer$3.prototype.swap32 = function swap32 () {
   return this
 };
 
-Buffer$3.prototype.swap64 = function swap64 () {
+Buffer$1.prototype.swap64 = function swap64 () {
   var len = this.length;
   if (len % 8 !== 0) {
     throw new RangeError('Buffer size must be a multiple of 64-bits')
@@ -1063,20 +1058,20 @@ Buffer$3.prototype.swap64 = function swap64 () {
   return this
 };
 
-Buffer$3.prototype.toString = function toString () {
+Buffer$1.prototype.toString = function toString () {
   var length = this.length | 0;
   if (length === 0) return ''
   if (arguments.length === 0) return utf8Slice(this, 0, length)
   return slowToString.apply(this, arguments)
 };
 
-Buffer$3.prototype.equals = function equals (b) {
+Buffer$1.prototype.equals = function equals (b) {
   if (!internalIsBuffer(b)) throw new TypeError('Argument must be a Buffer')
   if (this === b) return true
-  return Buffer$3.compare(this, b) === 0
+  return Buffer$1.compare(this, b) === 0
 };
 
-Buffer$3.prototype.inspect = function inspect () {
+Buffer$1.prototype.inspect = function inspect () {
   var str = '';
   var max = INSPECT_MAX_BYTES;
   if (this.length > 0) {
@@ -1086,7 +1081,7 @@ Buffer$3.prototype.inspect = function inspect () {
   return '<Buffer ' + str + '>'
 };
 
-Buffer$3.prototype.compare = function compare (target, start, end, thisStart, thisEnd) {
+Buffer$1.prototype.compare = function compare (target, start, end, thisStart, thisEnd) {
   if (!internalIsBuffer(target)) {
     throw new TypeError('Argument must be a Buffer')
   }
@@ -1185,7 +1180,7 @@ function bidirectionalIndexOf (buffer, val, byteOffset, encoding, dir) {
 
   // Normalize val
   if (typeof val === 'string') {
-    val = Buffer$3.from(val, encoding);
+    val = Buffer$1.from(val, encoding);
   }
 
   // Finally, search either indexOf (if dir is true) or lastIndexOf
@@ -1197,7 +1192,7 @@ function bidirectionalIndexOf (buffer, val, byteOffset, encoding, dir) {
     return arrayIndexOf(buffer, val, byteOffset, encoding, dir)
   } else if (typeof val === 'number') {
     val = val & 0xFF; // Search for a byte value [0-255]
-    if (Buffer$3.TYPED_ARRAY_SUPPORT &&
+    if (Buffer$1.TYPED_ARRAY_SUPPORT &&
         typeof Uint8Array.prototype.indexOf === 'function') {
       if (dir) {
         return Uint8Array.prototype.indexOf.call(buffer, val, byteOffset)
@@ -1267,15 +1262,15 @@ function arrayIndexOf (arr, val, byteOffset, encoding, dir) {
   return -1
 }
 
-Buffer$3.prototype.includes = function includes (val, byteOffset, encoding) {
+Buffer$1.prototype.includes = function includes (val, byteOffset, encoding) {
   return this.indexOf(val, byteOffset, encoding) !== -1
 };
 
-Buffer$3.prototype.indexOf = function indexOf (val, byteOffset, encoding) {
+Buffer$1.prototype.indexOf = function indexOf (val, byteOffset, encoding) {
   return bidirectionalIndexOf(this, val, byteOffset, encoding, true)
 };
 
-Buffer$3.prototype.lastIndexOf = function lastIndexOf (val, byteOffset, encoding) {
+Buffer$1.prototype.lastIndexOf = function lastIndexOf (val, byteOffset, encoding) {
   return bidirectionalIndexOf(this, val, byteOffset, encoding, false)
 };
 
@@ -1326,7 +1321,7 @@ function ucs2Write (buf, string, offset, length) {
   return blitBuffer(utf16leToBytes(string, buf.length - offset), buf, offset, length)
 }
 
-Buffer$3.prototype.write = function write (string, offset, length, encoding) {
+Buffer$1.prototype.write = function write (string, offset, length, encoding) {
   // Buffer#write(string)
   if (offset === undefined) {
     encoding = 'utf8';
@@ -1398,7 +1393,7 @@ Buffer$3.prototype.write = function write (string, offset, length, encoding) {
   }
 };
 
-Buffer$3.prototype.toJSON = function toJSON () {
+Buffer$1.prototype.toJSON = function toJSON () {
   return {
     type: 'Buffer',
     data: Array.prototype.slice.call(this._arr || this, 0)
@@ -1551,7 +1546,7 @@ function utf16leSlice (buf, start, end) {
   return res
 }
 
-Buffer$3.prototype.slice = function slice (start, end) {
+Buffer$1.prototype.slice = function slice (start, end) {
   var len = this.length;
   start = ~~start;
   end = end === undefined ? len : ~~end;
@@ -1573,12 +1568,12 @@ Buffer$3.prototype.slice = function slice (start, end) {
   if (end < start) end = start;
 
   var newBuf;
-  if (Buffer$3.TYPED_ARRAY_SUPPORT) {
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
     newBuf = this.subarray(start, end);
-    newBuf.__proto__ = Buffer$3.prototype;
+    newBuf.__proto__ = Buffer$1.prototype;
   } else {
     var sliceLen = end - start;
-    newBuf = new Buffer$3(sliceLen, undefined);
+    newBuf = new Buffer$1(sliceLen, undefined);
     for (var i = 0; i < sliceLen; ++i) {
       newBuf[i] = this[i + start];
     }
@@ -1595,7 +1590,7 @@ function checkOffset (offset, ext, length) {
   if (offset + ext > length) throw new RangeError('Trying to access beyond buffer length')
 }
 
-Buffer$3.prototype.readUIntLE = function readUIntLE (offset, byteLength, noAssert) {
+Buffer$1.prototype.readUIntLE = function readUIntLE (offset, byteLength, noAssert) {
   offset = offset | 0;
   byteLength = byteLength | 0;
   if (!noAssert) checkOffset(offset, byteLength, this.length);
@@ -1610,7 +1605,7 @@ Buffer$3.prototype.readUIntLE = function readUIntLE (offset, byteLength, noAsser
   return val
 };
 
-Buffer$3.prototype.readUIntBE = function readUIntBE (offset, byteLength, noAssert) {
+Buffer$1.prototype.readUIntBE = function readUIntBE (offset, byteLength, noAssert) {
   offset = offset | 0;
   byteLength = byteLength | 0;
   if (!noAssert) {
@@ -1626,22 +1621,22 @@ Buffer$3.prototype.readUIntBE = function readUIntBE (offset, byteLength, noAsser
   return val
 };
 
-Buffer$3.prototype.readUInt8 = function readUInt8 (offset, noAssert) {
+Buffer$1.prototype.readUInt8 = function readUInt8 (offset, noAssert) {
   if (!noAssert) checkOffset(offset, 1, this.length);
   return this[offset]
 };
 
-Buffer$3.prototype.readUInt16LE = function readUInt16LE (offset, noAssert) {
+Buffer$1.prototype.readUInt16LE = function readUInt16LE (offset, noAssert) {
   if (!noAssert) checkOffset(offset, 2, this.length);
   return this[offset] | (this[offset + 1] << 8)
 };
 
-Buffer$3.prototype.readUInt16BE = function readUInt16BE (offset, noAssert) {
+Buffer$1.prototype.readUInt16BE = function readUInt16BE (offset, noAssert) {
   if (!noAssert) checkOffset(offset, 2, this.length);
   return (this[offset] << 8) | this[offset + 1]
 };
 
-Buffer$3.prototype.readUInt32LE = function readUInt32LE (offset, noAssert) {
+Buffer$1.prototype.readUInt32LE = function readUInt32LE (offset, noAssert) {
   if (!noAssert) checkOffset(offset, 4, this.length);
 
   return ((this[offset]) |
@@ -1650,7 +1645,7 @@ Buffer$3.prototype.readUInt32LE = function readUInt32LE (offset, noAssert) {
       (this[offset + 3] * 0x1000000)
 };
 
-Buffer$3.prototype.readUInt32BE = function readUInt32BE (offset, noAssert) {
+Buffer$1.prototype.readUInt32BE = function readUInt32BE (offset, noAssert) {
   if (!noAssert) checkOffset(offset, 4, this.length);
 
   return (this[offset] * 0x1000000) +
@@ -1659,7 +1654,7 @@ Buffer$3.prototype.readUInt32BE = function readUInt32BE (offset, noAssert) {
     this[offset + 3])
 };
 
-Buffer$3.prototype.readIntLE = function readIntLE (offset, byteLength, noAssert) {
+Buffer$1.prototype.readIntLE = function readIntLE (offset, byteLength, noAssert) {
   offset = offset | 0;
   byteLength = byteLength | 0;
   if (!noAssert) checkOffset(offset, byteLength, this.length);
@@ -1677,7 +1672,7 @@ Buffer$3.prototype.readIntLE = function readIntLE (offset, byteLength, noAssert)
   return val
 };
 
-Buffer$3.prototype.readIntBE = function readIntBE (offset, byteLength, noAssert) {
+Buffer$1.prototype.readIntBE = function readIntBE (offset, byteLength, noAssert) {
   offset = offset | 0;
   byteLength = byteLength | 0;
   if (!noAssert) checkOffset(offset, byteLength, this.length);
@@ -1695,25 +1690,25 @@ Buffer$3.prototype.readIntBE = function readIntBE (offset, byteLength, noAssert)
   return val
 };
 
-Buffer$3.prototype.readInt8 = function readInt8 (offset, noAssert) {
+Buffer$1.prototype.readInt8 = function readInt8 (offset, noAssert) {
   if (!noAssert) checkOffset(offset, 1, this.length);
   if (!(this[offset] & 0x80)) return (this[offset])
   return ((0xff - this[offset] + 1) * -1)
 };
 
-Buffer$3.prototype.readInt16LE = function readInt16LE (offset, noAssert) {
+Buffer$1.prototype.readInt16LE = function readInt16LE (offset, noAssert) {
   if (!noAssert) checkOffset(offset, 2, this.length);
   var val = this[offset] | (this[offset + 1] << 8);
   return (val & 0x8000) ? val | 0xFFFF0000 : val
 };
 
-Buffer$3.prototype.readInt16BE = function readInt16BE (offset, noAssert) {
+Buffer$1.prototype.readInt16BE = function readInt16BE (offset, noAssert) {
   if (!noAssert) checkOffset(offset, 2, this.length);
   var val = this[offset + 1] | (this[offset] << 8);
   return (val & 0x8000) ? val | 0xFFFF0000 : val
 };
 
-Buffer$3.prototype.readInt32LE = function readInt32LE (offset, noAssert) {
+Buffer$1.prototype.readInt32LE = function readInt32LE (offset, noAssert) {
   if (!noAssert) checkOffset(offset, 4, this.length);
 
   return (this[offset]) |
@@ -1722,7 +1717,7 @@ Buffer$3.prototype.readInt32LE = function readInt32LE (offset, noAssert) {
     (this[offset + 3] << 24)
 };
 
-Buffer$3.prototype.readInt32BE = function readInt32BE (offset, noAssert) {
+Buffer$1.prototype.readInt32BE = function readInt32BE (offset, noAssert) {
   if (!noAssert) checkOffset(offset, 4, this.length);
 
   return (this[offset] << 24) |
@@ -1731,22 +1726,22 @@ Buffer$3.prototype.readInt32BE = function readInt32BE (offset, noAssert) {
     (this[offset + 3])
 };
 
-Buffer$3.prototype.readFloatLE = function readFloatLE (offset, noAssert) {
+Buffer$1.prototype.readFloatLE = function readFloatLE (offset, noAssert) {
   if (!noAssert) checkOffset(offset, 4, this.length);
   return read(this, offset, true, 23, 4)
 };
 
-Buffer$3.prototype.readFloatBE = function readFloatBE (offset, noAssert) {
+Buffer$1.prototype.readFloatBE = function readFloatBE (offset, noAssert) {
   if (!noAssert) checkOffset(offset, 4, this.length);
   return read(this, offset, false, 23, 4)
 };
 
-Buffer$3.prototype.readDoubleLE = function readDoubleLE (offset, noAssert) {
+Buffer$1.prototype.readDoubleLE = function readDoubleLE (offset, noAssert) {
   if (!noAssert) checkOffset(offset, 8, this.length);
   return read(this, offset, true, 52, 8)
 };
 
-Buffer$3.prototype.readDoubleBE = function readDoubleBE (offset, noAssert) {
+Buffer$1.prototype.readDoubleBE = function readDoubleBE (offset, noAssert) {
   if (!noAssert) checkOffset(offset, 8, this.length);
   return read(this, offset, false, 52, 8)
 };
@@ -1757,7 +1752,7 @@ function checkInt (buf, value, offset, ext, max, min) {
   if (offset + ext > buf.length) throw new RangeError('Index out of range')
 }
 
-Buffer$3.prototype.writeUIntLE = function writeUIntLE (value, offset, byteLength, noAssert) {
+Buffer$1.prototype.writeUIntLE = function writeUIntLE (value, offset, byteLength, noAssert) {
   value = +value;
   offset = offset | 0;
   byteLength = byteLength | 0;
@@ -1776,7 +1771,7 @@ Buffer$3.prototype.writeUIntLE = function writeUIntLE (value, offset, byteLength
   return offset + byteLength
 };
 
-Buffer$3.prototype.writeUIntBE = function writeUIntBE (value, offset, byteLength, noAssert) {
+Buffer$1.prototype.writeUIntBE = function writeUIntBE (value, offset, byteLength, noAssert) {
   value = +value;
   offset = offset | 0;
   byteLength = byteLength | 0;
@@ -1795,11 +1790,11 @@ Buffer$3.prototype.writeUIntBE = function writeUIntBE (value, offset, byteLength
   return offset + byteLength
 };
 
-Buffer$3.prototype.writeUInt8 = function writeUInt8 (value, offset, noAssert) {
+Buffer$1.prototype.writeUInt8 = function writeUInt8 (value, offset, noAssert) {
   value = +value;
   offset = offset | 0;
   if (!noAssert) checkInt(this, value, offset, 1, 0xff, 0);
-  if (!Buffer$3.TYPED_ARRAY_SUPPORT) value = Math.floor(value);
+  if (!Buffer$1.TYPED_ARRAY_SUPPORT) value = Math.floor(value);
   this[offset] = (value & 0xff);
   return offset + 1
 };
@@ -1812,11 +1807,11 @@ function objectWriteUInt16 (buf, value, offset, littleEndian) {
   }
 }
 
-Buffer$3.prototype.writeUInt16LE = function writeUInt16LE (value, offset, noAssert) {
+Buffer$1.prototype.writeUInt16LE = function writeUInt16LE (value, offset, noAssert) {
   value = +value;
   offset = offset | 0;
   if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0);
-  if (Buffer$3.TYPED_ARRAY_SUPPORT) {
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
     this[offset] = (value & 0xff);
     this[offset + 1] = (value >>> 8);
   } else {
@@ -1825,11 +1820,11 @@ Buffer$3.prototype.writeUInt16LE = function writeUInt16LE (value, offset, noAsse
   return offset + 2
 };
 
-Buffer$3.prototype.writeUInt16BE = function writeUInt16BE (value, offset, noAssert) {
+Buffer$1.prototype.writeUInt16BE = function writeUInt16BE (value, offset, noAssert) {
   value = +value;
   offset = offset | 0;
   if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0);
-  if (Buffer$3.TYPED_ARRAY_SUPPORT) {
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
     this[offset] = (value >>> 8);
     this[offset + 1] = (value & 0xff);
   } else {
@@ -1845,11 +1840,11 @@ function objectWriteUInt32 (buf, value, offset, littleEndian) {
   }
 }
 
-Buffer$3.prototype.writeUInt32LE = function writeUInt32LE (value, offset, noAssert) {
+Buffer$1.prototype.writeUInt32LE = function writeUInt32LE (value, offset, noAssert) {
   value = +value;
   offset = offset | 0;
   if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0);
-  if (Buffer$3.TYPED_ARRAY_SUPPORT) {
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
     this[offset + 3] = (value >>> 24);
     this[offset + 2] = (value >>> 16);
     this[offset + 1] = (value >>> 8);
@@ -1860,11 +1855,11 @@ Buffer$3.prototype.writeUInt32LE = function writeUInt32LE (value, offset, noAsse
   return offset + 4
 };
 
-Buffer$3.prototype.writeUInt32BE = function writeUInt32BE (value, offset, noAssert) {
+Buffer$1.prototype.writeUInt32BE = function writeUInt32BE (value, offset, noAssert) {
   value = +value;
   offset = offset | 0;
   if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0);
-  if (Buffer$3.TYPED_ARRAY_SUPPORT) {
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
     this[offset] = (value >>> 24);
     this[offset + 1] = (value >>> 16);
     this[offset + 2] = (value >>> 8);
@@ -1875,7 +1870,7 @@ Buffer$3.prototype.writeUInt32BE = function writeUInt32BE (value, offset, noAsse
   return offset + 4
 };
 
-Buffer$3.prototype.writeIntLE = function writeIntLE (value, offset, byteLength, noAssert) {
+Buffer$1.prototype.writeIntLE = function writeIntLE (value, offset, byteLength, noAssert) {
   value = +value;
   offset = offset | 0;
   if (!noAssert) {
@@ -1898,7 +1893,7 @@ Buffer$3.prototype.writeIntLE = function writeIntLE (value, offset, byteLength, 
   return offset + byteLength
 };
 
-Buffer$3.prototype.writeIntBE = function writeIntBE (value, offset, byteLength, noAssert) {
+Buffer$1.prototype.writeIntBE = function writeIntBE (value, offset, byteLength, noAssert) {
   value = +value;
   offset = offset | 0;
   if (!noAssert) {
@@ -1921,21 +1916,21 @@ Buffer$3.prototype.writeIntBE = function writeIntBE (value, offset, byteLength, 
   return offset + byteLength
 };
 
-Buffer$3.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
+Buffer$1.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
   value = +value;
   offset = offset | 0;
   if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -0x80);
-  if (!Buffer$3.TYPED_ARRAY_SUPPORT) value = Math.floor(value);
+  if (!Buffer$1.TYPED_ARRAY_SUPPORT) value = Math.floor(value);
   if (value < 0) value = 0xff + value + 1;
   this[offset] = (value & 0xff);
   return offset + 1
 };
 
-Buffer$3.prototype.writeInt16LE = function writeInt16LE (value, offset, noAssert) {
+Buffer$1.prototype.writeInt16LE = function writeInt16LE (value, offset, noAssert) {
   value = +value;
   offset = offset | 0;
   if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000);
-  if (Buffer$3.TYPED_ARRAY_SUPPORT) {
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
     this[offset] = (value & 0xff);
     this[offset + 1] = (value >>> 8);
   } else {
@@ -1944,11 +1939,11 @@ Buffer$3.prototype.writeInt16LE = function writeInt16LE (value, offset, noAssert
   return offset + 2
 };
 
-Buffer$3.prototype.writeInt16BE = function writeInt16BE (value, offset, noAssert) {
+Buffer$1.prototype.writeInt16BE = function writeInt16BE (value, offset, noAssert) {
   value = +value;
   offset = offset | 0;
   if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000);
-  if (Buffer$3.TYPED_ARRAY_SUPPORT) {
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
     this[offset] = (value >>> 8);
     this[offset + 1] = (value & 0xff);
   } else {
@@ -1957,11 +1952,11 @@ Buffer$3.prototype.writeInt16BE = function writeInt16BE (value, offset, noAssert
   return offset + 2
 };
 
-Buffer$3.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) {
+Buffer$1.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) {
   value = +value;
   offset = offset | 0;
   if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000);
-  if (Buffer$3.TYPED_ARRAY_SUPPORT) {
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
     this[offset] = (value & 0xff);
     this[offset + 1] = (value >>> 8);
     this[offset + 2] = (value >>> 16);
@@ -1972,12 +1967,12 @@ Buffer$3.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert
   return offset + 4
 };
 
-Buffer$3.prototype.writeInt32BE = function writeInt32BE (value, offset, noAssert) {
+Buffer$1.prototype.writeInt32BE = function writeInt32BE (value, offset, noAssert) {
   value = +value;
   offset = offset | 0;
   if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000);
   if (value < 0) value = 0xffffffff + value + 1;
-  if (Buffer$3.TYPED_ARRAY_SUPPORT) {
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
     this[offset] = (value >>> 24);
     this[offset + 1] = (value >>> 16);
     this[offset + 2] = (value >>> 8);
@@ -2001,11 +1996,11 @@ function writeFloat (buf, value, offset, littleEndian, noAssert) {
   return offset + 4
 }
 
-Buffer$3.prototype.writeFloatLE = function writeFloatLE (value, offset, noAssert) {
+Buffer$1.prototype.writeFloatLE = function writeFloatLE (value, offset, noAssert) {
   return writeFloat(this, value, offset, true, noAssert)
 };
 
-Buffer$3.prototype.writeFloatBE = function writeFloatBE (value, offset, noAssert) {
+Buffer$1.prototype.writeFloatBE = function writeFloatBE (value, offset, noAssert) {
   return writeFloat(this, value, offset, false, noAssert)
 };
 
@@ -2017,16 +2012,16 @@ function writeDouble (buf, value, offset, littleEndian, noAssert) {
   return offset + 8
 }
 
-Buffer$3.prototype.writeDoubleLE = function writeDoubleLE (value, offset, noAssert) {
+Buffer$1.prototype.writeDoubleLE = function writeDoubleLE (value, offset, noAssert) {
   return writeDouble(this, value, offset, true, noAssert)
 };
 
-Buffer$3.prototype.writeDoubleBE = function writeDoubleBE (value, offset, noAssert) {
+Buffer$1.prototype.writeDoubleBE = function writeDoubleBE (value, offset, noAssert) {
   return writeDouble(this, value, offset, false, noAssert)
 };
 
 // copy(targetBuffer, targetStart=0, sourceStart=0, sourceEnd=buffer.length)
-Buffer$3.prototype.copy = function copy (target, targetStart, start, end) {
+Buffer$1.prototype.copy = function copy (target, targetStart, start, end) {
   if (!start) start = 0;
   if (!end && end !== 0) end = this.length;
   if (targetStart >= target.length) targetStart = target.length;
@@ -2058,7 +2053,7 @@ Buffer$3.prototype.copy = function copy (target, targetStart, start, end) {
     for (i = len - 1; i >= 0; --i) {
       target[i + targetStart] = this[i + start];
     }
-  } else if (len < 1000 || !Buffer$3.TYPED_ARRAY_SUPPORT) {
+  } else if (len < 1000 || !Buffer$1.TYPED_ARRAY_SUPPORT) {
     // ascending copy from start
     for (i = 0; i < len; ++i) {
       target[i + targetStart] = this[i + start];
@@ -2078,7 +2073,7 @@ Buffer$3.prototype.copy = function copy (target, targetStart, start, end) {
 //    buffer.fill(number[, offset[, end]])
 //    buffer.fill(buffer[, offset[, end]])
 //    buffer.fill(string[, offset[, end]][, encoding])
-Buffer$3.prototype.fill = function fill (val, start, end, encoding) {
+Buffer$1.prototype.fill = function fill (val, start, end, encoding) {
   // Handle string cases:
   if (typeof val === 'string') {
     if (typeof start === 'string') {
@@ -2098,7 +2093,7 @@ Buffer$3.prototype.fill = function fill (val, start, end, encoding) {
     if (encoding !== undefined && typeof encoding !== 'string') {
       throw new TypeError('encoding must be a string')
     }
-    if (typeof encoding === 'string' && !Buffer$3.isEncoding(encoding)) {
+    if (typeof encoding === 'string' && !Buffer$1.isEncoding(encoding)) {
       throw new TypeError('Unknown encoding: ' + encoding)
     }
   } else if (typeof val === 'number') {
@@ -2127,7 +2122,7 @@ Buffer$3.prototype.fill = function fill (val, start, end, encoding) {
   } else {
     var bytes = internalIsBuffer(val)
       ? val
-      : utf8ToBytes(new Buffer$3(val, encoding).toString());
+      : utf8ToBytes(new Buffer$1(val, encoding).toString());
     var len = bytes.length;
     for (i = 0; i < end - start; ++i) {
       this[i + start] = bytes[i % len];
@@ -2303,15 +2298,6 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isFastBuffer(obj.slice(0, 0))
 }
 
-var _polyfillNode_buffer = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	Buffer: Buffer$3,
-	INSPECT_MAX_BYTES: INSPECT_MAX_BYTES,
-	SlowBuffer: SlowBuffer,
-	isBuffer: isBuffer,
-	kMaxLength: _kMaxLength
-});
-
 // shim for using process in browser
 // based off https://github.com/defunctzombie/node-process/blob/master/browser.js
 
@@ -2450,7 +2436,7 @@ var platform$1 = 'browser';
 var browser = true;
 var env = {};
 var argv = [];
-var version$2 = ''; // empty string to avoid regexp issues
+var version = ''; // empty string to avoid regexp issues
 var versions = {};
 var release$1 = {};
 var config = {};
@@ -2514,7 +2500,7 @@ var browser$1 = {
   browser: browser,
   env: env,
   argv: argv,
-  version: version$2,
+  version: version,
   versions: versions,
   on: on,
   addListener: addListener,
@@ -3137,7 +3123,7 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-function parse$5(qs, sep, eq, options) {
+function parse$4(qs, sep, eq, options) {
   sep = sep || '&';
   eq = eq || '=';
   var obj = {};
@@ -3189,7 +3175,7 @@ function parse$5(qs, sep, eq, options) {
 }
 
 // WHATWG API
-const URL$2 = global$1.URL;
+const URL$1 = global$1.URL;
 const URLSearchParams = global$1.URLSearchParams;
 var _polyfillNode_url = {
   parse: urlParse,
@@ -3200,7 +3186,7 @@ var _polyfillNode_url = {
   Url: Url,
 
   // WHATWG API
-  URL: URL$2,
+  URL: URL$1,
   URLSearchParams,  
 };
 function Url() {
@@ -3278,10 +3264,10 @@ function urlParse(url, parseQueryString, slashesDenoteHost) {
   return u;
 }
 Url.prototype.parse = function(url, parseQueryString, slashesDenoteHost) {
-  return parse$4(this, url, parseQueryString, slashesDenoteHost);
+  return parse$3(this, url, parseQueryString, slashesDenoteHost);
 };
 
-function parse$4(self, url, parseQueryString, slashesDenoteHost) {
+function parse$3(self, url, parseQueryString, slashesDenoteHost) {
   if (!isString(url)) {
     throw new TypeError('Parameter \'url\' must be a string, not ' + typeof url);
   }
@@ -3313,7 +3299,7 @@ function parse$4(self, url, parseQueryString, slashesDenoteHost) {
       if (simplePath[2]) {
         self.search = simplePath[2];
         if (parseQueryString) {
-          self.query = parse$5(self.search.substr(1));
+          self.query = parse$4(self.search.substr(1));
         } else {
           self.query = self.search.substr(1);
         }
@@ -3516,7 +3502,7 @@ function parse$4(self, url, parseQueryString, slashesDenoteHost) {
     self.search = rest.substr(qm);
     self.query = rest.substr(qm + 1);
     if (parseQueryString) {
-      self.query = parse$5(self.query);
+      self.query = parse$4(self.query);
     }
     rest = rest.slice(0, qm);
   } else if (parseQueryString) {
@@ -3573,7 +3559,7 @@ function urlFormat(obj) {
   // If it's an obj, this is a no-op.
   // this way, you can call url_format() on strings
   // to clean up potentially wonky urls.
-  if (isString(obj)) obj = parse$4({}, obj);
+  if (isString(obj)) obj = parse$3({}, obj);
   return format$2(obj);
 }
 
@@ -3938,7 +3924,7 @@ function parseHost(self) {
 
 var _polyfillNode_url$1 = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	URL: URL$2,
+	URL: URL$1,
 	URLSearchParams: URLSearchParams,
 	Url: Url,
 	default: _polyfillNode_url,
@@ -5353,7 +5339,7 @@ var anonymousBase = '/';
  * @name Validator
  * @constructor
  */
-var Validator$2 = function Validator () {
+var Validator = function Validator () {
   // Allow a validator instance to override global custom formats or to have their
   // own custom formats.
   this.customFormats = Object.create(Validator.prototype.customFormats);
@@ -5366,13 +5352,13 @@ var Validator$2 = function Validator () {
 };
 
 // Allow formats to be registered globally.
-Validator$2.prototype.customFormats = {};
+Validator.prototype.customFormats = {};
 
 // Hint at the presence of a property
-Validator$2.prototype.schemas = null;
-Validator$2.prototype.types = null;
-Validator$2.prototype.attributes = null;
-Validator$2.prototype.unresolvedRefs = null;
+Validator.prototype.schemas = null;
+Validator.prototype.types = null;
+Validator.prototype.attributes = null;
+Validator.prototype.unresolvedRefs = null;
 
 /**
  * Adds a schema with a certain urn to the Validator instance.
@@ -5380,7 +5366,7 @@ Validator$2.prototype.unresolvedRefs = null;
  * @param urn
  * @return {Object}
  */
-Validator$2.prototype.addSchema = function addSchema (schema, base) {
+Validator.prototype.addSchema = function addSchema (schema, base) {
   var self = this;
   if (!schema) {
     return null;
@@ -5401,14 +5387,14 @@ Validator$2.prototype.addSchema = function addSchema (schema, base) {
   return this.schemas[ourUri];
 };
 
-Validator$2.prototype.addSubSchemaArray = function addSubSchemaArray(baseuri, schemas) {
+Validator.prototype.addSubSchemaArray = function addSubSchemaArray(baseuri, schemas) {
   if(!Array.isArray(schemas)) return;
   for(var i=0; i<schemas.length; i++){
     this.addSubSchema(baseuri, schemas[i]);
   }
 };
 
-Validator$2.prototype.addSubSchemaObject = function addSubSchemaArray(baseuri, schemas) {
+Validator.prototype.addSubSchemaObject = function addSubSchemaArray(baseuri, schemas) {
   if(!schemas || typeof schemas!='object') return;
   for(var p in schemas){
     this.addSubSchema(baseuri, schemas[p]);
@@ -5421,7 +5407,7 @@ Validator$2.prototype.addSubSchemaObject = function addSubSchemaArray(baseuri, s
  * Sets all the schemas of the Validator instance.
  * @param schemas
  */
-Validator$2.prototype.setSchemas = function setSchemas (schemas) {
+Validator.prototype.setSchemas = function setSchemas (schemas) {
   this.schemas = schemas;
 };
 
@@ -5429,7 +5415,7 @@ Validator$2.prototype.setSchemas = function setSchemas (schemas) {
  * Returns the schema of a certain urn
  * @param urn
  */
-Validator$2.prototype.getSchema = function getSchema (urn) {
+Validator.prototype.getSchema = function getSchema (urn) {
   return this.schemas[urn];
 };
 
@@ -5441,7 +5427,7 @@ Validator$2.prototype.getSchema = function getSchema (urn) {
  * @param [ctx]
  * @return {Array}
  */
-Validator$2.prototype.validate = function validate (instance, schema, options, ctx) {
+Validator.prototype.validate = function validate (instance, schema, options, ctx) {
   if((typeof schema !== 'boolean' && typeof schema !== 'object') || schema === null){
     throw new SchemaError('Expected `schema` to be an object or boolean');
   }
@@ -5496,7 +5482,7 @@ function shouldResolve(schema) {
  * @private
  * @return {ValidatorResult}
  */
-Validator$2.prototype.validateSchema = function validateSchema (instance, schema, options, ctx) {
+Validator.prototype.validateSchema = function validateSchema (instance, schema, options, ctx) {
   var result = new ValidatorResult(instance, schema, options, ctx);
 
   // Support for the true/false schemas
@@ -5565,7 +5551,7 @@ Validator$2.prototype.validateSchema = function validateSchema (instance, schema
 * @param SchemaContext ctx
 * @returns Object schema or resolved schema
 */
-Validator$2.prototype.schemaTraverser = function schemaTraverser (schemaobj, s) {
+Validator.prototype.schemaTraverser = function schemaTraverser (schemaobj, s) {
   schemaobj.schema = helpers.deepMerge(schemaobj.schema, this.superResolve(s, schemaobj.ctx));
 };
 
@@ -5575,7 +5561,7 @@ Validator$2.prototype.schemaTraverser = function schemaTraverser (schemaobj, s) 
 * @param SchemaContext ctx
 * @returns Object schema or resolved schema
 */
-Validator$2.prototype.superResolve = function superResolve (schema, ctx) {
+Validator.prototype.superResolve = function superResolve (schema, ctx) {
   var ref = shouldResolve(schema);
   if(ref) {
     return this.resolve(schema, ref, ctx).subschema;
@@ -5591,7 +5577,7 @@ Validator$2.prototype.superResolve = function superResolve (schema, ctx) {
 * @return Object resolved schemas {subschema:String, switchSchema: String}
 * @throws SchemaError
 */
-Validator$2.prototype.resolve = function resolve (schema, switchSchema, ctx) {
+Validator.prototype.resolve = function resolve (schema, switchSchema, ctx) {
   switchSchema = ctx.resolve(switchSchema);
   // First see if the schema exists under the provided URI
   if (ctx.schemas[switchSchema]) {
@@ -5621,7 +5607,7 @@ Validator$2.prototype.resolve = function resolve (schema, switchSchema, ctx) {
  * @param type
  * @return {boolean}
  */
-Validator$2.prototype.testType = function validateType (instance, schema, options, ctx, type) {
+Validator.prototype.testType = function validateType (instance, schema, options, ctx, type) {
   if(type===undefined){
     return;
   }else if(type===null){
@@ -5638,7 +5624,7 @@ Validator$2.prototype.testType = function validateType (instance, schema, option
   return true;
 };
 
-var types = Validator$2.prototype.types = {};
+var types = Validator.prototype.types = {};
 types.string = function testString (instance) {
   return typeof instance == 'string';
 };
@@ -5669,54 +5655,47 @@ types.object = function testObject (instance) {
   return instance && (typeof instance === 'object') && !(Array.isArray(instance)) && !(instance instanceof Date);
 };
 
-var validator = Validator$2;
+var validator = Validator;
 
-var Validator$1 = lib$1.Validator = validator;
+var Validator_1;
 
-lib$1.ValidatorResult = helpers$3.ValidatorResult;
-lib$1.ValidatorResultError = helpers$3.ValidatorResultError;
-lib$1.ValidationError = helpers$3.ValidationError;
-lib$1.SchemaError = helpers$3.SchemaError;
-lib$1.SchemaScanResult = scan.SchemaScanResult;
-lib$1.scan = scan.scan;
+Validator_1 = validator;
 
-lib$1.validate = function (instance, schema, options) {
-  var v = new Validator$1();
-  return v.validate(instance, schema, options);
-};
+helpers$3.ValidatorResult;
+helpers$3.ValidatorResultError;
+helpers$3.ValidationError;
+helpers$3.SchemaError;
 
-const { Validator } = lib$1;
-
-// The Schema class provides validation for server messages. It is common to multiple compoenents as Ubiq messages may be interdependent.
-let Schema$2 = class Schema {
-    static add(schema){
-        if(Schema.validator == null){
-            Schema.validator = new Validator();
+// The Schema class provides validation for server messages. It is common to multiple components as Ubiq messages may be interdependent.
+class Schema {
+    static validator;
+    static add(schema) {
+        if (Schema.validator == null) {
+            Schema.validator = new Validator_1();
         }
         // A schema that is just a ref is an alias - this isnt supported on the json schema validator at the moment, so implement it manually
-        if('$ref' in schema){
+        if ('$ref' in schema) {
             Schema.validator.schemas[schema.id] = Schema.validator.schemas[schema.$ref];
-        }else {
-            Schema.validator.addSchema(schema,schema.id);
+        }
+        else {
+            Schema.validator.addSchema(schema, schema.id);
         }
     }
-
     // Validate a Json message using a registered schema ID, passed as a string.
-    static validate(json, schema, failure){
-        try{
-            var argsResult = Schema.validator.validate(
-                json,
-                {
-                    "type": "object",
-                    "$ref": schema
-                });
-            if (argsResult.valid) {
+    static validate(json, schema, failure) {
+        try {
+            var argsResult = Schema.validator?.validate(json, {
+                "type": "object",
+                "$ref": schema
+            });
+            if (argsResult?.valid) {
                 return true;
-            } else {
+            }
+            else {
                 throw argsResult;
             }
         }
-        catch(schemaError){
+        catch (schemaError) {
             var error = {
                 json: json,
                 schema: schema,
@@ -5725,125 +5704,104 @@ let Schema$2 = class Schema {
             return failure(error);
         }
     }
-};
+}
 
-var schema = {
-    Schema: Schema$2
-};
+var perf_hooks = {};
 
-var _polyfillNode_perf_hooks = {};
-
-var _polyfillNode_perf_hooks$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	default: _polyfillNode_perf_hooks
-});
-
-var require$$1$3 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_perf_hooks$1);
-
-var require$$6 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_buffer);
-
-const { Schema: Schema$1 } = schema;
-const { performance } = require$$1$3;
-const { Buffer: Buffer$2 } = require$$6;
-
+const performance = perf_hooks.performance;
 const MESSAGE_HEADER_SIZE = 8;
-
-Schema$1.add({
+Schema.add({
     id: '/ubiq.messaging.networkid',
     type: "object",
     properties: {
-        a: {type: "integer"},
-        b: {type: "integer"}
+        a: { type: "integer" },
+        b: { type: "integer" }
     },
-    required: ["a","b"]
+    required: ["a", "b"]
 });
-
-let NetworkId$7 = class NetworkId{
-    constructor(data){
-        if(typeof(data) == 'string'){
-            data = data.replace(/-/g,'');
-            this.a = data.substring(0, 8);
-            this.b = data.substring(8, 16);
-            this.a = parseInt(this.a, 16);
-            this.b = parseInt(this.b, 16);
+let NetworkId$4 = class NetworkId {
+    a;
+    b;
+    constructor(data) {
+        if (typeof (data) == 'string') {
+            data = data.replace(/-/g, '');
+            this.a = parseInt(data.substring(0, 8), 16);
+            this.b = parseInt(data.substring(8, 16), 16);
             return;
         }
-        if(typeof(data) == 'number'){
+        if (typeof (data) == 'number') {
             this.a = 0;
             this.b = data;
             return;
         }
-        if(Buffer$2.isBuffer(data)){
+        if (Buffer.isBuffer(data)) {
             this.a = data.readUInt32LE(0);
             this.b = data.readUInt32LE(4);
             return;
         }
-        if(ArrayBuffer.isView(data)){
+        if (ArrayBuffer.isView(data)) {
             var view = new Uint32Array(data.buffer);
             this.a = view[0];
             this.b = view[1];
             return;
         }
-        if(typeof(data) == 'object' && data.hasOwnProperty("a") && typeof(data.a) == 'number' && data.hasOwnProperty("b") && typeof(data.b) == 'number'){
+        if (typeof (data) == 'object' && data.hasOwnProperty("a") && typeof (data.a) == 'number' && data.hasOwnProperty("b") && typeof (data.b) == 'number') {
             this.a = data.a;
             this.b = data.b;
             return;
         }
         throw `Cannot construct NetworkId from ${data}`;
     }
-
-    toString(){
+    toString() {
         return `${this.a.toString(16)}-${this.b.toString(16)}`;
     }
-
-    static Compare(x, y){
-        return(x.a == y.a && x.b == y.b);
+    static Compare(x, y) {
+        return (x.a == y.a && x.b == y.b);
     }
-
-    static WriteBuffer(networkId, buffer, offset){
-        if(networkId == undefined){
+    static WriteBuffer(networkId, buffer, offset) {
+        if (networkId == undefined) {
             console.error("Undefined networkId when writing " + (new Error().stack));
             return;
         }
         buffer.writeUInt32LE(networkId.a, offset + 0);
         buffer.writeUInt32LE(networkId.b, offset + 4);
     }
-
-    static Unique(){
-        new Date().getTime();//Timestamp
-        var d2 = (performance && performance.now && (performance.now()*1000)) || 0;//Time in microseconds since page-load or 0 if unsupported
-        var id = 'xxxx-xxxx-xxxx-xxxx'.replace(/[xy]/g, function(c) {
-            var r = Math.random() * 16;//random number between 0 and 16
-            r = (d2 + r)%16 | 0;
-            d2 = Math.floor(d2/16);
+    static Unique() {
+        new Date().getTime(); //Timestamp
+        var d2 = (performance && performance.now && (performance.now() * 1000)) || 0; //Time in microseconds since page-load or 0 if unsupported
+        var id = 'xxxx-xxxx-xxxx-xxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16; //random number between 0 and 16
+            r = (d2 + r) % 16 | 0;
+            d2 = Math.floor(d2 / 16);
             return r.toString(16);
         });
         return new NetworkId(id);
     }
-
-    static Valid(x){
+    static Valid(x) {
         return x.a != 0 && x.b != 0;
     }
-
-    static Create(namespace, service){
+    static Create(namespace, service) {
         var id = new NetworkId(namespace);
         var data = new Uint32Array(2);
         data[0] = id.a;
         data[1] = id.b;
-        if(typeof(service) === 'number'){
+        if (typeof (service) === 'number') {
             data[0] = Math.imul(data[0], service);
             data[1] = Math.imul(data[1], service);
             return new NetworkId(data);
-        }else if(service instanceof NetworkId){
+        }
+        else if (service instanceof NetworkId) {
             data[0] = Math.imul(data[0], service.b);
             data[1] = Math.imul(data[1], service.a);
             return new NetworkId(data);
-        }else if(typeof(service) === 'string'){
-            var bytes = Buffer$2.from(service,'utf8');
-            for(var i = 0; i < bytes.length; i++){
-                if(i % 2 != 0){
+        }
+        else if (typeof (service) === 'string') {
+            var bytes = Buffer.from(service, 'utf8');
+            for (var i = 0; i < bytes.length; i++) {
+                if (i % 2 != 0) {
                     data[0] = Math.imul(data[0], bytes[i]);
-                }else {
+                }
+                else {
                     data[1] = Math.imul(data[1], bytes[i]);
                 }
             }
@@ -5852,69 +5810,66 @@ let NetworkId$7 = class NetworkId{
         throw `Cannot construct namespaced NetworkId from ${namespace} and ${service}`;
     }
 };
-
-let Message$3 = class Message{
-    constructor(){
+class Message {
+    buffer = Buffer.from("");
+    length = -1;
+    networkId = new NetworkId$4(-1);
+    message = Buffer.from("");
+    constructor() {
     }
-
-    static Wrap(data){
+    static Wrap(data) {
         var msg = new Message();
         msg.buffer = data;
         msg.length = data.readInt32LE(0);
-        msg.networkId = new NetworkId$7(data.slice(4));
+        msg.networkId = new NetworkId$4(data.slice(4));
         msg.message = data.slice(12);
         return msg;
     }
-
-    static Create(networkId, message){
+    static Create(networkId, message) {
         var msg = new Message();
-        
-        if(!Buffer$2.isBuffer(message)){
-            if(typeof(message) == 'object'){
-                message = JSON.stringify(message);
+        let convertedMessage = Buffer.from("");
+        if (!Buffer.isBuffer(message)) {
+            if (typeof (message) == 'object') {
+                convertedMessage = Buffer.from(JSON.stringify(message), 'utf8');
             }
-            if(typeof(message) == 'string'){
-                message = Buffer$2.from(message, 'utf8');
+            if (typeof (message) == 'string') {
+                convertedMessage = Buffer.from(message, 'utf8');
             }
         }
-
-        var length = message.length + MESSAGE_HEADER_SIZE;
-        var buffer = Buffer$2.alloc(length + 4);
-
-        if(typeof(networkId) == "string"){
-            networkId = new NetworkId$7(networkId);
+        else {
+            convertedMessage = message;
         }
-
+        var length = convertedMessage.length + MESSAGE_HEADER_SIZE;
+        var buffer = Buffer.alloc(length + 4);
+        if (typeof (networkId) == "string") {
+            networkId = new NetworkId$4(networkId);
+        }
         buffer.writeInt32LE(length, 0);
-        NetworkId$7.WriteBuffer(networkId, buffer, 4);
-        message.copy(buffer, 12);
-
+        NetworkId$4.WriteBuffer(networkId, buffer, 4);
+        convertedMessage.copy(buffer, 12);
         var msg = new Message();
         msg.buffer = buffer;
         msg.length = length;
         msg.networkId = networkId;
-        msg.message = message;
-
+        msg.message = convertedMessage;
         return msg;
     }
-
-    toString(){
+    toString() {
         return new TextDecoder().decode(this.message);
     }
-
-    toObject(){
+    toObject() {
         return JSON.parse(this.toString());
     }
-    
-    toBuffer(){
+    toBuffer() {
         return this.message;
     }
-};
+}
 
-var messaging = {
-    Message: Message$3,
-    NetworkId: NetworkId$7
-};
+var messaging = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	Message: Message,
+	NetworkId: NetworkId$4
+});
 
 var domain;
 
@@ -5924,27 +5879,27 @@ var domain;
 function EventHandlers() {}
 EventHandlers.prototype = Object.create(null);
 
-function EventEmitter$7() {
-  EventEmitter$7.init.call(this);
+function EventEmitter$6() {
+  EventEmitter$6.init.call(this);
 }
 
 // nodejs oddity
 // require('events') === require('events').EventEmitter
-EventEmitter$7.EventEmitter = EventEmitter$7;
+EventEmitter$6.EventEmitter = EventEmitter$6;
 
-EventEmitter$7.usingDomains = false;
+EventEmitter$6.usingDomains = false;
 
-EventEmitter$7.prototype.domain = undefined;
-EventEmitter$7.prototype._events = undefined;
-EventEmitter$7.prototype._maxListeners = undefined;
+EventEmitter$6.prototype.domain = undefined;
+EventEmitter$6.prototype._events = undefined;
+EventEmitter$6.prototype._maxListeners = undefined;
 
 // By default EventEmitters will print a warning if more than 10 listeners are
 // added to it. This is a useful default which helps finding memory leaks.
-EventEmitter$7.defaultMaxListeners = 10;
+EventEmitter$6.defaultMaxListeners = 10;
 
-EventEmitter$7.init = function() {
+EventEmitter$6.init = function() {
   this.domain = null;
-  if (EventEmitter$7.usingDomains) {
+  if (EventEmitter$6.usingDomains) {
     // if there is an active domain, then attach to it.
     if (domain.active ) ;
   }
@@ -5959,7 +5914,7 @@ EventEmitter$7.init = function() {
 
 // Obviously not all Emitters should be limited to 10. This function allows
 // that to be increased. Set to zero for unlimited.
-EventEmitter$7.prototype.setMaxListeners = function setMaxListeners(n) {
+EventEmitter$6.prototype.setMaxListeners = function setMaxListeners(n) {
   if (typeof n !== 'number' || n < 0 || isNaN(n))
     throw new TypeError('"n" argument must be a positive number');
   this._maxListeners = n;
@@ -5968,11 +5923,11 @@ EventEmitter$7.prototype.setMaxListeners = function setMaxListeners(n) {
 
 function $getMaxListeners(that) {
   if (that._maxListeners === undefined)
-    return EventEmitter$7.defaultMaxListeners;
+    return EventEmitter$6.defaultMaxListeners;
   return that._maxListeners;
 }
 
-EventEmitter$7.prototype.getMaxListeners = function getMaxListeners() {
+EventEmitter$6.prototype.getMaxListeners = function getMaxListeners() {
   return $getMaxListeners(this);
 };
 
@@ -6033,7 +5988,7 @@ function emitMany(handler, isFn, self, args) {
   }
 }
 
-EventEmitter$7.prototype.emit = function emit(type) {
+EventEmitter$6.prototype.emit = function emit(type) {
   var er, handler, len, args, i, events, domain;
   var doError = (type === 'error');
 
@@ -6164,13 +6119,13 @@ function _addListener(target, type, listener, prepend) {
 function emitWarning(e) {
   typeof console.warn === 'function' ? console.warn(e) : console.log(e);
 }
-EventEmitter$7.prototype.addListener = function addListener(type, listener) {
+EventEmitter$6.prototype.addListener = function addListener(type, listener) {
   return _addListener(this, type, listener, false);
 };
 
-EventEmitter$7.prototype.on = EventEmitter$7.prototype.addListener;
+EventEmitter$6.prototype.on = EventEmitter$6.prototype.addListener;
 
-EventEmitter$7.prototype.prependListener =
+EventEmitter$6.prototype.prependListener =
     function prependListener(type, listener) {
       return _addListener(this, type, listener, true);
     };
@@ -6188,14 +6143,14 @@ function _onceWrap(target, type, listener) {
   return g;
 }
 
-EventEmitter$7.prototype.once = function once(type, listener) {
+EventEmitter$6.prototype.once = function once(type, listener) {
   if (typeof listener !== 'function')
     throw new TypeError('"listener" argument must be a function');
   this.on(type, _onceWrap(this, type, listener));
   return this;
 };
 
-EventEmitter$7.prototype.prependOnceListener =
+EventEmitter$6.prototype.prependOnceListener =
     function prependOnceListener(type, listener) {
       if (typeof listener !== 'function')
         throw new TypeError('"listener" argument must be a function');
@@ -6204,7 +6159,7 @@ EventEmitter$7.prototype.prependOnceListener =
     };
 
 // emits a 'removeListener' event iff the listener was removed
-EventEmitter$7.prototype.removeListener =
+EventEmitter$6.prototype.removeListener =
     function removeListener(type, listener) {
       var list, events, position, i, originalListener;
 
@@ -6263,11 +6218,11 @@ EventEmitter$7.prototype.removeListener =
     
 // Alias for removeListener added in NodeJS 10.0
 // https://nodejs.org/api/events.html#events_emitter_off_eventname_listener
-EventEmitter$7.prototype.off = function(type, listener){
+EventEmitter$6.prototype.off = function(type, listener){
     return this.removeListener(type, listener);
 };
 
-EventEmitter$7.prototype.removeAllListeners =
+EventEmitter$6.prototype.removeAllListeners =
     function removeAllListeners(type) {
       var listeners, events;
 
@@ -6317,7 +6272,7 @@ EventEmitter$7.prototype.removeAllListeners =
       return this;
     };
 
-EventEmitter$7.prototype.listeners = function listeners(type) {
+EventEmitter$6.prototype.listeners = function listeners(type) {
   var evlistener;
   var ret;
   var events = this._events;
@@ -6337,7 +6292,7 @@ EventEmitter$7.prototype.listeners = function listeners(type) {
   return ret;
 };
 
-EventEmitter$7.listenerCount = function(emitter, type) {
+EventEmitter$6.listenerCount = function(emitter, type) {
   if (typeof emitter.listenerCount === 'function') {
     return emitter.listenerCount(type);
   } else {
@@ -6345,7 +6300,7 @@ EventEmitter$7.listenerCount = function(emitter, type) {
   }
 };
 
-EventEmitter$7.prototype.listenerCount = listenerCount$1;
+EventEmitter$6.prototype.listenerCount = listenerCount$1;
 function listenerCount$1(type) {
   var events = this._events;
 
@@ -6362,7 +6317,7 @@ function listenerCount$1(type) {
   return 0;
 }
 
-EventEmitter$7.prototype.eventNames = function eventNames() {
+EventEmitter$6.prototype.eventNames = function eventNames() {
   return this._eventsCount > 0 ? Reflect.ownKeys(this._events) : [];
 };
 
@@ -6390,64 +6345,9 @@ function unwrapListeners(arr) {
 
 var _polyfillNode_events = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	EventEmitter: EventEmitter$7,
-	default: EventEmitter$7
+	EventEmitter: EventEmitter$6,
+	default: EventEmitter$6
 });
-
-var require$$1$2 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_events);
-
-var hasFetch = isFunction(global$1.fetch) && isFunction(global$1.ReadableStream);
-
-var _blobConstructor;
-function blobConstructor() {
-  if (typeof _blobConstructor !== 'undefined') {
-    return _blobConstructor;
-  }
-  try {
-    new global$1.Blob([new ArrayBuffer(1)]);
-    _blobConstructor = true;
-  } catch (e) {
-    _blobConstructor = false;
-  }
-  return _blobConstructor
-}
-var xhr;
-
-function checkTypeSupport(type) {
-  if (!xhr) {
-    xhr = new global$1.XMLHttpRequest();
-    // If location.host is empty, e.g. if this page/worker was loaded
-    // from a Blob, then use example.com to avoid an error
-    xhr.open('GET', global$1.location.host ? '/' : 'https://example.com');
-  }
-  try {
-    xhr.responseType = type;
-    return xhr.responseType === type
-  } catch (e) {
-    return false
-  }
-
-}
-
-// For some strange reason, Safari 7.0 reports typeof global.ArrayBuffer === 'object'.
-// Safari 7.1 appears to have fixed this bug.
-var haveArrayBuffer = typeof global$1.ArrayBuffer !== 'undefined';
-var haveSlice = haveArrayBuffer && isFunction(global$1.ArrayBuffer.prototype.slice);
-
-var arraybuffer = haveArrayBuffer && checkTypeSupport('arraybuffer');
-  // These next two tests unavoidably show warnings in Chrome. Since fetch will always
-  // be used if it's available, just return false for these to avoid the warnings.
-var msstream = !hasFetch && haveSlice && checkTypeSupport('ms-stream');
-var mozchunkedarraybuffer = !hasFetch && haveArrayBuffer &&
-  checkTypeSupport('moz-chunked-arraybuffer');
-var overrideMimeType = isFunction(xhr.overrideMimeType);
-var vbArray = isFunction(global$1.VBArray);
-
-function isFunction(value) {
-  return typeof value === 'function'
-}
-
-xhr = null; // Help gc
 
 function BufferList() {
   this.head = null;
@@ -6492,9 +6392,9 @@ BufferList.prototype.join = function (s) {
 };
 
 BufferList.prototype.concat = function (n) {
-  if (this.length === 0) return Buffer$3.alloc(0);
+  if (this.length === 0) return Buffer$1.alloc(0);
   if (this.length === 1) return this.head.data;
-  var ret = Buffer$3.allocUnsafe(n >>> 0);
+  var ret = Buffer$1.allocUnsafe(n >>> 0);
   var p = this.head;
   var i = 0;
   while (p) {
@@ -6506,7 +6406,7 @@ BufferList.prototype.concat = function (n) {
 };
 
 // Copyright Joyent, Inc. and other Node contributors.
-var isBufferEncoding = Buffer$3.isEncoding
+var isBufferEncoding = Buffer$1.isEncoding
   || function(encoding) {
        switch (encoding && encoding.toLowerCase()) {
          case 'hex': case 'utf8': case 'utf-8': case 'ascii': case 'binary': case 'base64': case 'ucs2': case 'ucs-2': case 'utf16le': case 'utf-16le': case 'raw': return true;
@@ -6555,7 +6455,7 @@ function StringDecoder(encoding) {
 
   // Enough space to store all bytes of a single character. UTF-8 needs 4
   // bytes, but CESU-8 may require up to 6 (3 bytes per surrogate).
-  this.charBuffer = new Buffer$3(6);
+  this.charBuffer = new Buffer$1(6);
   // Number of bytes received for the current incomplete multi-byte character.
   this.charReceived = 0;
   // Number of bytes expected for the current incomplete multi-byte character.
@@ -6707,7 +6607,7 @@ function base64DetectIncompleteChar(buffer) {
 Readable.ReadableState = ReadableState;
 
 var debug = debuglog('stream');
-inherits$1(Readable, EventEmitter$7);
+inherits$1(Readable, EventEmitter$6);
 
 function prependListener(emitter, event, fn) {
   // Sadly this is not cacheable as some libraries bundle their own
@@ -6738,7 +6638,7 @@ function ReadableState(options, stream) {
   // make all the buffer merging and length checks go away
   this.objectMode = !!options.objectMode;
 
-  if (stream instanceof Duplex$1) this.objectMode = this.objectMode || !!options.readableObjectMode;
+  if (stream instanceof Duplex) this.objectMode = this.objectMode || !!options.readableObjectMode;
 
   // the point at which it stops calling _read() to fill the buffer
   // Note: 0 is a valid value, means "don't call _read preemptively ever"
@@ -6807,7 +6707,7 @@ function Readable(options) {
 
   if (options && typeof options.read === 'function') this._read = options.read;
 
-  EventEmitter$7.call(this);
+  EventEmitter$6.call(this);
 }
 
 // Manually shove something into the read() buffer.
@@ -6820,7 +6720,7 @@ Readable.prototype.push = function (chunk, encoding) {
   if (!state.objectMode && typeof chunk === 'string') {
     encoding = encoding || state.defaultEncoding;
     if (encoding !== state.encoding) {
-      chunk = Buffer$3.from(chunk, encoding);
+      chunk = Buffer$1.from(chunk, encoding);
       encoding = '';
     }
   }
@@ -7046,7 +6946,7 @@ Readable.prototype.read = function (n) {
 
 function chunkInvalid(state, chunk) {
   var er = null;
-  if (!Buffer$3.isBuffer(chunk) && typeof chunk !== 'string' && chunk !== null && chunk !== undefined && !state.objectMode) {
+  if (!Buffer$1.isBuffer(chunk) && typeof chunk !== 'string' && chunk !== null && chunk !== undefined && !state.objectMode) {
     er = new TypeError('Invalid non-string/buffer chunk');
   }
   return er;
@@ -7315,7 +7215,7 @@ Readable.prototype.unpipe = function (dest) {
 // set up data events if they are asked for
 // Ensure readable listeners eventually get something
 Readable.prototype.on = function (ev, fn) {
-  var res = EventEmitter$7.prototype.on.call(this, ev, fn);
+  var res = EventEmitter$6.prototype.on.call(this, ev, fn);
 
   if (ev === 'data') {
     // Start flowing on next tick if stream isn't explicitly paused
@@ -7530,7 +7430,7 @@ function copyFromBufferString(n, list) {
 // This function is designed to be inlinable, so please take care when making
 // changes to the function body.
 function copyFromBuffer(n, list) {
-  var ret = Buffer$3.allocUnsafe(n);
+  var ret = Buffer$1.allocUnsafe(n);
   var p = list.head;
   var c = 1;
   p.data.copy(ret);
@@ -7593,7 +7493,7 @@ function indexOf(xs, x) {
 
 // A bit simpler than readable streams.
 Writable$1.WritableState = WritableState;
-inherits$1(Writable$1, EventEmitter$7);
+inherits$1(Writable$1, EventEmitter$6);
 
 function nop() {}
 
@@ -7616,7 +7516,7 @@ function WritableState(options, stream) {
   // contains buffers or objects.
   this.objectMode = !!options.objectMode;
 
-  if (stream instanceof Duplex$1) this.objectMode = this.objectMode || !!options.writableObjectMode;
+  if (stream instanceof Duplex) this.objectMode = this.objectMode || !!options.writableObjectMode;
 
   // the point at which write() starts returning false
   // Note: 0 is a valid value, means that we always return false if
@@ -7715,7 +7615,7 @@ function Writable$1(options) {
 
   // Writable ctor is applied to Duplexes, though they're not
   // instanceof Writable, they're instanceof Readable.
-  if (!(this instanceof Writable$1) && !(this instanceof Duplex$1)) return new Writable$1(options);
+  if (!(this instanceof Writable$1) && !(this instanceof Duplex)) return new Writable$1(options);
 
   this._writableState = new WritableState(options, this);
 
@@ -7728,7 +7628,7 @@ function Writable$1(options) {
     if (typeof options.writev === 'function') this._writev = options.writev;
   }
 
-  EventEmitter$7.call(this);
+  EventEmitter$6.call(this);
 }
 
 // Otherwise people can pipe Writable streams, which is just wrong.
@@ -7756,7 +7656,7 @@ function validChunk(stream, state, chunk, cb) {
   // if it is not a buffer, string, or undefined.
   if (chunk === null) {
     er = new TypeError('May not write null values to stream');
-  } else if (!Buffer$3.isBuffer(chunk) && typeof chunk !== 'string' && chunk !== undefined && !state.objectMode) {
+  } else if (!Buffer$1.isBuffer(chunk) && typeof chunk !== 'string' && chunk !== undefined && !state.objectMode) {
     er = new TypeError('Invalid non-string/buffer chunk');
   }
   if (er) {
@@ -7776,7 +7676,7 @@ Writable$1.prototype.write = function (chunk, encoding, cb) {
     encoding = null;
   }
 
-  if (Buffer$3.isBuffer(chunk)) encoding = 'buffer';else if (!encoding) encoding = state.defaultEncoding;
+  if (Buffer$1.isBuffer(chunk)) encoding = 'buffer';else if (!encoding) encoding = state.defaultEncoding;
 
   if (typeof cb !== 'function') cb = nop;
 
@@ -7814,7 +7714,7 @@ Writable$1.prototype.setDefaultEncoding = function setDefaultEncoding(encoding) 
 
 function decodeChunk(state, chunk, encoding) {
   if (!state.objectMode && state.decodeStrings !== false && typeof chunk === 'string') {
-    chunk = Buffer$3.from(chunk, encoding);
+    chunk = Buffer$1.from(chunk, encoding);
   }
   return chunk;
 }
@@ -7825,7 +7725,7 @@ function decodeChunk(state, chunk, encoding) {
 function writeOrBuffer(stream, state, chunk, encoding, cb) {
   chunk = decodeChunk(state, chunk, encoding);
 
-  if (Buffer$3.isBuffer(chunk)) encoding = 'buffer';
+  if (Buffer$1.isBuffer(chunk)) encoding = 'buffer';
   var len = state.objectMode ? 1 : chunk.length;
 
   state.length += len;
@@ -8064,15 +7964,15 @@ function CorkedRequest(state) {
   };
 }
 
-inherits$1(Duplex$1, Readable);
+inherits$1(Duplex, Readable);
 
 var keys = Object.keys(Writable$1.prototype);
 for (var v = 0; v < keys.length; v++) {
   var method = keys[v];
-  if (!Duplex$1.prototype[method]) Duplex$1.prototype[method] = Writable$1.prototype[method];
+  if (!Duplex.prototype[method]) Duplex.prototype[method] = Writable$1.prototype[method];
 }
-function Duplex$1(options) {
-  if (!(this instanceof Duplex$1)) return new Duplex$1(options);
+function Duplex(options) {
+  if (!(this instanceof Duplex)) return new Duplex(options);
 
   Readable.call(this, options);
   Writable$1.call(this, options);
@@ -8103,7 +8003,7 @@ function onEndNT(self) {
 }
 
 // a transform stream is a readable/writable stream where you do
-inherits$1(Transform, Duplex$1);
+inherits$1(Transform, Duplex);
 
 function TransformState(stream) {
   this.afterTransform = function (er, data) {
@@ -8141,7 +8041,7 @@ function afterTransform(stream, er, data) {
 function Transform(options) {
   if (!(this instanceof Transform)) return new Transform(options);
 
-  Duplex$1.call(this, options);
+  Duplex.call(this, options);
 
   this._transformState = new TransformState(this);
 
@@ -8171,7 +8071,7 @@ function Transform(options) {
 
 Transform.prototype.push = function (chunk, encoding) {
   this._transformState.needTransform = false;
-  return Duplex$1.prototype.push.call(this, chunk, encoding);
+  return Duplex.prototype.push.call(this, chunk, encoding);
 };
 
 // This is the part where you do stuff!
@@ -8241,10 +8141,10 @@ PassThrough.prototype._transform = function (chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-inherits$1(Stream$1, EventEmitter$7);
+inherits$1(Stream$1, EventEmitter$6);
 Stream$1.Readable = Readable;
 Stream$1.Writable = Writable$1;
-Stream$1.Duplex = Duplex$1;
+Stream$1.Duplex = Duplex;
 Stream$1.Transform = Transform;
 Stream$1.PassThrough = PassThrough;
 
@@ -8255,7 +8155,7 @@ Stream$1.Stream = Stream$1;
 // part of this class) is overridden in the Readable class.
 
 function Stream$1() {
-  EventEmitter$7.call(this);
+  EventEmitter$6.call(this);
 }
 
 Stream$1.prototype.pipe = function(dest, options) {
@@ -8305,7 +8205,7 @@ Stream$1.prototype.pipe = function(dest, options) {
   // don't leave dangling pipes when there are errors.
   function onerror(er) {
     cleanup();
-    if (EventEmitter$7.listenerCount(this, 'error') === 0) {
+    if (EventEmitter$6.listenerCount(this, 'error') === 0) {
       throw er; // Unhandled stream error in pipe.
     }
   }
@@ -8343,7 +8243,7 @@ Stream$1.prototype.pipe = function(dest, options) {
 
 var _polyfillNode_stream = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	Duplex: Duplex$1,
+	Duplex: Duplex,
 	PassThrough: PassThrough,
 	Readable: Readable,
 	Stream: Stream$1,
@@ -8352,808 +8252,7 @@ var _polyfillNode_stream = /*#__PURE__*/Object.freeze({
 	default: Stream$1
 });
 
-var rStates = {
-  UNSENT: 0,
-  OPENED: 1,
-  HEADERS_RECEIVED: 2,
-  LOADING: 3,
-  DONE: 4
-};
-function IncomingMessage(xhr, response, mode) {
-  var self = this;
-  Readable.call(self);
-
-  self._mode = mode;
-  self.headers = {};
-  self.rawHeaders = [];
-  self.trailers = {};
-  self.rawTrailers = [];
-
-  // Fake the 'close' event, but only once 'end' fires
-  self.on('end', function() {
-    // The nextTick is necessary to prevent the 'request' module from causing an infinite loop
-    browser$1.nextTick(function() {
-      self.emit('close');
-    });
-  });
-  var read;
-  if (mode === 'fetch') {
-    self._fetchResponse = response;
-
-    self.url = response.url;
-    self.statusCode = response.status;
-    self.statusMessage = response.statusText;
-      // backwards compatible version of for (<item> of <iterable>):
-      // for (var <item>,_i,_it = <iterable>[Symbol.iterator](); <item> = (_i = _it.next()).value,!_i.done;)
-    for (var header, _i, _it = response.headers[Symbol.iterator](); header = (_i = _it.next()).value, !_i.done;) {
-      self.headers[header[0].toLowerCase()] = header[1];
-      self.rawHeaders.push(header[0], header[1]);
-    }
-
-    // TODO: this doesn't respect backpressure. Once WritableStream is available, this can be fixed
-    var reader = response.body.getReader();
-
-    read = function () {
-      reader.read().then(function(result) {
-        if (self._destroyed)
-          return
-        if (result.done) {
-          self.push(null);
-          return
-        }
-        self.push(new Buffer$3(result.value));
-        read();
-      });
-    };
-    read();
-
-  } else {
-    self._xhr = xhr;
-    self._pos = 0;
-
-    self.url = xhr.responseURL;
-    self.statusCode = xhr.status;
-    self.statusMessage = xhr.statusText;
-    var headers = xhr.getAllResponseHeaders().split(/\r?\n/);
-    headers.forEach(function(header) {
-      var matches = header.match(/^([^:]+):\s*(.*)/);
-      if (matches) {
-        var key = matches[1].toLowerCase();
-        if (key === 'set-cookie') {
-          if (self.headers[key] === undefined) {
-            self.headers[key] = [];
-          }
-          self.headers[key].push(matches[2]);
-        } else if (self.headers[key] !== undefined) {
-          self.headers[key] += ', ' + matches[2];
-        } else {
-          self.headers[key] = matches[2];
-        }
-        self.rawHeaders.push(matches[1], matches[2]);
-      }
-    });
-
-    self._charset = 'x-user-defined';
-    if (!overrideMimeType) {
-      var mimeType = self.rawHeaders['mime-type'];
-      if (mimeType) {
-        var charsetMatch = mimeType.match(/;\s*charset=([^;])(;|$)/);
-        if (charsetMatch) {
-          self._charset = charsetMatch[1].toLowerCase();
-        }
-      }
-      if (!self._charset)
-        self._charset = 'utf-8'; // best guess
-    }
-  }
-}
-
-inherits$1(IncomingMessage, Readable);
-
-IncomingMessage.prototype._read = function() {};
-
-IncomingMessage.prototype._onXHRProgress = function() {
-  var self = this;
-
-  var xhr = self._xhr;
-
-  var response = null;
-  switch (self._mode) {
-  case 'text:vbarray': // For IE9
-    if (xhr.readyState !== rStates.DONE)
-      break
-    try {
-      // This fails in IE8
-      response = new global$1.VBArray(xhr.responseBody).toArray();
-    } catch (e) {
-      // pass
-    }
-    if (response !== null) {
-      self.push(new Buffer$3(response));
-      break
-    }
-    // Falls through in IE8
-  case 'text':
-    try { // This will fail when readyState = 3 in IE9. Switch mode and wait for readyState = 4
-      response = xhr.responseText;
-    } catch (e) {
-      self._mode = 'text:vbarray';
-      break
-    }
-    if (response.length > self._pos) {
-      var newData = response.substr(self._pos);
-      if (self._charset === 'x-user-defined') {
-        var buffer = new Buffer$3(newData.length);
-        for (var i = 0; i < newData.length; i++)
-          buffer[i] = newData.charCodeAt(i) & 0xff;
-
-        self.push(buffer);
-      } else {
-        self.push(newData, self._charset);
-      }
-      self._pos = response.length;
-    }
-    break
-  case 'arraybuffer':
-    if (xhr.readyState !== rStates.DONE || !xhr.response)
-      break
-    response = xhr.response;
-    self.push(new Buffer$3(new Uint8Array(response)));
-    break
-  case 'moz-chunked-arraybuffer': // take whole
-    response = xhr.response;
-    if (xhr.readyState !== rStates.LOADING || !response)
-      break
-    self.push(new Buffer$3(new Uint8Array(response)));
-    break
-  case 'ms-stream':
-    response = xhr.response;
-    if (xhr.readyState !== rStates.LOADING)
-      break
-    var reader = new global$1.MSStreamReader();
-    reader.onprogress = function() {
-      if (reader.result.byteLength > self._pos) {
-        self.push(new Buffer$3(new Uint8Array(reader.result.slice(self._pos))));
-        self._pos = reader.result.byteLength;
-      }
-    };
-    reader.onload = function() {
-      self.push(null);
-    };
-      // reader.onerror = ??? // TODO: this
-    reader.readAsArrayBuffer(response);
-    break
-  }
-
-  // The ms-stream case handles end separately in reader.onload()
-  if (self._xhr.readyState === rStates.DONE && self._mode !== 'ms-stream') {
-    self.push(null);
-  }
-};
-
-// from https://github.com/jhiesey/to-arraybuffer/blob/6502d9850e70ba7935a7df4ad86b358fc216f9f0/index.js
-function toArrayBuffer$2 (buf) {
-  // If the buffer is backed by a Uint8Array, a faster version will work
-  if (buf instanceof Uint8Array) {
-    // If the buffer isn't a subarray, return the underlying ArrayBuffer
-    if (buf.byteOffset === 0 && buf.byteLength === buf.buffer.byteLength) {
-      return buf.buffer
-    } else if (typeof buf.buffer.slice === 'function') {
-      // Otherwise we need to get a proper copy
-      return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength)
-    }
-  }
-
-  if (isBuffer(buf)) {
-    // This is the slow version that will work with any Buffer
-    // implementation (even in old browsers)
-    var arrayCopy = new Uint8Array(buf.length);
-    var len = buf.length;
-    for (var i = 0; i < len; i++) {
-      arrayCopy[i] = buf[i];
-    }
-    return arrayCopy.buffer
-  } else {
-    throw new Error('Argument must be a Buffer')
-  }
-}
-
-function decideMode(preferBinary, useFetch) {
-  if (hasFetch && useFetch) {
-    return 'fetch'
-  } else if (mozchunkedarraybuffer) {
-    return 'moz-chunked-arraybuffer'
-  } else if (msstream) {
-    return 'ms-stream'
-  } else if (arraybuffer && preferBinary) {
-    return 'arraybuffer'
-  } else if (vbArray && preferBinary) {
-    return 'text:vbarray'
-  } else {
-    return 'text'
-  }
-}
-
-function ClientRequest(opts) {
-  var self = this;
-  Writable$1.call(self);
-
-  self._opts = opts;
-  self._body = [];
-  self._headers = {};
-  if (opts.auth)
-    self.setHeader('Authorization', 'Basic ' + new Buffer$3(opts.auth).toString('base64'));
-  Object.keys(opts.headers).forEach(function(name) {
-    self.setHeader(name, opts.headers[name]);
-  });
-
-  var preferBinary;
-  var useFetch = true;
-  if (opts.mode === 'disable-fetch') {
-    // If the use of XHR should be preferred and includes preserving the 'content-type' header
-    useFetch = false;
-    preferBinary = true;
-  } else if (opts.mode === 'prefer-streaming') {
-    // If streaming is a high priority but binary compatibility and
-    // the accuracy of the 'content-type' header aren't
-    preferBinary = false;
-  } else if (opts.mode === 'allow-wrong-content-type') {
-    // If streaming is more important than preserving the 'content-type' header
-    preferBinary = !overrideMimeType;
-  } else if (!opts.mode || opts.mode === 'default' || opts.mode === 'prefer-fast') {
-    // Use binary if text streaming may corrupt data or the content-type header, or for speed
-    preferBinary = true;
-  } else {
-    throw new Error('Invalid value for opts.mode')
-  }
-  self._mode = decideMode(preferBinary, useFetch);
-
-  self.on('finish', function() {
-    self._onFinish();
-  });
-}
-
-inherits$1(ClientRequest, Writable$1);
-// Taken from http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader%28%29-method
-var unsafeHeaders = [
-  'accept-charset',
-  'accept-encoding',
-  'access-control-request-headers',
-  'access-control-request-method',
-  'connection',
-  'content-length',
-  'cookie',
-  'cookie2',
-  'date',
-  'dnt',
-  'expect',
-  'host',
-  'keep-alive',
-  'origin',
-  'referer',
-  'te',
-  'trailer',
-  'transfer-encoding',
-  'upgrade',
-  'user-agent',
-  'via'
-];
-ClientRequest.prototype.setHeader = function(name, value) {
-  var self = this;
-  var lowerName = name.toLowerCase();
-    // This check is not necessary, but it prevents warnings from browsers about setting unsafe
-    // headers. To be honest I'm not entirely sure hiding these warnings is a good thing, but
-    // http-browserify did it, so I will too.
-  if (unsafeHeaders.indexOf(lowerName) !== -1)
-    return
-
-  self._headers[lowerName] = {
-    name: name,
-    value: value
-  };
-};
-
-ClientRequest.prototype.getHeader = function(name) {
-  var self = this;
-  return self._headers[name.toLowerCase()].value
-};
-
-ClientRequest.prototype.removeHeader = function(name) {
-  var self = this;
-  delete self._headers[name.toLowerCase()];
-};
-
-ClientRequest.prototype._onFinish = function() {
-  var self = this;
-
-  if (self._destroyed)
-    return
-  var opts = self._opts;
-
-  var headersObj = self._headers;
-  var body;
-  if (opts.method === 'POST' || opts.method === 'PUT' || opts.method === 'PATCH') {
-    if (blobConstructor()) {
-      body = new global$1.Blob(self._body.map(function(buffer) {
-        return toArrayBuffer$2(buffer)
-      }), {
-        type: (headersObj['content-type'] || {}).value || ''
-      });
-    } else {
-      // get utf8 string
-      body = Buffer$3.concat(self._body).toString();
-    }
-  }
-
-  if (self._mode === 'fetch') {
-    var headers = Object.keys(headersObj).map(function(name) {
-      return [headersObj[name].name, headersObj[name].value]
-    });
-
-    global$1.fetch(self._opts.url, {
-      method: self._opts.method,
-      headers: headers,
-      body: body,
-      mode: 'cors',
-      credentials: opts.withCredentials ? 'include' : 'same-origin'
-    }).then(function(response) {
-      self._fetchResponse = response;
-      self._connect();
-    }, function(reason) {
-      self.emit('error', reason);
-    });
-  } else {
-    var xhr = self._xhr = new global$1.XMLHttpRequest();
-    try {
-      xhr.open(self._opts.method, self._opts.url, true);
-    } catch (err) {
-      browser$1.nextTick(function() {
-        self.emit('error', err);
-      });
-      return
-    }
-
-    // Can't set responseType on really old browsers
-    if ('responseType' in xhr)
-      xhr.responseType = self._mode.split(':')[0];
-
-    if ('withCredentials' in xhr)
-      xhr.withCredentials = !!opts.withCredentials;
-
-    if (self._mode === 'text' && 'overrideMimeType' in xhr)
-      xhr.overrideMimeType('text/plain; charset=x-user-defined');
-
-    Object.keys(headersObj).forEach(function(name) {
-      xhr.setRequestHeader(headersObj[name].name, headersObj[name].value);
-    });
-
-    self._response = null;
-    xhr.onreadystatechange = function() {
-      switch (xhr.readyState) {
-      case rStates.LOADING:
-      case rStates.DONE:
-        self._onXHRProgress();
-        break
-      }
-    };
-      // Necessary for streaming in Firefox, since xhr.response is ONLY defined
-      // in onprogress, not in onreadystatechange with xhr.readyState = 3
-    if (self._mode === 'moz-chunked-arraybuffer') {
-      xhr.onprogress = function() {
-        self._onXHRProgress();
-      };
-    }
-
-    xhr.onerror = function() {
-      if (self._destroyed)
-        return
-      self.emit('error', new Error('XHR error'));
-    };
-
-    try {
-      xhr.send(body);
-    } catch (err) {
-      browser$1.nextTick(function() {
-        self.emit('error', err);
-      });
-      return
-    }
-  }
-};
-
-/**
- * Checks if xhr.status is readable and non-zero, indicating no error.
- * Even though the spec says it should be available in readyState 3,
- * accessing it throws an exception in IE8
- */
-function statusValid(xhr) {
-  try {
-    var status = xhr.status;
-    return (status !== null && status !== 0)
-  } catch (e) {
-    return false
-  }
-}
-
-ClientRequest.prototype._onXHRProgress = function() {
-  var self = this;
-
-  if (!statusValid(self._xhr) || self._destroyed)
-    return
-
-  if (!self._response)
-    self._connect();
-
-  self._response._onXHRProgress();
-};
-
-ClientRequest.prototype._connect = function() {
-  var self = this;
-
-  if (self._destroyed)
-    return
-
-  self._response = new IncomingMessage(self._xhr, self._fetchResponse, self._mode);
-  self.emit('response', self._response);
-};
-
-ClientRequest.prototype._write = function(chunk, encoding, cb) {
-  var self = this;
-
-  self._body.push(chunk);
-  cb();
-};
-
-ClientRequest.prototype.abort = ClientRequest.prototype.destroy = function() {
-  var self = this;
-  self._destroyed = true;
-  if (self._response)
-    self._response._destroyed = true;
-  if (self._xhr)
-    self._xhr.abort();
-    // Currently, there isn't a way to truly abort a fetch.
-    // If you like bikeshedding, see https://github.com/whatwg/fetch/issues/27
-};
-
-ClientRequest.prototype.end = function(data, encoding, cb) {
-  var self = this;
-  if (typeof data === 'function') {
-    cb = data;
-    data = undefined;
-  }
-
-  Writable$1.prototype.end.call(self, data, encoding, cb);
-};
-
-ClientRequest.prototype.flushHeaders = function() {};
-ClientRequest.prototype.setTimeout = function() {};
-ClientRequest.prototype.setNoDelay = function() {};
-ClientRequest.prototype.setSocketKeepAlive = function() {};
-
-function request$1(opts, cb) {
-  if (typeof opts === 'string')
-    opts = urlParse(opts);
-
-
-  // Normally, the page is loaded from http or https, so not specifying a protocol
-  // will result in a (valid) protocol-relative url. However, this won't work if
-  // the protocol is something else, like 'file:'
-  var defaultProtocol = global$1.location.protocol.search(/^https?:$/) === -1 ? 'http:' : '';
-
-  var protocol = opts.protocol || defaultProtocol;
-  var host = opts.hostname || opts.host;
-  var port = opts.port;
-  var path = opts.path || '/';
-
-  // Necessary for IPv6 addresses
-  if (host && host.indexOf(':') !== -1)
-    host = '[' + host + ']';
-
-  // This may be a relative url. The browser should always be able to interpret it correctly.
-  opts.url = (host ? (protocol + '//' + host) : '') + (port ? ':' + port : '') + path;
-  opts.method = (opts.method || 'GET').toUpperCase();
-  opts.headers = opts.headers || {};
-
-  // Also valid opts.auth, opts.mode
-
-  var req = new ClientRequest(opts);
-  if (cb)
-    req.on('response', cb);
-  return req
-}
-
-function get$1(opts, cb) {
-  var req = request$1(opts, cb);
-  req.end();
-  return req
-}
-
-function Agent$1() {}
-Agent$1.defaultMaxSockets = 4;
-
-var METHODS$1 = [
-  'CHECKOUT',
-  'CONNECT',
-  'COPY',
-  'DELETE',
-  'GET',
-  'HEAD',
-  'LOCK',
-  'M-SEARCH',
-  'MERGE',
-  'MKACTIVITY',
-  'MKCOL',
-  'MOVE',
-  'NOTIFY',
-  'OPTIONS',
-  'PATCH',
-  'POST',
-  'PROPFIND',
-  'PROPPATCH',
-  'PURGE',
-  'PUT',
-  'REPORT',
-  'SEARCH',
-  'SUBSCRIBE',
-  'TRACE',
-  'UNLOCK',
-  'UNSUBSCRIBE'
-];
-var STATUS_CODES$1 = {
-  100: 'Continue',
-  101: 'Switching Protocols',
-  102: 'Processing', // RFC 2518, obsoleted by RFC 4918
-  200: 'OK',
-  201: 'Created',
-  202: 'Accepted',
-  203: 'Non-Authoritative Information',
-  204: 'No Content',
-  205: 'Reset Content',
-  206: 'Partial Content',
-  207: 'Multi-Status', // RFC 4918
-  300: 'Multiple Choices',
-  301: 'Moved Permanently',
-  302: 'Moved Temporarily',
-  303: 'See Other',
-  304: 'Not Modified',
-  305: 'Use Proxy',
-  307: 'Temporary Redirect',
-  400: 'Bad Request',
-  401: 'Unauthorized',
-  402: 'Payment Required',
-  403: 'Forbidden',
-  404: 'Not Found',
-  405: 'Method Not Allowed',
-  406: 'Not Acceptable',
-  407: 'Proxy Authentication Required',
-  408: 'Request Time-out',
-  409: 'Conflict',
-  410: 'Gone',
-  411: 'Length Required',
-  412: 'Precondition Failed',
-  413: 'Request Entity Too Large',
-  414: 'Request-URI Too Large',
-  415: 'Unsupported Media Type',
-  416: 'Requested Range Not Satisfiable',
-  417: 'Expectation Failed',
-  418: 'I\'m a teapot', // RFC 2324
-  422: 'Unprocessable Entity', // RFC 4918
-  423: 'Locked', // RFC 4918
-  424: 'Failed Dependency', // RFC 4918
-  425: 'Unordered Collection', // RFC 4918
-  426: 'Upgrade Required', // RFC 2817
-  428: 'Precondition Required', // RFC 6585
-  429: 'Too Many Requests', // RFC 6585
-  431: 'Request Header Fields Too Large', // RFC 6585
-  500: 'Internal Server Error',
-  501: 'Not Implemented',
-  502: 'Bad Gateway',
-  503: 'Service Unavailable',
-  504: 'Gateway Time-out',
-  505: 'HTTP Version Not Supported',
-  506: 'Variant Also Negotiates', // RFC 2295
-  507: 'Insufficient Storage', // RFC 4918
-  509: 'Bandwidth Limit Exceeded',
-  510: 'Not Extended', // RFC 2774
-  511: 'Network Authentication Required' // RFC 6585
-};
-
-var _polyfillNode_https = {
-  request: request$1,
-  get: get$1,
-  Agent: Agent$1,
-  METHODS: METHODS$1,
-  STATUS_CODES: STATUS_CODES$1
-};
-
-var _polyfillNode_https$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	Agent: Agent$1,
-	METHODS: METHODS$1,
-	STATUS_CODES: STATUS_CODES$1,
-	default: _polyfillNode_https,
-	get: get$1,
-	request: request$1
-});
-
-var require$$3 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_https$1);
-
-function request(opts, cb) {
-  if (typeof opts === 'string')
-    opts = urlParse(opts);
-
-
-  // Normally, the page is loaded from http or https, so not specifying a protocol
-  // will result in a (valid) protocol-relative url. However, this won't work if
-  // the protocol is something else, like 'file:'
-  var defaultProtocol = global$1.location.protocol.search(/^https?:$/) === -1 ? 'http:' : '';
-
-  var protocol = opts.protocol || defaultProtocol;
-  var host = opts.hostname || opts.host;
-  var port = opts.port;
-  var path = opts.path || '/';
-
-  // Necessary for IPv6 addresses
-  if (host && host.indexOf(':') !== -1)
-    host = '[' + host + ']';
-
-  // This may be a relative url. The browser should always be able to interpret it correctly.
-  opts.url = (host ? (protocol + '//' + host) : '') + (port ? ':' + port : '') + path;
-  opts.method = (opts.method || 'GET').toUpperCase();
-  opts.headers = opts.headers || {};
-
-  // Also valid opts.auth, opts.mode
-
-  var req = new ClientRequest(opts);
-  if (cb)
-    req.on('response', cb);
-  return req
-}
-
-function get(opts, cb) {
-  var req = request(opts, cb);
-  req.end();
-  return req
-}
-
-function Agent() {}
-Agent.defaultMaxSockets = 4;
-
-var METHODS = [
-  'CHECKOUT',
-  'CONNECT',
-  'COPY',
-  'DELETE',
-  'GET',
-  'HEAD',
-  'LOCK',
-  'M-SEARCH',
-  'MERGE',
-  'MKACTIVITY',
-  'MKCOL',
-  'MOVE',
-  'NOTIFY',
-  'OPTIONS',
-  'PATCH',
-  'POST',
-  'PROPFIND',
-  'PROPPATCH',
-  'PURGE',
-  'PUT',
-  'REPORT',
-  'SEARCH',
-  'SUBSCRIBE',
-  'TRACE',
-  'UNLOCK',
-  'UNSUBSCRIBE'
-];
-var STATUS_CODES = {
-  100: 'Continue',
-  101: 'Switching Protocols',
-  102: 'Processing', // RFC 2518, obsoleted by RFC 4918
-  200: 'OK',
-  201: 'Created',
-  202: 'Accepted',
-  203: 'Non-Authoritative Information',
-  204: 'No Content',
-  205: 'Reset Content',
-  206: 'Partial Content',
-  207: 'Multi-Status', // RFC 4918
-  300: 'Multiple Choices',
-  301: 'Moved Permanently',
-  302: 'Moved Temporarily',
-  303: 'See Other',
-  304: 'Not Modified',
-  305: 'Use Proxy',
-  307: 'Temporary Redirect',
-  400: 'Bad Request',
-  401: 'Unauthorized',
-  402: 'Payment Required',
-  403: 'Forbidden',
-  404: 'Not Found',
-  405: 'Method Not Allowed',
-  406: 'Not Acceptable',
-  407: 'Proxy Authentication Required',
-  408: 'Request Time-out',
-  409: 'Conflict',
-  410: 'Gone',
-  411: 'Length Required',
-  412: 'Precondition Failed',
-  413: 'Request Entity Too Large',
-  414: 'Request-URI Too Large',
-  415: 'Unsupported Media Type',
-  416: 'Requested Range Not Satisfiable',
-  417: 'Expectation Failed',
-  418: 'I\'m a teapot', // RFC 2324
-  422: 'Unprocessable Entity', // RFC 4918
-  423: 'Locked', // RFC 4918
-  424: 'Failed Dependency', // RFC 4918
-  425: 'Unordered Collection', // RFC 4918
-  426: 'Upgrade Required', // RFC 2817
-  428: 'Precondition Required', // RFC 6585
-  429: 'Too Many Requests', // RFC 6585
-  431: 'Request Header Fields Too Large', // RFC 6585
-  500: 'Internal Server Error',
-  501: 'Not Implemented',
-  502: 'Bad Gateway',
-  503: 'Service Unavailable',
-  504: 'Gateway Time-out',
-  505: 'HTTP Version Not Supported',
-  506: 'Variant Also Negotiates', // RFC 2295
-  507: 'Insufficient Storage', // RFC 4918
-  509: 'Bandwidth Limit Exceeded',
-  510: 'Not Extended', // RFC 2774
-  511: 'Network Authentication Required' // RFC 6585
-};
-
-var _polyfillNode_http = {
-  request,
-  get,
-  Agent,
-  METHODS,
-  STATUS_CODES
-};
-
-var _polyfillNode_http$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	Agent: Agent,
-	METHODS: METHODS,
-	STATUS_CODES: STATUS_CODES,
-	default: _polyfillNode_http,
-	get: get,
-	request: request
-});
-
-var require$$1$1 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_http$1);
-
-var _polyfillNode_net = {};
-
-var _polyfillNode_net$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	default: _polyfillNode_net
-});
-
-var require$$2$1 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_net$1);
-
-var _polyfillNode_tls = {};
-
-var _polyfillNode_tls$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	default: _polyfillNode_tls
-});
-
-var require$$4$1 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_tls$1);
-
-var _polyfillNode_crypto = {};
-
-var _polyfillNode_crypto$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	default: _polyfillNode_crypto
-});
-
-var require$$5$1 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_crypto$1);
-
-var require$$1 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_stream);
+var require$$1$4 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_stream);
 
 var msg = {
   2:      'need dictionary',     /* Z_NEED_DICT       2  */
@@ -14642,7 +13741,7 @@ Zlib$1.prototype._write = function(flush, input, in_off, in_len, out, out_off, o
   }
 
   if (input == null) {
-    input = new Buffer$3(0);
+    input = new Buffer$1(0);
     in_len = 0;
     in_off = 0;
   }
@@ -14955,7 +14054,7 @@ function zlibBuffer(engine, buffer, callback) {
   }
 
   function onEnd() {
-    var buf = Buffer$3.concat(buffers, nread);
+    var buf = Buffer$1.concat(buffers, nread);
     buffers = [];
     callback(null, buf);
     engine.close();
@@ -14964,8 +14063,8 @@ function zlibBuffer(engine, buffer, callback) {
 
 function zlibBufferSync(engine, buffer) {
   if (typeof buffer === 'string')
-    buffer = new Buffer$3(buffer);
-  if (!Buffer$3.isBuffer(buffer))
+    buffer = new Buffer$1(buffer);
+  if (!Buffer$1.isBuffer(buffer))
     throw new TypeError('Not a string or buffer');
 
   var flushFlag = binding.Z_FINISH;
@@ -15081,7 +14180,7 @@ function Zlib(opts, mode) {
   }
 
   if (opts.dictionary) {
-    if (!Buffer$3.isBuffer(opts.dictionary)) {
+    if (!Buffer$1.isBuffer(opts.dictionary)) {
       throw new Error('Invalid dictionary: it should be a Buffer instance');
     }
   }
@@ -15114,7 +14213,7 @@ function Zlib(opts, mode) {
                      strategy,
                      opts.dictionary);
 
-  this._buffer = new Buffer$3(this._chunkSize);
+  this._buffer = new Buffer$1(this._chunkSize);
   this._offset = 0;
   this._closed = false;
   this._level = level;
@@ -15160,7 +14259,7 @@ Zlib.prototype.reset = function() {
 // This is the _flush function called by the transform class,
 // internally, when the last chunk has been written.
 Zlib.prototype._flush = function(callback) {
-  this._transform(new Buffer$3(0), '', callback);
+  this._transform(new Buffer$1(0), '', callback);
 };
 
 Zlib.prototype.flush = function(kind, callback) {
@@ -15184,7 +14283,7 @@ Zlib.prototype.flush = function(kind, callback) {
     });
   } else {
     this._flushFlag = kind;
-    this.write(new Buffer$3(0), '', callback);
+    this.write(new Buffer$1(0), '', callback);
   }
 };
 
@@ -15211,7 +14310,7 @@ Zlib.prototype._transform = function(chunk, encoding, cb) {
   var ending = ws.ending || ws.ended;
   var last = ending && (!chunk || ws.length === chunk.length);
 
-  if (!chunk === null && !Buffer$3.isBuffer(chunk))
+  if (!chunk === null && !Buffer$1.isBuffer(chunk))
     return cb(new Error('invalid input'));
 
   // If it's the last chunk, or a final flush, we use the Z_FINISH flush flag.
@@ -15264,7 +14363,7 @@ Zlib.prototype._processChunk = function(chunk, flushFlag, cb) {
       throw error;
     }
 
-    var buf = Buffer$3.concat(buffers, nread);
+    var buf = Buffer$1.concat(buffers, nread);
     this.close();
 
     return buf;
@@ -15304,7 +14403,7 @@ Zlib.prototype._processChunk = function(chunk, flushFlag, cb) {
     if (availOutAfter === 0 || self._offset >= self._chunkSize) {
       availOutBefore = self._chunkSize;
       self._offset = 0;
-      self._buffer = new Buffer$3(self._chunkSize);
+      self._buffer = new Buffer$1(self._chunkSize);
     }
 
     if (availOutAfter === 0) {
@@ -15413,17 +14512,13 @@ var _polyfillNode_zlib$1 = /*#__PURE__*/Object.freeze({
 	unzipSync: unzipSync
 });
 
-var require$$0$1 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_zlib$1);
+var require$$0$2 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_zlib$1);
 
-var bufferUtilExports = {};
-var bufferUtil$1 = {
-  get exports(){ return bufferUtilExports; },
-  set exports(v){ bufferUtilExports = v; },
-};
+var bufferUtil$1 = {exports: {}};
 
 var constants = {
   BINARY_TYPES: ['nodebuffer', 'arraybuffer', 'fragments'],
-  EMPTY_BUFFER: Buffer$3.alloc(0),
+  EMPTY_BUFFER: Buffer$1.alloc(0),
   GUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11',
   kForOnEventAttribute: Symbol('kIsForOnEventAttribute'),
   kListener: Symbol('kListener'),
@@ -15432,32 +14527,24 @@ var constants = {
   NOOP: () => {}
 };
 
-var __dirname$1 = '/UCL/Ubiq Javascript/Node';
+var __dirname$1 = '/Repos/Uni/Va.Si.Li-Lab-backend/ubiq/Node';
 
-var bufferutilExports = {};
-var bufferutil = {
-  get exports(){ return bufferutilExports; },
-  set exports(v){ bufferutilExports = v; },
-};
+var bufferutil = {exports: {}};
 
-var nodeGypBuildExports = {};
-var nodeGypBuild$1 = {
-  get exports(){ return nodeGypBuildExports; },
-  set exports(v){ nodeGypBuildExports = v; },
-};
+var nodeGypBuild$1 = {exports: {}};
 
 function commonjsRequire(path) {
 	throw new Error('Could not dynamically require "' + path + '". Please configure the dynamicRequireTargets or/and ignoreDynamicRequires option of @rollup/plugin-commonjs appropriately for this require call to work.');
 }
 
-var _polyfillNode_fs = {};
+var fs = {};
 
-var _polyfillNode_fs$1 = /*#__PURE__*/Object.freeze({
+var _polyfillNode_fs = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	default: _polyfillNode_fs
+	default: fs
 });
 
-var require$$5 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_fs$1);
+var require$$0$1 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_fs);
 
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -15662,7 +14749,7 @@ function basename(path, ext) {
 function extname(path) {
   return splitPath(path)[3];
 }
-var _polyfillNode_path = {
+var path = {
   extname: extname,
   basename: basename,
   dirname: dirname,
@@ -15692,10 +14779,10 @@ var substr = 'ab'.substr(-1) === 'b' ?
     }
 ;
 
-var _polyfillNode_path$1 = /*#__PURE__*/Object.freeze({
+var _polyfillNode_path = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	basename: basename,
-	default: _polyfillNode_path,
+	default: path,
 	delimiter: delimiter,
 	dirname: dirname,
 	extname: extname,
@@ -15707,7 +14794,7 @@ var _polyfillNode_path$1 = /*#__PURE__*/Object.freeze({
 	sep: sep
 });
 
-var require$$4 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_path$1);
+var require$$1$3 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_path);
 
 /*
 The MIT License (MIT)
@@ -15858,7 +14945,7 @@ var _polyfillNode_os$1 = /*#__PURE__*/Object.freeze({
 	uptime: uptime
 });
 
-var require$$2 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_os$1);
+var require$$2$2 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_os$1);
 
 var nodeGypBuild;
 var hasRequiredNodeGypBuild$1;
@@ -15866,9 +14953,9 @@ var hasRequiredNodeGypBuild$1;
 function requireNodeGypBuild$1 () {
 	if (hasRequiredNodeGypBuild$1) return nodeGypBuild;
 	hasRequiredNodeGypBuild$1 = 1;
-	var fs = require$$5;
-	var path = require$$4;
-	var os = require$$2;
+	var fs = require$$0$1;
+	var path = require$$1$3;
+	var os = require$$2$2;
 
 	// Workaround to fix webpack's build warnings: 'the request of a dependency is an expression'
 	var runtimeRequire = typeof __webpack_require__ === 'function' ? __non_webpack_require__ : commonjsRequire; // eslint-disable-line
@@ -16079,16 +15166,14 @@ function requireNodeGypBuild$1 () {
 var hasRequiredNodeGypBuild;
 
 function requireNodeGypBuild () {
-	if (hasRequiredNodeGypBuild) return nodeGypBuildExports;
+	if (hasRequiredNodeGypBuild) return nodeGypBuild$1.exports;
 	hasRequiredNodeGypBuild = 1;
-	(function (module) {
-		if (typeof browser$1.addon === 'function') { // if the platform supports native resolving prefer that
-		  module.exports = browser$1.addon.bind(browser$1);
-		} else { // else use the runtime version here
-		  module.exports = requireNodeGypBuild$1();
-		}
-} (nodeGypBuild$1));
-	return nodeGypBuildExports;
+	if (typeof browser$1.addon === 'function') { // if the platform supports native resolving prefer that
+	  nodeGypBuild$1.exports = browser$1.addon.bind(browser$1);
+	} else { // else use the runtime version here
+	  nodeGypBuild$1.exports = requireNodeGypBuild$1();
+	}
+	return nodeGypBuild$1.exports;
 }
 
 var fallback$1;
@@ -16136,17 +15221,15 @@ function requireFallback$1 () {
 var hasRequiredBufferutil;
 
 function requireBufferutil () {
-	if (hasRequiredBufferutil) return bufferutilExports;
+	if (hasRequiredBufferutil) return bufferutil.exports;
 	hasRequiredBufferutil = 1;
-	(function (module) {
 
-		try {
-		  module.exports = requireNodeGypBuild()(__dirname$1);
-		} catch (e) {
-		  module.exports = requireFallback$1();
-		}
-} (bufferutil));
-	return bufferutilExports;
+	try {
+	  bufferutil.exports = requireNodeGypBuild()(__dirname$1);
+	} catch (e) {
+	  bufferutil.exports = requireFallback$1();
+	}
+	return bufferutil.exports;
 }
 
 const { EMPTY_BUFFER: EMPTY_BUFFER$3 } = constants;
@@ -16163,7 +15246,7 @@ function concat$1(list, totalLength) {
   if (list.length === 0) return EMPTY_BUFFER$3;
   if (list.length === 1) return list[0];
 
-  const target = Buffer$3.allocUnsafe(totalLength);
+  const target = Buffer$1.allocUnsafe(totalLength);
   let offset = 0;
 
   for (let i = 0; i < list.length; i++) {
@@ -16213,7 +15296,7 @@ function _unmask(buffer, mask) {
  * @return {ArrayBuffer} Converted buffer
  * @public
  */
-function toArrayBuffer$1(buf) {
+function toArrayBuffer$2(buf) {
   if (buf.byteLength === buf.buffer.byteLength) {
     return buf.buffer;
   }
@@ -16232,16 +15315,16 @@ function toArrayBuffer$1(buf) {
 function toBuffer$2(data) {
   toBuffer$2.readOnly = true;
 
-  if (Buffer$3.isBuffer(data)) return data;
+  if (Buffer$1.isBuffer(data)) return data;
 
   let buf;
 
   if (data instanceof ArrayBuffer) {
-    buf = Buffer$3.from(data);
+    buf = Buffer$1.from(data);
   } else if (ArrayBuffer.isView(data)) {
-    buf = Buffer$3.from(data.buffer, data.byteOffset, data.byteLength);
+    buf = Buffer$1.from(data.buffer, data.byteOffset, data.byteLength);
   } else {
-    buf = Buffer$3.from(data);
+    buf = Buffer$1.from(data);
     toBuffer$2.readOnly = false;
   }
 
@@ -16257,7 +15340,7 @@ try {
       if (length < 48) _mask(source, mask, output, offset, length);
       else bufferUtil.mask(source, mask, output, offset, length);
     },
-    toArrayBuffer: toArrayBuffer$1,
+    toArrayBuffer: toArrayBuffer$2,
     toBuffer: toBuffer$2,
     unmask(buffer, mask) {
       if (buffer.length < 32) _unmask(buffer, mask);
@@ -16268,11 +15351,13 @@ try {
   bufferUtil$1.exports = {
     concat: concat$1,
     mask: _mask,
-    toArrayBuffer: toArrayBuffer$1,
+    toArrayBuffer: toArrayBuffer$2,
     toBuffer: toBuffer$2,
     unmask: _unmask
   };
 }
+
+var bufferUtilExports = bufferUtil$1.exports;
 
 const kDone = Symbol('kDone');
 const kRun = Symbol('kRun');
@@ -16328,13 +15413,13 @@ let Limiter$1 = class Limiter {
 
 var limiter = Limiter$1;
 
-const zlib = require$$0$1;
+const zlib = require$$0$2;
 
 const bufferUtil = bufferUtilExports;
 const Limiter = limiter;
 const { kStatusCode: kStatusCode$2 } = constants;
 
-const TRAILER = Buffer$3.from([0x00, 0x00, 0xff, 0xff]);
+const TRAILER = Buffer$1.from([0x00, 0x00, 0xff, 0xff]);
 const kPerMessageDeflate = Symbol('permessage-deflate');
 const kTotalLength = Symbol('total-length');
 const kCallback = Symbol('callback');
@@ -16838,19 +15923,11 @@ function inflateOnError(err) {
   this[kCallback](err);
 }
 
-var validationExports = {};
-var validation = {
-  get exports(){ return validationExports; },
-  set exports(v){ validationExports = v; },
-};
+var validation = {exports: {}};
 
-var __dirname = '/UCL/Ubiq Javascript/Node';
+var __dirname = '/Repos/Uni/Va.Si.Li-Lab-backend/ubiq/Node';
 
-var utf8ValidateExports = {};
-var utf8Validate = {
-  get exports(){ return utf8ValidateExports; },
-  set exports(v){ utf8ValidateExports = v; },
-};
+var utf8Validate = {exports: {}};
 
 var fallback;
 var hasRequiredFallback;
@@ -16925,17 +16002,15 @@ function requireFallback () {
 var hasRequiredUtf8Validate;
 
 function requireUtf8Validate () {
-	if (hasRequiredUtf8Validate) return utf8ValidateExports;
+	if (hasRequiredUtf8Validate) return utf8Validate.exports;
 	hasRequiredUtf8Validate = 1;
-	(function (module) {
 
-		try {
-		  module.exports = requireNodeGypBuild()(__dirname);
-		} catch (e) {
-		  module.exports = requireFallback();
-		}
-} (utf8Validate));
-	return utf8ValidateExports;
+	try {
+	  utf8Validate.exports = requireNodeGypBuild()(__dirname);
+	} catch (e) {
+	  utf8Validate.exports = requireFallback();
+	}
+	return utf8Validate.exports;
 }
 
 //
@@ -17061,7 +16136,9 @@ try {
   };
 }
 
-const { Writable } = require$$1;
+var validationExports = validation.exports;
+
+const { Writable } = require$$1$4;
 
 const PerMessageDeflate$3 = permessageDeflate;
 const {
@@ -17070,7 +16147,7 @@ const {
   kStatusCode: kStatusCode$1,
   kWebSocket: kWebSocket$2
 } = constants;
-const { concat, toArrayBuffer, unmask } = bufferUtilExports;
+const { concat, toArrayBuffer: toArrayBuffer$1, unmask } = bufferUtilExports;
 const { isValidStatusCode: isValidStatusCode$1, isValidUTF8 } = validationExports;
 
 const GET_INFO = 0;
@@ -17162,7 +16239,7 @@ let Receiver$1 = class Receiver extends Writable {
       return buf.slice(0, n);
     }
 
-    const dst = Buffer$3.allocUnsafe(n);
+    const dst = Buffer$1.allocUnsafe(n);
 
     do {
       const buf = this._buffers[0];
@@ -17560,7 +16637,7 @@ let Receiver$1 = class Receiver extends Writable {
         if (this._binaryType === 'nodebuffer') {
           data = concat(fragments, messageLength);
         } else if (this._binaryType === 'arraybuffer') {
-          data = toArrayBuffer(concat(fragments, messageLength));
+          data = toArrayBuffer$1(concat(fragments, messageLength));
         } else {
           data = fragments;
         }
@@ -17672,14 +16749,41 @@ function error(ErrorCtor, message, prefix, statusCode, errorCode) {
   return err;
 }
 
-const { randomFillSync } = require$$5$1;
+var Tcp = {};
+
+var _polyfillNode_net = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	default: Tcp
+});
+
+var require$$3 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_net);
+
+var _polyfillNode_tls = {};
+
+var _polyfillNode_tls$1 = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	default: _polyfillNode_tls
+});
+
+var require$$4 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_tls$1);
+
+var _polyfillNode_crypto = {};
+
+var _polyfillNode_crypto$1 = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	default: _polyfillNode_crypto
+});
+
+var require$$5 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_crypto$1);
+
+const { randomFillSync } = require$$5;
 
 const PerMessageDeflate$2 = permessageDeflate;
 const { EMPTY_BUFFER: EMPTY_BUFFER$1 } = constants;
 const { isValidStatusCode } = validationExports;
 const { mask: applyMask, toBuffer: toBuffer$1 } = bufferUtilExports;
 
-const mask = Buffer$3.alloc(4);
+const mask = Buffer$1.alloc(4);
 
 /**
  * HyBi Sender implementation.
@@ -17733,7 +16837,7 @@ let Sender$1 = class Sender {
       payloadLength = 126;
     }
 
-    const target = Buffer$3.allocUnsafe(merge ? data.length + offset : offset);
+    const target = Buffer$1.allocUnsafe(merge ? data.length + offset : offset);
 
     target[0] = options.fin ? options.opcode | 0x80 : options.opcode;
     if (options.rsv1) target[0] |= 0x40;
@@ -17783,16 +16887,16 @@ let Sender$1 = class Sender {
     } else if (typeof code !== 'number' || !isValidStatusCode(code)) {
       throw new TypeError('First argument must be a valid error code number');
     } else if (data === undefined || !data.length) {
-      buf = Buffer$3.allocUnsafe(2);
+      buf = Buffer$1.allocUnsafe(2);
       buf.writeUInt16BE(code, 0);
     } else {
-      const length = Buffer$3.byteLength(data);
+      const length = Buffer$1.byteLength(data);
 
       if (length > 123) {
         throw new RangeError('The message must not be greater than 123 bytes');
       }
 
-      buf = Buffer$3.allocUnsafe(2 + length);
+      buf = Buffer$1.allocUnsafe(2 + length);
       buf.writeUInt16BE(code, 0);
 
       if (typeof data === 'string') {
@@ -18089,6 +17193,835 @@ let Sender$1 = class Sender {
 
 var sender = Sender$1;
 
+var require$$1$2 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_events);
+
+var hasFetch = isFunction(global$1.fetch) && isFunction(global$1.ReadableStream);
+
+var _blobConstructor;
+function blobConstructor() {
+  if (typeof _blobConstructor !== 'undefined') {
+    return _blobConstructor;
+  }
+  try {
+    new global$1.Blob([new ArrayBuffer(1)]);
+    _blobConstructor = true;
+  } catch (e) {
+    _blobConstructor = false;
+  }
+  return _blobConstructor
+}
+var xhr;
+
+function checkTypeSupport(type) {
+  if (!xhr) {
+    xhr = new global$1.XMLHttpRequest();
+    // If location.host is empty, e.g. if this page/worker was loaded
+    // from a Blob, then use example.com to avoid an error
+    xhr.open('GET', global$1.location.host ? '/' : 'https://example.com');
+  }
+  try {
+    xhr.responseType = type;
+    return xhr.responseType === type
+  } catch (e) {
+    return false
+  }
+
+}
+
+// For some strange reason, Safari 7.0 reports typeof global.ArrayBuffer === 'object'.
+// Safari 7.1 appears to have fixed this bug.
+var haveArrayBuffer = typeof global$1.ArrayBuffer !== 'undefined';
+var haveSlice = haveArrayBuffer && isFunction(global$1.ArrayBuffer.prototype.slice);
+
+var arraybuffer = haveArrayBuffer && checkTypeSupport('arraybuffer');
+  // These next two tests unavoidably show warnings in Chrome. Since fetch will always
+  // be used if it's available, just return false for these to avoid the warnings.
+var msstream = !hasFetch && haveSlice && checkTypeSupport('ms-stream');
+var mozchunkedarraybuffer = !hasFetch && haveArrayBuffer &&
+  checkTypeSupport('moz-chunked-arraybuffer');
+var overrideMimeType = isFunction(xhr.overrideMimeType);
+var vbArray = isFunction(global$1.VBArray);
+
+function isFunction(value) {
+  return typeof value === 'function'
+}
+
+xhr = null; // Help gc
+
+var rStates = {
+  UNSENT: 0,
+  OPENED: 1,
+  HEADERS_RECEIVED: 2,
+  LOADING: 3,
+  DONE: 4
+};
+function IncomingMessage(xhr, response, mode) {
+  var self = this;
+  Readable.call(self);
+
+  self._mode = mode;
+  self.headers = {};
+  self.rawHeaders = [];
+  self.trailers = {};
+  self.rawTrailers = [];
+
+  // Fake the 'close' event, but only once 'end' fires
+  self.on('end', function() {
+    // The nextTick is necessary to prevent the 'request' module from causing an infinite loop
+    browser$1.nextTick(function() {
+      self.emit('close');
+    });
+  });
+  var read;
+  if (mode === 'fetch') {
+    self._fetchResponse = response;
+
+    self.url = response.url;
+    self.statusCode = response.status;
+    self.statusMessage = response.statusText;
+      // backwards compatible version of for (<item> of <iterable>):
+      // for (var <item>,_i,_it = <iterable>[Symbol.iterator](); <item> = (_i = _it.next()).value,!_i.done;)
+    for (var header, _i, _it = response.headers[Symbol.iterator](); header = (_i = _it.next()).value, !_i.done;) {
+      self.headers[header[0].toLowerCase()] = header[1];
+      self.rawHeaders.push(header[0], header[1]);
+    }
+
+    // TODO: this doesn't respect backpressure. Once WritableStream is available, this can be fixed
+    var reader = response.body.getReader();
+
+    read = function () {
+      reader.read().then(function(result) {
+        if (self._destroyed)
+          return
+        if (result.done) {
+          self.push(null);
+          return
+        }
+        self.push(new Buffer$1(result.value));
+        read();
+      });
+    };
+    read();
+
+  } else {
+    self._xhr = xhr;
+    self._pos = 0;
+
+    self.url = xhr.responseURL;
+    self.statusCode = xhr.status;
+    self.statusMessage = xhr.statusText;
+    var headers = xhr.getAllResponseHeaders().split(/\r?\n/);
+    headers.forEach(function(header) {
+      var matches = header.match(/^([^:]+):\s*(.*)/);
+      if (matches) {
+        var key = matches[1].toLowerCase();
+        if (key === 'set-cookie') {
+          if (self.headers[key] === undefined) {
+            self.headers[key] = [];
+          }
+          self.headers[key].push(matches[2]);
+        } else if (self.headers[key] !== undefined) {
+          self.headers[key] += ', ' + matches[2];
+        } else {
+          self.headers[key] = matches[2];
+        }
+        self.rawHeaders.push(matches[1], matches[2]);
+      }
+    });
+
+    self._charset = 'x-user-defined';
+    if (!overrideMimeType) {
+      var mimeType = self.rawHeaders['mime-type'];
+      if (mimeType) {
+        var charsetMatch = mimeType.match(/;\s*charset=([^;])(;|$)/);
+        if (charsetMatch) {
+          self._charset = charsetMatch[1].toLowerCase();
+        }
+      }
+      if (!self._charset)
+        self._charset = 'utf-8'; // best guess
+    }
+  }
+}
+
+inherits$1(IncomingMessage, Readable);
+
+IncomingMessage.prototype._read = function() {};
+
+IncomingMessage.prototype._onXHRProgress = function() {
+  var self = this;
+
+  var xhr = self._xhr;
+
+  var response = null;
+  switch (self._mode) {
+  case 'text:vbarray': // For IE9
+    if (xhr.readyState !== rStates.DONE)
+      break
+    try {
+      // This fails in IE8
+      response = new global$1.VBArray(xhr.responseBody).toArray();
+    } catch (e) {
+      // pass
+    }
+    if (response !== null) {
+      self.push(new Buffer$1(response));
+      break
+    }
+    // Falls through in IE8
+  case 'text':
+    try { // This will fail when readyState = 3 in IE9. Switch mode and wait for readyState = 4
+      response = xhr.responseText;
+    } catch (e) {
+      self._mode = 'text:vbarray';
+      break
+    }
+    if (response.length > self._pos) {
+      var newData = response.substr(self._pos);
+      if (self._charset === 'x-user-defined') {
+        var buffer = new Buffer$1(newData.length);
+        for (var i = 0; i < newData.length; i++)
+          buffer[i] = newData.charCodeAt(i) & 0xff;
+
+        self.push(buffer);
+      } else {
+        self.push(newData, self._charset);
+      }
+      self._pos = response.length;
+    }
+    break
+  case 'arraybuffer':
+    if (xhr.readyState !== rStates.DONE || !xhr.response)
+      break
+    response = xhr.response;
+    self.push(new Buffer$1(new Uint8Array(response)));
+    break
+  case 'moz-chunked-arraybuffer': // take whole
+    response = xhr.response;
+    if (xhr.readyState !== rStates.LOADING || !response)
+      break
+    self.push(new Buffer$1(new Uint8Array(response)));
+    break
+  case 'ms-stream':
+    response = xhr.response;
+    if (xhr.readyState !== rStates.LOADING)
+      break
+    var reader = new global$1.MSStreamReader();
+    reader.onprogress = function() {
+      if (reader.result.byteLength > self._pos) {
+        self.push(new Buffer$1(new Uint8Array(reader.result.slice(self._pos))));
+        self._pos = reader.result.byteLength;
+      }
+    };
+    reader.onload = function() {
+      self.push(null);
+    };
+      // reader.onerror = ??? // TODO: this
+    reader.readAsArrayBuffer(response);
+    break
+  }
+
+  // The ms-stream case handles end separately in reader.onload()
+  if (self._xhr.readyState === rStates.DONE && self._mode !== 'ms-stream') {
+    self.push(null);
+  }
+};
+
+// from https://github.com/jhiesey/to-arraybuffer/blob/6502d9850e70ba7935a7df4ad86b358fc216f9f0/index.js
+function toArrayBuffer (buf) {
+  // If the buffer is backed by a Uint8Array, a faster version will work
+  if (buf instanceof Uint8Array) {
+    // If the buffer isn't a subarray, return the underlying ArrayBuffer
+    if (buf.byteOffset === 0 && buf.byteLength === buf.buffer.byteLength) {
+      return buf.buffer
+    } else if (typeof buf.buffer.slice === 'function') {
+      // Otherwise we need to get a proper copy
+      return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength)
+    }
+  }
+
+  if (isBuffer(buf)) {
+    // This is the slow version that will work with any Buffer
+    // implementation (even in old browsers)
+    var arrayCopy = new Uint8Array(buf.length);
+    var len = buf.length;
+    for (var i = 0; i < len; i++) {
+      arrayCopy[i] = buf[i];
+    }
+    return arrayCopy.buffer
+  } else {
+    throw new Error('Argument must be a Buffer')
+  }
+}
+
+function decideMode(preferBinary, useFetch) {
+  if (hasFetch && useFetch) {
+    return 'fetch'
+  } else if (mozchunkedarraybuffer) {
+    return 'moz-chunked-arraybuffer'
+  } else if (msstream) {
+    return 'ms-stream'
+  } else if (arraybuffer && preferBinary) {
+    return 'arraybuffer'
+  } else if (vbArray && preferBinary) {
+    return 'text:vbarray'
+  } else {
+    return 'text'
+  }
+}
+
+function ClientRequest(opts) {
+  var self = this;
+  Writable$1.call(self);
+
+  self._opts = opts;
+  self._body = [];
+  self._headers = {};
+  if (opts.auth)
+    self.setHeader('Authorization', 'Basic ' + new Buffer$1(opts.auth).toString('base64'));
+  Object.keys(opts.headers).forEach(function(name) {
+    self.setHeader(name, opts.headers[name]);
+  });
+
+  var preferBinary;
+  var useFetch = true;
+  if (opts.mode === 'disable-fetch') {
+    // If the use of XHR should be preferred and includes preserving the 'content-type' header
+    useFetch = false;
+    preferBinary = true;
+  } else if (opts.mode === 'prefer-streaming') {
+    // If streaming is a high priority but binary compatibility and
+    // the accuracy of the 'content-type' header aren't
+    preferBinary = false;
+  } else if (opts.mode === 'allow-wrong-content-type') {
+    // If streaming is more important than preserving the 'content-type' header
+    preferBinary = !overrideMimeType;
+  } else if (!opts.mode || opts.mode === 'default' || opts.mode === 'prefer-fast') {
+    // Use binary if text streaming may corrupt data or the content-type header, or for speed
+    preferBinary = true;
+  } else {
+    throw new Error('Invalid value for opts.mode')
+  }
+  self._mode = decideMode(preferBinary, useFetch);
+
+  self.on('finish', function() {
+    self._onFinish();
+  });
+}
+
+inherits$1(ClientRequest, Writable$1);
+// Taken from http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader%28%29-method
+var unsafeHeaders = [
+  'accept-charset',
+  'accept-encoding',
+  'access-control-request-headers',
+  'access-control-request-method',
+  'connection',
+  'content-length',
+  'cookie',
+  'cookie2',
+  'date',
+  'dnt',
+  'expect',
+  'host',
+  'keep-alive',
+  'origin',
+  'referer',
+  'te',
+  'trailer',
+  'transfer-encoding',
+  'upgrade',
+  'user-agent',
+  'via'
+];
+ClientRequest.prototype.setHeader = function(name, value) {
+  var self = this;
+  var lowerName = name.toLowerCase();
+    // This check is not necessary, but it prevents warnings from browsers about setting unsafe
+    // headers. To be honest I'm not entirely sure hiding these warnings is a good thing, but
+    // http-browserify did it, so I will too.
+  if (unsafeHeaders.indexOf(lowerName) !== -1)
+    return
+
+  self._headers[lowerName] = {
+    name: name,
+    value: value
+  };
+};
+
+ClientRequest.prototype.getHeader = function(name) {
+  var self = this;
+  return self._headers[name.toLowerCase()].value
+};
+
+ClientRequest.prototype.removeHeader = function(name) {
+  var self = this;
+  delete self._headers[name.toLowerCase()];
+};
+
+ClientRequest.prototype._onFinish = function() {
+  var self = this;
+
+  if (self._destroyed)
+    return
+  var opts = self._opts;
+
+  var headersObj = self._headers;
+  var body;
+  if (opts.method === 'POST' || opts.method === 'PUT' || opts.method === 'PATCH') {
+    if (blobConstructor()) {
+      body = new global$1.Blob(self._body.map(function(buffer) {
+        return toArrayBuffer(buffer)
+      }), {
+        type: (headersObj['content-type'] || {}).value || ''
+      });
+    } else {
+      // get utf8 string
+      body = Buffer$1.concat(self._body).toString();
+    }
+  }
+
+  if (self._mode === 'fetch') {
+    var headers = Object.keys(headersObj).map(function(name) {
+      return [headersObj[name].name, headersObj[name].value]
+    });
+
+    global$1.fetch(self._opts.url, {
+      method: self._opts.method,
+      headers: headers,
+      body: body,
+      mode: 'cors',
+      credentials: opts.withCredentials ? 'include' : 'same-origin'
+    }).then(function(response) {
+      self._fetchResponse = response;
+      self._connect();
+    }, function(reason) {
+      self.emit('error', reason);
+    });
+  } else {
+    var xhr = self._xhr = new global$1.XMLHttpRequest();
+    try {
+      xhr.open(self._opts.method, self._opts.url, true);
+    } catch (err) {
+      browser$1.nextTick(function() {
+        self.emit('error', err);
+      });
+      return
+    }
+
+    // Can't set responseType on really old browsers
+    if ('responseType' in xhr)
+      xhr.responseType = self._mode.split(':')[0];
+
+    if ('withCredentials' in xhr)
+      xhr.withCredentials = !!opts.withCredentials;
+
+    if (self._mode === 'text' && 'overrideMimeType' in xhr)
+      xhr.overrideMimeType('text/plain; charset=x-user-defined');
+
+    Object.keys(headersObj).forEach(function(name) {
+      xhr.setRequestHeader(headersObj[name].name, headersObj[name].value);
+    });
+
+    self._response = null;
+    xhr.onreadystatechange = function() {
+      switch (xhr.readyState) {
+      case rStates.LOADING:
+      case rStates.DONE:
+        self._onXHRProgress();
+        break
+      }
+    };
+      // Necessary for streaming in Firefox, since xhr.response is ONLY defined
+      // in onprogress, not in onreadystatechange with xhr.readyState = 3
+    if (self._mode === 'moz-chunked-arraybuffer') {
+      xhr.onprogress = function() {
+        self._onXHRProgress();
+      };
+    }
+
+    xhr.onerror = function() {
+      if (self._destroyed)
+        return
+      self.emit('error', new Error('XHR error'));
+    };
+
+    try {
+      xhr.send(body);
+    } catch (err) {
+      browser$1.nextTick(function() {
+        self.emit('error', err);
+      });
+      return
+    }
+  }
+};
+
+/**
+ * Checks if xhr.status is readable and non-zero, indicating no error.
+ * Even though the spec says it should be available in readyState 3,
+ * accessing it throws an exception in IE8
+ */
+function statusValid(xhr) {
+  try {
+    var status = xhr.status;
+    return (status !== null && status !== 0)
+  } catch (e) {
+    return false
+  }
+}
+
+ClientRequest.prototype._onXHRProgress = function() {
+  var self = this;
+
+  if (!statusValid(self._xhr) || self._destroyed)
+    return
+
+  if (!self._response)
+    self._connect();
+
+  self._response._onXHRProgress();
+};
+
+ClientRequest.prototype._connect = function() {
+  var self = this;
+
+  if (self._destroyed)
+    return
+
+  self._response = new IncomingMessage(self._xhr, self._fetchResponse, self._mode);
+  self.emit('response', self._response);
+};
+
+ClientRequest.prototype._write = function(chunk, encoding, cb) {
+  var self = this;
+
+  self._body.push(chunk);
+  cb();
+};
+
+ClientRequest.prototype.abort = ClientRequest.prototype.destroy = function() {
+  var self = this;
+  self._destroyed = true;
+  if (self._response)
+    self._response._destroyed = true;
+  if (self._xhr)
+    self._xhr.abort();
+    // Currently, there isn't a way to truly abort a fetch.
+    // If you like bikeshedding, see https://github.com/whatwg/fetch/issues/27
+};
+
+ClientRequest.prototype.end = function(data, encoding, cb) {
+  var self = this;
+  if (typeof data === 'function') {
+    cb = data;
+    data = undefined;
+  }
+
+  Writable$1.prototype.end.call(self, data, encoding, cb);
+};
+
+ClientRequest.prototype.flushHeaders = function() {};
+ClientRequest.prototype.setTimeout = function() {};
+ClientRequest.prototype.setNoDelay = function() {};
+ClientRequest.prototype.setSocketKeepAlive = function() {};
+
+function request$1(opts, cb) {
+  if (typeof opts === 'string')
+    opts = urlParse(opts);
+
+
+  // Normally, the page is loaded from http or https, so not specifying a protocol
+  // will result in a (valid) protocol-relative url. However, this won't work if
+  // the protocol is something else, like 'file:'
+  var defaultProtocol = global$1.location.protocol.search(/^https?:$/) === -1 ? 'http:' : '';
+
+  var protocol = opts.protocol || defaultProtocol;
+  var host = opts.hostname || opts.host;
+  var port = opts.port;
+  var path = opts.path || '/';
+
+  // Necessary for IPv6 addresses
+  if (host && host.indexOf(':') !== -1)
+    host = '[' + host + ']';
+
+  // This may be a relative url. The browser should always be able to interpret it correctly.
+  opts.url = (host ? (protocol + '//' + host) : '') + (port ? ':' + port : '') + path;
+  opts.method = (opts.method || 'GET').toUpperCase();
+  opts.headers = opts.headers || {};
+
+  // Also valid opts.auth, opts.mode
+
+  var req = new ClientRequest(opts);
+  if (cb)
+    req.on('response', cb);
+  return req
+}
+
+function get$1(opts, cb) {
+  var req = request$1(opts, cb);
+  req.end();
+  return req
+}
+
+function Agent$1() {}
+Agent$1.defaultMaxSockets = 4;
+
+var METHODS$1 = [
+  'CHECKOUT',
+  'CONNECT',
+  'COPY',
+  'DELETE',
+  'GET',
+  'HEAD',
+  'LOCK',
+  'M-SEARCH',
+  'MERGE',
+  'MKACTIVITY',
+  'MKCOL',
+  'MOVE',
+  'NOTIFY',
+  'OPTIONS',
+  'PATCH',
+  'POST',
+  'PROPFIND',
+  'PROPPATCH',
+  'PURGE',
+  'PUT',
+  'REPORT',
+  'SEARCH',
+  'SUBSCRIBE',
+  'TRACE',
+  'UNLOCK',
+  'UNSUBSCRIBE'
+];
+var STATUS_CODES$1 = {
+  100: 'Continue',
+  101: 'Switching Protocols',
+  102: 'Processing', // RFC 2518, obsoleted by RFC 4918
+  200: 'OK',
+  201: 'Created',
+  202: 'Accepted',
+  203: 'Non-Authoritative Information',
+  204: 'No Content',
+  205: 'Reset Content',
+  206: 'Partial Content',
+  207: 'Multi-Status', // RFC 4918
+  300: 'Multiple Choices',
+  301: 'Moved Permanently',
+  302: 'Moved Temporarily',
+  303: 'See Other',
+  304: 'Not Modified',
+  305: 'Use Proxy',
+  307: 'Temporary Redirect',
+  400: 'Bad Request',
+  401: 'Unauthorized',
+  402: 'Payment Required',
+  403: 'Forbidden',
+  404: 'Not Found',
+  405: 'Method Not Allowed',
+  406: 'Not Acceptable',
+  407: 'Proxy Authentication Required',
+  408: 'Request Time-out',
+  409: 'Conflict',
+  410: 'Gone',
+  411: 'Length Required',
+  412: 'Precondition Failed',
+  413: 'Request Entity Too Large',
+  414: 'Request-URI Too Large',
+  415: 'Unsupported Media Type',
+  416: 'Requested Range Not Satisfiable',
+  417: 'Expectation Failed',
+  418: 'I\'m a teapot', // RFC 2324
+  422: 'Unprocessable Entity', // RFC 4918
+  423: 'Locked', // RFC 4918
+  424: 'Failed Dependency', // RFC 4918
+  425: 'Unordered Collection', // RFC 4918
+  426: 'Upgrade Required', // RFC 2817
+  428: 'Precondition Required', // RFC 6585
+  429: 'Too Many Requests', // RFC 6585
+  431: 'Request Header Fields Too Large', // RFC 6585
+  500: 'Internal Server Error',
+  501: 'Not Implemented',
+  502: 'Bad Gateway',
+  503: 'Service Unavailable',
+  504: 'Gateway Time-out',
+  505: 'HTTP Version Not Supported',
+  506: 'Variant Also Negotiates', // RFC 2295
+  507: 'Insufficient Storage', // RFC 4918
+  509: 'Bandwidth Limit Exceeded',
+  510: 'Not Extended', // RFC 2774
+  511: 'Network Authentication Required' // RFC 6585
+};
+
+var https$1 = {
+  request: request$1,
+  get: get$1,
+  Agent: Agent$1,
+  METHODS: METHODS$1,
+  STATUS_CODES: STATUS_CODES$1
+};
+
+var _polyfillNode_https = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	Agent: Agent$1,
+	METHODS: METHODS$1,
+	STATUS_CODES: STATUS_CODES$1,
+	default: https$1,
+	get: get$1,
+	request: request$1
+});
+
+var require$$2$1 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_https);
+
+function request(opts, cb) {
+  if (typeof opts === 'string')
+    opts = urlParse(opts);
+
+
+  // Normally, the page is loaded from http or https, so not specifying a protocol
+  // will result in a (valid) protocol-relative url. However, this won't work if
+  // the protocol is something else, like 'file:'
+  var defaultProtocol = global$1.location.protocol.search(/^https?:$/) === -1 ? 'http:' : '';
+
+  var protocol = opts.protocol || defaultProtocol;
+  var host = opts.hostname || opts.host;
+  var port = opts.port;
+  var path = opts.path || '/';
+
+  // Necessary for IPv6 addresses
+  if (host && host.indexOf(':') !== -1)
+    host = '[' + host + ']';
+
+  // This may be a relative url. The browser should always be able to interpret it correctly.
+  opts.url = (host ? (protocol + '//' + host) : '') + (port ? ':' + port : '') + path;
+  opts.method = (opts.method || 'GET').toUpperCase();
+  opts.headers = opts.headers || {};
+
+  // Also valid opts.auth, opts.mode
+
+  var req = new ClientRequest(opts);
+  if (cb)
+    req.on('response', cb);
+  return req
+}
+
+function get(opts, cb) {
+  var req = request(opts, cb);
+  req.end();
+  return req
+}
+
+function Agent() {}
+Agent.defaultMaxSockets = 4;
+
+var METHODS = [
+  'CHECKOUT',
+  'CONNECT',
+  'COPY',
+  'DELETE',
+  'GET',
+  'HEAD',
+  'LOCK',
+  'M-SEARCH',
+  'MERGE',
+  'MKACTIVITY',
+  'MKCOL',
+  'MOVE',
+  'NOTIFY',
+  'OPTIONS',
+  'PATCH',
+  'POST',
+  'PROPFIND',
+  'PROPPATCH',
+  'PURGE',
+  'PUT',
+  'REPORT',
+  'SEARCH',
+  'SUBSCRIBE',
+  'TRACE',
+  'UNLOCK',
+  'UNSUBSCRIBE'
+];
+var STATUS_CODES = {
+  100: 'Continue',
+  101: 'Switching Protocols',
+  102: 'Processing', // RFC 2518, obsoleted by RFC 4918
+  200: 'OK',
+  201: 'Created',
+  202: 'Accepted',
+  203: 'Non-Authoritative Information',
+  204: 'No Content',
+  205: 'Reset Content',
+  206: 'Partial Content',
+  207: 'Multi-Status', // RFC 4918
+  300: 'Multiple Choices',
+  301: 'Moved Permanently',
+  302: 'Moved Temporarily',
+  303: 'See Other',
+  304: 'Not Modified',
+  305: 'Use Proxy',
+  307: 'Temporary Redirect',
+  400: 'Bad Request',
+  401: 'Unauthorized',
+  402: 'Payment Required',
+  403: 'Forbidden',
+  404: 'Not Found',
+  405: 'Method Not Allowed',
+  406: 'Not Acceptable',
+  407: 'Proxy Authentication Required',
+  408: 'Request Time-out',
+  409: 'Conflict',
+  410: 'Gone',
+  411: 'Length Required',
+  412: 'Precondition Failed',
+  413: 'Request Entity Too Large',
+  414: 'Request-URI Too Large',
+  415: 'Unsupported Media Type',
+  416: 'Requested Range Not Satisfiable',
+  417: 'Expectation Failed',
+  418: 'I\'m a teapot', // RFC 2324
+  422: 'Unprocessable Entity', // RFC 4918
+  423: 'Locked', // RFC 4918
+  424: 'Failed Dependency', // RFC 4918
+  425: 'Unordered Collection', // RFC 4918
+  426: 'Upgrade Required', // RFC 2817
+  428: 'Precondition Required', // RFC 6585
+  429: 'Too Many Requests', // RFC 6585
+  431: 'Request Header Fields Too Large', // RFC 6585
+  500: 'Internal Server Error',
+  501: 'Not Implemented',
+  502: 'Bad Gateway',
+  503: 'Service Unavailable',
+  504: 'Gateway Time-out',
+  505: 'HTTP Version Not Supported',
+  506: 'Variant Also Negotiates', // RFC 2295
+  507: 'Insufficient Storage', // RFC 4918
+  509: 'Bandwidth Limit Exceeded',
+  510: 'Not Extended', // RFC 2774
+  511: 'Network Authentication Required' // RFC 6585
+};
+
+var _polyfillNode_http = {
+  request,
+  get,
+  Agent,
+  METHODS,
+  STATUS_CODES
+};
+
+var _polyfillNode_http$1 = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	Agent: Agent,
+	METHODS: METHODS,
+	STATUS_CODES: STATUS_CODES,
+	default: _polyfillNode_http,
+	get: get,
+	request: request
+});
+
+var require$$1$1 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_http$1);
+
 const { kForOnEventAttribute: kForOnEventAttribute$1, kListener: kListener$1 } = constants;
 
 const kCode = Symbol('kCode');
@@ -18378,7 +18311,7 @@ function push(dest, name, elem) {
  * @return {Object} The parsed object
  * @public
  */
-function parse$3(header) {
+function parse$2(header) {
   const offers = Object.create(null);
   let params = Object.create(null);
   let mustUnescape = false;
@@ -18554,15 +18487,15 @@ function format$1(extensions) {
     .join(', ');
 }
 
-var extension$1 = { format: format$1, parse: parse$3 };
+var extension$1 = { format: format$1, parse: parse$2 };
 
-const EventEmitter$6 = require$$1$2;
-const https = require$$3;
+const EventEmitter$5 = require$$1$2;
+const https = require$$2$1;
 const http$1 = require$$1$1;
-const net = require$$2$1;
-const tls = require$$4$1;
-const { randomBytes, createHash: createHash$1 } = require$$5$1;
-const { URL: URL$1 } = require$$7;
+const net = require$$3;
+const tls = require$$4;
+const { randomBytes, createHash: createHash$1 } = require$$5;
+const { URL } = require$$7;
 
 const PerMessageDeflate$1 = permessageDeflate;
 const Receiver = receiver;
@@ -18580,7 +18513,7 @@ const {
 const {
   EventTarget: { addEventListener, removeEventListener }
 } = eventTarget;
-const { format, parse: parse$2 } = extension$1;
+const { format, parse: parse$1 } = extension$1;
 const { toBuffer } = bufferUtilExports;
 
 const readyStates = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
@@ -18593,7 +18526,7 @@ const closeTimeout = 30 * 1000;
  *
  * @extends EventEmitter
  */
-let WebSocket$2 = class WebSocket extends EventEmitter$6 {
+let WebSocket$1 = class WebSocket extends EventEmitter$5 {
   /**
    * Create a new `WebSocket`.
    *
@@ -18999,7 +18932,7 @@ let WebSocket$2 = class WebSocket extends EventEmitter$6 {
  * @constant {Number} CONNECTING
  * @memberof WebSocket
  */
-Object.defineProperty(WebSocket$2, 'CONNECTING', {
+Object.defineProperty(WebSocket$1, 'CONNECTING', {
   enumerable: true,
   value: readyStates.indexOf('CONNECTING')
 });
@@ -19008,7 +18941,7 @@ Object.defineProperty(WebSocket$2, 'CONNECTING', {
  * @constant {Number} CONNECTING
  * @memberof WebSocket.prototype
  */
-Object.defineProperty(WebSocket$2.prototype, 'CONNECTING', {
+Object.defineProperty(WebSocket$1.prototype, 'CONNECTING', {
   enumerable: true,
   value: readyStates.indexOf('CONNECTING')
 });
@@ -19017,7 +18950,7 @@ Object.defineProperty(WebSocket$2.prototype, 'CONNECTING', {
  * @constant {Number} OPEN
  * @memberof WebSocket
  */
-Object.defineProperty(WebSocket$2, 'OPEN', {
+Object.defineProperty(WebSocket$1, 'OPEN', {
   enumerable: true,
   value: readyStates.indexOf('OPEN')
 });
@@ -19026,7 +18959,7 @@ Object.defineProperty(WebSocket$2, 'OPEN', {
  * @constant {Number} OPEN
  * @memberof WebSocket.prototype
  */
-Object.defineProperty(WebSocket$2.prototype, 'OPEN', {
+Object.defineProperty(WebSocket$1.prototype, 'OPEN', {
   enumerable: true,
   value: readyStates.indexOf('OPEN')
 });
@@ -19035,7 +18968,7 @@ Object.defineProperty(WebSocket$2.prototype, 'OPEN', {
  * @constant {Number} CLOSING
  * @memberof WebSocket
  */
-Object.defineProperty(WebSocket$2, 'CLOSING', {
+Object.defineProperty(WebSocket$1, 'CLOSING', {
   enumerable: true,
   value: readyStates.indexOf('CLOSING')
 });
@@ -19044,7 +18977,7 @@ Object.defineProperty(WebSocket$2, 'CLOSING', {
  * @constant {Number} CLOSING
  * @memberof WebSocket.prototype
  */
-Object.defineProperty(WebSocket$2.prototype, 'CLOSING', {
+Object.defineProperty(WebSocket$1.prototype, 'CLOSING', {
   enumerable: true,
   value: readyStates.indexOf('CLOSING')
 });
@@ -19053,7 +18986,7 @@ Object.defineProperty(WebSocket$2.prototype, 'CLOSING', {
  * @constant {Number} CLOSED
  * @memberof WebSocket
  */
-Object.defineProperty(WebSocket$2, 'CLOSED', {
+Object.defineProperty(WebSocket$1, 'CLOSED', {
   enumerable: true,
   value: readyStates.indexOf('CLOSED')
 });
@@ -19062,7 +18995,7 @@ Object.defineProperty(WebSocket$2, 'CLOSED', {
  * @constant {Number} CLOSED
  * @memberof WebSocket.prototype
  */
-Object.defineProperty(WebSocket$2.prototype, 'CLOSED', {
+Object.defineProperty(WebSocket$1.prototype, 'CLOSED', {
   enumerable: true,
   value: readyStates.indexOf('CLOSED')
 });
@@ -19075,7 +19008,7 @@ Object.defineProperty(WebSocket$2.prototype, 'CLOSED', {
   'readyState',
   'url'
 ].forEach((property) => {
-  Object.defineProperty(WebSocket$2.prototype, property, { enumerable: true });
+  Object.defineProperty(WebSocket$1.prototype, property, { enumerable: true });
 });
 
 //
@@ -19083,7 +19016,7 @@ Object.defineProperty(WebSocket$2.prototype, 'CLOSED', {
 // See https://html.spec.whatwg.org/multipage/comms.html#the-websocket-interface
 //
 ['open', 'error', 'close', 'message'].forEach((method) => {
-  Object.defineProperty(WebSocket$2.prototype, `on${method}`, {
+  Object.defineProperty(WebSocket$1.prototype, `on${method}`, {
     enumerable: true,
     get() {
       for (const listener of this.listeners(method)) {
@@ -19109,10 +19042,10 @@ Object.defineProperty(WebSocket$2.prototype, 'CLOSED', {
   });
 });
 
-WebSocket$2.prototype.addEventListener = addEventListener;
-WebSocket$2.prototype.removeEventListener = removeEventListener;
+WebSocket$1.prototype.addEventListener = addEventListener;
+WebSocket$1.prototype.removeEventListener = removeEventListener;
 
-var websocket = WebSocket$2;
+var websocket = WebSocket$1;
 
 /**
  * Initialize a WebSocket client.
@@ -19168,12 +19101,12 @@ function initAsClient(websocket, address, protocols, options) {
 
   let parsedUrl;
 
-  if (address instanceof URL$1) {
+  if (address instanceof URL) {
     parsedUrl = address;
     websocket._url = address.href;
   } else {
     try {
-      parsedUrl = new URL$1(address);
+      parsedUrl = new URL(address);
     } catch (e) {
       throw new SyntaxError(`Invalid URL: ${address}`);
     }
@@ -19277,7 +19210,7 @@ function initAsClient(websocket, address, protocols, options) {
     if (req === null || req.aborted) return;
 
     req = websocket._req = null;
-    websocket._readyState = WebSocket$2.CLOSING;
+    websocket._readyState = WebSocket$1.CLOSING;
     websocket.emit('error', err);
     websocket.emitClose();
   });
@@ -19299,7 +19232,7 @@ function initAsClient(websocket, address, protocols, options) {
 
       req.abort();
 
-      const addr = new URL$1(location, address);
+      const addr = new URL(location, address);
 
       initAsClient(websocket, addr, protocols, options);
     } else if (!websocket.emit('unexpected-response', req, res)) {
@@ -19318,7 +19251,7 @@ function initAsClient(websocket, address, protocols, options) {
     // The user may have closed the connection from a listener of the `upgrade`
     // event.
     //
-    if (websocket.readyState !== WebSocket$2.CONNECTING) return;
+    if (websocket.readyState !== WebSocket$1.CONNECTING) return;
 
     req = websocket._req = null;
 
@@ -19365,7 +19298,7 @@ function initAsClient(websocket, address, protocols, options) {
       let extensions;
 
       try {
-        extensions = parse$2(secWebSocketExtensions);
+        extensions = parse$1(secWebSocketExtensions);
       } catch (err) {
         const message = 'Invalid Sec-WebSocket-Extensions header';
         abortHandshake$1(websocket, socket, message);
@@ -19441,7 +19374,7 @@ function tlsConnect(options) {
  * @private
  */
 function abortHandshake$1(websocket, stream, message) {
-  websocket._readyState = WebSocket$2.CLOSING;
+  websocket._readyState = WebSocket$1.CLOSING;
 
   const err = new Error(message);
   Error.captureStackTrace(err, abortHandshake$1);
@@ -19620,7 +19553,7 @@ function socketOnClose() {
   this.removeListener('data', socketOnData);
   this.removeListener('end', socketOnEnd);
 
-  websocket._readyState = WebSocket$2.CLOSING;
+  websocket._readyState = WebSocket$1.CLOSING;
 
   let chunk;
 
@@ -19679,7 +19612,7 @@ function socketOnData(chunk) {
 function socketOnEnd() {
   const websocket = this[kWebSocket$1];
 
-  websocket._readyState = WebSocket$2.CLOSING;
+  websocket._readyState = WebSocket$1.CLOSING;
   websocket._receiver.end();
   this.end();
 }
@@ -19696,189 +19629,10 @@ function socketOnError$1() {
   this.on('error', NOOP);
 
   if (websocket) {
-    websocket._readyState = WebSocket$2.CLOSING;
+    websocket._readyState = WebSocket$1.CLOSING;
     this.destroy();
   }
 }
-
-const { Duplex } = require$$1;
-
-/**
- * Emits the `'close'` event on a stream.
- *
- * @param {Duplex} stream The stream.
- * @private
- */
-function emitClose$1(stream) {
-  stream.emit('close');
-}
-
-/**
- * The listener of the `'end'` event.
- *
- * @private
- */
-function duplexOnEnd() {
-  if (!this.destroyed && this._writableState.finished) {
-    this.destroy();
-  }
-}
-
-/**
- * The listener of the `'error'` event.
- *
- * @param {Error} err The error
- * @private
- */
-function duplexOnError(err) {
-  this.removeListener('error', duplexOnError);
-  this.destroy();
-  if (this.listenerCount('error') === 0) {
-    // Do not suppress the throwing behavior.
-    this.emit('error', err);
-  }
-}
-
-/**
- * Wraps a `WebSocket` in a duplex stream.
- *
- * @param {WebSocket} ws The `WebSocket` to wrap
- * @param {Object} [options] The options for the `Duplex` constructor
- * @return {Duplex} The duplex stream
- * @public
- */
-function createWebSocketStream(ws, options) {
-  let resumeOnReceiverDrain = true;
-  let terminateOnDestroy = true;
-
-  function receiverOnDrain() {
-    if (resumeOnReceiverDrain) ws._socket.resume();
-  }
-
-  if (ws.readyState === ws.CONNECTING) {
-    ws.once('open', function open() {
-      ws._receiver.removeAllListeners('drain');
-      ws._receiver.on('drain', receiverOnDrain);
-    });
-  } else {
-    ws._receiver.removeAllListeners('drain');
-    ws._receiver.on('drain', receiverOnDrain);
-  }
-
-  const duplex = new Duplex({
-    ...options,
-    autoDestroy: false,
-    emitClose: false,
-    objectMode: false,
-    writableObjectMode: false
-  });
-
-  ws.on('message', function message(msg, isBinary) {
-    const data =
-      !isBinary && duplex._readableState.objectMode ? msg.toString() : msg;
-
-    if (!duplex.push(data)) {
-      resumeOnReceiverDrain = false;
-      ws._socket.pause();
-    }
-  });
-
-  ws.once('error', function error(err) {
-    if (duplex.destroyed) return;
-
-    // Prevent `ws.terminate()` from being called by `duplex._destroy()`.
-    //
-    // - If the `'error'` event is emitted before the `'open'` event, then
-    //   `ws.terminate()` is a noop as no socket is assigned.
-    // - Otherwise, the error is re-emitted by the listener of the `'error'`
-    //   event of the `Receiver` object. The listener already closes the
-    //   connection by calling `ws.close()`. This allows a close frame to be
-    //   sent to the other peer. If `ws.terminate()` is called right after this,
-    //   then the close frame might not be sent.
-    terminateOnDestroy = false;
-    duplex.destroy(err);
-  });
-
-  ws.once('close', function close() {
-    if (duplex.destroyed) return;
-
-    duplex.push(null);
-  });
-
-  duplex._destroy = function (err, callback) {
-    if (ws.readyState === ws.CLOSED) {
-      callback(err);
-      browser$1.nextTick(emitClose$1, duplex);
-      return;
-    }
-
-    let called = false;
-
-    ws.once('error', function error(err) {
-      called = true;
-      callback(err);
-    });
-
-    ws.once('close', function close() {
-      if (!called) callback(err);
-      browser$1.nextTick(emitClose$1, duplex);
-    });
-
-    if (terminateOnDestroy) ws.terminate();
-  };
-
-  duplex._final = function (callback) {
-    if (ws.readyState === ws.CONNECTING) {
-      ws.once('open', function open() {
-        duplex._final(callback);
-      });
-      return;
-    }
-
-    // If the value of the `_socket` property is `null` it means that `ws` is a
-    // client websocket and the handshake failed. In fact, when this happens, a
-    // socket is never assigned to the websocket. Wait for the `'error'` event
-    // that will be emitted by the websocket.
-    if (ws._socket === null) return;
-
-    if (ws._socket._writableState.finished) {
-      callback();
-      if (duplex._readableState.endEmitted) duplex.destroy();
-    } else {
-      ws._socket.once('finish', function finish() {
-        // `duplex` is not destroyed here because the `'end'` event will be
-        // emitted on `duplex` after this `'finish'` event. The EOF signaling
-        // `null` chunk is, in fact, pushed when the websocket emits `'close'`.
-        callback();
-      });
-      ws.close();
-    }
-  };
-
-  duplex._read = function () {
-    if (ws.readyState === ws.OPEN && !resumeOnReceiverDrain) {
-      resumeOnReceiverDrain = true;
-      if (!ws._receiver._writableState.needDrain) ws._socket.resume();
-    }
-  };
-
-  duplex._write = function (chunk, encoding, callback) {
-    if (ws.readyState === ws.CONNECTING) {
-      ws.once('open', function open() {
-        duplex._write(chunk, encoding, callback);
-      });
-      return;
-    }
-
-    ws.send(chunk, callback);
-  };
-
-  duplex.on('end', duplexOnEnd);
-  duplex.on('error', duplexOnError);
-  return duplex;
-}
-
-var stream = createWebSocketStream;
 
 const { tokenChars } = validationExports;
 
@@ -19889,7 +19643,7 @@ const { tokenChars } = validationExports;
  * @return {Set} The subprotocol names
  * @public
  */
-function parse$1(header) {
+function parse(header) {
   const protocols = new Set();
   let start = -1;
   let end = -1;
@@ -19939,16 +19693,16 @@ function parse$1(header) {
   return protocols;
 }
 
-var subprotocol$1 = { parse: parse$1 };
+var subprotocol$1 = { parse };
 
-const EventEmitter$5 = require$$1$2;
+const EventEmitter$4 = require$$1$2;
 const http = require$$1$1;
-const { createHash } = require$$5$1;
+const { createHash } = require$$5;
 
 const extension = extension$1;
 const PerMessageDeflate = permessageDeflate;
 const subprotocol = subprotocol$1;
-const WebSocket$1 = websocket;
+const WebSocket = websocket;
 const { GUID, kWebSocket } = constants;
 
 const keyRegex = /^[+/0-9A-Za-z]{22}==$/;
@@ -19962,7 +19716,7 @@ const CLOSED = 2;
  *
  * @extends EventEmitter
  */
-class WebSocketServer extends EventEmitter$5 {
+class WebSocketServer extends EventEmitter$4 {
   /**
    * Create a `WebSocketServer` instance.
    *
@@ -20292,7 +20046,7 @@ class WebSocketServer extends EventEmitter$5 {
       `Sec-WebSocket-Accept: ${digest}`
     ];
 
-    const ws = new WebSocket$1(null);
+    const ws = new WebSocket(null);
 
     if (protocols.size) {
       //
@@ -20402,7 +20156,7 @@ function abortHandshake(socket, code, message, headers) {
     headers = {
       Connection: 'close',
       'Content-Type': 'text/html',
-      'Content-Length': Buffer$3.byteLength(message),
+      'Content-Length': Buffer$1.byteLength(message),
       ...headers
     };
 
@@ -20420,250 +20174,206 @@ function abortHandshake(socket, code, message, headers) {
   socket.destroy();
 }
 
-const WebSocket = websocket;
+var WebSocketServer$1 = /*@__PURE__*/getDefaultExportFromCjs(websocketServer);
 
-WebSocket.createWebSocketStream = stream;
-WebSocket.Server = websocketServer;
-WebSocket.Receiver = receiver;
-WebSocket.Sender = sender;
-
-WebSocket.WebSocket = WebSocket;
-WebSocket.WebSocketServer = WebSocket.Server;
-
-var ws = WebSocket;
-
-const { Message: Message$2 } = messaging;
-const WebSockets = ws;
-const Tcp = require$$2$1;
-const { createServer } = require$$3;
-const path = require$$4;
-const fs = require$$5;
-const { Buffer: Buffer$1 } = require$$6;
-
-// All WrappedConnection types implement two callbacks,
-// onMessage and onClose, and one function, Send.
-// onMessage and send both provide and receive Ubiq Message
-// types.
-
-// Use the callbacks like so,
-// connection.onMessage.push(this.myOnMessageCallback.bind(this));
-// connection.onClose.push(this.myOnCloseCallback.bind(this));
-
-
-let WrappedSecureWebSocketServer$1 = class WrappedSecureWebSocketServer{
-
+const createServer = https$1.createServer;
+class WrappedSecureWebSocketServer {
     // Opens a new Secure WebSocket Server through an HTTPS instance.
     // The certificate and key should be provided as paths in the config.
-    
-    constructor(config){
-        if(config == undefined){
+    onConnection = [];
+    status = "";
+    port = -1;
+    constructor(config) {
+        if (config == undefined) {
             return;
         }
-
+        const self = this;
         this.onConnection = [];
-        
         let certPath = path.resolve(config.cert);
         let keyPath = path.resolve(config.key);
-
-        if(!fs.existsSync(certPath)){
+        if (!fs.existsSync(certPath)) {
             console.error(`Certificate at ${certPath} could not be found. WebSocket server will not be started.`);
             return;
         }
-        if(!fs.existsSync(keyPath)){
+        if (!fs.existsSync(keyPath)) {
             console.error(`Certificate at ${certPath} could not be found. WebSocket server will not be started.`);
             return;
         }
-
         // Use an https server to present the websocket 
         // (see: https://github.com/websockets/ws#usage-examples)
-            
         const server = createServer({
             cert: fs.readFileSync(certPath),
             key: fs.readFileSync(keyPath)
-        },
-        (req, res) => {
+        }, (req, res) => {
             res.writeHead(200);
             res.end('Welcome to Ubiq! This is a Ubiq WebSocket Server. To use this endpoint, connect to it with a Ubiq Client.\n');
-          }
-        );
-        const wss = new WebSockets.WebSocketServer({ server }); // Take care to use the WebSocketServer member, as the import of ws provides the WebSocket *client* type.
+        });
+        const wss = new WebSocketServer$1({ server }); // Take care to use the WebSocketServer member, as the import of ws provides the WebSocket *client* type.
         this.port = config.port;
         server.listen(this.port);
-
-        wss.on("connection", function(ws) {
-            this.onConnection.map(callback => callback(new WebSocketConnectionWrapper$2(ws)));
-        }.bind(this));
-
+        wss.on("connection", function (ws) {
+            self.onConnection.map(callback => callback(new WebSocketConnectionWrapper(ws)));
+        });
         this.status = "LISTENING";
     }
-};
-
-let WebSocketConnectionWrapper$2 = class WebSocketConnectionWrapper{
-    constructor(ws){
+}
+class WebSocketConnectionWrapper {
+    onMessage;
+    onClose;
+    state;
+    socket;
+    pending;
+    constructor(ws) {
         this.onMessage = [];
         this.onClose = [];
         this.state = ws.readyState;
         this.socket = ws;
         this.socket.binaryType = "arraybuffer"; // This has no effect in Node, but correctly configures the event type in the browser
         this.pending = [];
-
-        this.socket.onmessage = function(event){
-            let data = event.data;
-            if(event.data instanceof ArrayBuffer){
-                data = Buffer$1.from(data);
+        const self = this;
+        this.socket.on("message", function (event) {
+            let data = event;
+            if (data instanceof ArrayBuffer) {
+                data = Buffer.from(data);
             }
-            this.onMessage.map(callback => callback(Message$2.Wrap(data)));
-        }.bind(this);
-
-        this.socket.onclose = function(event){
-            this.state = WebSocketConnectionWrapper.CLOSED;
-            this.onClose.map(callback => callback());
-        }.bind(this);
-
-        this.socket.onopen = function(event){
-            this.state = WebSocketConnectionWrapper.OPEN;
-            this.pending.forEach(element => {
-                this.socket.send(element);
+            if (Array.isArray(data)) {
+                data = Buffer.concat(data);
+            }
+            // We can safely assume that our data is of type Buffer now.
+            self.onMessage.map(callback => callback(Message.Wrap(data)));
+        });
+        this.socket.on('close', function (event) {
+            self.state = WebSocketConnectionWrapper.CLOSED;
+            self.onClose.map(callback => callback());
+        });
+        this.socket.on('open', function (event) {
+            self.state = WebSocketConnectionWrapper.OPEN;
+            self.pending.forEach(element => {
+                self.socket.send(element);
             });
-            this.pending = [];
-        }.bind(this);
+            self.pending = [];
+        });
     }
-
     static CONNECTING = 0;
     static OPEN = 1;
     static CLOSED = 2;
-
-    send(message){
-        if(this.state == WebSocketConnectionWrapper.OPEN){
+    send(message) {
+        if (this.state == WebSocketConnectionWrapper.OPEN) {
             this.socket.send(message.buffer);
-        }else if(this.state == WebSocketConnectionWrapper.CONNECTING){
+        }
+        else if (this.state == WebSocketConnectionWrapper.CONNECTING) {
             this.pending.push(message.buffer);
         }
     }
-
-    endpoint(){
-        return {
-            address: this.socket._socket.remoteAddress,
-            port: this.socket._socket.remotePort
-        };
+    endpoint() {
+        return this.socket.url;
     }
-};
-
-let WrappedTcpServer$1 = class WrappedTcpServer{
-    constructor(config){
-        if(config == undefined){
+}
+class WrappedTcpServer {
+    onConnection = [];
+    port = -1;
+    status = "";
+    constructor(config) {
+        if (config == undefined) {
             return;
         }
+        const self = this;
         this.onConnection = [];
         this.port = config.port;
-        var server = Tcp.createServer(); 
-        server.on('connection', function(s){
-            this.onConnection.map(callback => callback(new TcpConnectionWrapper$1(s)));
-        }.bind(this));
+        var server = Tcp.createServer();
+        server.on('connection', function (s) {
+            self.onConnection.map(callback => callback(new TcpConnectionWrapper(s)));
+        });
         server.listen(this.port);
         this.status = "LISTENING";
     }
-};
-
-let TcpConnectionWrapper$1 = class TcpConnectionWrapper{
-    constructor(s){
+}
+class TcpConnectionWrapper {
+    onMessage;
+    onClose;
+    socket;
+    headersize;
+    bufferRead;
+    header;
+    data;
+    closed;
+    constructor(s) {
         this.onMessage = [];
         this.onClose = [];
         this.socket = s;
         this.headersize = 4;
-        this.header = Buffer$1.alloc(this.headersize);
-        this.header.read = 0;
+        this.header = Buffer.alloc(this.headersize);
+        this.bufferRead = 0;
         this.data = null;
         this.closed = false;
-        
-        this.socket.on("data", 
-            this.onData.bind(this));
-        
-        this.socket.on("close", function(event){
-            if(!this.closed){
-                this.onClose.map(callback => callback());
-                this.closed = true;
+        const self = this;
+        this.socket.on("data", self.onData.bind(this));
+        this.socket.on("close", function (event) {
+            if (!self.closed) {
+                self.onClose.map(callback => callback());
+                self.closed = true;
             }
-        }.bind(this));
-
-        this.socket.on("error", function(event){
-            if(!this.closed){
-                this.onClose.map(callback => callback());
-                this.closed = true;
+        });
+        this.socket.on("error", function (event) {
+            if (!self.closed) {
+                self.onClose.map(callback => callback());
+                self.closed = true;
             }
-        }.bind(this));
+        });
     }
-
-    onData(array){
-        var fragment = Buffer$1.from(array.buffer, array.byteOffset, array.byteLength);
+    onData(array) {
+        var fragment = Buffer.from(array.buffer, array.byteOffset, array.byteLength);
         var offset = 0;
         var available = fragment.length - offset;
-
-        while(available > 0){ // we could have multiple messages packed into one fragment
-
-            if(this.header.read < this.header.length){
-                var remaining = this.header.length - this.header.read;
+        while (available > 0) { // we could have multiple messages packed into one fragment
+            if (this.bufferRead < this.header.length) {
+                var remaining = this.header.length - this.bufferRead;
                 var toread = Math.min(remaining, available);
-                var read = fragment.copy(this.header, this.header.read, offset, offset + toread);
-                this.header.read += read;
+                var read = fragment.copy(this.header, this.bufferRead, offset, offset + toread);
+                this.bufferRead += read;
                 offset += read;
                 available = fragment.length - offset;
-
                 // we have just received the complete header
-                if(this.header.read == this.header.length)
-                {
+                if (this.bufferRead == this.header.length) {
                     var length = this.header.readInt32LE(0);
-                    this.data = Buffer$1.alloc(length + this.headersize);
+                    this.data = Buffer.alloc(length + this.headersize);
                     this.data.read = this.header.copy(this.data, 0, 0, this.headersize); // Message Wrapper expects the header.
                 }
             }
-
-            if(this.data != null){
-                if(this.data.read < this.data.length){
+            if (this.data != null) {
+                if (this.data.read < this.data.length) {
                     var remaining = this.data.length - this.data.read;
                     var toread = Math.min(remaining, available);
                     var read = fragment.copy(this.data, this.data.read, offset, offset + toread);
                     this.data.read += read;
                     offset += read;
                     available = fragment.length - offset;
-
                     // the message is complete
-                    if(this.data.read == this.data.length){
-                        this.onMessage.map(callback => callback(Message$2.Wrap(this.data)));
+                    if (this.data.read == this.data.length) {
+                        this.onMessage.map(callback => callback(Message.Wrap(this.data)));
                         this.data = null;
-                        this.header.read = 0;
+                        this.bufferRead = 0;
                     }
                 }
             }
         }
     }
-
-    send(message){
+    send(message) {
         this.socket.write(message.buffer);
     }
-
-    endpoint(){
+    endpoint() {
         return {
             address: this.socket.remoteAddress,
             port: this.socket.remotePort
-        }
+        };
     }
-};
-
+}
 // Creates a new Ubiq Messaging Connection over TCP
-function UbiqTcpConnection$1(uri,port){
+function UbiqTcpConnection(uri, port) {
     var client = new Tcp.Socket();
     client.connect(port, uri);
-    return new TcpConnectionWrapper$1(client);
+    return new TcpConnectionWrapper(client);
 }
-
-var connections = {
-    WebSocketConnectionWrapper: WebSocketConnectionWrapper$2,
-    WrappedSecureWebSocketServer: WrappedSecureWebSocketServer$1,
-    TcpConnectionWrapper: TcpConnectionWrapper$1,
-    WrappedTcpServer: WrappedTcpServer$1,
-    UbiqTcpConnection: UbiqTcpConnection$1
-};
 
 // Unique ID creation requires a high quality random # generator. In the browser we therefore
 // require the crypto API and do not support built-in fallback to lower quality random number
@@ -20687,7 +20397,7 @@ function rng() {
 
 var REGEX = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
 
-function validate$1(uuid) {
+function validate(uuid) {
   return typeof uuid === 'string' && REGEX.test(uuid);
 }
 
@@ -20712,415 +20422,12 @@ function stringify(arr) {
   // "undefined" in the uuid)
   // - Invalid input values for the RFC `version` or `variant` fields
 
-  if (!validate$1(uuid)) {
+  if (!validate(uuid)) {
     throw TypeError('Stringified UUID is invalid');
   }
 
   return uuid;
 }
-
-//
-// Inspired by https://github.com/LiosK/UUID.js
-// and http://docs.python.org/library/uuid.html
-
-var _nodeId;
-
-var _clockseq; // Previous uuid creation time
-
-
-var _lastMSecs = 0;
-var _lastNSecs = 0; // See https://github.com/uuidjs/uuid for API details
-
-function v1(options, buf, offset) {
-  var i = buf && offset || 0;
-  var b = buf || new Array(16);
-  options = options || {};
-  var node = options.node || _nodeId;
-  var clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq; // node and clockseq need to be initialized to random values if they're not
-  // specified.  We do this lazily to minimize issues related to insufficient
-  // system entropy.  See #189
-
-  if (node == null || clockseq == null) {
-    var seedBytes = options.random || (options.rng || rng)();
-
-    if (node == null) {
-      // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
-      node = _nodeId = [seedBytes[0] | 0x01, seedBytes[1], seedBytes[2], seedBytes[3], seedBytes[4], seedBytes[5]];
-    }
-
-    if (clockseq == null) {
-      // Per 4.2.2, randomize (14 bit) clockseq
-      clockseq = _clockseq = (seedBytes[6] << 8 | seedBytes[7]) & 0x3fff;
-    }
-  } // UUID timestamps are 100 nano-second units since the Gregorian epoch,
-  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
-  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
-  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
-
-
-  var msecs = options.msecs !== undefined ? options.msecs : Date.now(); // Per 4.2.1.2, use count of uuid's generated during the current clock
-  // cycle to simulate higher resolution clock
-
-  var nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1; // Time since last uuid creation (in msecs)
-
-  var dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 10000; // Per 4.2.1.2, Bump clockseq on clock regression
-
-  if (dt < 0 && options.clockseq === undefined) {
-    clockseq = clockseq + 1 & 0x3fff;
-  } // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
-  // time interval
-
-
-  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
-    nsecs = 0;
-  } // Per 4.2.1.2 Throw error if too many uuids are requested
-
-
-  if (nsecs >= 10000) {
-    throw new Error("uuid.v1(): Can't create more than 10M uuids/sec");
-  }
-
-  _lastMSecs = msecs;
-  _lastNSecs = nsecs;
-  _clockseq = clockseq; // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
-
-  msecs += 12219292800000; // `time_low`
-
-  var tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
-  b[i++] = tl >>> 24 & 0xff;
-  b[i++] = tl >>> 16 & 0xff;
-  b[i++] = tl >>> 8 & 0xff;
-  b[i++] = tl & 0xff; // `time_mid`
-
-  var tmh = msecs / 0x100000000 * 10000 & 0xfffffff;
-  b[i++] = tmh >>> 8 & 0xff;
-  b[i++] = tmh & 0xff; // `time_high_and_version`
-
-  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
-
-  b[i++] = tmh >>> 16 & 0xff; // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
-
-  b[i++] = clockseq >>> 8 | 0x80; // `clock_seq_low`
-
-  b[i++] = clockseq & 0xff; // `node`
-
-  for (var n = 0; n < 6; ++n) {
-    b[i + n] = node[n];
-  }
-
-  return buf || stringify(b);
-}
-
-function parse(uuid) {
-  if (!validate$1(uuid)) {
-    throw TypeError('Invalid UUID');
-  }
-
-  var v;
-  var arr = new Uint8Array(16); // Parse ########-....-....-....-............
-
-  arr[0] = (v = parseInt(uuid.slice(0, 8), 16)) >>> 24;
-  arr[1] = v >>> 16 & 0xff;
-  arr[2] = v >>> 8 & 0xff;
-  arr[3] = v & 0xff; // Parse ........-####-....-....-............
-
-  arr[4] = (v = parseInt(uuid.slice(9, 13), 16)) >>> 8;
-  arr[5] = v & 0xff; // Parse ........-....-####-....-............
-
-  arr[6] = (v = parseInt(uuid.slice(14, 18), 16)) >>> 8;
-  arr[7] = v & 0xff; // Parse ........-....-....-####-............
-
-  arr[8] = (v = parseInt(uuid.slice(19, 23), 16)) >>> 8;
-  arr[9] = v & 0xff; // Parse ........-....-....-....-############
-  // (Use "/" to avoid 32-bit truncation when bit-shifting high-order bytes)
-
-  arr[10] = (v = parseInt(uuid.slice(24, 36), 16)) / 0x10000000000 & 0xff;
-  arr[11] = v / 0x100000000 & 0xff;
-  arr[12] = v >>> 24 & 0xff;
-  arr[13] = v >>> 16 & 0xff;
-  arr[14] = v >>> 8 & 0xff;
-  arr[15] = v & 0xff;
-  return arr;
-}
-
-function stringToBytes(str) {
-  str = unescape(encodeURIComponent(str)); // UTF8 escape
-
-  var bytes = [];
-
-  for (var i = 0; i < str.length; ++i) {
-    bytes.push(str.charCodeAt(i));
-  }
-
-  return bytes;
-}
-
-var DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
-var URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
-function v35 (name, version, hashfunc) {
-  function generateUUID(value, namespace, buf, offset) {
-    if (typeof value === 'string') {
-      value = stringToBytes(value);
-    }
-
-    if (typeof namespace === 'string') {
-      namespace = parse(namespace);
-    }
-
-    if (namespace.length !== 16) {
-      throw TypeError('Namespace must be array-like (16 iterable integer values, 0-255)');
-    } // Compute hash of namespace and value, Per 4.3
-    // Future: Use spread syntax when supported on all platforms, e.g. `bytes =
-    // hashfunc([...namespace, ... value])`
-
-
-    var bytes = new Uint8Array(16 + value.length);
-    bytes.set(namespace);
-    bytes.set(value, namespace.length);
-    bytes = hashfunc(bytes);
-    bytes[6] = bytes[6] & 0x0f | version;
-    bytes[8] = bytes[8] & 0x3f | 0x80;
-
-    if (buf) {
-      offset = offset || 0;
-
-      for (var i = 0; i < 16; ++i) {
-        buf[offset + i] = bytes[i];
-      }
-
-      return buf;
-    }
-
-    return stringify(bytes);
-  } // Function#name is not settable on some platforms (#270)
-
-
-  try {
-    generateUUID.name = name; // eslint-disable-next-line no-empty
-  } catch (err) {} // For CommonJS default export support
-
-
-  generateUUID.DNS = DNS;
-  generateUUID.URL = URL;
-  return generateUUID;
-}
-
-/*
- * Browser-compatible JavaScript MD5
- *
- * Modification of JavaScript MD5
- * https://github.com/blueimp/JavaScript-MD5
- *
- * Copyright 2011, Sebastian Tschan
- * https://blueimp.net
- *
- * Licensed under the MIT license:
- * https://opensource.org/licenses/MIT
- *
- * Based on
- * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
- * Digest Algorithm, as defined in RFC 1321.
- * Version 2.2 Copyright (C) Paul Johnston 1999 - 2009
- * Other contributors: Greg Holt, Andrew Kepert, Ydnar, Lostinet
- * Distributed under the BSD License
- * See http://pajhome.org.uk/crypt/md5 for more info.
- */
-function md5(bytes) {
-  if (typeof bytes === 'string') {
-    var msg = unescape(encodeURIComponent(bytes)); // UTF8 escape
-
-    bytes = new Uint8Array(msg.length);
-
-    for (var i = 0; i < msg.length; ++i) {
-      bytes[i] = msg.charCodeAt(i);
-    }
-  }
-
-  return md5ToHexEncodedArray(wordsToMd5(bytesToWords(bytes), bytes.length * 8));
-}
-/*
- * Convert an array of little-endian words to an array of bytes
- */
-
-
-function md5ToHexEncodedArray(input) {
-  var output = [];
-  var length32 = input.length * 32;
-  var hexTab = '0123456789abcdef';
-
-  for (var i = 0; i < length32; i += 8) {
-    var x = input[i >> 5] >>> i % 32 & 0xff;
-    var hex = parseInt(hexTab.charAt(x >>> 4 & 0x0f) + hexTab.charAt(x & 0x0f), 16);
-    output.push(hex);
-  }
-
-  return output;
-}
-/**
- * Calculate output length with padding and bit length
- */
-
-
-function getOutputLength(inputLength8) {
-  return (inputLength8 + 64 >>> 9 << 4) + 14 + 1;
-}
-/*
- * Calculate the MD5 of an array of little-endian words, and a bit length.
- */
-
-
-function wordsToMd5(x, len) {
-  /* append padding */
-  x[len >> 5] |= 0x80 << len % 32;
-  x[getOutputLength(len) - 1] = len;
-  var a = 1732584193;
-  var b = -271733879;
-  var c = -1732584194;
-  var d = 271733878;
-
-  for (var i = 0; i < x.length; i += 16) {
-    var olda = a;
-    var oldb = b;
-    var oldc = c;
-    var oldd = d;
-    a = md5ff(a, b, c, d, x[i], 7, -680876936);
-    d = md5ff(d, a, b, c, x[i + 1], 12, -389564586);
-    c = md5ff(c, d, a, b, x[i + 2], 17, 606105819);
-    b = md5ff(b, c, d, a, x[i + 3], 22, -1044525330);
-    a = md5ff(a, b, c, d, x[i + 4], 7, -176418897);
-    d = md5ff(d, a, b, c, x[i + 5], 12, 1200080426);
-    c = md5ff(c, d, a, b, x[i + 6], 17, -1473231341);
-    b = md5ff(b, c, d, a, x[i + 7], 22, -45705983);
-    a = md5ff(a, b, c, d, x[i + 8], 7, 1770035416);
-    d = md5ff(d, a, b, c, x[i + 9], 12, -1958414417);
-    c = md5ff(c, d, a, b, x[i + 10], 17, -42063);
-    b = md5ff(b, c, d, a, x[i + 11], 22, -1990404162);
-    a = md5ff(a, b, c, d, x[i + 12], 7, 1804603682);
-    d = md5ff(d, a, b, c, x[i + 13], 12, -40341101);
-    c = md5ff(c, d, a, b, x[i + 14], 17, -1502002290);
-    b = md5ff(b, c, d, a, x[i + 15], 22, 1236535329);
-    a = md5gg(a, b, c, d, x[i + 1], 5, -165796510);
-    d = md5gg(d, a, b, c, x[i + 6], 9, -1069501632);
-    c = md5gg(c, d, a, b, x[i + 11], 14, 643717713);
-    b = md5gg(b, c, d, a, x[i], 20, -373897302);
-    a = md5gg(a, b, c, d, x[i + 5], 5, -701558691);
-    d = md5gg(d, a, b, c, x[i + 10], 9, 38016083);
-    c = md5gg(c, d, a, b, x[i + 15], 14, -660478335);
-    b = md5gg(b, c, d, a, x[i + 4], 20, -405537848);
-    a = md5gg(a, b, c, d, x[i + 9], 5, 568446438);
-    d = md5gg(d, a, b, c, x[i + 14], 9, -1019803690);
-    c = md5gg(c, d, a, b, x[i + 3], 14, -187363961);
-    b = md5gg(b, c, d, a, x[i + 8], 20, 1163531501);
-    a = md5gg(a, b, c, d, x[i + 13], 5, -1444681467);
-    d = md5gg(d, a, b, c, x[i + 2], 9, -51403784);
-    c = md5gg(c, d, a, b, x[i + 7], 14, 1735328473);
-    b = md5gg(b, c, d, a, x[i + 12], 20, -1926607734);
-    a = md5hh(a, b, c, d, x[i + 5], 4, -378558);
-    d = md5hh(d, a, b, c, x[i + 8], 11, -2022574463);
-    c = md5hh(c, d, a, b, x[i + 11], 16, 1839030562);
-    b = md5hh(b, c, d, a, x[i + 14], 23, -35309556);
-    a = md5hh(a, b, c, d, x[i + 1], 4, -1530992060);
-    d = md5hh(d, a, b, c, x[i + 4], 11, 1272893353);
-    c = md5hh(c, d, a, b, x[i + 7], 16, -155497632);
-    b = md5hh(b, c, d, a, x[i + 10], 23, -1094730640);
-    a = md5hh(a, b, c, d, x[i + 13], 4, 681279174);
-    d = md5hh(d, a, b, c, x[i], 11, -358537222);
-    c = md5hh(c, d, a, b, x[i + 3], 16, -722521979);
-    b = md5hh(b, c, d, a, x[i + 6], 23, 76029189);
-    a = md5hh(a, b, c, d, x[i + 9], 4, -640364487);
-    d = md5hh(d, a, b, c, x[i + 12], 11, -421815835);
-    c = md5hh(c, d, a, b, x[i + 15], 16, 530742520);
-    b = md5hh(b, c, d, a, x[i + 2], 23, -995338651);
-    a = md5ii(a, b, c, d, x[i], 6, -198630844);
-    d = md5ii(d, a, b, c, x[i + 7], 10, 1126891415);
-    c = md5ii(c, d, a, b, x[i + 14], 15, -1416354905);
-    b = md5ii(b, c, d, a, x[i + 5], 21, -57434055);
-    a = md5ii(a, b, c, d, x[i + 12], 6, 1700485571);
-    d = md5ii(d, a, b, c, x[i + 3], 10, -1894986606);
-    c = md5ii(c, d, a, b, x[i + 10], 15, -1051523);
-    b = md5ii(b, c, d, a, x[i + 1], 21, -2054922799);
-    a = md5ii(a, b, c, d, x[i + 8], 6, 1873313359);
-    d = md5ii(d, a, b, c, x[i + 15], 10, -30611744);
-    c = md5ii(c, d, a, b, x[i + 6], 15, -1560198380);
-    b = md5ii(b, c, d, a, x[i + 13], 21, 1309151649);
-    a = md5ii(a, b, c, d, x[i + 4], 6, -145523070);
-    d = md5ii(d, a, b, c, x[i + 11], 10, -1120210379);
-    c = md5ii(c, d, a, b, x[i + 2], 15, 718787259);
-    b = md5ii(b, c, d, a, x[i + 9], 21, -343485551);
-    a = safeAdd(a, olda);
-    b = safeAdd(b, oldb);
-    c = safeAdd(c, oldc);
-    d = safeAdd(d, oldd);
-  }
-
-  return [a, b, c, d];
-}
-/*
- * Convert an array bytes to an array of little-endian words
- * Characters >255 have their high-byte silently ignored.
- */
-
-
-function bytesToWords(input) {
-  if (input.length === 0) {
-    return [];
-  }
-
-  var length8 = input.length * 8;
-  var output = new Uint32Array(getOutputLength(length8));
-
-  for (var i = 0; i < length8; i += 8) {
-    output[i >> 5] |= (input[i / 8] & 0xff) << i % 32;
-  }
-
-  return output;
-}
-/*
- * Add integers, wrapping at 2^32. This uses 16-bit operations internally
- * to work around bugs in some JS interpreters.
- */
-
-
-function safeAdd(x, y) {
-  var lsw = (x & 0xffff) + (y & 0xffff);
-  var msw = (x >> 16) + (y >> 16) + (lsw >> 16);
-  return msw << 16 | lsw & 0xffff;
-}
-/*
- * Bitwise rotate a 32-bit number to the left.
- */
-
-
-function bitRotateLeft(num, cnt) {
-  return num << cnt | num >>> 32 - cnt;
-}
-/*
- * These functions implement the four basic operations the algorithm uses.
- */
-
-
-function md5cmn(q, a, b, x, s, t) {
-  return safeAdd(bitRotateLeft(safeAdd(safeAdd(a, q), safeAdd(x, t)), s), b);
-}
-
-function md5ff(a, b, c, d, x, s, t) {
-  return md5cmn(b & c | ~b & d, a, b, x, s, t);
-}
-
-function md5gg(a, b, c, d, x, s, t) {
-  return md5cmn(b & d | c & ~d, a, b, x, s, t);
-}
-
-function md5hh(a, b, c, d, x, s, t) {
-  return md5cmn(b ^ c ^ d, a, b, x, s, t);
-}
-
-function md5ii(a, b, c, d, x, s, t) {
-  return md5cmn(c ^ (b | ~d), a, b, x, s, t);
-}
-
-var v3 = v35('v3', 0x30, md5);
-var v3$1 = v3;
 
 function v4(options, buf, offset) {
   options = options || {};
@@ -21142,153 +20449,27 @@ function v4(options, buf, offset) {
   return stringify(rnds);
 }
 
-// Adapted from Chris Veness' SHA1 code at
-// http://www.movable-type.co.uk/scripts/sha1.html
-function f(s, x, y, z) {
-  switch (s) {
-    case 0:
-      return x & y ^ ~x & z;
-
-    case 1:
-      return x ^ y ^ z;
-
-    case 2:
-      return x & y ^ x & z ^ y & z;
-
-    case 3:
-      return x ^ y ^ z;
-  }
-}
-
-function ROTL(x, n) {
-  return x << n | x >>> 32 - n;
-}
-
-function sha1(bytes) {
-  var K = [0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6];
-  var H = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0];
-
-  if (typeof bytes === 'string') {
-    var msg = unescape(encodeURIComponent(bytes)); // UTF8 escape
-
-    bytes = [];
-
-    for (var i = 0; i < msg.length; ++i) {
-      bytes.push(msg.charCodeAt(i));
+let Uuid$1 = class Uuid {
+    static generate() {
+        return v4();
     }
-  } else if (!Array.isArray(bytes)) {
-    // Convert Array-like to Array
-    bytes = Array.prototype.slice.call(bytes);
-  }
-
-  bytes.push(0x80);
-  var l = bytes.length / 4 + 2;
-  var N = Math.ceil(l / 16);
-  var M = new Array(N);
-
-  for (var _i = 0; _i < N; ++_i) {
-    var arr = new Uint32Array(16);
-
-    for (var j = 0; j < 16; ++j) {
-      arr[j] = bytes[_i * 64 + j * 4] << 24 | bytes[_i * 64 + j * 4 + 1] << 16 | bytes[_i * 64 + j * 4 + 2] << 8 | bytes[_i * 64 + j * 4 + 3];
-    }
-
-    M[_i] = arr;
-  }
-
-  M[N - 1][14] = (bytes.length - 1) * 8 / Math.pow(2, 32);
-  M[N - 1][14] = Math.floor(M[N - 1][14]);
-  M[N - 1][15] = (bytes.length - 1) * 8 & 0xffffffff;
-
-  for (var _i2 = 0; _i2 < N; ++_i2) {
-    var W = new Uint32Array(80);
-
-    for (var t = 0; t < 16; ++t) {
-      W[t] = M[_i2][t];
-    }
-
-    for (var _t = 16; _t < 80; ++_t) {
-      W[_t] = ROTL(W[_t - 3] ^ W[_t - 8] ^ W[_t - 14] ^ W[_t - 16], 1);
-    }
-
-    var a = H[0];
-    var b = H[1];
-    var c = H[2];
-    var d = H[3];
-    var e = H[4];
-
-    for (var _t2 = 0; _t2 < 80; ++_t2) {
-      var s = Math.floor(_t2 / 20);
-      var T = ROTL(a, 5) + f(s, b, c, d) + e + K[s] + W[_t2] >>> 0;
-      e = d;
-      d = c;
-      c = ROTL(b, 30) >>> 0;
-      b = a;
-      a = T;
-    }
-
-    H[0] = H[0] + a >>> 0;
-    H[1] = H[1] + b >>> 0;
-    H[2] = H[2] + c >>> 0;
-    H[3] = H[3] + d >>> 0;
-    H[4] = H[4] + e >>> 0;
-  }
-
-  return [H[0] >> 24 & 0xff, H[0] >> 16 & 0xff, H[0] >> 8 & 0xff, H[0] & 0xff, H[1] >> 24 & 0xff, H[1] >> 16 & 0xff, H[1] >> 8 & 0xff, H[1] & 0xff, H[2] >> 24 & 0xff, H[2] >> 16 & 0xff, H[2] >> 8 & 0xff, H[2] & 0xff, H[3] >> 24 & 0xff, H[3] >> 16 & 0xff, H[3] >> 8 & 0xff, H[3] & 0xff, H[4] >> 24 & 0xff, H[4] >> 16 & 0xff, H[4] >> 8 & 0xff, H[4] & 0xff];
-}
-
-var v5 = v35('v5', 0x50, sha1);
-var v5$1 = v5;
-
-var nil = '00000000-0000-0000-0000-000000000000';
-
-function version$1(uuid) {
-  if (!validate$1(uuid)) {
-    throw TypeError('Invalid UUID');
-  }
-
-  return parseInt(uuid.substr(14, 1), 16);
-}
-
-var esmBrowser = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	NIL: nil,
-	parse: parse,
-	stringify: stringify,
-	v1: v1,
-	v3: v3$1,
-	v4: v4,
-	v5: v5$1,
-	validate: validate$1,
-	version: version$1
-});
-
-var require$$0 = /*@__PURE__*/getAugmentedNamespace(esmBrowser);
-
-const { v4: uuidv4, validate: validate, version: version } = require$$0;
-
-let Uuid$2 = class Uuid {
-    static generate(){
-        return uuidv4();
-    }
-    static validate(str){
+    static validate(str) {
         return validate(str);
     }
 };
 
-var uuid = {
-    Uuid: Uuid$2
-};
+var uuid = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	Uuid: Uuid$1
+});
 
-const { Message: Message$1, NetworkId: NetworkId$6 } = messaging;
-const { EventEmitter: EventEmitter$4 } = require$$1$2;
-
-let NetworkContext$1 = class NetworkContext{
-    constructor(scene, object){
-        this.object = object;   // The Networked Component that this context belongs to
-        this.scene = scene;     // The NetworkScene that this context belongs to
+class NetworkContext {
+    scene;
+    object;
+    constructor(scene, object) {
+        this.object = object; // The Networked Component that this context belongs to
+        this.scene = scene; // The NetworkScene that this context belongs to
     }
-
     // Send a message to another Ubiq Component. This method will work out the
     // Network Id to send to based on the arguments.
     // The arguments can be a,
@@ -21304,172 +20485,140 @@ let NetworkContext$1 = class NetworkContext{
     //  this.context.send(this, message);
     //  this.context.send({networkId: id}, message);
     //  this.context.send(networkId, message);
-    send(args){
-        if(arguments.length == 0){
-            throw "Send must have at least one argument"
-        }else if(arguments.length == 1){
+    send(...args) {
+        if (arguments.length == 0) {
+            throw "Send must have at least one argument";
+        }
+        else if (arguments.length == 1) {
             this.scene.send(this.object.networkId, arguments[0]);
-        }else {
+        }
+        else {
             this.scene.send(arguments[0], arguments[1]);
         }
     }
-};
-
+}
 // A NetworkScene object provides the interface between a Connection and the 
 // Networked Components in the application.
-let NetworkScene$2 = class NetworkScene extends EventEmitter$4{
-    constructor(){
+class NetworkScene extends EventEmitter$6 {
+    connections;
+    entries;
+    networkId;
+    constructor() {
         super();
-        this.networkId = NetworkId$6.Unique();
+        this.networkId = NetworkId$4.Unique();
         this.entries = [];
         this.connections = [];
-        
     }
-
     // The Connection is expected to be a wrapped connection
-    addConnection(connection){
+    addConnection(connection) {
         this.connections.push(connection);
         connection.onMessage.push(this.#onMessage.bind(this));
         connection.onClose.push(this.#onClose.bind(this, connection));
     }
-
-    async #onMessage(message){
+    async #onMessage(message) {
         this.entries.forEach(entry => {
-            if(NetworkId$6.Compare(entry.networkId, message.networkId)){
+            if (NetworkId$4.Compare(entry.networkId, message.networkId)) {
+                // At this point we can s
                 entry.object.processMessage(message);
             }
         });
         this.emit("OnMessage", message);
     }
-
-    #onClose(connection){
+    #onClose(connection) {
         var index = this.connections.indexOf(connection);
-        if(index > -1){
+        if (index > -1) {
             this.connections.slice(index, 1);
         }
     }
-
-    send(networkId, message){
+    send(looseNetworkId, message) {
+        let networkId = NetworkId$4.Unique();
         // Try to infer the Network Id format
-        if(Object.getPrototypeOf(networkId).constructor.name == "NetworkId");else if(typeof(networkId) == "number"){
-            networkId = new NetworkId$6(networkId);
-        }else if(typeof(networkId) == "object" && networkId.hasOwnProperty("a") && networkId.hasOwnProperty("b")){
-            networkId = new NetworkId$6(networkId);
-        }else if(typeof(networkId) == "object" && networkId.hasOwnProperty("networkId")){
-            networkId = new NetworkId$6(networkId.networkId);
+        if (Object.getPrototypeOf(looseNetworkId).constructor.name == "NetworkId") {
+            networkId = looseNetworkId;
         }
-
+        else if (typeof (looseNetworkId) == "number") {
+            networkId = new NetworkId$4(looseNetworkId);
+        }
+        else if (typeof (looseNetworkId) == "object" && looseNetworkId.hasOwnProperty("a") && looseNetworkId.hasOwnProperty("b")) {
+            networkId = new NetworkId$4(looseNetworkId);
+        }
+        else if (typeof (looseNetworkId) == "object" && looseNetworkId.hasOwnProperty("networkId")) {
+            networkId = new NetworkId$4(looseNetworkId.networkId);
+        }
+        else if (typeof (looseNetworkId) == "string") {
+            networkId = looseNetworkId;
+        }
         // Message.Create will determine the correct encoding of the message
-        var buffer = Message$1.Create(networkId, message);
-
-        this.connections.forEach(connection =>{
+        var buffer = Message.Create(networkId, message);
+        this.connections.forEach(connection => {
             connection.send(buffer);
         });
     }
-
     // Registers a Networked Component so that it will recieve messages addressed
     // to its specific NetworkId via its processMessage method.
     // If a NetworkId is not specified, it is found from the networkId member.
-    register(args){
+    register(...args) {
         let entry = {
-            object: arguments[0]
+            object: arguments[0],
+            networkId: NetworkId$4.Unique(),
         };
-        if(arguments.length == 2){
+        if (arguments.length == 2) {
             // The user is trying to register with a specific Id
             entry.networkId = arguments[1];
-        }else if(arguments.length == 1){
+        }
+        else if (arguments.length == 1) {
             // The user is trying to register with the 'networkId' member
-            if(!entry.object.hasOwnProperty("networkId")){
+            if (!entry.object.hasOwnProperty("networkId")) {
                 console.error("Component does not have a networkId Property");
                 return;
             }
-            entry.networkId = entry.object.networkId;   
+            //FIXME:
+            entry.networkId = entry.object.networkId;
         }
-
-        if(!entry.object.processMessage){
+        if (!entry.object.processMessage) {
             console.error("Component does not have a processMessage method");
             return;
         }
-        
         this.entries.push(entry);
-
-        return new NetworkContext$1(this, entry.object);
+        return new NetworkContext(this, entry.object);
     }
-
-    unregister(component){
-        const i = this.entries.findIndex(entry =>{
+    unregister(component) {
+        const i = this.entries.findIndex(entry => {
             return entry.object === component;
         });
-        if(i > -1){
+        if (i > -1) {
             this.entries.splice(i, 1);
         }
     }
-
-    getComponent(name){
-        return this.entries.find(entry =>{
-                return entry.object.constructor.name == name;
-            }).object;
+    getComponent(name) {
+        return this.entries.find(entry => {
+            return entry.object.constructor.name == name;
+        })?.object;
     }
-};
-
-var networkscene = {
-    NetworkScene: NetworkScene$2,
-    NetworkContext: NetworkContext$1
-};
+}
 
 // The Ubiq Package contains a set of NodeJs classes and functions
-// for interacting with the Ubiq Messaging layer.
 
-// This package supports establishing, or listening for, a connection
-// to a Ubiq Peer and exchanging Ubiq Messages with it. It also includes
-// Helper functions, such as those for creating Unique Identifiers.
+var ubiq = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	Message: Message,
+	NetworkContext: NetworkContext,
+	NetworkId: NetworkId$4,
+	NetworkScene: NetworkScene,
+	Schema: Schema,
+	TcpConnectionWrapper: TcpConnectionWrapper,
+	UbiqTcpConnection: UbiqTcpConnection,
+	Uuid: Uuid$1,
+	WebSocketConnectionWrapper: WebSocketConnectionWrapper,
+	WrappedSecureWebSocketServer: WrappedSecureWebSocketServer,
+	WrappedTcpServer: WrappedTcpServer
+});
 
-// This package is part of the Ubiq Server, but can also be used to 
-// build NodeJs based (Client) Peers.
-
-const { 
-    WrappedSecureWebSocketServer,
-    WrappedTcpServer,
-    WebSocketConnectionWrapper: WebSocketConnectionWrapper$1,
-    TcpConnectionWrapper,
-    UbiqTcpConnection
-} = connections;
-
-const { 
-    Message,
-    NetworkId: NetworkId$5
-} = messaging;
-
-const { 
-    Schema
-} = schema;
-
-const { 
-    Uuid: Uuid$1,
-} = uuid;
-
-const {
-    NetworkContext,
-    NetworkScene: NetworkScene$1
-} = networkscene;
-
-var ubiq = {
-    WebSocketConnectionWrapper: WebSocketConnectionWrapper$1,
-    WrappedSecureWebSocketServer,
-    TcpConnectionWrapper,
-    WrappedTcpServer,
-    Message,
-    NetworkId: NetworkId$5,
-    NetworkContext,
-    NetworkScene: NetworkScene$1,
-    Schema,
-    Uuid: Uuid$1,
-    UbiqTcpConnection    
-};
+var require$$0 = /*@__PURE__*/getAugmentedNamespace(ubiq);
 
 const { EventEmitter: EventEmitter$3 } = require$$1$2;
-const { Stream } = require$$1;
-const { NetworkId: NetworkId$4 } = ubiq;
+const { Stream } = require$$1$4;
+const { NetworkId: NetworkId$3 } = require$$0;
 
 class LogCollectorMessage{
     constructor(message){
@@ -21515,9 +20664,9 @@ class LogCollectorMessage{
 let LogCollector$1 = class LogCollector extends EventEmitter$3{
     constructor(scene){
         super();
-        this.networkId = NetworkId$4.Create(scene.networkId, "LogCollector");
-        this.broadcastId = new NetworkId$4("685a5b84-fec057d0");
-        this.destinationId = NetworkId$4.Null;
+        this.networkId = NetworkId$3.Create(scene.networkId, "LogCollector");
+        this.broadcastId = new NetworkId$3("685a5b84-fec057d0");
+        this.destinationId = NetworkId$3.Null;
         this.clock = 0;
 
         // When set, this LogCollector will always try to maintain its position as the Primary collector.
@@ -21592,7 +20741,7 @@ let LogCollector$1 = class LogCollector extends EventEmitter$3{
     }
 
     isPrimary(){
-        return NetworkId$4.Compare(this.destinationId, this.networkId);
+        return NetworkId$3.Compare(this.destinationId, this.networkId);
     }
 
     // Sets this LogCollector as the Primary Collector, receiving all events from the Peer Group and writing them to the provided Stream.
@@ -21603,7 +20752,7 @@ let LogCollector$1 = class LogCollector extends EventEmitter$3{
     // Unsets this LogCollector as the Primary Collector and stops writing to the stream.
     stopCollection(){
         if(this.isPrimary()){
-            this.sendSnapshot(NetworkId$4.Null);
+            this.sendSnapshot(NetworkId$3.Null);
         }
     }
 
@@ -21645,14 +20794,14 @@ let LogCollector$1 = class LogCollector extends EventEmitter$3{
                 break;
             case 0x3: //Ping
                 var ping = message.fromJson();
-                if(NetworkId$4.Valid(ping.Responder));
+                if(NetworkId$3.Valid(ping.Responder));
                 else {
                     // The ping is a request
                     if(this.isPrimary()){
                         ping.Responder = this.networkId;
                         ping.Written = this.written();
                         this.scene.send(ping.Source, LogCollectorMessage.Create(0x3, ping));
-                    }else if(NetworkId$4.Valid(this.destinationId)){
+                    }else if(NetworkId$3.Valid(this.destinationId)){
                         this._eventStream.push(msg);
                     }else {
                         ping.Responder = this.networkId;
@@ -21666,7 +20815,7 @@ let LogCollector$1 = class LogCollector extends EventEmitter$3{
 
     destinationChanged(){
         this._eventStream.unpipe();
-        if(NetworkId$4.Valid(this.destinationId)){
+        if(NetworkId$3.Valid(this.destinationId)){
             if(this.isPrimary()){
                 this._eventStream.pipe(this._writingStream);
             }else {
@@ -21680,9 +20829,13 @@ var logcollector = {
     LogCollector: LogCollector$1
 };
 
+var require$$1 = /*@__PURE__*/getAugmentedNamespace(messaging);
+
+var require$$2 = /*@__PURE__*/getAugmentedNamespace(uuid);
+
 const { EventEmitter: EventEmitter$2 } = require$$1$2;
-const { NetworkId: NetworkId$3 } = messaging;
-const { Uuid } = uuid;
+const { NetworkId: NetworkId$2 } = require$$1;
+const { Uuid } = require$$2;
 
 // Implements a RoomClient Network Component. This can be attached to a 
 // NetworkScene to have the NetworkScene join a Room.
@@ -21710,7 +20863,7 @@ class RoomPeer{
     }
 }
 
-let RoomClient$2 = class RoomClient extends EventEmitter$2{
+let RoomClient$1 = class RoomClient extends EventEmitter$2{
     constructor(scene){
         super();
 
@@ -21721,7 +20874,7 @@ let RoomClient$2 = class RoomClient extends EventEmitter$2{
         // https://ubiq.online/blog/latest-api-improvements/).
 
         this.scene = scene;
-        this.networkId = NetworkId$3.Create(scene.networkId, "RoomClient");
+        this.networkId = NetworkId$2.Create(scene.networkId, "RoomClient");
         this.context = scene.register(this);
 
         this.peer = new RoomPeer({
@@ -21739,7 +20892,7 @@ let RoomClient$2 = class RoomClient extends EventEmitter$2{
         this.peers = new Map();
     }
 
-    static serverNetworkId =  new NetworkId$3(1);
+    static serverNetworkId =  new NetworkId$2(1);
 
     #getPeerInfo(){
         return {
@@ -21901,10 +21054,10 @@ let RoomClient$2 = class RoomClient extends EventEmitter$2{
 };
 
 var roomclient = {
-    RoomClient: RoomClient$2
+    RoomClient: RoomClient$1
 };
 
-const { NetworkId: NetworkId$2 } = ubiq;
+const { NetworkId: NetworkId$1 } = require$$0;
 const { EventEmitter: EventEmitter$1 } = require$$1$2;
 
 // The PeerConnection Component sends and receives WebRTC signalling messages
@@ -21922,57 +21075,59 @@ class PeerConnection extends EventEmitter$1{
         this.uuid = uuid;
         this.polite = polite;
         this.context = this.scene.register(this);
-        this.candidatesPaused = true;
-        this.candidatesBuffer = [];
     }
 
     processMessage(m){
         m = m.toObject();
-        switch(m.type){
-            case 0: // Session Description
-                this.emit("OnSignallingMessage", JSON.parse(m.args));
-                break;
-            case 1: // Ice Candidate
-                let candidate = JSON.parse(m.args);
-                if(this.candidatesPaused){
-                    this.candidatesBuffer.push(candidate);
-                }else {
-                    this.emit("OnIceCandidate", candidate);
-                }
-                break;
+
+        // Convert Unity JsonUtility-friendly object into regular js object
+        this.emit("OnSignallingMessage", {
+            implementation: m.hasImplementation ? m.implementation : undefined,
+            candidate: m.hasCandidate ? m.candidate : undefined,
+            sdpMid: m.hasSdpMid ? m.sdpMid : undefined,
+            sdpMLineIndex: m.hasSdpMLineIndex ? m.sdpMLineIndex : undefined,
+            usernameFragment: m.hasUsernameFragment ? m.usernameFragment : undefined,
+            type: m.hasType ? m.type : undefined,
+            sdp: m.hasSdp ? m.sdp : undefined,
+        });
+    }
+
+    sendIceCandidate(m){
+
+        // A null iceCandidate means no further candidates, but support for
+        // this is all over the place, so we just won't send it
+        if (!m) {
+            return;
         }
-    }
 
-    pauseCandidates(){
-        this.candidatesPaused = true;
-    }
-
-    startCandidates(){
-        this.candidatesPaused = false;
-        this.candidatesBuffer.forEach(candidate =>{
-            this.emit("OnIceCandidate", candidate);
+        // Convert regular js object into Unity JsonUtility-friendly object
+        this.context.send({
+            hasImplementation: false,
+            candidate: m.candidate ? m.candidate : null,
+            hasCandidate: m.candidate ? true : false,
+            sdpMid: m.sdpMid ? m.sdpMid : null,
+            hasSdpMid: m.sdpMid ? true : false,
+            sdpMLineIndex: m.sdpMLineIndex ? m.sdpMLineIndex : null,
+            hasSdpMLineIndex: m.sdpMLineIndex ? true : false,
+            usernameFragment: m.usernameFragment ? m.usernameFragment : null,
+            hasUsernameFragment: m.usernameFragment ? true : false,
+            hasType: false,
+            hasSdp: false,
         });
     }
 
-    sendSignallingMessage(m){
+    sendSdp(m){
+        // Convert regular js object into Unity JsonUtility-friendly object
         this.context.send({
-            type: 0,
-            args: JSON.stringify(m)
-        });
-    }
-
-    sendOffer(offer){
-        this.sendSignallingMessage(offer);
-    }
-
-    sendAnswer(answer){
-        this.sendSignallingMessage(answer);
-    }
-
-    sendIceCandidate(candidate){
-        this.context.send({
-            type: 1,
-            args: JSON.stringify(candidate)
+            hasImplementation: false,
+            hasCandidate: false,
+            hasSdpMid: false,
+            hasSdpMLineIndex: false,
+            hasUsernameFragment: false,
+            hasType: m.type ? true : false,
+            type: m.type ? m.type : null,
+            hasSdp: m.sdp ? true : false,
+            sdp: m.sdp ? m.sdp : null,
         });
     }
 }
@@ -21981,11 +21136,11 @@ class PeerConnection extends EventEmitter$1{
 // Components with other Peers that have Peer Connection Managers.
 // PeerConnection Components maintain WebRtc PeerConnections using Ubiq as
 // the signalling layer.
-let PeerConnectionManager$2 = class PeerConnectionManager extends EventEmitter$1{
+let PeerConnectionManager$1 = class PeerConnectionManager extends EventEmitter$1{
     constructor(scene){
         super();
-        this.serviceId = new NetworkId$2("c994-0768-d7b7-171c");
-        this.networkId = NetworkId$2.Create(scene.networkId, this.serviceId);
+        this.serviceId = new NetworkId$1("c994-0768-d7b7-171c");
+        this.networkId = NetworkId$1.Create(scene.networkId, this.serviceId);
         this.scene = scene;
         this.scene.register(this);
         this.roomclient = this.scene.getComponent("RoomClient");
@@ -21997,10 +21152,10 @@ let PeerConnectionManager$2 = class PeerConnectionManager extends EventEmitter$1
     OnPeerAdded(peer){
         if(!this.peers.hasOwnProperty(peer.uuid)){
             if(this.roomclient.peer.uuid.localeCompare(peer.uuid) > 0){
-                let pcid = NetworkId$2.Unique();
+                let pcid = NetworkId$1.Unique();
                 this.createPeerConnection(pcid, peer.uuid, true);
                 this.scene.send(
-                    NetworkId$2.Create(peer.sceneid,this.serviceId),
+                    NetworkId$1.Create(peer.sceneid,this.serviceId),
                     {
                         type: "RequestPeerConnection",
                         networkId: pcid,
@@ -22031,11 +21186,11 @@ let PeerConnectionManager$2 = class PeerConnectionManager extends EventEmitter$1
 };
 
 var peerconnectionmanager = {
-    PeerConnectionManager: PeerConnectionManager$2,
+    PeerConnectionManager: PeerConnectionManager$1,
     PeerConnection
 };
 
-const { NetworkId: NetworkId$1 } = ubiq;
+const { NetworkId } = require$$0;
 const { EventEmitter } = require$$1$2;
 
 // The ThreePointTrackedAvatar Component sends typical XR tracked poses (head
@@ -22063,9 +21218,9 @@ class HandPose extends Pose {
         this.grip = 0;
     }
 }
-let ThreePointTrackedAvatar$2 = class ThreePointTrackedAvatar {
+let ThreePointTrackedAvatar$1 = class ThreePointTrackedAvatar {
     constructor(scene, avatarId){
-        this.networkId = NetworkId$1.Create(avatarId, "ThreePointTracked");
+        this.networkId = NetworkId.Create(avatarId, "ThreePointTracked");
         this.context = scene.register(this);
         this.head = new Pose();
         this.left = new HandPose();
@@ -22119,7 +21274,7 @@ let ThreePointTrackedAvatar$2 = class ThreePointTrackedAvatar {
 //        const tpta = new ThreePointTrackedAvatar(scene, avatar.networkId);
 //     });
 //
-let AvatarManager$2 = class AvatarManager extends EventEmitter{
+let AvatarManager$1 = class AvatarManager extends EventEmitter{
     constructor(scene){
         super();
         const roomclient = scene.getComponent("RoomClient");
@@ -22164,8 +21319,8 @@ let AvatarManager$2 = class AvatarManager extends EventEmitter{
 };
 
 var avatarmanager = {
-    AvatarManager: AvatarManager$2,
-    ThreePointTrackedAvatar: ThreePointTrackedAvatar$2
+    AvatarManager: AvatarManager$1,
+    ThreePointTrackedAvatar: ThreePointTrackedAvatar$1
 };
 
 // The Components Package contains a set of NodeJs classes and functions
@@ -22177,70 +21332,20 @@ var avatarmanager = {
 // This package can be used to build typical Ubiq Peers for Node.
 
 const { LogCollector} = logcollector;
-const { RoomClient: RoomClient$1 } = roomclient;
-const { PeerConnectionManager: PeerConnectionManager$1 } = peerconnectionmanager;
-const { AvatarManager: AvatarManager$1, ThreePointTrackedAvatar: ThreePointTrackedAvatar$1 } = avatarmanager;
+const { RoomClient } = roomclient;
+const { PeerConnectionManager } = peerconnectionmanager;
+const { AvatarManager, ThreePointTrackedAvatar } = avatarmanager;
 
 var components = {
     LogCollector,
-    RoomClient: RoomClient$1,
-    PeerConnectionManager: PeerConnectionManager$1,
-    AvatarManager: AvatarManager$1,
-    ThreePointTrackedAvatar: ThreePointTrackedAvatar$1
-};
-
-// This file is the entry point for the bundler used to build Ubiq classes for
-// the Browser with Rollup.
-
-const { 
-    NetworkId, 
-    NetworkScene, 
-    WebSocketConnectionWrapper 
-} = ubiq;
-
-const { 
-    RoomClient, 
-    PeerConnectionManager,
-    AvatarManager,
-    ThreePointTrackedAvatar
- } = components;
-
-// This file is intended to bundle almost all the Ubiq Components and 
-// dependencies for use in the browser, for the convenience of the Web Samples.
-
-// You may prefer your application be more selective, to reduce the library size.
-// To this end, require() the Ubiq resources directly in your Js file, or create
-// an equivalent lib.js requiring only those classes necessary, and use the
-// bundler on this instead.
-
-// Take care that not all classes will be supported on the browser. All the Ubiq
-// Peer Components will work, but a number of server-side and connections will
-// not. It is not possible to create server sockets in the Browser, for example.
-
-// The rollup config makes use of polyfills to use Node module APIs in the 
-// browser.
-// https://www.npmjs.com/package/rollup-plugin-polyfill-node
-// Look at this to get an idea of which classes will and will not work based on
-// which modules they use.
-
-// Take care as well that some npm packages will bring in dependencies. For 
-// example, ws brings in bufferutil. This works OK on Node but when bundling for
-// the browser, the bundle will end up with require('bufferutil') calls (for 
-// example). Make sure to install such dependencies directly
-// (e.g. npm install bufferutil).
-// There should be no require() calls in the bundled js.
-
-// To build, give the command 
-//     npx rollup --config
-
-var lib = {
-    NetworkId,
-    NetworkScene,
     RoomClient,
-    WebSocketConnectionWrapper,
     PeerConnectionManager,
     AvatarManager,
     ThreePointTrackedAvatar
 };
 
-export { lib as default };
+var AvatarManager$2 = components.AvatarManager;
+var PeerConnectionManager$2 = components.PeerConnectionManager;
+var RoomClient$2 = components.RoomClient;
+var ThreePointTrackedAvatar$2 = components.ThreePointTrackedAvatar;
+export { AvatarManager$2 as AvatarManager, NetworkId$4 as NetworkId, NetworkScene, PeerConnectionManager$2 as PeerConnectionManager, RoomClient$2 as RoomClient, ThreePointTrackedAvatar$2 as ThreePointTrackedAvatar, WebSocketConnectionWrapper };

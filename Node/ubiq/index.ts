@@ -8,42 +8,29 @@
 // This package is part of the Ubiq Server, but can also be used to 
 // build NodeJs based (Client) Peers.
 
-const { 
+
+export { 
     WrappedSecureWebSocketServer,
     WrappedTcpServer,
     WebSocketConnectionWrapper,
     TcpConnectionWrapper,
     UbiqTcpConnection
-} = require("./connections")
+} from "./connections.js";
 
-const { 
+export { 
     Message,
     NetworkId
-} = require('./messaging');
+} from './messaging.js';
 
-const { 
+export { 
     Schema
-} = require("./schema");
+} from "./schema.js";
 
-const { 
+export { 
     Uuid,
-} = require("./uuid");
+} from "./uuid.js";
 
-const {
+export {
     NetworkContext,
     NetworkScene
-} = require("./networkscene");
-
-module.exports = {
-    WebSocketConnectionWrapper,
-    WrappedSecureWebSocketServer,
-    TcpConnectionWrapper,
-    WrappedTcpServer,
-    Message,
-    NetworkId,
-    NetworkContext,
-    NetworkScene,
-    Schema,
-    Uuid,
-    UbiqTcpConnection    
-}
+} from "./networkscene.js";
