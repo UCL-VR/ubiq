@@ -1,18 +1,7 @@
 // This file is the entry point for the bundler used to build Ubiq classes for
 // the Browser with Rollup.
-
-const { 
-    NetworkId, 
-    NetworkScene, 
-    WebSocketConnectionWrapper 
-} = require("ubiq");
-
-const { 
-    RoomClient, 
-    PeerConnectionManager,
-    AvatarManager,
-    ThreePointTrackedAvatar
- } = require("components");
+export { NetworkId, NetworkScene, WebSocketConnectionWrapper } from "ubiq";
+export { RoomClient, PeerConnectionManager, AvatarManager, ThreePointTrackedAvatar } from "components";
 
 // This file is intended to bundle almost all the Ubiq Components and 
 // dependencies for use in the browser, for the convenience of the Web Samples.
@@ -41,13 +30,3 @@ const {
 
 // To build, give the command 
 //     npx rollup --config
-
-module.exports = {
-    NetworkId,
-    NetworkScene,
-    RoomClient,
-    WebSocketConnectionWrapper,
-    PeerConnectionManager,
-    AvatarManager,
-    ThreePointTrackedAvatar
-}

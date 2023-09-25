@@ -1,6 +1,7 @@
-const { Schema } = require('./schema');
-const { performance } = require('perf_hooks');
-const { Buffer } = require('buffer');
+import { Schema } from "./schema.js"
+import perf_hooks from "perf_hooks";
+
+const performance = perf_hooks.performance;
 
 const MESSAGE_HEADER_SIZE = 8;
 
@@ -14,14 +15,26 @@ Schema.add({
     required: ["a","b"]
 });
 
-class NetworkId{
-    constructor(data){
+
+interface INetworkId{
+    a: number
+    b: number
+}
+
+export type NetworkIdObject = Record<string, any> & {
+    networkId: LooseNetworkId
+}
+
+export type LooseNetworkId = string | number | Buffer | ArrayBufferView | NetworkId | NetworkIdObject
+
+export class NetworkId implements INetworkId{
+    a: number;
+    b: number;
+    constructor(data : LooseNetworkId){
         if(typeof(data) == 'string'){
             data = data.replace(/-/g,'');
-            this.a = data.substring(0, 8);
-            this.b = data.substring(8, 16);
-            this.a = parseInt(this.a, 16);
-            this.b = parseInt(this.b, 16);
+            this.a = parseInt(data.substring(0, 8), 16);
+            this.b = parseInt(data.substring(8, 16), 16);
             return;
         }
         if(typeof(data) == 'number'){
@@ -52,11 +65,11 @@ class NetworkId{
         return `${this.a.toString(16)}-${this.b.toString(16)}`;
     }
 
-    static Compare(x, y){
-        return(x.a == y.a && x.b == y.b);
+    static Compare(x : NetworkId, y: NetworkId) {
+        return (x.a == y.a && x.b == y.b);
     }
 
-    static WriteBuffer(networkId, buffer, offset){
+    static WriteBuffer(networkId : NetworkId, buffer : Buffer, offset : number) {
         if(networkId == undefined){
             console.error("Undefined networkId when writing " + (new Error().stack));
             return;
@@ -77,11 +90,11 @@ class NetworkId{
         return new NetworkId(id);
     }
 
-    static Valid(x){
+    static Valid(x : NetworkId){
         return x.a != 0 && x.b != 0;
     }
 
-    static Create(namespace, service){
+    static Create(namespace: string, service : string | number | NetworkId){
         var id = new NetworkId(namespace);
         var data = new Uint32Array(2);
         data[0] = id.a;
@@ -109,11 +122,22 @@ class NetworkId{
     }
 }
 
-class Message{
+interface IMessage {
+    buffer: Buffer
+    length: number
+    networkId: NetworkId
+    message: Buffer
+}
+
+export class Message implements IMessage{
+    buffer: Buffer = Buffer.from("");
+    length: number = -1;
+    networkId: NetworkId = new NetworkId(-1);
+    message: Buffer = Buffer.from("");
     constructor(){
     }
 
-    static Wrap(data){
+    static Wrap(data : Buffer){
         var msg = new Message();
         msg.buffer = data;
         msg.length = data.readInt32LE(0)
@@ -122,19 +146,21 @@ class Message{
         return msg;
     }
 
-    static Create(networkId, message){
+    static Create(networkId : NetworkId | string, message : string | object | Buffer){
         var msg = new Message();
-        
+        let convertedMessage : Buffer = Buffer.from("");
         if(!Buffer.isBuffer(message)){
             if(typeof(message) == 'object'){
-                message = JSON.stringify(message);
+                convertedMessage = Buffer.from(JSON.stringify(message), 'utf8');
             }
             if(typeof(message) == 'string'){
-                message = Buffer.from(message, 'utf8');
+                convertedMessage = Buffer.from(message, 'utf8');
             }
         }
-
-        var length = message.length + MESSAGE_HEADER_SIZE;
+        else {
+            convertedMessage = message;
+        }
+        var length = convertedMessage.length + MESSAGE_HEADER_SIZE;
         var buffer = Buffer.alloc(length + 4);
 
         if(typeof(networkId) == "string"){
@@ -143,13 +169,13 @@ class Message{
 
         buffer.writeInt32LE(length, 0);
         NetworkId.WriteBuffer(networkId, buffer, 4);
-        message.copy(buffer, 12);
+        convertedMessage.copy(buffer, 12);
 
         var msg = new Message();
         msg.buffer = buffer;
         msg.length = length;
         msg.networkId = networkId;
-        msg.message = message;
+        msg.message = convertedMessage;
 
         return msg;
     }
@@ -165,9 +191,4 @@ class Message{
     toBuffer(){
         return this.message;
     }
-}
-
-module.exports = {
-    Message,
-    NetworkId
 }

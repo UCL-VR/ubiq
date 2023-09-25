@@ -2,9 +2,14 @@
   "name": "modules",
   "version": "0.0.1",
   "description": "Ubiq Modules for Building Server Side Applications",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "module": "lib/index.js",
+  "type": "module",
   "keywords": [],
   "author": "UCL VECG",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/UCL-VR/ubiq"
+  "homepage": "https://github.com/UCL-VR/ubiq",
+  "scripts": {
+    "build": "tsc"
+  }
 }

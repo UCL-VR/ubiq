@@ -7,17 +7,19 @@
 //    npm install --save-dev rollup-plugin-polyfill-node
 import commonjs from '@rollup/plugin-commonjs';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
+import typescript from 'rollup-plugin-typescript2';
 import nodePolyfills from 'rollup-plugin-polyfill-node';
 
 export default {
-	input: 'lib.js',
+	input: 'lib.ts',
 	output: {
 		file: '../Browser/bundle.js',
 		format: 'es'
 	},
 	plugins: [
-		commonjs(),
 		nodeResolve(),
+		typescript(),
+		commonjs(),
 		nodePolyfills()
 	]
 };
