@@ -33,7 +33,7 @@ if (iceServers){
 }
 
 // Set the type of room this Server should use. Make sure
-// to update this file to import the room.
+// that the room type has been imported before we get here.
 
 var roomTypeName = nconf.get("roomserver:roomType");
 if(roomTypeName != undefined){

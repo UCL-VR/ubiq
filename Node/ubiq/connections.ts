@@ -9,7 +9,7 @@ const createServer = https.createServer;
 
 // All WrappedConnection types implement two callbacks,
 // onMessage and onClose, and one function, Send.
-// onMessage and send both provide and receive Ubiq Message
+// onMessage and Send both provide and receive Ubiq Message
 // types.
 
 // Use the callbacks like so,
@@ -87,6 +87,7 @@ export interface ConnectionWrapper {
     onClose: any[]
     send(message : Message): void
     endpoint(): string | {address?: string, port?: number}
+    close(): void
 }
 
 export class WebSocketConnectionWrapper implements ConnectionWrapper{
@@ -146,6 +147,10 @@ export class WebSocketConnectionWrapper implements ConnectionWrapper{
 
     endpoint(){
         return this.socket.url
+    }
+
+    close(){
+        this.socket.close();
     }
 }
 
@@ -266,6 +271,10 @@ export class TcpConnectionWrapper implements ITcpConnectionWrapper{
             address: this.socket.remoteAddress,
             port: this.socket.remotePort
         }
+    }
+
+    close(){
+        this.socket.end();
     }
 }
 

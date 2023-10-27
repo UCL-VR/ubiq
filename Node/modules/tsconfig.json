@@ -14,7 +14,6 @@
         "resolveJsonModule": true,
         "isolatedModules": true,
         "incremental": true,
-        "outDir": "lib",                    
     },
     "files": ["./index.ts"],
     "exclude": [

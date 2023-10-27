@@ -1,24 +1,16 @@
-import { Schema } from "./schema.js"
 import perf_hooks from "perf_hooks";
+import { z } from 'zod';
 
 const performance = perf_hooks.performance;
 
 const MESSAGE_HEADER_SIZE = 8;
 
-Schema.add({
-    id: '/ubiq.messaging.networkid',
-    type: "object",
-    properties: {
-        a: {type: "integer"},
-        b: {type: "integer"}
-    },
-    required: ["a","b"]
-});
+export const NetworkIdSchema = z.object({
+    a: z.number().int(),
+    b: z.number().int()
+})
 
-
-interface INetworkId{
-    a: number
-    b: number
+export interface INetworkId extends z.infer<typeof NetworkIdSchema>{
 }
 
 export type NetworkIdObject = Record<string, any> & {
@@ -27,7 +19,7 @@ export type NetworkIdObject = Record<string, any> & {
 
 export type LooseNetworkId = string | number | Buffer | ArrayBufferView | NetworkId | NetworkIdObject
 
-export class NetworkId implements INetworkId{
+export class NetworkId{
     a: number;
     b: number;
     constructor(data : LooseNetworkId){
@@ -65,6 +57,13 @@ export class NetworkId implements INetworkId{
         return `${this.a.toString(16)}-${this.b.toString(16)}`;
     }
 
+    static Schema = z.object({
+        a: z.number().int(),
+        b: z.number().int()
+    });
+
+    static Null = {a: 0, b: 0};
+
     static Compare(x : NetworkId, y: NetworkId) {
         return (x.a == y.a && x.b == y.b);
     }
@@ -94,7 +93,7 @@ export class NetworkId implements INetworkId{
         return x.a != 0 && x.b != 0;
     }
 
-    static Create(namespace: string, service : string | number | NetworkId){
+    static Create(namespace: LooseNetworkId, service : string | number | NetworkId){
         var id = new NetworkId(namespace);
         var data = new Uint32Array(2);
         data[0] = id.a;

@@ -1,10 +1,26 @@
-const { NetworkId } = require("ubiq")
-const { EventEmitter } = require('events')
+import { Message, NetworkContext, NetworkId, NetworkScene, INetworkComponent } from "ubiq"
+import { EventEmitter } from 'events'
+import { RoomClient, RoomPeer } from "./roomclient"
 
 // The ThreePointTrackedAvatar Component sends typical XR tracked poses (head
 // and hands) as floating point arrays.
 
+type Vector3 = {
+    x: number,
+    y: number,
+    z: number
+}
+
+type Quaternion = {
+    x: number,
+    y: number,
+    z: number,
+    w: number
+}
+
 class Pose{
+    position: Vector3
+    rotation: Quaternion
     constructor(){
         this.position = {
             x: 0,
@@ -21,13 +37,20 @@ class Pose{
 }
 
 class HandPose extends Pose {
+    grip: number
     constructor(){
         super()
         this.grip = 0;
     }
 }
-class ThreePointTrackedAvatar {
-    constructor(scene, avatarId){
+export class ThreePointTrackedAvatar {
+    networkId: NetworkId;
+    context: NetworkContext;
+    head: Pose;
+    left: HandPose;
+    right: HandPose;
+
+    constructor(scene: NetworkScene, avatarId: NetworkId){
         this.networkId = NetworkId.Create(avatarId, "ThreePointTracked");
         this.context = scene.register(this);
         this.head = new Pose();
@@ -35,7 +58,7 @@ class ThreePointTrackedAvatar {
         this.right = new HandPose();
     }
 
-    readState(buffer){
+    readState(buffer: Buffer){
         this.head.position.x  = buffer.readFloatLE(0);
         this.head.position.y  = buffer.readFloatLE(4);
         this.head.position.z  = buffer.readFloatLE(8);
@@ -61,7 +84,7 @@ class ThreePointTrackedAvatar {
         this.right.rotation.w = buffer.readFloatLE(80);
     }
 
-    processMessage(m){
+    processMessage(m: Message){
         this.readState(m.message);
     }
 }
@@ -82,10 +105,13 @@ class ThreePointTrackedAvatar {
 //        const tpta = new ThreePointTrackedAvatar(scene, avatar.networkId);
 //     });
 //
-class AvatarManager extends EventEmitter{
-    constructor(scene){
+export class AvatarManager extends EventEmitter{
+    avatars: Map<string, string>; // Maps networkIds to uuids. In this map the networkIds are expressed as strings.
+    prefix: string;
+
+    constructor(scene: NetworkScene){
         super();
-        const roomclient = scene.getComponent("RoomClient");
+        const roomclient = scene.getComponent("RoomClient") as RoomClient;
         roomclient.addListener("OnPeerAdded", peer =>{
             this.#createOrUpdateAvatar(peer);
         });
@@ -99,7 +125,7 @@ class AvatarManager extends EventEmitter{
         this.prefix = "ubiq.avatars";
     }
 
-    #createOrUpdateAvatar(peer){
+    #createOrUpdateAvatar(peer: RoomPeer){
         peer.properties.forEach((value,key) => {
             if(key.startsWith(this.prefix)){
                 const networkId = key.slice(this.prefix.length + 1);
@@ -112,10 +138,10 @@ class AvatarManager extends EventEmitter{
         });
     }
 
-    #destroyAvatar(peer){
-        let toDelete = [];
+    #destroyAvatar(peer: RoomPeer){
+        let toDelete: string[] = [];
         this.avatars.forEach((value,key)=>{
-            if(value.uuid == peer.uuid){
+            if(value == peer.uuid){
                 toDelete.push(key);
             }
         });
@@ -124,9 +150,4 @@ class AvatarManager extends EventEmitter{
             this.emit("OnAvatarDestroyed", id);
         });
     }
-}
-
-module.exports = {
-    AvatarManager,
-    ThreePointTrackedAvatar
 }

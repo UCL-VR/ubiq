@@ -2,13 +2,13 @@ import { ConnectionWrapper } from "./connections.js";
 import { LooseNetworkId, Message, NetworkId, NetworkIdObject } from "./messaging.js";
 import { EventEmitter } from 'events';
 
-interface INetworkContext {
+export interface INetworkContext {
     scene: any
     object: any
 }
 
-interface INetworkComponent {
-    networkId: LooseNetworkId
+export interface INetworkComponent {
+    networkId: NetworkId
     processMessage: (message : Message) => void
 }
 
@@ -47,7 +47,7 @@ export class NetworkContext implements INetworkContext {
 }
 
 export class NetworkComponent implements INetworkComponent{
-    networkId: LooseNetworkId;
+    networkId: NetworkId;
     constructor(){
         this.networkId = NetworkId.Unique();
     }
@@ -135,16 +135,14 @@ export class NetworkScene extends EventEmitter{
         }else if(arguments.length == 1){
             // The user is trying to register with the 'networkId' member
             if(!entry.object.hasOwnProperty("networkId")){
-                console.error("Component does not have a networkId Property");
-                return;
+                throw new Error("Component does not have a networkId Property");
             }
             //FIXME:
             entry.networkId = entry.object.networkId as NetworkId;   
         }
 
         if(!entry.object.processMessage){
-            console.error("Component does not have a processMessage method");
-            return;
+            throw new Error("Component does not have a processMessage method");
         }
         
         this.entries.push(entry);

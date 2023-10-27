@@ -1,5 +1,6 @@
-const { NetworkId } = require("ubiq")
-const { EventEmitter } = require('events')
+import { INetworkComponent, NetworkContext, NetworkId, NetworkScene, Message } from "ubiq"
+import { EventEmitter } from 'events'
+import { RoomClient, RoomPeer } from "./roomclient";
 
 // The PeerConnection Component sends and receives WebRTC signalling messages
 // using Ubiq, allowing two Peers to boostrap a WebRTC PeerConnection Object.
@@ -8,8 +9,14 @@ const { EventEmitter } = require('events')
 // including telling the implementation when to create the offer.
 // WebRTC is used by Ubiq mainly to support voice chat, but the PC can also
 // be used to send low latency P2P messages via UDP, and video.
-class PeerConnection extends EventEmitter{
-    constructor(scene, networkId, uuid, polite){
+export class PeerConnection extends EventEmitter implements INetworkComponent{
+    networkId: NetworkId;
+    scene: NetworkScene;
+    uuid: string;
+    polite: boolean;
+    context: NetworkContext;
+
+    constructor(scene: NetworkScene, networkId: NetworkId, uuid: string, polite: boolean){
         super();
         this.networkId = networkId;
         this.scene = scene;
@@ -18,8 +25,8 @@ class PeerConnection extends EventEmitter{
         this.context = this.scene.register(this);
     }
 
-    processMessage(m){
-        m = m.toObject();
+    processMessage(message: Message){
+        let m = message.toObject();
 
         // Convert Unity JsonUtility-friendly object into regular js object
         this.emit("OnSignallingMessage", {
@@ -33,7 +40,7 @@ class PeerConnection extends EventEmitter{
         });
     }
 
-    sendIceCandidate(m){
+    sendIceCandidate(m: any){ // These types are determined by the webrtc API
 
         // A null iceCandidate means no further candidates, but support for
         // this is all over the place, so we just won't send it
@@ -57,7 +64,7 @@ class PeerConnection extends EventEmitter{
         });
     }
 
-    sendSdp(m){
+    sendSdp(m: any){ // These types are determined by the webrtc API
         // Convert regular js object into Unity JsonUtility-friendly object
         this.context.send({
             hasImplementation: false,
@@ -77,20 +84,26 @@ class PeerConnection extends EventEmitter{
 // Components with other Peers that have Peer Connection Managers.
 // PeerConnection Components maintain WebRtc PeerConnections using Ubiq as
 // the signalling layer.
-class PeerConnectionManager extends EventEmitter{
-    constructor(scene){
+export class PeerConnectionManager extends EventEmitter implements INetworkComponent{
+    networkId: NetworkId;
+    serviceId: NetworkId;
+    scene: NetworkScene;
+    roomclient: RoomClient;
+    peers: any;
+
+    constructor(scene: NetworkScene){
         super();
         this.serviceId = new NetworkId("c994-0768-d7b7-171c");
         this.networkId = NetworkId.Create(scene.networkId, this.serviceId);
         this.scene = scene;
         this.scene.register(this);
-        this.roomclient = this.scene.getComponent("RoomClient");
+        this.roomclient = this.scene.getComponent("RoomClient") as RoomClient;
         this.roomclient.addListener("OnPeerAdded", this.OnPeerAdded.bind(this));
         this.roomclient.addListener("OnPeerRemoved", this.OnPeerRemoved.bind(this));
         this.peers = {};
     }
 
-    OnPeerAdded(peer){
+    OnPeerAdded(peer: RoomPeer){
         if(!this.peers.hasOwnProperty(peer.uuid)){
             if(this.roomclient.peer.uuid.localeCompare(peer.uuid) > 0){
                 let pcid = NetworkId.Unique();
@@ -107,20 +120,20 @@ class PeerConnectionManager extends EventEmitter{
         }
     }
 
-    OnPeerRemoved(peer){
+    OnPeerRemoved(peer: RoomPeer){
         this.emit("OnPeerConnectionRemoved", this.peers[peer.uuid])
         delete this.peers[peer.uuid];
     }
 
-    processMessage(m){
-        m = m.toObject();
+    processMessage(message: Message){
+        let m = message.toObject();
         switch(m.type){
             case "RequestPeerConnection":
                 this.createPeerConnection(m.networkId, m.uuid, false);
         }
     }
 
-    createPeerConnection(pcid, uuid, polite){
+    createPeerConnection(pcid: NetworkId, uuid: string, polite: boolean){
         this.peers[uuid] = new PeerConnection(this.scene, pcid, uuid, polite);
         this.emit("OnPeerConnection", this.peers[uuid]);
     }

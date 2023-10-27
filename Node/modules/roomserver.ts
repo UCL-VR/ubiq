@@ -1,10 +1,90 @@
-import { Message, NetworkId, Schema, TcpConnectionWrapper, Uuid, WebSocketConnectionWrapper, WrappedSecureWebSocketServer, WrappedTcpServer } from "ubiq";
+import { Message, NetworkId, TcpConnectionWrapper, Uuid, WebSocketConnectionWrapper, WrappedSecureWebSocketServer, WrappedTcpServer } from "ubiq";
 import { EventEmitter } from 'events';
-import fs from 'fs';
 import { ValidationError } from "jsonschema";
+import { string, z } from 'zod';
+import fs from 'fs';
 
 const VERSION_STRING = "0.0.4";
 const RoomServerReservedId = 1;
+
+// The following Zod objects define the schema for the RoomSever messages on
+// the wire.
+
+const RoomServerMessage = z.object({
+    type: z.string(),
+    args: z.string()
+});
+
+
+const RoomInfo = z.object({
+    uuid: z.string(),
+    joincode: z.string(),
+    publish: z.boolean(),
+    name: z.string(),
+    keys: z.array(z.string()),
+    values: z.array(z.string())
+})
+
+const PeerInfo = z.object({
+    uuid: z.string(),
+    sceneid: NetworkId.Schema,
+    clientid: NetworkId.Schema,
+    keys: z.array(z.string()),
+    values: z.array(z.string())
+});
+
+
+const JoinArgs = z.object({
+    joincode: z.string().optional(),
+    uuid: z.string().optional(),
+    name: z.string().optional(),
+    publish: z.boolean(),
+    peer: PeerInfo
+});
+
+
+const PingArgs = z.object({
+    clientid: NetworkId.Schema
+});
+
+const AppendPeerPropertiesArgs = z.object({
+    keys: z.array(z.string()),
+    values: z.array(z.string())
+});
+
+
+const AppendRoomPropertiesArgs = z.object({
+    keys: z.array(z.string()),
+    values: z.array(z.string())
+});
+
+
+const DiscoverRoomArgs = z.object({
+    clientid: NetworkId.Schema,
+    joincode: z.string()
+});
+
+const SetBlobArgs = z.object({
+    uuid: z.string(),
+    blob: z.string()
+});
+
+const GetBlobArgs = z.object({
+    clientid: NetworkId.Schema,
+    uuid: z.string()
+});
+
+// A number of these message types are exported, as they are also used by Js
+// RoomClient implementations.
+
+export type RoomInfo = z.infer<typeof RoomInfo>
+export type RoomServerMessage = z.infer<typeof RoomServerMessage>
+export type PeerInfo = z.infer<typeof PeerInfo>
+export type JoinArgs = z.infer<typeof JoinArgs>;
+export type AppendPeerPropertiesArgs = z.infer<typeof AppendPeerPropertiesArgs>;
+export type AppendRoomPropertiesArgs = z.infer<typeof AppendRoomPropertiesArgs>;
+
+// Next we define a set of convenience functions and classes
 
 // https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
 // Proof of concept - not crypto secure
@@ -166,16 +246,10 @@ class RoomDatabase{
     }
 }
 
-interface IJoinArgs{
-    uuid?: string
-    joincode?: string
-    publish?: boolean
-    name?: string
-}
+// This is the primary server for rendezvous and bootstrapping. It accepts 
+// websocket and net connections, (immediately handing them over to RoomPeer
+// instances) and performs book-keeping for finding and joining rooms.
 
-// This is the primary server for rendezvous and bootstrapping. It accepts websocket connections,
-// (immediately handing them over to RoomPeer instances) and performs book-keeping for finding
-// and joining rooms.
 export class RoomServer extends EventEmitter{
     roomDatabase: RoomDatabase;
     version: string;
@@ -246,7 +320,7 @@ export class RoomServer extends EventEmitter{
     }
 
     // Expects args from schema ubiq.rooms.joinargs
-    async join(peer : RoomPeer, args: IJoinArgs){
+    async join(peer : RoomPeer, args: JoinArgs){
 
         var room = null;
         if(args.uuid && args.uuid != ""){
@@ -387,16 +461,17 @@ export class RoomServer extends EventEmitter{
     }
 }
 
-// The RoomPeer class manages a Connection to a RoomClient. This class
-// interacts with the connection, formatting and parsing messages and calling the
+// The RoomPeer class manages a Connection to a RoomClient. This class interacts
+// with the connection, formatting and parsing messages and calling the 
 // appropriate methods on RoomServer and others.
+
 class RoomPeer{
     server: RoomServer;
     connection: any;
     room: Room;
     peers: {};
     networkSceneId: NetworkId;
-    clientid: any;
+    roomClientId: NetworkId;
     uuid: string;
     properties: PropertyDictionary;
     sessionId: string;
@@ -411,7 +486,7 @@ class RoomPeer{
             a: Math.floor(Math.random() * 2147483648),
             b: Math.floor(Math.random() * 2147483648)
         });
-        this.clientid;
+        this.roomClientId = new NetworkId(0);
         this.uuid = "";
         this.properties = new PropertyDictionary();
         this.connection.onMessage.push(this.onMessage.bind(this));
@@ -420,86 +495,81 @@ class RoomPeer{
         this.observed = [];
     }
 
-    onMessage(message: any){
+    onMessage(message: Message){
         this.server.status.messages += 1;
         this.server.status.bytesIn += message.length;
         this.server.statusPoll();
         if(NetworkId.Compare(message.networkId, this.server.networkId)){
-            try {
-                message.object = message.toObject();
-            } catch {
-                console.log("Peer " + this.uuid + ": Invalid JSON in message");
-                return;
-            }
-
-            if(!Schema.validate(message.object,"/ubiq.rooms.servermessage",this.onValidationFailure)){
-                return;
-            }
-
-            message.type = message.object.type;
-
-            if(message.object.args){
-                try {
-                    message.args = JSON.parse(message.object.args);
-                } catch {
-                    console.log("Peer " + this.uuid + ": Invalid JSON in message args");
-                    return;
+            try{
+                let object = RoomServerMessage.parse(message.toObject());
+                switch(object.type){
+                    case "Join":
+                        {
+                            let args = JoinArgs.parse(JSON.parse(object.args));
+                            this.networkSceneId = args.peer.sceneid; // Join message always includes peer uuid and object id
+                            this.roomClientId = args.peer.clientid;
+                            this.uuid = args.peer.uuid;
+                            this.properties.append(args.peer.keys, args.peer.values);
+                            this.server.join(this, args);
+                        }
+                        break;
+                    case "AppendPeerProperties":
+                        {
+                            let args = AppendPeerPropertiesArgs.parse(JSON.parse(object.args));
+                            this.appendProperties(args.keys, args.values);
+                        }
+                        break;
+                    case "AppendRoomProperties":
+                        {
+                            let args = AppendRoomPropertiesArgs.parse(JSON.parse(object.args));
+                            this.room.appendProperties(args.keys,args.values);
+                        }
+                        break;
+                    case "DiscoverRooms":
+                        {
+                            let args = DiscoverRoomArgs.parse(JSON.parse(object.args));
+                            this.roomClientId = args.clientid; // Needs a response: send network id in case not yet set
+                            this.sendDiscoveredRooms({
+                                rooms: this.server.discoverRooms(args).map(r => r.getRoomArgs()),
+                                version: this.server.version,
+                                request: args
+                            });
+                        }
+                        break;
+                    case "SetBlob":
+                        {
+                            let args = SetBlobArgs.parse(JSON.parse(object.args));
+                            //FIXME: room has setBlob method, but server doesn't
+                            //this.server.setBlob(message.args.uuid,message.args.blob);
+                            this.room.setBlob(args.uuid,args.blob)
+                        }
+                        break;
+                    case "GetBlob":
+                        {
+                            let args = GetBlobArgs.parse(JSON.parse(object.args));
+                            this.roomClientId = args.clientid; // Needs a response: send network id in case not yet set
+                            this.sendBlob(args.uuid, this.room.getBlob(args.uuid));
+                        }
+                        break;
+                    case "Ping":
+                        {
+                            let args = PingArgs.parse(JSON.parse(object.args));
+                            this.roomClientId = args.clientid; // Needs a response: send network id in case not yet set
+                            this.sendPing();
+                        }
+                        break;
+                    default:
+                        //FIXME: this.room.processRoomMessage(this, message);
+                        this.room.processMessage(this, message);
+                };
+            }catch(e){
+                if(e instanceof z.ZodError){
+                    console.log(`Peer ${this.uuid}: Error in message - ${JSON.stringify(e.issues)}`);
+                }else{
+                    console.log(`Peer ${this.uuid}: Uknown error in server message`);
                 }
+                return;
             }
-
-            switch(message.type){
-                case "Join":
-                    if (Schema.validate(message.args, "/ubiq.rooms.joinargs", this.onValidationFailure)) {
-                        this.networkSceneId = message.args.peer.sceneid; // Join message always includes peer uuid and object id
-                        this.clientid = message.args.peer.clientid;
-                        this.uuid = message.args.peer.uuid;
-                        this.properties.append(message.args.peer.keys, message.args.peer.values);
-                        this.server.join(this, message.args);
-                    }
-                    break;
-                case "AppendPeerProperties":
-                    if (Schema.validate(message.args, "/ubiq.rooms.appendpeerpropertiesargs", this.onValidationFailure)) {
-                        this.appendProperties(message.args.keys, message.args.values);
-                    }
-                    break;
-                case "AppendRoomProperties":
-                    if (Schema.validate(message.args, "/ubiq.rooms.appendroompropertiesargs", this.onValidationFailure)) {
-                        this.room.appendProperties(message.args.keys,message.args.values);
-                    }
-                    break;
-                case "DiscoverRooms":
-                    if (Schema.validate(message.args, "/ubiq.rooms.discoverroomsargs", this.onValidationFailure)) {
-                        this.clientid = message.args.clientid; // Needs a response: send network id in case not yet set
-                        this.sendDiscoveredRooms({
-                            rooms: this.server.discoverRooms(message.args).map(r => r.getRoomArgs()),
-                            version: this.server.version,
-                            request: message.args
-                        });
-                    }
-                    break;
-                case "SetBlob":
-                    if (Schema.validate(message.args, "/ubiq.rooms.setblobargs", this.onValidationFailure)) {
-                        //FIXME: room has setBlob method, but server doesn't
-                        //this.server.setBlob(message.args.uuid,message.args.blob);
-                        this.room.setBlob(message.args.uuid,message.args.blob)
-                    }
-                    break;
-                case "GetBlob":
-                    if (Schema.validate(message.args, "/ubiq.rooms.getblobargs", this.onValidationFailure)) {
-                        this.clientid = message.args.clientid; // Needs a response: send network id in case not yet set
-                        this.sendBlob(message.args.uuid, this.room.getBlob(message.args.uuid));
-                    }
-                    break;
-                case "Ping":
-                    if(Schema.validate(message.args,"/ubiq.rooms.ping",this.onValidationFailure)){
-                        this.clientid = message.args.clientid; // Needs a response: send network id in case not yet set
-                        this.sendPing();
-                    }
-                    break;
-                default:
-                    //FIXME: this.room.processRoomMessage(this, message);
-                    this.room.processMessage(this, message);
-            };
         }else{
             this.room.processMessage(this, message);
         }
@@ -516,7 +586,7 @@ class RoomPeer{
         return {
             uuid: this.uuid,
             sceneid: this.networkSceneId,
-            clientid: this.clientid,
+            clientid: this.roomClientId,
             keys: this.properties.keys(),
             values: this.properties.values()
         }
@@ -540,7 +610,7 @@ class RoomPeer{
     }
 
     getNetworkId(){
-        return this.clientid;
+        return this.roomClientId;
     }
 
     appendProperties(keys: string | string[],values: any | any[]){
@@ -550,7 +620,7 @@ class RoomPeer{
         }
     }
 
-    sendRejected(joinArgs: IJoinArgs,reason: string){
+    sendRejected(joinArgs: JoinArgs,reason: string){
         this.send(Message.Create(this.getNetworkId(),
         {
             type: "Rejected",
@@ -757,8 +827,10 @@ export class Room{
 }
 
 
-// When peers are not in a room, their room member is set to an instance of EmptyRoom, which contains
-// callbacks and basic information to signal that they are not members of any room.
+// When peers are not in a room, their room member is set to an instance of 
+// EmptyRoom, which contains  callbacks and basic information to signal that
+// they are not members of any room.
+
 class EmptyRoom extends Room {
     uuid: string;
     constructor() {
@@ -791,126 +863,3 @@ class EmptyRoom extends Room {
         }
     }
 }
-
-// Be aware that while jsonschema can resolve forward declared references,
-// initialisation is order dependent, and "alias" schemas must be defined after
-// their concrete counterpart.
-
-Schema.add({
-    id: "/ubiq.rooms.servermessage",
-    type: "object",
-    properties: {
-        type: {"type": "string"},
-        args: {"type": "string"}
-    },
-    required: ["type","args"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.joinargs",
-    type: "object",
-    properties: {
-        joincode: {type: "string"},
-        uuid: {type: "string"},
-        name: {type: "string"},
-        publish: {type: "boolean"},
-        peer: {$ref: "/ubiq.rooms.peerinfo"},
-    },
-    required: ["peer"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.peerinfo",
-    type: "object",
-    properties: {
-        uuid: {type: "string"},
-        sceneid: {$ref: "/ubiq.messaging.networkid"},
-        clientid: {$ref: "/ubiq.messaging.networkid"},
-        keys: {type: "array", items: {type: "string"}},
-        values: {type: "array", items: {type: "string"}},
-    },
-    required: ["uuid","sceneid","clientid","keys","values"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.roominfo",
-    type: "object",
-    properties: {
-        uuid: {type: "string"},
-        joincode: {type: "string"},
-        publish: {type: "boolean"},
-        name: {type: "string"},
-        keys: {type: "array", items: {type: "string"}},
-        values: {type: "array", items: {type: "string"}},
-    },
-    required: ["uuid","joincode","publish","name","keys","values"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.appendpeerpropertiesargs",
-    type: "object",
-    properties: {
-        keys: {type: "array", items: {type: "string"}},
-        values: {type: "array", items: {type: "string"}}
-    },
-    required: ["keys","values"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.appendroompropertiesargs",
-    type: "object",
-    properties: {
-        keys: {type: "array", items: {type: "string"}},
-        values: {type: "array", items: {type: "string"}}
-    },
-    required: ["keys","values"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.ping",
-    type: "object",
-    properties: {
-        clientid: { $ref: "/ubiq.messaging.networkid"} // required because this needs a response
-    },
-    required: ["clientid"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.discoverroomsargs",
-    type: "object",
-    properties: {
-        clientid: { $ref: "/ubiq.messaging.networkid"}, // required because this needs a response
-        joincode: {type: "string"}
-    },
-    required: ["clientid"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.setblobargs",
-    type: "object",
-    properties: {
-        uuid: { type: "string"},
-        blob: { type: "string"}
-    },
-    required: ["uuid","blob"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.getblobargs",
-    type: "object",
-    properties: {
-        clientid: { $ref: "/ubiq.messaging.networkid"}, // required because this needs a response
-        uuid: { type: "string"}
-    },
-    required: ["clientid","uuid"]
-});
-
-Schema.add({
-    id: "/ubiq.rooms.updateroomargs",
-    $ref: "/ubiq.rooms.roominfo"
-});
-
-Schema.add({
-    id: "/ubiq.rooms.updatepeerargs",
-    $ref: "/ubiq.rooms.peerinfo"
-});

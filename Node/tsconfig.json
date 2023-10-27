@@ -10,12 +10,11 @@
         "forceConsistentCasingInFileNames": true,
         "esModuleInterop": true,
         "module": "esnext",
-        "moduleResolution": "node",
+        "moduleResolution": "Bundler",
         "resolveJsonModule": true,
         "isolatedModules": true,
         "jsx": "preserve",
         "incremental": true,
-        "outDir": "build",                    
     },
     "include": [
         "./app.ts",

@@ -1,5 +1,6 @@
 // This file is the entry point for the bundler used to build Ubiq classes for
 // the Browser with Rollup.
+
 export { NetworkId, NetworkScene, WebSocketConnectionWrapper } from "ubiq";
 export { RoomClient, PeerConnectionManager, AvatarManager, ThreePointTrackedAvatar } from "components";
 
@@ -7,8 +8,8 @@ export { RoomClient, PeerConnectionManager, AvatarManager, ThreePointTrackedAvat
 // dependencies for use in the browser, for the convenience of the Web Samples.
 
 // You may prefer your application be more selective, to reduce the library size.
-// To this end, require() the Ubiq resources directly in your Js file, or create
-// an equivalent lib.js requiring only those classes necessary, and use the
+// To this end, import() the Ubiq resources directly in your Ts file, or create
+// an equivalent lib.ts requiring only those classes necessary, and use the
 // bundler on this instead.
 
 // Take care that not all classes will be supported on the browser. All the Ubiq
@@ -25,8 +26,8 @@ export { RoomClient, PeerConnectionManager, AvatarManager, ThreePointTrackedAvat
 // example, ws brings in bufferutil. This works OK on Node but when bundling for
 // the browser, the bundle will end up with require('bufferutil') calls (for 
 // example). Make sure to install such dependencies directly
-// (e.g. npm install bufferutil).
-// There should be no require() calls in the bundled js.
+// (e.g. npm install bufferutil): there should be no require() calls in the 
+// bundled js.
 
 // To build, give the command 
 //     npx rollup --config

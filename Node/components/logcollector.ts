@@ -1,26 +1,32 @@
-const { EventEmitter } = require('events')
-const { Stream } = require('stream')
-const { NetworkId } = require("ubiq")
+import { EventEmitter } from  'events'
+import { Readable, Stream, Writable } from 'stream'
+import { INetworkComponent, Message, NetworkId, NetworkScene } from "ubiq"
+import { RoomClient } from './roomclient';
+import { Writeable } from 'zod';
 
 class LogCollectorMessage{
-    constructor(message){
+    type: number;
+    tag: number;
+    data: Buffer;
+
+    constructor(message: Message){
         var buffer = message.toBuffer();
         this.type = buffer[0];
         this.tag = buffer[1];
         this.data = buffer.slice(2);
     }
 
-    static Create(type, content){
+    static Create(type: number, content: Object | string | Buffer){
         if(typeof(content) == "object"){
-            content = JSON.stringify(content);
+            content = JSON.stringify(content) as String;
         }
         if(typeof(content) == "string"){
-            content = Buffer.from(content, 'utf8');
-            var buffer = Buffer.alloc(content.length + 2);
-            buffer[0] = type;
-            buffer[1] = 0x0;
-            content.copy(buffer,2);
-            return buffer;
+            let contentBuffer = Buffer.from(content, 'utf8');
+            var messageBuffer = Buffer.alloc(contentBuffer.length + 2);
+            messageBuffer[0] = type;
+            messageBuffer[1] = 0x0;
+            contentBuffer.copy(messageBuffer,2);
+            return messageBuffer;
         }
         throw "Unsupported content";
     }
@@ -43,13 +49,27 @@ class LogCollectorMessage{
 // Until this is done, or resume() is called, the streams will be paused. In paused mode
 // the streams will discard any events, so make sure to connect the streams to the sink
 // before calling startCollection().
-class LogCollector extends EventEmitter{
-    constructor(scene){
+export class LogCollector extends EventEmitter implements INetworkComponent{
+    scene: NetworkScene;
+    networkId: NetworkId;
+    broadcastId: NetworkId;
+    destinationId: NetworkId;
+    clock: number;
+    lock: boolean;
+    count: number;
+    _eventStream: Readable;
+    _forwardingStream: Writable;
+    _writingStream: Writable;
+    roomClient: RoomClient | undefined;
+
+    constructor(scene: NetworkScene){
         super()
+        this.scene = scene;
         this.networkId = NetworkId.Create(scene.networkId, "LogCollector");
         this.broadcastId = new NetworkId("685a5b84-fec057d0");
         this.destinationId = NetworkId.Null;
         this.clock = 0;
+        this.count = 0;
 
         // When set, this LogCollector will always try to maintain its position as the Primary collector.
         this.lock = false;
@@ -64,23 +84,20 @@ class LogCollector extends EventEmitter{
             }
         });
 
+        const collector = this;
+
         // A stream that forwards log events to the LogCollector specified by destinationId
         // The eventStream should be piped to this when destinationId points to another LogCollector
         // in the Peer Group.
         this._forwardingStream = new Stream.Writable(
             {
                 objectMode: true,
-                write: (msg,_,done) =>{
-                    collector.context.send({
-                        networkId: collector.destinationId,
-                        componentId: collector.componentId
-                    },
-                    msg);
+                write: (msg,_,done) => {
+                    collector.scene.send(collector.destinationId, msg);
                     done();
                 }
             }
         );
-        this._forwardingStream.collector = this;
 
         // The stream that generates the events to be passed outside the LogCollector.
         this._writingStream = new Stream.Writable(
@@ -92,34 +109,31 @@ class LogCollector extends EventEmitter{
                         eventMessage.tag,
                         eventMessage.fromJson()
                     );
-                    this.count = this.count + 1;
+                    collector.count = collector.count + 1;
                     done();
                 },
-                count: 0
             }
         );
-        this._writingStream.collector = this;
 
-        this.scene = scene;
         scene.register(this, this.networkId);
         scene.register(this, this.broadcastId);
         this.registerRoomClientEvents();
     }
 
     written(){
-        return this._writingStream.count;
+        return this.count;
     }
 
     registerRoomClientEvents(){
-        this.roomClient = this.scene.getComponent("RoomClient");
+        this.roomClient = this.scene.getComponent("RoomClient") as RoomClient;
         if(this.roomClient == undefined){
             throw "RoomClient must be added to the scene before LogCollector";
         }
-        this.roomClient.addListener("OnPeerAdded", function(){
+        this.roomClient.addListener("OnPeerAdded", () => {
             if(this.isPrimary()){
                 this.startCollection();
             }
-        }.bind(this));
+        });
     }
 
     isPrimary(){
@@ -144,16 +158,18 @@ class LogCollector extends EventEmitter{
         this.startCollection();
     }
 
-    sendSnapshot(destinationId){
+    sendSnapshot(destinationId: NetworkId){
         this.destinationId = destinationId;
         this.clock++;
         this.destinationChanged();
-        for(const peer of this.roomClient.getPeers()){
-            this.scene.send(this.broadcastId, LogCollectorMessage.Create(0x1, {clock: this.clock, state: destinationId}));
-        };
+        if(this.roomClient){
+            for(const peer of this.roomClient.getPeers()){
+                this.scene.send(this.broadcastId, LogCollectorMessage.Create(0x1, {clock: this.clock, state: destinationId}));
+            };
+        }
     }
 
-    processMessage(msg){
+    processMessage(msg: Message){
         var message = new LogCollectorMessage(msg);
         switch(message.type){
             case 0x1: //Command
@@ -208,8 +224,4 @@ class LogCollector extends EventEmitter{
             }
         }
     }
-}
-
-module.exports = {
-    LogCollector
 }
