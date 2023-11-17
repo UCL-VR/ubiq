@@ -1,11 +1,12 @@
 import { RoomClient } from "components";
 import WebSocket from 'ws';
 import { NetworkScene, WebSocketConnectionWrapper } from "ubiq";
+import nconf from "nconf";
 
-const websocket = {
-    uri: "localhost",
-    port: 8010
-}
+nconf.file('local', 'config/local.json');
+nconf.file('test', 'config/test.json');
+nconf.file('default', 'config/default.json');
+const websocket = nconf.get('roomserver:wss');
 
 describe("Connections", ()=>{
     test("Can establish WebSocket Connection", done=>{

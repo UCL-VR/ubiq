@@ -1,5 +1,6 @@
 import { Room, RoomClient, RoomPeer } from "components";
 import { NetworkScene, UbiqTcpConnection, Uuid, IConnectionWrapper } from "ubiq";
+import nconf from "nconf";
 
 // This set of unit tests is concerned with the RoomServer behaviour. They test
 // the roomserver module, as well as the roomclient component, together.
@@ -8,13 +9,13 @@ import { NetworkScene, UbiqTcpConnection, Uuid, IConnectionWrapper } from "ubiq"
 // to be started in debug mode before the tests are run for interactive
 // debugging.
 
-const config = {
-    uri: "localhost",
-    port: 8009
-}
+nconf.file('local', 'config/local.json');
+nconf.file('test', 'config/test.json');
+nconf.file('default', 'config/default.json');
+const config = nconf.get('roomserver:tcp');
 
 // Create a set of helper functions for the tests
-function createNewRoomClient() {
+export function createNewRoomClient() {
     const connection = UbiqTcpConnection(config.uri, config.port);
     const scene = new NetworkScene();
     scene.addConnection(connection);
@@ -22,11 +23,11 @@ function createNewRoomClient() {
     return roomclient;
 }
 
-function cleanupRoomClient(roomclient: RoomClient){
+export function cleanupRoomClient(roomclient: RoomClient){
     roomclient.scene.connections.forEach((c: IConnectionWrapper) => c.close());
 }
 
-function cleanupRoomClients(clients: RoomClient[]){
+export function cleanupRoomClients(clients: RoomClient[]){
     clients.forEach(roomclient =>{
         roomclient.scene.connections.forEach((c: IConnectionWrapper) => c.close());
     });
