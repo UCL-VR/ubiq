@@ -6,7 +6,7 @@
 
 // This package can be used to build typical Ubiq Peers for Node.
 
-export { LogCollector } from "./logcollector.js"
-export { RoomClient, Room, RoomPeer } from "./roomclient.js"
-export { PeerConnectionManager } from "./peerconnectionmanager.js"
-export { AvatarManager, ThreePointTrackedAvatar } from "./avatarmanager.js"
+export { LogCollector } from './logcollector.js'
+export { RoomClient, Room, RoomPeer } from './roomclient.js'
+export { PeerConnectionManager } from './peerconnectionmanager.js'
+export { AvatarManager, ThreePointTrackedAvatar } from './avatarmanager.js'

@@ -3,35 +3,35 @@
 // This package supports establishing, or listening for, a connection
 // to a Ubiq Peer and exchanging Ubiq Messages with it. It also includes
 // Helper functions, such as those for creating Unique Identifiers.
-// This package is part of the Ubiq Server, but can also be used to 
+// This package is part of the Ubiq Server, but can also be used to
 // build NodeJs based (Client) Peers.
 export {
     WrappedSecureWebSocketServer,
-    WrappedTcpServer, 
+    WrappedTcpServer,
     WebSocketConnectionWrapper,
     TcpConnectionWrapper,
     UbiqTcpConnection
-} from "./connections.js"; // The file extensions must be .js even though the actual files on disk are .ts
+} from './connections.js' // The file extensions must be .js even though the actual files on disk are .ts
 
-export type { 
+export type {
     IConnectionWrapper,
     IServerWrapper
-} from "./connections.js";
+} from './connections.js'
 
-export { 
+export {
     Message,
     NetworkId
-} from './messaging.js';
+} from './messaging.js'
 
-export { 
-    Uuid,
-} from "./uuid.js";
+export {
+    Uuid
+} from './uuid.js'
 
 export {
     NetworkContext,
     NetworkScene
-} from "./networkscene.js";
+} from './networkscene.js'
 
-export type { 
-    INetworkComponent 
-} from "./networkscene.js";
+export type {
+    INetworkComponent
+} from './networkscene.js'

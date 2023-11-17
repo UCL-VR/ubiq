@@ -16,10 +16,10 @@
         "jsx": "preserve",
         "incremental": true,
     },
-    "include": [
-        "./app.ts",
-        "./lib.ts",
-        "./jest.config.ts"
+    "include":[
+        "connections.test.ts",
+        "ice.test.ts",
+        "rooms.test.ts"
     ],
     "exclude": [
         "node_modules"

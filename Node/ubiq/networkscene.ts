@@ -1,6 +1,6 @@
-import { IConnectionWrapper } from "./connections.js";
-import { LooseNetworkId, Message, NetworkId, NetworkIdObject } from "./messaging.js";
-import { EventEmitter } from 'events';
+import { type IConnectionWrapper } from './connections.js'
+import { type LooseNetworkId, Message, NetworkId, type NetworkIdObject } from './messaging.js'
+import { EventEmitter } from 'events'
 
 export interface INetworkContext {
     scene: any
@@ -9,15 +9,15 @@ export interface INetworkContext {
 
 export interface INetworkComponent {
     networkId: NetworkId
-    processMessage: (message : Message) => void
+    processMessage: (message: Message) => void
 }
 
 export class NetworkContext implements INetworkContext {
-    scene: NetworkScene;
-    object: any;
-    constructor(scene : NetworkScene, object : INetworkComponent){
-        this.object = object;   // The Networked Component that this context belongs to
-        this.scene = scene;     // The NetworkScene that this context belongs to
+    scene: NetworkScene
+    object: any
+    constructor (scene: NetworkScene, object: INetworkComponent) {
+        this.object = object // The Networked Component that this context belongs to
+        this.scene = scene // The NetworkScene that this context belongs to
     }
 
     // Send a message to another Ubiq Component. This method will work out the
@@ -35,135 +35,137 @@ export class NetworkContext implements INetworkContext {
     //  this.context.send(this, message);
     //  this.context.send({networkId: id}, message);
     //  this.context.send(networkId, message);
-    send(...args : any){
-        if(arguments.length == 0){
-            throw "Send must have at least one argument"
-        }else if(arguments.length == 1){
-            this.scene.send(this.object.networkId, arguments[0]);
-        }else{
-            this.scene.send(arguments[0], arguments[1]);
+    send (..._args: any): void {
+        if (arguments.length === 0) {
+            throw new Error('Send must have at least one argument')
+        } else if (arguments.length === 1) {
+            this.scene.send(this.object.networkId, arguments[0])
+        } else {
+            this.scene.send(arguments[0], arguments[1])
         }
     }
 }
 
-export class NetworkComponent implements INetworkComponent{
-    networkId: NetworkId;
-    constructor(){
-        this.networkId = NetworkId.Unique();
+export class NetworkComponent implements INetworkComponent {
+    networkId: NetworkId
+    constructor () {
+        this.networkId = NetworkId.Unique()
     }
-    processMessage(message: Message): void {
-        throw new Error("Method not implemented.");
+
+    processMessage (_message: Message): void {
+        throw new Error('Method not implemented.')
     }
 }
 
-interface INetworkSceneEntry<T extends NetworkComponent> {
+interface INetworkSceneEntry {
     object: INetworkComponent
     networkId: NetworkId
 }
 
-// A NetworkScene object provides the interface between a Connection and the 
+// A NetworkScene object provides the interface between a Connection and the
 // Networked Components in the application.
-export class NetworkScene extends EventEmitter{
+export class NetworkScene extends EventEmitter {
     connections: IConnectionWrapper[]
-    entries: INetworkSceneEntry<NetworkComponent>[]
+    entries: INetworkSceneEntry[]
     networkId: NetworkId
-    constructor(){
-        super();
-        this.networkId = NetworkId.Unique();
-        this.entries = [];
+    constructor () {
+        super()
+        this.networkId = NetworkId.Unique()
+        this.entries = []
         this.connections = []
-        
     }
 
     // The Connection is expected to be a wrapped connection
-    addConnection(connection : IConnectionWrapper){
-        this.connections.push(connection);
-        connection.onMessage.push(this.#onMessage.bind(this));
-        connection.onClose.push(this.#onClose.bind(this, connection));
+    addConnection (connection: IConnectionWrapper): void {
+        this.connections.push(connection)
+        connection.onMessage.push(this.#onMessage.bind(this))
+        connection.onClose.push(this.#onClose.bind(this, connection))
     }
 
-    async #onMessage(message : Message){
+    #onMessage (message: Message): void {
         this.entries.forEach(entry => {
-            if(NetworkId.Compare(entry.networkId, message.networkId)){
+            if (NetworkId.Compare(entry.networkId, message.networkId)) {
                 // At this point we can s
-                entry.object.processMessage(message);
+                entry.object.processMessage(message)
             }
-        });
-        this.emit("OnMessage", message);
+        })
+        this.emit('OnMessage', message)
     }
 
-    #onClose(connection : IConnectionWrapper){
-        var index = this.connections.indexOf(connection);
-        if(index > -1){
-            this.connections.slice(index, 1);
+    #onClose (connection: IConnectionWrapper): void {
+        const index = this.connections.indexOf(connection)
+        if (index > -1) {
+            this.connections.slice(index, 1)
         }
     }
 
-    send(looseNetworkId: LooseNetworkId, message : object | string | Buffer){
-        let networkId : NetworkId | string = NetworkId.Unique();
+    send (looseNetworkId: LooseNetworkId, message: object | string | Buffer): void {
+        let networkId: NetworkId | string = NetworkId.Unique()
         // Try to infer the Network Id format
-        if(Object.getPrototypeOf(looseNetworkId).constructor.name == "NetworkId"){
-            networkId = looseNetworkId as NetworkId;
-        }else if(typeof(looseNetworkId) == "number"){
-            networkId = new NetworkId(looseNetworkId);
-        }else if(typeof(looseNetworkId) == "object" && looseNetworkId.hasOwnProperty("a") && looseNetworkId.hasOwnProperty("b")){
-            networkId = new NetworkId(looseNetworkId);
-        }else if(typeof(looseNetworkId) == "object" && looseNetworkId.hasOwnProperty("networkId")){
-            networkId = new NetworkId((looseNetworkId as NetworkIdObject).networkId);
-        }else if(typeof(looseNetworkId) == "string"){
-            networkId = looseNetworkId;
+        if (Object.getPrototypeOf(looseNetworkId).constructor.name === 'NetworkId') {
+            networkId = looseNetworkId as NetworkId
+        } else if (typeof (looseNetworkId) === 'number') {
+            networkId = new NetworkId(looseNetworkId)
+        } else if (typeof (looseNetworkId) === 'object' && looseNetworkId.hasOwnProperty('a') && looseNetworkId.hasOwnProperty('b')) {
+            networkId = new NetworkId(looseNetworkId)
+        } else if (typeof (looseNetworkId) === 'object' && looseNetworkId.hasOwnProperty('networkId')) {
+            networkId = new NetworkId((looseNetworkId as NetworkIdObject).networkId)
+        } else if (typeof (looseNetworkId) === 'string') {
+            networkId = looseNetworkId
         }
         // Message.Create will determine the correct encoding of the message
-        var buffer = Message.Create(networkId, message);
+        const buffer = Message.Create(networkId, message)
 
-        this.connections.forEach(connection =>{
-            connection.send(buffer);
-        });
+        this.connections.forEach(connection => {
+            connection.send(buffer)
+        })
     }
 
     // Registers a Networked Component so that it will recieve messages addressed
     // to its specific NetworkId via its processMessage method.
     // If a NetworkId is not specified, it is found from the networkId member.
-    register(...args: any){
-        let entry : INetworkSceneEntry<NetworkComponent> = {
+    register (..._args: any): NetworkContext {
+        const entry: INetworkSceneEntry = {
             object: arguments[0],
-            networkId: NetworkId.Unique(),
-        };
-        if(arguments.length == 2){
+            networkId: NetworkId.Unique()
+        }
+        if (arguments.length === 2) {
             // The user is trying to register with a specific Id
-            entry.networkId = arguments[1];
-        }else if(arguments.length == 1){
+            entry.networkId = arguments[1]
+        } else if (arguments.length === 1) {
             // The user is trying to register with the 'networkId' member
-            if(!entry.object.hasOwnProperty("networkId")){
-                throw new Error("Component does not have a networkId Property");
+            if (!entry.object.hasOwnProperty('networkId')) {
+                throw new Error('Component does not have a networkId Property')
             }
-            if(!(entry.object.networkId instanceof NetworkId)){
-                throw new Error("Component's networkId member must be of the type NetworkId");
+            if (!(entry.object.networkId instanceof NetworkId)) {
+                throw new Error("Component's networkId member must be of the type NetworkId")
             }
-            entry.networkId = entry.object.networkId;   
+            entry.networkId = entry.object.networkId
         }
 
-        if(!entry.object.processMessage){
-            throw new Error("Component does not have a processMessage method");
+        // This check mainly exists for the browser, as users may write Js
+        // ignoring the types when using the browser library.
+        if (entry.object.processMessage === undefined) {
+            throw new Error('Component does not have a processMessage method')
         }
-        
-        this.entries.push(entry);
 
-        return new NetworkContext(this, entry.object);
+        this.entries.push(entry)
+
+        return new NetworkContext(this, entry.object)
     }
 
-    unregister(component : INetworkComponent){
-        const i = this.entries.findIndex(entry =>{
-            return entry.object === component;
-        });
-        if(i > -1){
-            this.entries.splice(i, 1);
+    unregister (component: INetworkComponent): void {
+        const i = this.entries.findIndex(entry => {
+            return entry.object === component
+        })
+        if (i > -1) {
+            this.entries.splice(i, 1)
         }
     }
 
-    getComponent(name : string){
-        return this.entries.find(entry =>{
-                return entry.object.constructor.name == name;
-            })?.object;
+    getComponent (name: string): INetworkComponent | undefined {
+        return this.entries.find(entry => {
+            return entry.object.constructor.name === name
+        })?.object
     }
 }
