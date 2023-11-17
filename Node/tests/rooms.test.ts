@@ -9,6 +9,10 @@ import nconf from "nconf";
 // to be started in debug mode before the tests are run for interactive
 // debugging.
 
+// The test.json config can be used to set the server address to test. By 
+// default, this only sets the uri (localhost), and the ports are set by 
+// default.json. Like app.ts, local.json supercededs everything.
+
 nconf.file('local', 'config/local.json');
 nconf.file('test', 'config/test.json');
 nconf.file('default', 'config/default.json');

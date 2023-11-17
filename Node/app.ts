@@ -1,5 +1,5 @@
 import { WrappedSecureWebSocketServer, WrappedTcpServer } from "ubiq";
-import { RoomServer, IceServerProvider, StatusServer as StatusModule } from "modules";
+import { RoomServer, IceServerProvider, Status } from "modules";
 import nconf from "nconf";
 
 // nconf loads the configuration hierarchically - settings that load *first* 
@@ -17,7 +17,7 @@ const roomServer = new RoomServer();
 roomServer.addServer(new WrappedTcpServer(nconf.get('roomserver:tcp')));
 roomServer.addServer(new WrappedSecureWebSocketServer(nconf.get('roomserver:wss')));
 
-const statusModule = new StatusModule(roomServer, nconf.get('status'));
+const statusModule = new Status(roomServer, nconf.get('status'));
 
 const iceServerProvider = new IceServerProvider(roomServer);
 var iceServers = nconf.get('iceservers');
