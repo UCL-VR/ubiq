@@ -1,0 +1,13 @@
+{
+    "roomserver":
+    {
+        "tcp":
+        {
+            "uri": "localhost"
+        },
+        "wss":
+        {
+            "uri": "localhost"
+        }
+    }
+}
