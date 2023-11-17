@@ -1,10 +1,8 @@
-import { Message, NetworkId, TcpConnectionWrapper, Uuid, WebSocketConnectionWrapper, WrappedSecureWebSocketServer, WrappedTcpServer } from "ubiq";
+import { Message, NetworkId, Uuid, IConnectionWrapper, IServerWrapper } from "ubiq";
 import { EventEmitter } from 'events';
 import { ValidationError } from "jsonschema";
-import { string, z } from 'zod';
-import fs from 'fs';
+import { z } from 'zod';
 
-const VERSION_STRING = "0.0.4";
 const RoomServerReservedId = 1;
 
 // The following Zod objects define the schema for the RoomSever messages on
@@ -213,8 +211,7 @@ class RoomDatabase{
 
     // Return all room objects in the database
     all(){
-        //FIXME: Why not Object.values?
-        return Object.keys(this.byUuid).map(k => this.byUuid[k]);
+        return Object.values(this.byUuid);
     }
 
     // Add room to the database
@@ -246,75 +243,54 @@ class RoomDatabase{
     }
 }
 
+export class Statistics {
+    connections: number;
+    rooms: number;
+    roomscreated: number;
+    messages: number;
+    bytesIn: number;
+    bytesOut: number;
+    time: any;
+
+    constructor(){
+        this.connections = 0;
+        this.rooms = 0;
+        this.roomscreated = 0;
+        this.messages = 0;
+        this.bytesIn = 0;
+        this.bytesOut = 0;
+        this.time = 0;
+    }
+}
+
 // This is the primary server for rendezvous and bootstrapping. It accepts 
 // websocket and net connections, (immediately handing them over to RoomPeer
 // instances) and performs book-keeping for finding and joining rooms.
 
 export class RoomServer extends EventEmitter{
     roomDatabase: RoomDatabase;
-    version: string;
     networkId: NetworkId;
-    status: { connections: number; rooms: number; messages: number; bytesIn: number; bytesOut: number; time: number; };
-    statusStream?: fs.WriteStream;
-    statusStreamTime: number;
-    intervals: NodeJS.Timeout[];
+    servers: IServerWrapper[];
+    stats: Statistics;
     T: typeof Room;
     constructor(){
         super();
         this.roomDatabase = new RoomDatabase();
-        this.version = VERSION_STRING;
         this.networkId = new NetworkId(RoomServerReservedId);
-        this.status = {
-            connections: 0,
-            rooms: 0,
-            messages: 0,
-            bytesIn: 0,
-            bytesOut: 0,
-            time: 0,
-        }
-        this.statusStream = undefined;
-        this.statusStreamTime = 0;
-        this.intervals = [];
+        this.stats = new Statistics();
+        this.servers = [];
         this.T = Room;
     }
 
-    addStatusStream(filename: string){
-        if(filename != undefined){
-            this.statusStream = fs.createWriteStream(filename);
-            this.intervals.push(setInterval(this.statusPoll.bind(this), 100));
-        }
-    }
-
-    updateStatus(){
-        this.status.rooms = Object.keys(this.roomDatabase.byUuid).length;
-        this.status.time = (Date.now() * 10000) + 621355968000000000; // This snippet converts Js ticks to .NET ticks making them directly comparable with Ubiq's logging timestamps
-        var structuredLog = JSON.stringify(this.status, (key,value)=>
-            typeof value === "bigint" ? value.toString() : value
-        );
-        this.statusStream?.write(structuredLog + "\n");
-    }
-
-    // Called by onMessage to see if we need to update the status log.
-    // The status should be updated every 100 ms or so.
-    statusPoll(){
-        if(this.statusStream != undefined){
-            var time = Date.now();
-            var interval = time - this.statusStreamTime;
-            if(interval > 100){
-                this.statusStreamTime = time;
-                this.updateStatus();
-            }
-        }
-    }
-
-    addServer(server: WrappedTcpServer | WrappedSecureWebSocketServer){
+    addServer(server: IServerWrapper){
         if(server.status == "LISTENING"){
             console.log("Added RoomServer port " + server.port);
+            this.servers.push(server);
             server.onConnection.push(this.onConnection.bind(this));
         }
     }
 
-    onConnection(wrapped : TcpConnectionWrapper /*| WebSocketConnectionWrapper*/){
+    onConnection(wrapped : IConnectionWrapper){
         console.log("RoomServer: Client Connection from " + wrapped.endpoint().address + ":" + wrapped.endpoint().port);
         new RoomPeer(this, wrapped);
     }
@@ -387,6 +363,8 @@ export class RoomServer extends EventEmitter{
             room.publish = publish;
             room.name = name;
             this.roomDatabase.add(room);
+            this.stats.rooms++;
+            this.stats.roomscreated++;
             this.emit("create",room);
 
             console.log(room.uuid + " created with joincode " + joincode);
@@ -428,6 +406,10 @@ export class RoomServer extends EventEmitter{
         return this.roomDatabase.all();
     }
 
+    getRoom(uuid: string): Room | undefined{
+        return this.roomDatabase.byUuid[uuid];
+    }
+
     // Return requested rooms for publishable rooms
     // Optionally uses joincode to filter, in which case room need not be publishable
     // Expects args from schema ubiq.rooms.discoverroomargs
@@ -442,22 +424,19 @@ export class RoomServer extends EventEmitter{
     removeRoom(room : Room){
         this.emit("destroy",room);
         this.roomDatabase.remove(room.uuid);
+        this.stats.rooms--;
         console.log("RoomServer: Deleting empty room " + room.uuid);
     }
 
+    getStats(): Statistics{
+        this.stats.time = (Date.now() * 10000) + 621355968000000000; // This snippet converts Js ticks to .NET ticks making them directly comparable with Ubiq's logging timestamps
+        return this.stats;
+    }
+
     exit(callback: () => void){
-        for(var id of this.intervals){
-            clearInterval(id);
-        }
-        if(this.statusStream != undefined){
-            console.log("Closing status stream...");
-            this.statusStream.on("finish", callback);
-            this.statusStream.end();
-        }
-        else
-        {
-            callback();
-        }
+        Promise.all(
+            this.servers.map(server=>server.close())
+        ).then(callback);
     }
 }
 
@@ -467,7 +446,7 @@ export class RoomServer extends EventEmitter{
 
 class RoomPeer{
     server: RoomServer;
-    connection: any;
+    connection: IConnectionWrapper;
     room: Room;
     peers: {};
     networkSceneId: NetworkId;
@@ -475,10 +454,9 @@ class RoomPeer{
     uuid: string;
     properties: PropertyDictionary;
     sessionId: string;
-    observed: Room[];
-    constructor(server : RoomServer, connection: any){
+    constructor(server : RoomServer, connection: IConnectionWrapper){
         this.server = server;
-        this.server.status.connections += 1;
+        this.server.stats.connections += 1;
         this.connection = connection;
         this.room = new EmptyRoom();
         this.peers = {};
@@ -492,13 +470,11 @@ class RoomPeer{
         this.connection.onMessage.push(this.onMessage.bind(this));
         this.connection.onClose.push(this.onClose.bind(this));
         this.sessionId = Uuid.generate();
-        this.observed = [];
     }
 
     onMessage(message: Message){
-        this.server.status.messages += 1;
-        this.server.status.bytesIn += message.length;
-        this.server.statusPoll();
+        this.server.stats.messages += 1;
+        this.server.stats.bytesIn += message.length;
         if(NetworkId.Compare(message.networkId, this.server.networkId)){
             try{
                 let object = RoomServerMessage.parse(message.toObject());
@@ -528,10 +504,10 @@ class RoomPeer{
                     case "DiscoverRooms":
                         {
                             let args = DiscoverRoomArgs.parse(JSON.parse(object.args));
-                            this.roomClientId = args.clientid; // Needs a response: send network id in case not yet set
+                            this.roomClientId = args.clientid; // This message may be received before Join
                             this.sendDiscoveredRooms({
                                 rooms: this.server.discoverRooms(args).map(r => r.getRoomArgs()),
-                                version: this.server.version,
+                                version: "0.0.4", // This mechanism has been deprecated and will no longer change
                                 request: args
                             });
                         }
@@ -539,28 +515,25 @@ class RoomPeer{
                     case "SetBlob":
                         {
                             let args = SetBlobArgs.parse(JSON.parse(object.args));
-                            //FIXME: room has setBlob method, but server doesn't
-                            //this.server.setBlob(message.args.uuid,message.args.blob);
                             this.room.setBlob(args.uuid,args.blob)
                         }
                         break;
                     case "GetBlob":
                         {
                             let args = GetBlobArgs.parse(JSON.parse(object.args));
-                            this.roomClientId = args.clientid; // Needs a response: send network id in case not yet set
+                            this.roomClientId = args.clientid; // This message may be received before Join
                             this.sendBlob(args.uuid, this.room.getBlob(args.uuid));
                         }
                         break;
                     case "Ping":
                         {
                             let args = PingArgs.parse(JSON.parse(object.args));
-                            this.roomClientId = args.clientid; // Needs a response: send network id in case not yet set
+                            this.roomClientId = args.clientid; // This message may be received before Join
                             this.sendPing();
                         }
                         break;
                     default:
-                        //FIXME: this.room.processRoomMessage(this, message);
-                        this.room.processMessage(this, message);
+                        console.warn(`Received unknown server message ${object.type}`);
                 };
             }catch(e){
                 if(e instanceof z.ZodError){
@@ -571,7 +544,7 @@ class RoomPeer{
                 return;
             }
         }else{
-            this.room.processMessage(this, message);
+            this.room.processMessage(this, message); // Message is intended for other peer(s) - this method forwards it to the other members
         }
     }
 
@@ -594,10 +567,7 @@ class RoomPeer{
 
     onClose(){
         this.room.removePeer(this);
-        //FIXME: we never define a removeObserver method anywhere
-        //this.observed.forEach(room => room.removeObserver(this));
-        this.observed.forEach(room => room.removePeer(this))
-        this.server.status.connections -= 1;
+        this.server.stats.connections -= 1;
     }
 
     setRoom(room : Room){
@@ -713,8 +683,8 @@ class RoomPeer{
         }));
     }
 
-    send(message: any){
-        this.server.status.bytesOut += message.length;
+    send(message: Message){
+        this.server.stats.bytesOut += message.length;
         this.connection.send(message);
     }
 }
@@ -817,7 +787,7 @@ export class Room{
         return this.peers.map(c => c.getPeerArgs());
     }
 
-    processMessage(source : RoomPeer, message: any){
+    processMessage(source : RoomPeer, message: Message){
         this.peers.forEach(peer =>{
             if(peer != source){
                 peer.send(message);
@@ -838,15 +808,15 @@ class EmptyRoom extends Room {
         this.uuid = "";
     }
 
-    removePeer(peer: any) { }
+    removePeer(peer: RoomPeer) { }
 
-    addPeer(peer: any) { }
+    addPeer(peer: RoomPeer) { }
 
-    broadcastPeerProperties(peer: any, keys: any) { }
+    broadcastPeerProperties(peer: RoomPeer, keys: string[], values: any[]) { }
 
-    appendProperties(key: any, value: any) { }
+    appendProperties(keys: string | string[],values: any) { }
 
-    processMessage(peer: any, message: any) { }
+    processMessage(source : RoomPeer, message: Message) { }
 
     getPeersArgs() {
         return [];

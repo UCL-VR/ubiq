@@ -14,7 +14,8 @@ export {
 } from "./connections.js"; // The file extensions must be .js even though the actual files on disk are .ts
 
 export type { 
-    ConnectionWrapper 
+    IConnectionWrapper,
+    IServerWrapper
 } from "./connections.js";
 
 export { 

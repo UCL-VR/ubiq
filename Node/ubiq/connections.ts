@@ -1,5 +1,6 @@
 import { Message } from './messaging.js';
-import WebSocket, { WebSocketServer } from 'ws';
+import { Buffer } from 'buffer' // This import is needed for rollup to polyfill Buffer
+import WebSocket, { MessageEvent, WebSocketServer } from 'ws';
 import Tcp from 'net';
 import https from 'https';
 import path from 'path';
@@ -16,22 +17,23 @@ const createServer = https.createServer;
 // connection.onMessage.push(this.myOnMessageCallback.bind(this));
 // connection.onClose.push(this.myOnCloseCallback.bind(this));
 
-interface IWrappedSecureWebSocketServer {
+export interface IServerWrapper {
     onConnection: any[];
     status: string;
     port: number;
+    close: ()=>void;
 }
 
-interface WebSocketConfig {
+interface SocketConfig {
     port: number;
 }
 
-interface SecureWebSocketConfig extends WebSocketConfig {
+interface SecureWebSocketConfig extends SocketConfig {
     cert: string;
     key: string;
 }
 
-export class WrappedSecureWebSocketServer implements IWrappedSecureWebSocketServer{
+export class WrappedSecureWebSocketServer implements IServerWrapper{
 
     // Opens a new Secure WebSocket Server through an HTTPS instance.
     // The certificate and key should be provided as paths in the config.
@@ -39,8 +41,10 @@ export class WrappedSecureWebSocketServer implements IWrappedSecureWebSocketServ
     onConnection: any[] = [];
     status: string = "";
     port: number = -1;
+    server: https.Server | undefined;
     constructor(config : SecureWebSocketConfig){
         if(config == undefined){
+            console.error("SecureWebSocketConfig must be provided.");
             return;
         }
         const self = this;
@@ -78,19 +82,36 @@ export class WrappedSecureWebSocketServer implements IWrappedSecureWebSocketServ
             self.onConnection.map(callback => callback(new WebSocketConnectionWrapper(ws)));
         });
 
+        this.server = server;
         this.status = "LISTENING";
+    }
+
+    close(): Promise<void>{
+        return new Promise<void>((resolve)=>{
+            if(this.server){
+                this.server.closeAllConnections();
+                this.server.close((error)=>{
+                    if(error){
+                        console.error(error); // Not much else we can do since the server is going away!
+                    }
+                    resolve();
+                });
+            }else{
+                resolve();
+            }
+        });
     }
 }
 
-export interface ConnectionWrapper {
+export interface IConnectionWrapper {
     onMessage: any[]
     onClose: any[]
     send(message : Message): void
-    endpoint(): string | {address?: string, port?: number}
+    endpoint(): {address: string, port: number}
     close(): void
 }
 
-export class WebSocketConnectionWrapper implements ConnectionWrapper{
+export class WebSocketConnectionWrapper implements IConnectionWrapper{
 
     onMessage: any[]
     onClose: any[]
@@ -106,31 +127,31 @@ export class WebSocketConnectionWrapper implements ConnectionWrapper{
         this.pending = [];
 
         const self = this;
-        this.socket.on("message", function(event){
-            let data : WebSocket.RawData = event;
+        this.socket.onmessage = function(event: MessageEvent){
+            const data = event.data;
             if(data instanceof ArrayBuffer){
-                data = Buffer.from(data);
+                self.onMessage.map(callback => callback(Message.Wrap(Buffer.from(data))));
+            } else
+            if(data instanceof Buffer && Array.isArray(data)){
+                self.onMessage.map(callback => callback(Message.Wrap(Buffer.concat(data))));
+            } else
+            if(data instanceof Buffer){
+                self.onMessage.map(callback => callback(Message.Wrap(data)));
             }
-            if (Array.isArray(data)) {
-                data = Buffer.concat(data);
-            }
+        };
 
-            // We can safely assume that our data is of type Buffer now.
-            self.onMessage.map(callback => callback(Message.Wrap(data as Buffer)));
-        });
-
-        this.socket.on('close', function(event){
+        this.socket.onclose = function(event){
             self.state = WebSocketConnectionWrapper.CLOSED;
             self.onClose.map(callback => callback());
-        })
+        };
 
-        this.socket.on('open', function(event : any){
+        this.socket.onopen = function(event : any){
             self.state = WebSocketConnectionWrapper.OPEN;
             self.pending.forEach(element => {
                 self.socket.send(element);
             });
             self.pending = [];
-        })
+        };
     }
 
     static CONNECTING = 0;
@@ -146,7 +167,11 @@ export class WebSocketConnectionWrapper implements ConnectionWrapper{
     }
 
     endpoint(){
-        return this.socket.url
+        const socket = (this.socket as any);
+        return {
+            address: socket._socket.remoteAddress, // This only works in Node
+            port: socket._socket.remotePort
+        };
     }
 
     close(){
@@ -154,13 +179,14 @@ export class WebSocketConnectionWrapper implements ConnectionWrapper{
     }
 }
 
-export class WrappedTcpServer{
-    onConnection: any[] = []
-    port: number = -1
-    status: string = ""
-    constructor(config : WebSocketConfig){
+export class WrappedTcpServer implements IServerWrapper{
+    onConnection: any[] = [];
+    port: number = -1;
+    status: string = "";
+    server: Tcp.Server;
+    constructor(config : SocketConfig){
         if(config == undefined){
-            return;
+            console.error("SocketConfig must be defined");
         }
         const self = this;
         this.onConnection = [];
@@ -171,18 +197,26 @@ export class WrappedTcpServer{
         });
         server.listen(this.port);
         this.status = "LISTENING";
+        this.server = server;
+    }
+
+    close(): Promise<void>{
+        return new Promise<void>((resolve)=>{
+            if(this.server){
+                this.server.close((error)=>{
+                    if(error){
+                        console.error(error); // Not much else we can do since the server is going away!
+                    }
+                    resolve();
+                });
+            }else{
+                resolve();
+            }
+        });
     }
 }
 
-interface ITcpConnectionWrapper extends ConnectionWrapper{
-    socket: any
-    headersize: number
-    header: Buffer
-    data: any
-    closed: boolean
-}
-
-export class TcpConnectionWrapper implements ITcpConnectionWrapper{
+export class TcpConnectionWrapper implements IConnectionWrapper{
     onMessage: any[];
     onClose: any[];
     socket: Tcp.Socket;
@@ -268,8 +302,8 @@ export class TcpConnectionWrapper implements ITcpConnectionWrapper{
 
     endpoint(){
         return {
-            address: this.socket.remoteAddress,
-            port: this.socket.remotePort
+            address: this.socket.remoteAddress ?? "uknown",
+            port: this.socket.remotePort ?? -1
         }
     }
 

@@ -1,5 +1,5 @@
 import { WrappedSecureWebSocketServer, WrappedTcpServer } from "ubiq";
-import { RoomServer, IceServerProvider } from "modules";
+import { RoomServer, IceServerProvider, StatusServer as StatusModule } from "modules";
 import nconf from "nconf";
 
 // nconf loads the configuration hierarchically - settings that load *first* 
@@ -14,9 +14,10 @@ nconf.file('local', 'config/local.json');
 nconf.file('default', 'config/default.json');
 
 const roomServer = new RoomServer();
-roomServer.addStatusStream(nconf.get('roomserver:statusLogFile'));
 roomServer.addServer(new WrappedTcpServer(nconf.get('roomserver:tcp')));
 roomServer.addServer(new WrappedSecureWebSocketServer(nconf.get('roomserver:wss')));
+
+const statusModule = new StatusModule(roomServer, nconf.get('status'));
 
 const iceServerProvider = new IceServerProvider(roomServer);
 var iceServers = nconf.get('iceservers');
@@ -41,7 +42,6 @@ if(roomTypeName != undefined){
 }
 
 process.on('SIGINT', function() {
-
     // Registering for SIGINT allows various modules to shutdown gracefully
     roomServer.exit(()=>{
         console.log("Shutdown");

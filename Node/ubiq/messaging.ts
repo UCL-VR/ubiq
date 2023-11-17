@@ -1,4 +1,5 @@
 import perf_hooks from "perf_hooks";
+import { Buffer } from 'buffer' // This import is needed for rollup to polyfill Buffer
 import { z } from 'zod';
 
 const performance = perf_hooks.performance;

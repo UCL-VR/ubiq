@@ -1,4 +1,4 @@
-import { ConnectionWrapper } from "./connections.js";
+import { IConnectionWrapper } from "./connections.js";
 import { LooseNetworkId, Message, NetworkId, NetworkIdObject } from "./messaging.js";
 import { EventEmitter } from 'events';
 
@@ -64,7 +64,7 @@ interface INetworkSceneEntry<T extends NetworkComponent> {
 // A NetworkScene object provides the interface between a Connection and the 
 // Networked Components in the application.
 export class NetworkScene extends EventEmitter{
-    connections: ConnectionWrapper[]
+    connections: IConnectionWrapper[]
     entries: INetworkSceneEntry<NetworkComponent>[]
     networkId: NetworkId
     constructor(){
@@ -76,7 +76,7 @@ export class NetworkScene extends EventEmitter{
     }
 
     // The Connection is expected to be a wrapped connection
-    addConnection(connection : ConnectionWrapper){
+    addConnection(connection : IConnectionWrapper){
         this.connections.push(connection);
         connection.onMessage.push(this.#onMessage.bind(this));
         connection.onClose.push(this.#onClose.bind(this, connection));
@@ -92,7 +92,7 @@ export class NetworkScene extends EventEmitter{
         this.emit("OnMessage", message);
     }
 
-    #onClose(connection : ConnectionWrapper){
+    #onClose(connection : IConnectionWrapper){
         var index = this.connections.indexOf(connection);
         if(index > -1){
             this.connections.slice(index, 1);
@@ -137,8 +137,10 @@ export class NetworkScene extends EventEmitter{
             if(!entry.object.hasOwnProperty("networkId")){
                 throw new Error("Component does not have a networkId Property");
             }
-            //FIXME:
-            entry.networkId = entry.object.networkId as NetworkId;   
+            if(!(entry.object.networkId instanceof NetworkId)){
+                throw new Error("Component's networkId member must be of the type NetworkId");
+            }
+            entry.networkId = entry.object.networkId;   
         }
 
         if(!entry.object.processMessage){

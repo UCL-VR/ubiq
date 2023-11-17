@@ -10,7 +10,7 @@ export class RoomPeer{
     sceneid: NetworkId;
     clientid: NetworkId;
     properties: Map<string,string>;
-    client: RoomClient | undefined
+    #setPeerProperty: ((key:string, value:string)=>void) | undefined;
 
     constructor(args: PeerInfo){
         this.uuid = args.uuid;
@@ -20,6 +20,13 @@ export class RoomPeer{
         for(let i = 0; i < args.keys.length; i++){
             this.properties.set(args.keys[i], args.values[i]);
         };
+        this.#setPeerProperty = undefined;
+    }
+
+    // This should be called by the RoomClient for the local Peer (it has a
+    // deliberately ambiguous name, because it should be called nowhere else).
+    _setRoomClientMethods(method: ((key:string, value:string)=>void)){
+        this.#setPeerProperty = method;
     }
 
     getProperty(key: string){
@@ -27,11 +34,11 @@ export class RoomPeer{
     }
 
     setProperty(key: string, value: string){
-        if(this.client === undefined){
+        if(this.#setPeerProperty === undefined){
             console.error("Properties may only be set on the local Peer");
-            return;
+        }else{
+            this.#setPeerProperty(key,value);
         }
-        this.client.setPeerProperty(key,value);
     }
 }
 
@@ -79,11 +86,12 @@ export class RoomClient extends EventEmitter implements INetworkComponent{
             keys: [],
             values: []
         });
-        this.peer.client = this;
+        this.peer._setRoomClientMethods(this.#setPeerProperty.bind(this));
 
         this.room = new Room();
 
-        this.peers = new Map()
+        this.peers = new Map();
+        this.peers.set(this.peer.uuid, this.peer);
     }
 
     static serverNetworkId =  new NetworkId(1);
@@ -183,15 +191,15 @@ export class RoomClient extends EventEmitter implements INetworkComponent{
         this.#sendServerMessage("Ping", {clientid: this.networkId});
     }
 
-    getPeers(){
+    getPeers(): IterableIterator<RoomPeer>{
         return this.peers.values();
     }
 
-    getPeer(uuid: string){
+    getPeer(uuid: string): RoomPeer | undefined {
         return this.peers.get(uuid);
     }
 
-    setPeerProperty(key: string, value: string){
+    #setPeerProperty(key: string, value: string){
         this.#sendAppendPeerProperties({keys: [key], values: [value]});
     }
 
@@ -199,7 +207,7 @@ export class RoomClient extends EventEmitter implements INetworkComponent{
         this.#sendAppendRoomProperties({keys: [key], values: [value]});
     }
 
-    getRoomProperty(key: string){
+    getRoomProperty(key: string): string | undefined{
         return this.room.properties.get(key);
     }
 

@@ -1,6 +1,5 @@
 import { Room, RoomClient, RoomPeer } from "components";
-import { NetworkScene, UbiqTcpConnection, Uuid, ConnectionWrapper } from "ubiq";
-import { promise } from "zod";
+import { NetworkScene, UbiqTcpConnection, Uuid, IConnectionWrapper } from "ubiq";
 
 // This set of unit tests is concerned with the RoomServer behaviour. They test
 // the roomserver module, as well as the roomclient component, together.
@@ -24,12 +23,12 @@ function createNewRoomClient() {
 }
 
 function cleanupRoomClient(roomclient: RoomClient){
-    roomclient.scene.connections.forEach((c: ConnectionWrapper) => c.close());
+    roomclient.scene.connections.forEach((c: IConnectionWrapper) => c.close());
 }
 
 function cleanupRoomClients(clients: RoomClient[]){
     clients.forEach(roomclient =>{
-        roomclient.scene.connections.forEach((c: ConnectionWrapper) => c.close());
+        roomclient.scene.connections.forEach((c: IConnectionWrapper) => c.close());
     });
 }
 
@@ -47,6 +46,22 @@ function joinAllRoomClients(clients: RoomClient[], uuid: string): Promise<void[]
         roomclient.join(uuid);
     })
     return promise;
+}
+
+// Given a specific RoomClient, resolve when that RoomClient has been notified
+// of a specific peer joining the room (may return immediately if it already has).
+function waitForSpecificPeer(client: RoomClient, other: string){
+    return new Promise<void>((resolve) =>{
+        if(client.getPeer(other) !== undefined){
+            resolve(); // Already has the other peer
+        }else{
+            client.addListener("OnPeerAdded", peer =>{
+                if(peer.uuid == other){
+                    resolve();
+                }
+            })
+        }
+    });
 }
 
 describe("Room Server", ()=> {
@@ -140,7 +155,6 @@ describe("Room Server", ()=> {
         const roomclientAPeerAdded = new Promise<void>((resolve, reject) =>{
             roomclientA.addListener("OnPeerAdded", (peer: RoomPeer) =>{
                 try{
-                    expect(peer.client).toBeUndefined();
                     expect(peer.uuid).toBe(roomclientB.peer.uuid);
                     resolve();
                }catch(e){ reject(e); };
@@ -260,7 +274,85 @@ describe("Room Server", ()=> {
     });
 
     test("Exchange Peer Properties", done =>{
-        
+        const roomclients: RoomClient[] = [];
+        roomclients.push(createNewRoomClient());
+        roomclients.push(createNewRoomClient());
 
+        const uuid = Uuid.generate();
+        const key = "ubiq.unittests.property1";
+
+        const values: string[] = [];
+        values.push("Mw4oumCWHIaM2gwC7WyJ");
+        values.push("klPteFvLrmR6MOhgn1TM");
+
+        // Peer properties may only be set by the local peer. When they are set,
+        // notifications are sent to existing peers. New peers are initialised
+        // with the correct properties.
+
+        // (A note about this particular test - the current way the peer
+        // properties work is that they are sent to the server 'round robin' when
+        // updating the local peer. This is an implementation detail though and
+        // is not tested explicitly - only that the order of the updates is 
+        // correct.)
+
+        // Peer 1 sets a property before joining
+
+        roomclients[0].peer.setProperty(key, values[0]);
+
+        // Then peer 1 joins the room
+
+        const peer1Joined = joinAllRoomClients([roomclients[0]], uuid);
+
+        // Then peer 2 joins the room, notably after peer 1 has finished its
+        // negotiation. Peer two won't necessarily know of Peer 2 yet, because
+        // that comes in a different message.
+
+        peer1Joined.then(()=>{
+            joinAllRoomClients([roomclients[1]], uuid);
+        });
+
+        // Wait until the peers heear about eachother.
+
+        const peersKnowAboutEachother = Promise.all([
+            waitForSpecificPeer(roomclients[0], roomclients[1].peer.uuid),
+            waitForSpecificPeer(roomclients[1], roomclients[0].peer.uuid)
+        ]);
+
+        // Now, two peers have joined, one of which has a value in the key...
+
+        const afterTestsRun = peersKnowAboutEachother.then(()=>{
+
+            // Peer 2 should be able to see Peer 1's property
+            expect(roomclients[1].getPeer(roomclients[0].peer.uuid)?.getProperty(key)).toBe(values[0]);
+
+            // Peer 1 should get undefined when trying to access the same (or 
+            // any) key on on peer 2
+            expect(roomclients[0].getPeer(roomclients[1].peer.uuid)?.getProperty(key)).toBeUndefined();
+
+            // Any future changes to peer 2 though should raise the OnPeerUpdated
+            // event
+            var peer1GetsPeerUpdatedMessage = new Promise<void>((resolve) =>{
+                roomclients[0].addListener("OnPeerUpdated", peer => {
+                    if(peer.uuid == roomclients[1].peer.uuid){
+                        expect(peer.getProperty(key)).toBe(values[1]);
+                        resolve();
+                    }                    
+                });
+            });
+
+            // Now set the property on peer 2 and see if the above event is called
+            roomclients[1].peer.setProperty(key, values[1]);
+
+            // We expect that peer 1 will recieve a notification
+            return peer1GetsPeerUpdatedMessage;
+        });
+
+        afterTestsRun.then(()=>{
+            done();
+        }).catch((error)=>{
+            done(error);
+        }).finally(()=>{
+            cleanupRoomClients(roomclients);
+        });
     });
 });

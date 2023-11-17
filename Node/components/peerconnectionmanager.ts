@@ -138,8 +138,3 @@ export class PeerConnectionManager extends EventEmitter implements INetworkCompo
         this.emit("OnPeerConnection", this.peers[uuid]);
     }
 }
-
-module.exports = {
-    PeerConnectionManager,
-    PeerConnection
-}
