@@ -1,4 +1,4 @@
-import { WebSocketConnectionWrapper, NetworkId, NetworkScene, RoomClient, PeerConnectionManager, AvatarManager } from "/bundle.js"
+import { WebSocketConnectionWrapper, NetworkId, NetworkScene, RoomClient, PeerConnectionManager, AvatarManager, ThreePointTrackedAvatar } from "/bundle.js"
 
 // This creates a typical Browser WebSocket, with a wrapper that can
 // parse Ubiq messages.
@@ -181,8 +181,9 @@ peerConnectionManager.addListener("OnPeerConnection", async component =>{
     pc.onnegotiationneeded = async () => {
         try {
             component.makingOffer = true;
-            await pc.setLocalDescription();
-            component.sendSdp(pc.localDescription);
+            const offer = await pc.createOffer()
+            await pc.setLocalDescription(offer);
+            component.sendSdp(offer);
         } catch (err) {
             console.error(err);
         } finally {
@@ -230,12 +231,17 @@ peerConnectionManager.addListener("OnPeerConnection", async component =>{
                 if (component.ignoreOffer) {
                     return;
                 }
-                component.isSettingRemoteAnswerPending = description.type == "answer";
-                await pc.setRemoteDescription(description); // SRD rolls back as needed
-                component.isSettingRemoteAnswerPending = false;
                 if (description.type == "offer") {
-                    await pc.setLocalDescription();
-                    component.sendSdp(pc.localDescription);
+                    await pc.setRemoteDescription(description); // SRD rolls back as needed
+                    const answer = await pc.createAnswer();
+                    await pc.setLocalDescription(answer);
+                    component.sendSdp(answer);
+                } else if (description.type == "answer"){
+                    component.isSettingRemoteAnswerPending = true;
+                    await pc.setRemoteDescription(description); // SRD rolls back as needed
+                    component.isSettingRemoteAnswerPending = false;
+                } else {
+                    throw new Error("Unknown WebRtc Signalling Message")
                 }
             } else if (candidate) {
                 try {

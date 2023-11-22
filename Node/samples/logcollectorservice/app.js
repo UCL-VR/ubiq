@@ -11,14 +11,19 @@
 // has left the room.
 
 // Import Ubiq types
-const { NetworkScene, UbiqTcpConnection } = require("ubiq");
-const { LogCollector, RoomClient } = require("components");
-const fs = require('fs');
+import { NetworkScene, UbiqTcpConnection } from 'ubiq'
+import { LogCollector, RoomClient } from 'components'
+import nconf from 'nconf'
+import fs from 'fs'
 
-const config = JSON.parse(fs.readFileSync(__dirname + "/../config.json"));
+// This sample must be started from the root of the Node directory. I.e.,
+// > node --loader ts-node/esm samples/logcollectorservice/app.js
+
+nconf.file('default', "config/samples.json")
+const config = nconf.get()
 
 // Configuration
-eventType = 2;
+const eventType = 2;
 
 // Create a connection to a Server
 const connection = UbiqTcpConnection(config.tcp.uri, config.tcp.port);
@@ -45,7 +50,7 @@ function writeEventToPeerFile(peer, message){
 }
 
 function closePeerFile(peer){
-    if(files.hasOwnProperty(peer)){
+    if(files.hasOwnProperty(peer.sceneid)){
         delete files[peer];
     }
 }
@@ -65,7 +70,7 @@ roomclient.addListener("OnPeerRemoved", peer =>{
 // Register for log events from the log collector.
 logcollector.addListener("OnLogMessage", (type,message) => {
     if(type == eventType){ // Experiment
-        peer = message.peer; // All log messages include the emitting peer
+        const peer = message.peer; // All log messages include the emitting peer
         writeEventToPeerFile(peer,message);
     }
 });

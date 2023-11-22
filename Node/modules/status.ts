@@ -8,6 +8,10 @@ import fs from 'fs'
 import express, { type Request, type Response } from 'express'
 import cookieParser from 'cookie-parser'
 
+// Some calls are protected via API keys. These are UUIDs that should be provided
+// in the apikeys member of the config object. If no API keys are defined, then
+// the API is available to everyone.
+
 interface StatusConfig {
     port: number
     cert: string
@@ -97,6 +101,12 @@ export class Status {
     }
 
     checkApiKey (req: Request, res: Response, next: any): void {
+        // Are we using API key protection at all?
+        if (this.apikeys.length <= 0) {
+            next()
+            return
+        }
+
         // Is the API key in the query?
         if (req.query.apikey !== undefined) {
             if (this.apikeys.includes(req.query.apikey as string)) {
@@ -104,6 +114,8 @@ export class Status {
                 return
             }
         }
+
+        // Or is it in the cookie?
         if (req.cookies !== undefined) {
             if (req.cookies.apikey !== undefined) {
                 if (this.apikeys.includes(req.cookies.apikey)) {

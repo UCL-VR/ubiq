@@ -2,6 +2,7 @@ import { EventEmitter } from 'events'
 import { Stream, type Readable, type Writable } from 'stream'
 import { NetworkId, type INetworkComponent, type Message, type NetworkScene } from 'ubiq'
 import { type RoomClient } from './roomclient'
+import { Buffer } from 'buffer' // This import is needed for rollup to polyfill Buffer
 
 class LogCollectorMessage {
     type: number

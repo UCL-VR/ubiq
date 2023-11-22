@@ -1,6 +1,7 @@
 import { type IConnectionWrapper } from './connections.js'
 import { type LooseNetworkId, Message, NetworkId, type NetworkIdObject } from './messaging.js'
 import { EventEmitter } from 'events'
+import { type Buffer } from 'buffer' // This import is needed for rollup to polyfill Buffer
 
 export interface INetworkContext {
     scene: any

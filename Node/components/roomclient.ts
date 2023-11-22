@@ -14,8 +14,8 @@ export class RoomPeer {
 
     constructor (args: PeerInfo) {
         this.uuid = args.uuid
-        this.sceneid = args.sceneid
-        this.clientid = args.clientid
+        this.sceneid = new NetworkId(args.sceneid)
+        this.clientid = new NetworkId(args.clientid)
         this.properties = new Map()
         for (let i = 0; i < args.keys.length; i++) {
             this.properties.set(args.keys[i], args.values[i])
