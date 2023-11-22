@@ -25,21 +25,15 @@ export class PeerConnection extends EventEmitter implements INetworkComponent {
         this.context = this.scene.register(this)
     }
 
+    // These match the enumeration in the SignallingMessageHelper on the native side
+    static Implementation = 0
+    static IceCandidate = 1
+    static Sdp = 2
+
     /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 
     processMessage (message: Message): void {
-        const m = message.toObject()
-
-        // Convert Unity JsonUtility-friendly object into regular js object
-        this.emit('OnSignallingMessage', {
-            implementation: m.hasImplementation ? m.implementation : undefined,
-            candidate: m.hasCandidate ? m.candidate : undefined,
-            sdpMid: m.hasSdpMid ? m.sdpMid : undefined,
-            sdpMLineIndex: m.hasSdpMLineIndex ? m.sdpMLineIndex : undefined,
-            usernameFragment: m.hasUsernameFragment ? m.usernameFragment : undefined,
-            type: m.hasType ? m.type : undefined,
-            sdp: m.hasSdp ? m.sdp : undefined
-        })
+        this.emit('OnSignallingMessage', message.toObject())
     }
 
     sendIceCandidate (m: any): void { // These types are determined by the webrtc API
@@ -51,6 +45,7 @@ export class PeerConnection extends EventEmitter implements INetworkComponent {
 
         // Convert regular js object into Unity JsonUtility-friendly object
         this.context.send({
+            cls: PeerConnection.IceCandidate,
             hasImplementation: false,
             candidate: m.candidate ? m.candidate : null,
             hasCandidate: !!m.candidate,
@@ -68,6 +63,7 @@ export class PeerConnection extends EventEmitter implements INetworkComponent {
     sendSdp (m: any): void { // These types are determined by the webrtc API
         // Convert regular js object into Unity JsonUtility-friendly object
         this.context.send({
+            cls: PeerConnection.Sdp,
             hasImplementation: false,
             hasCandidate: false,
             hasSdpMid: false,
@@ -131,7 +127,7 @@ export class PeerConnectionManager extends EventEmitter implements INetworkCompo
         const m = message.toObject()
         switch (m.type) {
             case 'RequestPeerConnection':
-                this.createPeerConnection(m.networkId, m.uuid, false)
+                this.createPeerConnection(new NetworkId(m.networkId), m.uuid, false)
         }
     }
 
