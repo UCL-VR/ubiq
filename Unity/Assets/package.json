@@ -1,9 +1,9 @@
 {
     "name": "com.ucl.ubiq",
-    "version": "0.4.5",
+    "version": "0.5.0",
     "displayName": "Ubiq",
     "description": "Create networked VR experiences with Ubiq",
-    "unity": "2020.3",
+    "unity": "2021.3",
     "dependencies": {
       "com.unity.xr.management": "3.2.16",
       "com.unity.webrtc": "3.0.0-pre.4"

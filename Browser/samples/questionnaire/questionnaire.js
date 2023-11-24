@@ -1,4 +1,4 @@
-import Ubiq from "/bundle.js"
+import { WebSocketConnectionWrapper, NetworkScene, RoomClient, LogCollector, NetworkId } from "/bundle.js"
 
 // This creates a typical Browser WebSocket, with a wrapper that can 
 // parse Ubiq messages.
@@ -6,27 +6,27 @@ import Ubiq from "/bundle.js"
 // The config is downloaded before the module is dynamically imported
 const config = window.ubiq.config;
 
-const connection = new Ubiq.WebSocketConnectionWrapper(new WebSocket(`wss://${config.wss.uri}:${config.wss.port}`));
+const connection = new WebSocketConnectionWrapper(new WebSocket(`wss://${config.wss.uri}:${config.wss.port}`));
 
-const scene = new Ubiq.NetworkScene();
+const scene = new NetworkScene();
 scene.addConnection(connection);
 
 // The RoomClient is used to leave and join Rooms. Rooms define which other
 // Peers are in the Peer Group.
 
-const roomClient = new Ubiq.RoomClient(scene);
+const roomClient = new RoomClient(scene);
 
 roomClient.addListener("OnJoinedRoom", room => {
 	console.log("Joined Room with Join Code " + room.joincode);
 });
 
-const log = new Ubiq.LogCollector(scene);
+const log = new LogCollector(scene);
 
-var experimentInstance = Ubiq.NetworkId.Unique().toString();
+var experimentInstance = NetworkId.Unique().toString();
 
 class QuestionnaireController{
 	constructor(scene){
-		this.networkId = new Ubiq.NetworkId("4caddaa6-5627a5fa");
+		this.networkId = new NetworkId("4caddaa6-5627a5fa");
 		this.context = scene.register(this);
 	}
 

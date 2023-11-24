@@ -1,4 +1,4 @@
-import Ubiq from "/bundle.js"
+import { WebSocketConnectionWrapper, NetworkScene, NetworkId, RoomClient } from "/bundle.js"
 
 // This creates a typical Browser WebSocket, with a wrapper that can 
 // parse Ubiq messages.
@@ -6,15 +6,15 @@ import Ubiq from "/bundle.js"
 // The config is downloaded before the module is dynamically imported
 const config = window.ubiq.config;
 
-const connection = new Ubiq.WebSocketConnectionWrapper(new WebSocket(`wss://${config.wss.uri}:${config.wss.port}`));
+const connection = new WebSocketConnectionWrapper(new WebSocket(`wss://${config.wss.uri}:${config.wss.port}`));
 
-const scene = new Ubiq.NetworkScene();
+const scene = new NetworkScene();
 scene.addConnection(connection);
 
 // The RoomClient is used to leave and join Rooms. Rooms define which other
 // Peers are in the Peer Group.
 
-const roomClient = new Ubiq.RoomClient(scene);
+const roomClient = new RoomClient(scene);
 
 roomClient.addListener("OnJoinedRoom", room => {
     console.log("Joined Room with Join Code " + room.joincode);
@@ -22,12 +22,12 @@ roomClient.addListener("OnJoinedRoom", room => {
     document.getElementById("roomjoincode").textContent = room.joincode;
 });
 
-const experimentNamespace = new Ubiq.NetworkId("9ea1be44-a29787fd");
+const experimentNamespace = new NetworkId("9ea1be44-a29787fd");
 
 class Door {
     constructor(scene, doorName){
         this.doorName = doorName;
-        this.context = scene.register(this, Ubiq.NetworkId.Create(experimentNamespace, doorName));
+        this.context = scene.register(this, NetworkId.Create(experimentNamespace, doorName));
         this.element = document.getElementById(doorName);
         this.element.onclick = () =>{
             this.context.send("Open");

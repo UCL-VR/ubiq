@@ -1,4 +1,4 @@
-import Ubiq from "/bundle.js"
+import {WebSocketConnectionWrapper, NetworkScene, NetworkId, RoomClient, AvatarManager, ThreePointTrackedAvatar } from "/bundle.js"
 
 // This creates a typical Browser WebSocket, with a wrapper that can 
 // parse Ubiq messages.
@@ -6,8 +6,8 @@ import Ubiq from "/bundle.js"
 // The config is downloaded before the module is dynamically imported
 const config = window.ubiq.config;
 
-const connection = new Ubiq.WebSocketConnectionWrapper(new WebSocket(`wss://${config.wss.uri}:${config.wss.port}`));
-const scene = new Ubiq.NetworkScene();
+const connection = new WebSocketConnectionWrapper(new WebSocket(`wss://${config.wss.uri}:${config.wss.port}`));
+const scene = new NetworkScene();
 scene.addConnection(connection);
 
 
@@ -51,7 +51,7 @@ const playerController = new PointerLockControls(camera, container);
 
 class BrowserAvatar{
 	constructor(scene){
-		this.networkId = new Ubiq.NetworkId("b394b5c5-43e66da7")
+		this.networkId = new NetworkId("b394b5c5-43e66da7")
 		this.context = scene.register(this);
 	}
 
@@ -191,7 +191,7 @@ webgazer.setGazeListener(function(data, elapsedTime) {
 // The RoomClient is used to leave and join Rooms. Rooms define which other
 // Peers are in the Peer Group.
 
-const roomClient = new Ubiq.RoomClient(scene);
+const roomClient = new RoomClient(scene);
 
 roomClient.addListener("OnJoinedRoom", room => {
 	console.log("Joined Room with Join Code " + room.joincode);
@@ -199,7 +199,7 @@ roomClient.addListener("OnJoinedRoom", room => {
 
 // Manages the avatars. In this demo all avatars are the same mesh.
 
-const avatarManager = new Ubiq.AvatarManager(scene);
+const avatarManager = new AvatarManager(scene);
 
 const avatars = [];
 
@@ -212,7 +212,7 @@ avatarManager.addListener("OnAvatarCreated", avatar => {
 			}
 		});
 		threejsscene.add(object);
-		object.threePointTrackedAvatar = new Ubiq.ThreePointTrackedAvatar(scene, avatar.networkId);
+		object.threePointTrackedAvatar = new ThreePointTrackedAvatar(scene, avatar.networkId);
 		object.scale.set(1,1,1);
 		object.translateZ(100);
 		object.translateY(80);

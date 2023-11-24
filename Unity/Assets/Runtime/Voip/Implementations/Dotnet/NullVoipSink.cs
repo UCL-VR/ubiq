@@ -14,6 +14,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
     public class NullVoipSink : MonoBehaviour, IVoipSink
     {
 #pragma warning disable 67
+        public event Action<AudioStats> statsPushed;
         public event SourceErrorDelegate OnAudioSinkError;
 #pragma warning restore 67
 
@@ -61,11 +62,6 @@ namespace Ubiq.Voip.Implementations.Dotnet
 
         public void GotAudioRtp(IPEndPoint remoteEndPoint, uint ssrc, uint seqnum, uint timestamp, int payloadID, bool marker, byte[] payload)
         {
-        }
-
-        public PlaybackStats GetLastFramePlaybackStats()
-        {
-            return new PlaybackStats();
         }
 
         public void UpdateSpatialization(Vector3 sourcePosition, Quaternion sourceRotation, Vector3 listenerPosition, Quaternion listenerRotation)

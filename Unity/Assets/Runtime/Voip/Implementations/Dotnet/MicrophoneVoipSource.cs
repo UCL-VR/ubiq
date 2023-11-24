@@ -127,6 +127,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
             }
         }
 
+        public event Action<AudioStats> statsPushed;
         public float gain = 1.0f;
 
         private MicrophoneListener microphoneListener = new MicrophoneListener();
@@ -221,15 +222,23 @@ namespace Ubiq.Voip.Implementations.Dotnet
             // Send samples if we have them
             while (microphoneListener.Advance())
             {
+                var volumeSum = 0.0f;
                 for (int i = 0; i < microphoneListener.samples.Length; i++)
                 {
                     var floatSample = microphoneListener.samples[i];
                     floatSample = Mathf.Clamp(floatSample*gain,-.999f,.999f);
+                    volumeSum += floatSample;
                     pcm[i] = (short)(floatSample * short.MaxValue);
                 }
 
                 audioEncoder.Encode(encoded,pcm);
                 OnAudioSourceEncodedSample.Invoke(RTP_TIMESTAMP_PER_BUFFER,encoded);
+                statsPushed?.Invoke(new AudioStats
+                (
+                    sampleCount:microphoneListener.samples.Length,
+                    volumeSum:volumeSum,
+                    sampleRate:SAMPLE_RATE
+                ));
             }
         }
 

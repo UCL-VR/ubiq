@@ -1,4 +1,4 @@
-import Ubiq from "/bundle.js"
+import { WebSocketConnectionWrapper, NetworkId, NetworkScene, RoomClient, PeerConnectionManager, AvatarManager, ThreePointTrackedAvatar } from "/bundle.js"
 
 // This creates a typical Browser WebSocket, with a wrapper that can
 // parse Ubiq messages.
@@ -6,15 +6,15 @@ import Ubiq from "/bundle.js"
 // The config is downloaded before the module is dynamically imported
 const config = window.ubiq.config;
 
-const connection = new Ubiq.WebSocketConnectionWrapper(new WebSocket(`wss://${config.wss.uri}:${config.wss.port}`));
+const connection = new WebSocketConnectionWrapper(new WebSocket(`wss://${config.wss.uri}:${config.wss.port}`));
 
-const scene = new Ubiq.NetworkScene();
+const scene = new NetworkScene();
 scene.addConnection(connection);
 
 // The RoomClient is used to leave and join Rooms. Rooms define which other
 // Peers are in the Peer Group.
 
-const roomClient = new Ubiq.RoomClient(scene);
+const roomClient = new RoomClient(scene);
 
 roomClient.addListener("OnJoinedRoom", room => {
     console.log("Joined Room with Join Code " + room.joincode);
@@ -154,7 +154,7 @@ function createObjectTree(parentNode, obj, level = 0){
 // can interact with the RTCPeerConnection - adding outgoing tracks, listening
 // for incoming ones - as if were any other.
 
-const peerConnectionManager = new Ubiq.PeerConnectionManager(scene);
+const peerConnectionManager = new PeerConnectionManager(scene);
 
 peerConnectionManager.addListener("OnPeerConnectionRemoved", component =>{
     for(let element of component.elements){
@@ -181,8 +181,9 @@ peerConnectionManager.addListener("OnPeerConnection", async component =>{
     pc.onnegotiationneeded = async () => {
         try {
             component.makingOffer = true;
-            await pc.setLocalDescription();
-            component.sendSdp(pc.localDescription);
+            const offer = await pc.createOffer()
+            await pc.setLocalDescription(offer);
+            component.sendSdp(offer);
         } catch (err) {
             console.error(err);
         } finally {
@@ -230,12 +231,17 @@ peerConnectionManager.addListener("OnPeerConnection", async component =>{
                 if (component.ignoreOffer) {
                     return;
                 }
-                component.isSettingRemoteAnswerPending = description.type == "answer";
-                await pc.setRemoteDescription(description); // SRD rolls back as needed
-                component.isSettingRemoteAnswerPending = false;
                 if (description.type == "offer") {
-                    await pc.setLocalDescription();
-                    component.sendSdp(pc.localDescription);
+                    await pc.setRemoteDescription(description); // SRD rolls back as needed
+                    const answer = await pc.createAnswer();
+                    await pc.setLocalDescription(answer);
+                    component.sendSdp(answer);
+                } else if (description.type == "answer"){
+                    component.isSettingRemoteAnswerPending = true;
+                    await pc.setRemoteDescription(description); // SRD rolls back as needed
+                    component.isSettingRemoteAnswerPending = false;
+                } else {
+                    throw new Error("Unknown WebRtc Signalling Message")
                 }
             } else if (candidate) {
                 try {
@@ -325,10 +331,10 @@ class FlatWorld{
 
 const world = new FlatWorld(document.getElementById("flatlandcanvas"));
 
-const avatarManager = new Ubiq.AvatarManager(scene);
+const avatarManager = new AvatarManager(scene);
 
 avatarManager.addListener("OnAvatarCreated", avatar => {
-    world.addAvatar(new FlatSphere(new Ubiq.ThreePointTrackedAvatar(scene, avatar.networkId)));
+    world.addAvatar(new FlatSphere(new ThreePointTrackedAvatar(scene, avatar.networkId)));
 });
 
 function processBuffer(format, m){
@@ -395,8 +401,8 @@ class WebComponent{
         headernode.addEventListener("input", (e)=>{
             e.stopPropagation();
             try{
-                let id = new Ubiq.NetworkId(e.target.textContent);
-                if(this.networkId === undefined || !Ubiq.NetworkId.Compare(this.networkId,id)){
+                let id = new NetworkId(e.target.textContent);
+                if(this.networkId === undefined || !NetworkId.Compare(this.networkId,id)){
                     this.networkId = id;
                     scene.unregister(this);
                     this.context = scene.register(this);

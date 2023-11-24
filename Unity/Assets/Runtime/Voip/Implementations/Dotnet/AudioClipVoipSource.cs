@@ -39,6 +39,7 @@ namespace Ubiq.Voip.Implementations.Dotnet
             StartAudio().Start();
         }
 
+        public event Action<AudioStats> statsPushed;
         public event EncodedSampleDelegate OnAudioSourceEncodedSample;
         public event RawAudioSampleDelegate OnAudioSourceRawSample;
 #pragma warning disable 67
@@ -136,12 +137,14 @@ namespace Ubiq.Voip.Implementations.Dotnet
                 // This ratio re-samples the clip from one samples per second count to other
 
                 var samplesRatio = (Clip.frequency / 16000f);
+                var volumeSum = 0.0f;
 
                 for (int i = 0; i < pcmSamples.Length; i++)
                 {
                     var sampleIndex = (int)(i * samplesRatio);
                     var clipSample = clipSamples[sampleIndex];
                     clipSample = Mathf.Clamp(clipSample * gain, -.999f, .999f);
+                    volumeSum += clipSample;
                     pcmSamples[i] = (short)(clipSample * short.MaxValue);
                 }
 
@@ -152,6 +155,13 @@ namespace Ubiq.Voip.Implementations.Dotnet
                     var duration = pcmSamples.Length/2;
                     OnAudioSourceEncodedSample((uint)duration, encoded);
                 }
+
+                statsPushed?.Invoke(new AudioStats
+                (
+                    sampleCount:clipSamples.Length,
+                    volumeSum:volumeSum,
+                    sampleRate:16000
+                ));
 
                 time += Time.fixedDeltaTime;
             }

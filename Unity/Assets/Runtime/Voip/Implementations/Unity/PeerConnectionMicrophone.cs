@@ -35,15 +35,13 @@ namespace Ubiq.Voip.Implementations.Unity
             }
         }
 
-        public event Action stopping = delegate {};
-        public event Action started = delegate {};
-        public event Action ready = delegate {};
+        public AudioStreamTrack audioStreamTrack { get; private set; }
+        public event Action<AudioStats> statsPushed;
 
+        private AudioSource audioSource;
         private List<GameObject> users = new List<GameObject>();
         private bool microphoneAuthorized;
-
-        public AudioSource audioSource;
-        public AudioStreamTrack audioStreamTrack;
+        private AudioStatsFilter statsFilter;
 
         private void Awake()
         {
@@ -97,6 +95,11 @@ namespace Ubiq.Voip.Implementations.Unity
             }
         }
 
+        private void StatsFilter_StatsPushed(AudioStats stats)
+        {
+            statsPushed?.Invoke(stats);
+        }
+
         private void RequireAudioSource()
         {
             if(!audioSource)
@@ -106,10 +109,19 @@ namespace Ubiq.Voip.Implementations.Unity
                 if (!audioSource)
                 {
                     audioSource = gameObject.AddComponent<AudioSource>();
+                    statsFilter = gameObject.AddComponent<AudioStatsFilter>();
+                    statsFilter.hideFlags = HideFlags.HideInInspector;
+                    statsFilter.SetStatsPushedCallback(StatsFilter_StatsPushed);
                 }
             }
         }
 
+        /// <summary>
+        /// Indicate a new user to the microphone, with an optional callback
+        /// for audio stats. If run as part of a coroutine, this will complete
+        /// when the microphone is ready to be used. If the user has already
+        /// been added, the callback will be replaced.
+        /// </summary>
         public IEnumerator AddUser(GameObject user)
         {
             if (!users.Contains(user))
@@ -123,6 +135,10 @@ namespace Ubiq.Voip.Implementations.Unity
             }
         }
 
+        /// <summary>
+        /// Remove a user from the microphone. If user count reaches zero, the
+        /// microphone will be stopped.
+        /// </summary>
         public void RemoveUser(GameObject user)
         {
             users.Remove(user);

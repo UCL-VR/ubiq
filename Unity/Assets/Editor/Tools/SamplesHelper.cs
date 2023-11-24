@@ -102,7 +102,7 @@ namespace Ubiq.Utilities
                 }
             }
 
-            UpdateExternalConfig(Path.Combine(Environment.CurrentDirectory, "..", "Node", "samples", "config.json"), config);
+            UpdateExternalConfig(Path.Combine(Environment.CurrentDirectory, "..", "Node", "config", "samples.json"), config);
             UpdateExternalConfig(Path.Combine(Environment.CurrentDirectory, "..", "Browser", "config.json"), config);
         }
 

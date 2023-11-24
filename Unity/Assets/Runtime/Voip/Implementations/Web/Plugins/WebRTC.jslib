@@ -7,6 +7,21 @@ var unityWebRtcInteropLibrary = {
         audioContext: null,
         whenUserMedia: null,
 
+        // For record stats
+        processorNode: null,
+        gainNode: null,
+        src: null,
+        record: {
+            lastFrame: -1,
+            volumeSum: 0,
+            sampleCount: 0,
+            sampleRate: 0,
+            stats: {
+                sampleCount: 0,
+                volumeSum: 0
+            }
+        },
+
         iceConnectionState: {
             closed: 0,
             failed: 1,
@@ -91,13 +106,15 @@ var unityWebRtcInteropLibrary = {
 
         instance.polite = polite;
         instance.msgs = [];
-        instance.volume = 0;
-        instance.samples = 0;
-        instance.sampleRate = 1;
-        instance.stats = {
-            samples: 0,
-            volume: 0,
-        };
+        instance.playback = {
+            volumeSum: 0,
+            sampleCount: 0,
+            sampleRate: 0,
+            stats: {
+                sampleCount: 0,
+                volumeSum: 0
+            }
+        }
         instance.panner = new PannerNode(context.audioContext, {
             panningModel: 'HRTF',
             distanceModel: 'inverse',
@@ -138,10 +155,10 @@ var unityWebRtcInteropLibrary = {
                     let arr = inputBuffer.getChannelData(0);
                     let length = arr.length;
                     for (let i = 0; i < length; i++) {
-                        instance.volume += Math.abs(arr[i]);
+                        instance.playback.volumeSum += Math.abs(arr[i]);
                     }
-                    instance.samples += length;
-                    instance.sampleRate = inputBuffer.sampleRate;
+                    instance.playback.sampleCount += length;
+                    instance.playback.sampleRate = inputBuffer.sampleRate;
                 };
                 instance.gainNode = new GainNode(audioContext,{gain:0});
                 instance.src = audioContext.createMediaStreamSource(stream);
@@ -183,6 +200,25 @@ var unityWebRtcInteropLibrary = {
             if (!instance) {
                 // Close() called before getUserMedia returned
                 return;
+            }
+
+            if (!context.processorNode) {
+                let audioContext = context.audioContext;
+                context.processorNode = audioContext.createScriptProcessor(1024, 1, 1);
+                context.processorNode.onaudioprocess = ({inputBuffer}) => {
+                    let arr = inputBuffer.getChannelData(0);
+                    let length = arr.length;
+                    for (let i = 0; i < length; i++) {
+                        context.record.volumeSum += Math.abs(arr[i]);
+                    }
+                    context.record.sampleCount += length;
+                    context.record.sampleRate = inputBuffer.sampleRate;
+                };
+                context.gainNode = new GainNode(audioContext,{gain:0});
+                context.src = audioContext.createMediaStreamSource(stream);
+                context.src.connect(context.processorNode);
+                context.processorNode.connect(context.gainNode);
+                context.gainNode.connect(audioContext.destination);
             }
 
             for (const track of stream.getTracks()) {
@@ -471,34 +507,63 @@ var unityWebRtcInteropLibrary = {
         instance.panner.positionZ.value = z;
     },
 
-    JS_WebRTC_GetStatsSamples: function(id) {
+    JS_WebRTC_GetPlaybackStatsSampleCount: function(id) {
         let instance = context.instances[id];
         if (!instance || !instance.pc) {
             return 0;
         }
 
-        return 16000 * (instance.stats.samples / instance.sampleRate);
+        return instance.playback.stats.sampleCount;
     },
 
-    JS_WebRTC_GetStatsVolume: function(id) {
+    JS_WebRTC_GetPlaybackStatsVolumeSum: function(id) {
         let instance = context.instances[id];
         if (!instance || !instance.pc) {
             return 0;
         }
 
-        return 16000 * (instance.stats.volume / instance.sampleRate);
+        return instance.playback.stats.volumeSum;
     },
 
-    JS_WebRTC_EndStats: function(id) {
+    JS_WebRTC_GetPlaybackStatsSampleRate: function(id) {
+        let instance = context.instances[id];
+        if (!instance || !instance.pc) {
+            return 0;
+        }
+
+        return instance.playback.sampleRate;
+    },
+
+    JS_WebRTC_GetRecordStatsSampleCount: function() {
+        return context.record.stats.sampleCount;
+    },
+
+    JS_WebRTC_GetRecordStatsVolumeSum: function() {
+        return context.record.stats.volumeSum;
+    },
+
+    JS_WebRTC_GetRecordStatsSampleRate: function() {
+        return context.record.sampleRate;
+    },
+
+    JS_WebRTC_EndStats: function(id, frameCount) {
         let instance = context.instances[id];
         if (!instance || !instance.pc) {
             return;
         }
 
-        instance.stats.volume = instance.volume;
-        instance.stats.samples = instance.samples;
-        instance.volume = 0;
-        instance.samples = 0;
+        instance.playback.stats.volumeSum = instance.playback.volumeSum;
+        instance.playback.stats.sampleCount = instance.playback.sampleCount;
+        instance.playback.volumeSum = 0;
+        instance.playback.sampleCount = 0;
+
+        if (frameCount != context.record.lastFrame) {
+            context.record.stats.volumeSum = context.record.volumeSum;
+            context.record.stats.sampleCount = context.record.sampleCount;
+            context.record.volumeSum = 0;
+            context.record.sampleCount = 0;
+            context.record.lastFrame = frameCount;
+        }
     }
 };
 
