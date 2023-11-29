@@ -266,6 +266,7 @@ namespace Ubiq.Voip.Implementations.Unity
                     {
                         op = peerConnection.SetLocalDescription();
                         yield return op;
+
                         Send(ctx.context, peerConnection.LocalDescription);
                     }
                     continue;
