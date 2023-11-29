@@ -260,21 +260,13 @@ namespace Ubiq.Voip.Implementations.Unity
                     }
 
                     var desc = SessionDescriptionUbiqToPkg(msg);
+                    var op = peerConnection.SetRemoteDescription(ref desc);
+                    yield return op;
                     if (msg.type == "offer")
                     {
-                        yield return peerConnection.SetRemoteDescription(ref desc);
-                        var op = peerConnection.CreateAnswer();
+                        op = peerConnection.SetLocalDescription();
                         yield return op;
-                        var sdp = op.Desc;
-                        peerConnection.SetLocalDescription(ref sdp);
-                        Send(ctx.context, sdp);
-                    }else if(msg.type == "answer")
-                    {
-                        yield return peerConnection.SetRemoteDescription(ref desc);
-                    }
-                    else
-                    {
-                        Debug.LogError($"Unknown WebRTC Message Type {msg.type}");
+                        Send(ctx.context, peerConnection.LocalDescription);
                     }
                     continue;
                 }
