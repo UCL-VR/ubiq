@@ -54,8 +54,6 @@ namespace Ubiq.Voip.Implementations.Unity
             Other,
         }
 
-        public RTCPeerConnection PeerConnection => peerConnection;
-
         // Unity Peer Connection
         private RTCPeerConnection peerConnection;
 
