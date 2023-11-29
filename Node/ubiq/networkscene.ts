@@ -16,9 +16,11 @@ export interface INetworkComponent {
 export class NetworkContext implements INetworkContext {
     scene: NetworkScene
     object: any
-    constructor (scene: NetworkScene, object: INetworkComponent) {
+    networkId: NetworkId
+    constructor (scene: NetworkScene, object: INetworkComponent, networkId: NetworkId) {
         this.object = object // The Networked Component that this context belongs to
         this.scene = scene // The NetworkScene that this context belongs to
+        this.networkId = networkId // The NetworkId that is associated with the object by this entry
     }
 
     // Send a message to another Ubiq Component. This method will work out the
@@ -40,7 +42,7 @@ export class NetworkContext implements INetworkContext {
         if (arguments.length === 0) {
             throw new Error('Send must have at least one argument')
         } else if (arguments.length === 1) {
-            this.scene.send(this.object.networkId, arguments[0])
+            this.scene.send(this.networkId, arguments[0])
         } else {
             this.scene.send(arguments[0], arguments[1])
         }
@@ -152,7 +154,7 @@ export class NetworkScene extends EventEmitter {
 
         this.entries.push(entry)
 
-        return new NetworkContext(this, entry.object)
+        return new NetworkContext(this, entry.object, entry.networkId)
     }
 
     unregister (component: INetworkComponent): void {
