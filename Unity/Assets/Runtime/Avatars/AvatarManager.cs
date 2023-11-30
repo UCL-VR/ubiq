@@ -101,7 +101,7 @@ namespace Ubiq.Avatars
         {
             var avatar = gameObject.GetComponentInChildren<Avatar>();
             avatar.SetPeer(peer);
-            playerAvatars.Add(peer, avatar);
+            playerAvatars[peer] = avatar;
 
             if (peer == RoomClient.Me)
             {
