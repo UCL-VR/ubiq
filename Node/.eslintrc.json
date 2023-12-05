@@ -1,0 +1,20 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true
+    },
+    "extends": "standard-with-typescript",
+    "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "module"
+    },
+    "ignorePatterns": [
+        "/samples/**/*.js",
+        "rollup.config.js"
+    ],
+    "rules": {
+        "@typescript-eslint/indent": ["error", 4],
+        "no-prototype-builtins": "off"
+
+    }
+}

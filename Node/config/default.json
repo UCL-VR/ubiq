@@ -12,6 +12,13 @@
             "key": "./key.pem"
         }
     },
+    "status":
+    {
+        "port": 8011,
+        "cert": "./cert.pem",
+        "key": "./key.pem",
+        "apikeys": []
+    },
     "iceservers":
     [
         {
