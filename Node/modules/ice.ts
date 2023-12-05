@@ -206,7 +206,8 @@ function unlink (room: Room, uri: string): void {
     }
 
     // Remove all ice servers with matching uri
-    const iceServers: IceServer[] = JSON.parse(args.values[propI])
+    const iceServerProperty = JSON.parse(args.values[propI])
+    const iceServers: IceServer[] = iceServerProperty.servers
 
     let modified = false
     while (true) {
@@ -221,7 +222,6 @@ function unlink (room: Room, uri: string): void {
     }
 
     if (modified) {
-        //FIXME:
-        //room.updateRoom(args);
+        room.appendProperties('ice-servers', JSON.stringify(iceServerProperty))
     }
 }

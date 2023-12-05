@@ -213,8 +213,12 @@ describe('Room Server', () => {
         // notification if they are already members at the time the property
         // is set.
 
+        // roomclients[1] is going to set the property. Setting a Room property
+        // is a 'request' - there is no guarantee so all clients, including the
+        // one sending the update, need to wait until it is acknowledged.
+
         const onRoomUpdatedReceived = Promise.all(
-            [roomclients[0], roomclients[2]].map(async roomclient => {
+            roomclients.map(async roomclient => {
                 await new Promise<void>(resolve => {
                     roomclient.addListener('OnRoomUpdated', () => {
                         resolve()
