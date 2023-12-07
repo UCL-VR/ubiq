@@ -171,6 +171,15 @@ namespace Ubiq.Messaging
             context.Id = id;
             context.Component = component;
 
+            if(context.Scene == null)
+            {
+                throw new Exception($"Could not find NetworkScene to register {component.gameObject.name} to.");
+            }
+            if(!context.Id.Valid)
+            {
+                throw new Exception($"Attempting to Register {component.gameObject.name} with an uninitialised NetworkId");
+            }
+
             // Create a delegate for the method for the processor. This should
             // similar performance to a virtual method.
             //https://blogs.msmvps.com/jonskeet/2008/08/09/making-reflection-fly-and-exploring-delegates/
