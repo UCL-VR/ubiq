@@ -20,7 +20,7 @@ namespace Ubiq.Samples
 
         [Serializable]
         public class TextureEvent : UnityEvent<Texture2D> { }
-        public TextureEvent OnTextureChanged;
+        public TextureEvent OnTextureChanged = new TextureEvent();
 
         private Avatar avatar;
         private string uuid;
