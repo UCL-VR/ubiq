@@ -10,28 +10,28 @@ public static class ProjectTools
 {
     const string TARGET_DIR_PREFS_KEY = "Ubiq.PushProjectDir";
 
-    [MenuItem ("Ubiq/Save And Mirror Project",true)]
-    private static bool ValidateSaveAndMirrorProjectMenuItem ()
+    [MenuItem("Ubiq/Save And Mirror Project", true)]
+    private static bool ValidateSaveAndMirrorProjectMenuItem()
     {
         return EditorPrefs.HasKey(TARGET_DIR_PREFS_KEY);
     }
 
-    [MenuItem ("Ubiq/Save And Mirror Project")]
-    private static void SaveAndMirrorProjectMenuItem ()
+    [MenuItem("Ubiq/Save And Mirror Project")]
+    private static void SaveAndMirrorProjectMenuItem()
     {
         if (!EditorPrefs.HasKey(TARGET_DIR_PREFS_KEY))
         {
             return;
         }
 
-        DoSaveAndMirrorProject ();
+        DoSaveAndMirrorProject();
     }
 
-    [MenuItem ("Ubiq/Save And Mirror Project To...")]
-    private static void SaveAndMirrorProjectToMenuItem ()
+    [MenuItem("Ubiq/Save And Mirror Project To...")]
+    private static void SaveAndMirrorProjectToMenuItem()
     {
-        var dir = EditorPrefs.GetString(TARGET_DIR_PREFS_KEY,"");
-        var newDir = EditorUtility.OpenFolderPanel("Destination Unity Project Folder",dir,"");
+        var dir = EditorPrefs.GetString(TARGET_DIR_PREFS_KEY, "");
+        var newDir = EditorUtility.OpenFolderPanel("Destination Unity Project Folder", dir, "");
 
         if (!Directory.Exists(newDir))
         {
@@ -39,29 +39,30 @@ public static class ProjectTools
             return;
         }
 
-        EditorPrefs.SetString(TARGET_DIR_PREFS_KEY,newDir);
+        EditorPrefs.SetString(TARGET_DIR_PREFS_KEY, newDir);
 
-        DoSaveAndMirrorProject ();
+        DoSaveAndMirrorProject();
     }
 
-    private static void DoSaveAndMirrorProject () {
+    private static void DoSaveAndMirrorProject()
+    {
         // Get target dir
-        var targetProjectDir = EditorPrefs.GetString(TARGET_DIR_PREFS_KEY,"");
+        var targetProjectDir = EditorPrefs.GetString(TARGET_DIR_PREFS_KEY, "");
         targetProjectDir = new DirectoryInfo(targetProjectDir).FullName;
-        var targetAssetsDir = Path.Combine(targetProjectDir,"Assets");
-        var targetSettingsDir = Path.Combine(targetProjectDir,"ProjectSettings");
+        var targetAssetsDir = Path.Combine(targetProjectDir, "Assets");
+        var targetSettingsDir = Path.Combine(targetProjectDir, "ProjectSettings");
 
         // Do some validation to check we're targeting a Unity project
         if (!Directory.Exists(targetProjectDir))
         {
-            UnityEngine.Debug.LogError ("Could not save and push. Directory: "
+            UnityEngine.Debug.LogError("Could not save and push. Directory: "
                 + targetProjectDir + " could not be found");
             return;
         }
 
         if (!Directory.Exists(targetAssetsDir) || !Directory.Exists(targetSettingsDir))
         {
-            UnityEngine.Debug.LogError ("Could not save and push. Directory: "
+            UnityEngine.Debug.LogError("Could not save and push. Directory: "
                 + targetProjectDir + " needs an Assets and ProjectSettings folder "
                 + "(is it a Unity project?)");
             return;
@@ -74,9 +75,9 @@ public static class ProjectTools
         // Push (robocopy source destination /MIR)
         var sourceAssetsDir = new DirectoryInfo(Application.dataPath).FullName;
         var sourceProjectDir = Directory.GetParent(sourceAssetsDir).FullName;
-        var sourceSettingsDir = Path.Combine(sourceProjectDir,"ProjectSettings");
-        var sourcePackagesDir = Path.Combine(sourceProjectDir,"Packages");
-        var targetPackagesDir = Path.Combine(targetProjectDir,"Packages");
+        var sourceSettingsDir = Path.Combine(sourceProjectDir, "ProjectSettings");
+        var sourcePackagesDir = Path.Combine(sourceProjectDir, "Packages");
+        var targetPackagesDir = Path.Combine(targetProjectDir, "Packages");
 
         // Originally this was async, but there are events in Unity that can
         // cause assembly reloads (e.g., starting play mode) which will silently
@@ -87,14 +88,14 @@ public static class ProjectTools
         //     RunProcess("robocopy",sourcePackagesDir + " " + targetPackagesDir + @" manifest.json /MIR");
         // }).Start();
 
-        RunAndLogProcess("robocopy",@$"""{sourceAssetsDir}"" ""{targetAssetsDir}"" /MIR");
-        RunAndLogProcess("robocopy",@$"""{sourceSettingsDir}"" ""{targetSettingsDir}"" /MIR");
-        RunAndLogProcess("robocopy",@$"""{sourcePackagesDir}"" ""{targetPackagesDir}"" manifest.json /MIR");
+        RunAndLogProcess("robocopy", @$"""{sourceAssetsDir}"" ""{targetAssetsDir}"" /MIR");
+        RunAndLogProcess("robocopy", @$"""{sourceSettingsDir}"" ""{targetSettingsDir}"" /MIR");
+        RunAndLogProcess("robocopy", @$"""{sourcePackagesDir}"" ""{targetPackagesDir}"" manifest.json /MIR");
     }
 
-    static void RunAndLogProcess (string file, string args)
+    static void RunAndLogProcess(string file, string args)
     {
-        RunProcess(file,args,out string stdout,out string stderr);
+        RunProcess(file, args, out string stdout, out string stderr);
         UnityEngine.Debug.Log(file + " " + args + " " + stdout);
         if (!string.IsNullOrEmpty(stderr))
         {
@@ -102,17 +103,17 @@ public static class ProjectTools
         }
     }
 
-    static void RunProcess (string file, string args)
+    static void RunProcess(string file, string args)
     {
-        var process = CreateProcess (file,args,false);
+        var process = CreateProcess(file, args, false);
         process.Start();
         process.WaitForExit();
         process.Close();
     }
 
-    static void RunProcess (string file, string args, out string stdout, out string stderr)
+    static void RunProcess(string file, string args, out string stdout, out string stderr)
     {
-        var process = CreateProcess (file,args,true);
+        var process = CreateProcess(file, args, true);
 
         process.Start();
 
@@ -123,10 +124,10 @@ public static class ProjectTools
         process.Close();
     }
 
-    static Process CreateProcess (string file, string args, bool redirectOutput = false)
+    static Process CreateProcess(string file, string args, bool redirectOutput = false)
     {
         var process = new Process();
-        var processInfo = new ProcessStartInfo(file,args);
+        var processInfo = new ProcessStartInfo(file, args);
         process.StartInfo.FileName = file;
         process.StartInfo.Arguments = args;
         process.StartInfo.CreateNoWindow = true;
