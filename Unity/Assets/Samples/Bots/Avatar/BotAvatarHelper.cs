@@ -5,9 +5,14 @@ using Ubiq.XR;
 
 namespace Ubiq.Avatars
 {
-    [RequireComponent(typeof(AvatarManager))]
-    public class BotAvatarHintsHelper : MonoBehaviour
+    /// <summary>
+    /// A helper Component to tell the closest AvatarManager to use the nominated
+    /// transforms of the Bot to control the Avatar.
+    /// </summary>
+    public class BotAvatarHelper : MonoBehaviour
     {
+        public GameObject AvatarPrefab;
+
         [SerializeField] private Transform head;
         [SerializeField] private Transform leftHand;
         [SerializeField] private Transform rightHand;
@@ -19,11 +24,22 @@ namespace Ubiq.Avatars
         [SerializeField] private string rightHandPositionNode = "RightHandPosition";
         [SerializeField] private string rightHandRotationNode = "RightHandRotation";
 
+        private AvatarManager manager;
+
+        private void Awake()
+        {
+            manager = AvatarManager.Find(this);
+        }
+
         private void Start()
         {
-            SetTransformProvider(headPositionNode,headRotationNode,head);
-            SetTransformProvider(leftHandPositionNode,leftHandRotationNode,leftHand);
-            SetTransformProvider(rightHandPositionNode,rightHandRotationNode,rightHand);
+            if (manager && AvatarPrefab)
+            {
+                manager.avatarPrefab = AvatarPrefab;
+                SetTransformProvider(headPositionNode, headRotationNode, head);
+                SetTransformProvider(leftHandPositionNode, leftHandRotationNode, leftHand);
+                SetTransformProvider(rightHandPositionNode, rightHandRotationNode, rightHand);
+            }
         }
 
         private void SetTransformProvider (string posNode, string rotNode, Transform transform)
@@ -33,14 +49,7 @@ namespace Ubiq.Avatars
                 return;
             }
 
-            if (!transform)
-            {
-                Debug.LogWarning("Could not find a hint source. Has the Ubiq player prefab changed?");
-                return;
-            }
-
             var hp = gameObject.AddComponent<TransformAvatarHintProvider>();
-            var manager = GetComponent<AvatarManager>();
             hp.hintTransform = transform;
             if (posNode != string.Empty)
             {
