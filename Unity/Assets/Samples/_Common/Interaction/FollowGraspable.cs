@@ -12,6 +12,8 @@ namespace Ubiq.Samples
         private Quaternion grabHandRotation;
         private Transform follow;
 
+        public bool IsGrapsed { get; protected set; }
+
         public void Grasp(Hand controller)
         {
             var handTransform = controller.transform;
@@ -19,11 +21,13 @@ namespace Ubiq.Samples
             localGrabRotation = Quaternion.Inverse(handTransform.rotation) * transform.rotation;
             grabHandRotation = handTransform.rotation;
             follow = handTransform;
+            IsGrapsed = true;
         }
 
         public void Release(Hand controller)
         {
             follow = null;
+            IsGrapsed = false;
         }
 
         private void Update()
