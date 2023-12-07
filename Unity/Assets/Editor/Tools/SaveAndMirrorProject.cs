@@ -8,29 +8,69 @@ using System.Diagnostics;
 
 public static class ProjectTools
 {
-    const string TARGET_DIR_PREFS_KEY = "Ubiq.PushProjectDir";
+    /// <summary>
+    /// A simple class that can save its own state to the Library folder,
+    /// storing settings on a Per-Project/Checkout basis.
+    /// </summary>
+    private class ProjectPrefs
+    {
+        /// <summary>
+        /// The directory that the Project should be cloned to, when Save and
+        /// Mirror to Project is invoked.
+        /// </summary>
+        public string PushProjectDir;
+
+        public static void Save()
+        {
+            File.WriteAllText(FileName, JsonUtility.ToJson(instance));
+        }
+
+        private static void Restore()
+        {
+            try
+            {
+                var json = File.ReadAllText(FileName);
+                instance = JsonUtility.FromJson<ProjectPrefs>(json);
+            }
+            catch
+            {
+                instance = new ProjectPrefs();
+            }
+        }
+
+        public static ProjectPrefs Get
+        {
+            get
+            {
+                if(instance == null)
+                {
+                    Restore();
+                }
+                return instance;
+            }
+        }
+
+        private static string FileName => Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Library", "UbiqProjectPrefs.json"));
+
+        private static ProjectPrefs instance;
+    }
 
     [MenuItem("Ubiq/Save And Mirror Project", true)]
     private static bool ValidateSaveAndMirrorProjectMenuItem()
     {
-        return EditorPrefs.HasKey(TARGET_DIR_PREFS_KEY);
+        return !string.IsNullOrEmpty(ProjectPrefs.Get.PushProjectDir);
     }
 
     [MenuItem("Ubiq/Save And Mirror Project")]
     private static void SaveAndMirrorProjectMenuItem()
     {
-        if (!EditorPrefs.HasKey(TARGET_DIR_PREFS_KEY))
-        {
-            return;
-        }
-
         DoSaveAndMirrorProject();
     }
 
     [MenuItem("Ubiq/Save And Mirror Project To...")]
     private static void SaveAndMirrorProjectToMenuItem()
     {
-        var dir = EditorPrefs.GetString(TARGET_DIR_PREFS_KEY, "");
+        var dir = ProjectPrefs.Get.PushProjectDir;
         var newDir = EditorUtility.OpenFolderPanel("Destination Unity Project Folder", dir, "");
 
         if (!Directory.Exists(newDir))
@@ -39,7 +79,8 @@ public static class ProjectTools
             return;
         }
 
-        EditorPrefs.SetString(TARGET_DIR_PREFS_KEY, newDir);
+        ProjectPrefs.Get.PushProjectDir = newDir;
+        ProjectPrefs.Save();
 
         DoSaveAndMirrorProject();
     }
@@ -47,7 +88,7 @@ public static class ProjectTools
     private static void DoSaveAndMirrorProject()
     {
         // Get target dir
-        var targetProjectDir = EditorPrefs.GetString(TARGET_DIR_PREFS_KEY, "");
+        var targetProjectDir = ProjectPrefs.Get.PushProjectDir;
         targetProjectDir = new DirectoryInfo(targetProjectDir).FullName;
         var targetAssetsDir = Path.Combine(targetProjectDir, "Assets");
         var targetSettingsDir = Path.Combine(targetProjectDir, "ProjectSettings");
@@ -101,14 +142,6 @@ public static class ProjectTools
         {
             UnityEngine.Debug.LogError(file + " " + args + " " + stderr);
         }
-    }
-
-    static void RunProcess(string file, string args)
-    {
-        var process = CreateProcess(file, args, false);
-        process.Start();
-        process.WaitForExit();
-        process.Close();
     }
 
     static void RunProcess(string file, string args, out string stdout, out string stderr)
