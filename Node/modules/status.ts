@@ -27,9 +27,13 @@ export class Status {
         this.roomServer = roomServer
         this.apikeys = config.apikeys
 
-        const options = {
-            key: fs.readFileSync(path.resolve(config.key)),
-            cert: fs.readFileSync(path.resolve(config.cert))
+        const options: any = {}
+
+        try {
+            options.key = fs.readFileSync(path.resolve(config.key))
+            options.cert = fs.readFileSync(path.resolve(config.cert))
+        } catch (error) {
+            console.error('Unable to read certificate for status module. You will not be able to create secure connections to the status APIs.')
         }
 
         const app = express()
