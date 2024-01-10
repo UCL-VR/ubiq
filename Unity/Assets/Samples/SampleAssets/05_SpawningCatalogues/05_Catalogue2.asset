@@ -10,9 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4467f6c3b47040840ab7f7665d8bddbe, type: 3}
-  m_Name: 05_Catalogue
+  m_Name: 05_Catalogue2
   m_EditorClassIdentifier: 
   prefabs:
-  - {fileID: 7539412863525883077, guid: 33a1b9f6739a9f84db36db6a7066bfad, type: 3}
-  - {fileID: 7539412863525883077, guid: 0186b87e84405674a8f9aa8f73baaa50, type: 3}
   - {fileID: 7539412863525883077, guid: 4622712253265b141995465984f11ea3, type: 3}

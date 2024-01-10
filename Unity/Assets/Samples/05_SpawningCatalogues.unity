@@ -387,6 +387,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Catalogues:
+  - {fileID: 11400000, guid: 1c0616650378d9b479ec026c162b9e50, type: 2}
   - {fileID: 11400000, guid: b805ebd438e8c0840ad452799361527d, type: 2}
 --- !u!114 &187502702
 MonoBehaviour:
@@ -498,6 +499,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Catalogues:
   - {fileID: 11400000, guid: b805ebd438e8c0840ad452799361527d, type: 2}
+  - {fileID: 11400000, guid: 1c0616650378d9b479ec026c162b9e50, type: 2}
 --- !u!114 &202480400
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3050,11 +3052,12 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: 'The PREFAB CATALOGUES assigned to the NetworkSpawnManager must contain
-    every object you spawn in your application.
+    every object you spawn in your application between them.
 
 
-    This means objects can be shared
-    by reference, and makes sure Unity includes the objects in your built application.'
+    This means objects
+    can be shared by reference, and makes sure Unity includes the objects in your
+    built application.'
 --- !u!222 &2112864839
 CanvasRenderer:
   m_ObjectHideFlags: 0
