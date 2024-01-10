@@ -693,7 +693,6 @@ export class Room {
     peers: RoomPeer[]
     properties: PropertyDictionary
     blobs: Record<string, string>
-    observers: RoomPeer[]
     constructor (server: any) {
         this.server = server
         this.uuid = ''
@@ -703,16 +702,10 @@ export class Room {
         this.peers = []
         this.properties = new PropertyDictionary()
         this.blobs = {}
-        this.observers = []
     }
 
     broadcastPeerProperties (peer: RoomPeer, keys: string[], values: any[]): void {
         this.peers.forEach(otherpeer => {
-            if (otherpeer !== peer) {
-                otherpeer.sendPeerPropertiesAppended(peer, keys, values)
-            }
-        })
-        this.observers.forEach(otherpeer => {
             if (otherpeer !== peer) {
                 otherpeer.sendPeerPropertiesAppended(peer, keys, values)
             }
