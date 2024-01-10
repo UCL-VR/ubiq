@@ -46,6 +46,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   roomClient: {fileID: 7068762446378101730}
   catalogue: {fileID: 11400000, guid: e9294dc4382ae304a8ee8961eaa34805, type: 2}
+  Catalogues:
+  - {fileID: 11400000, guid: e9294dc4382ae304a8ee8961eaa34805, type: 2}
 --- !u!1 &7068762446051028577
 GameObject:
   m_ObjectHideFlags: 0
