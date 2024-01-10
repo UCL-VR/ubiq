@@ -93,7 +93,7 @@ namespace Ubiq.Avatars
         }
 
         private void OnSpawned(GameObject gameObject, IRoom room,
-            IPeer peer, NetworkSpawnOrigin origin)
+            IPeer peer, String properties)
         {
             var avatar = gameObject.GetComponentInChildren<Avatar>();
             avatar.SetPeer(peer);

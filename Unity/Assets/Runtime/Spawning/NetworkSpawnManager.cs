@@ -21,7 +21,7 @@ namespace Ubiq.Spawning
         NetworkId NetworkId { get; set; }
     }
 
-    public class OnSpawnedEvent : UnityEvent<GameObject, IRoom, IPeer, NetworkSpawnOrigin> { }
+    public class OnSpawnedEvent : UnityEvent<GameObject, IRoom, IPeer, String> { }
     public class OnDespawnedEvent : UnityEvent<GameObject, IRoom, IPeer> { }
 
     /// <summary>
@@ -40,6 +40,7 @@ namespace Ubiq.Spawning
         public string propertyPrefix { get; private set; }
 
         private RoomClient roomClient;
+        private Transform parent; // Parent for newly spawned GameObjects. It is OK for it to be null.
 
         // Maps to and from a portable identifier of that Prefab in the project
 
@@ -63,6 +64,7 @@ namespace Ubiq.Spawning
         {
             public NetworkId creatorPeer;
             public string prefabId;
+            public string properties;
         }
 
         /// <summary>
@@ -92,11 +94,6 @@ namespace Ubiq.Spawning
             return prefabToId[prefab];
         }
 
-        static private NetworkSpawnOrigin GetOrigin(bool local)
-        {
-            return local ? NetworkSpawnOrigin.Local : NetworkSpawnOrigin.Remote;
-        }
-
         public NetworkSpawner(RoomClient roomClient, IEnumerable<PrefabCatalogue> catalogues, string propertyPrefix = "ubiq.spawner.")
         {
             foreach (var catalogue in catalogues)
@@ -108,6 +105,7 @@ namespace Ubiq.Spawning
             }
             this.roomClient = roomClient;
             this.propertyPrefix = propertyPrefix;
+            this.parent = NetworkScene.Find(roomClient).transform;
             AddListeners();
         }
 
@@ -178,7 +176,7 @@ namespace Ubiq.Spawning
                     spawned.Add(property.Key, go);
                     spawnedToOwner[go] = owner;
                     spawnedToKey[go] = property.Key;
-                    OnSpawned.Invoke(go, owner as IRoom, owner as IPeer, GetOrigin(local));
+                    OnSpawned.Invoke(go, owner as IRoom, owner as IPeer, msg.properties);
                     if (tasks.TryGetValue(property.Key, out var task))
                     {
                         tasks.Remove(property.Key);
@@ -232,13 +230,14 @@ namespace Ubiq.Spawning
         /// synced. Should a Peer leave scope for any reason, its spawned 
         /// objects will be removed.
         /// </summary>
-        public GameObject SpawnWithPeerScope(GameObject prefab)
+        public GameObject SpawnWithPeerScope(GameObject prefab, string properties = "")
         {
             var key = $"{ propertyPrefix }{ NetworkId.Unique() }"; // Uniquely id the whole object
             roomClient.Me[key] = JsonUtility.ToJson(new Message()
             {
                 creatorPeer = roomClient.Me.networkId,
                 prefabId = GetPrefabId(prefab),
+                properties = properties
             });
 
             UpdateSpawned(roomClient.Me, roomClient.Me); // This will immediately create the entries in the spawnedItems dictionary for roomClient.Me
@@ -252,13 +251,14 @@ namespace Ubiq.Spawning
         /// synced. On leaving the Room, objects spawned this way will be
         /// removed locally but will persist within the Room.
         /// </summary>
-        public INetworkSpawningTask SpawnWithRoomScope(GameObject prefab)
+        public INetworkSpawningTask SpawnWithRoomScope(GameObject prefab, string properties = "")
         {
             var key = $"{ propertyPrefix }{ NetworkId.Unique() }"; // Uniquely id the whole object
             roomClient.Room[key] = JsonUtility.ToJson(new Message()
             {
                 creatorPeer = roomClient.Me.networkId,
                 prefabId = GetPrefabId(prefab),
+                properties = properties
             });
 
             var task = new NetworkSpawningTask();
@@ -275,7 +275,7 @@ namespace Ubiq.Spawning
 
             public object Current => null;
             public GameObject Spawned { get; private set; }
-            public bool MoveNext() => Spawned != null;
+            public bool MoveNext() => Spawned == null;
 
             public void Reset()
             {
@@ -318,15 +318,15 @@ namespace Ubiq.Spawning
             return NetworkId.Null;
         }
 
-        private GameObject InstantiateAndSetIds(string roomPropertyKey, string prefabId, bool local)
+        private GameObject InstantiateAndSetIds(string propertyKey, string prefabId, bool local)
         {
-            var networkId = ParseNetworkId(roomPropertyKey, propertyPrefix);
+            var networkId = ParseNetworkId(propertyKey, propertyPrefix);
             if (networkId == NetworkId.Null)
             {
                 return null;
             }
 
-            var go = GameObject.Instantiate(IdToPrefab[prefabId]);
+            var go = GameObject.Instantiate(IdToPrefab[prefabId], parent);
 
             uint i = 1;
             foreach (var item in go.GetComponentsInChildren<INetworkSpawnable>(true))
@@ -380,12 +380,11 @@ namespace Ubiq.Spawning
         }
 
         /// <summary>
-        /// Spawn an entity with peer scope. All Components implementing the
+        /// Spawn an entity with Peer scope. All Components implementing the
         /// INetworkSpawnable interface will have their NetworkIDs set and
-        /// synced. Should a peer leave scope for any other peer, accompanying
-        /// objects for the leaving peer will be removed for the other peer. As
-        /// only the local peer can set values in their own properties, the
-        /// object is created and immediately accessible.
+        /// synced. Should a Peer leave the scope of another Peer, for example,
+        /// by moving to a different Room, that all the objects created by this
+        /// Peer will be removed from that other Peer.
         /// </summary>
         public GameObject SpawnWithPeerScope(GameObject gameObject)
         {
@@ -393,16 +392,45 @@ namespace Ubiq.Spawning
         }
 
         /// <summary>
-        /// Spawn an entity with room scope. All Components implementing the
+        /// Spawn an entity with Peer scope. All Components implementing the
         /// INetworkSpawnable interface will have their NetworkIDs set and
-        /// synced. On leaving the room, objects spawned this way will be
-        /// removed locally but will persist within the room. To avoid race
-        /// conditions in the shared room dictionary the object is not
-        /// immediately accessible.
+        /// synced. Should a Peer leave the scope of another Peer, for example,
+        /// by moving to a different Room, that all the objects created by this
+        /// Peer will be removed from that other Peer.
+        /// Includes a Properties field that follows the Instance and is passed
+        /// to every Peer that spawns the object via OnSpawned. The properties
+        /// cannot be changed once the object is spawned.
+        /// </summary>
+        public GameObject SpawnWithPeerScope(GameObject gameObject, string properties)
+        {
+            return spawner.SpawnWithPeerScope(gameObject, properties);
+        }
+
+        /// <summary>
+        /// Spawn an entity with Room scope. All Components implementing the
+        /// INetworkSpawnable interface will have their NetworkIDs set and
+        /// synced. On leaving the Room, objects spawned this way will be
+        /// removed locally but will persist within the Room. This is the case
+        /// even for the Peer that created the object.
         /// </summary>
         public INetworkSpawningTask SpawnWithRoomScope(GameObject gameObject)
         {
             return spawner.SpawnWithRoomScope(gameObject);
+        }
+
+        /// <summary>
+        /// Spawn an entity with Room scope. All Components implementing the
+        /// INetworkSpawnable interface will have their NetworkIDs set and
+        /// synced. On leaving the Room, objects spawned this way will be
+        /// removed locally but will persist within the Room. This is the case
+        /// even for the Peer that created the object.
+        /// Includes a Properties field that follows the Instance and is passed
+        /// to every Peer that spawns the object via OnSpawned. The properties
+        /// cannot be changed once the object is spawned.
+        /// </summary>
+        public INetworkSpawningTask SpawnWithRoomScope(GameObject gameObject, string properties)
+        {
+            return spawner.SpawnWithRoomScope(gameObject, properties);
         }
 
         public void Despawn (GameObject gameObject)
