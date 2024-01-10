@@ -168,7 +168,7 @@ namespace Ubiq.Spawning
                 keysToDespawn.Add(item);
             }
 
-            foreach (var property in properties)
+            foreach (var property in properties.Where(p => p.Key.StartsWith(propertyPrefix)))
             {
                 if (!spawned.ContainsKey(property.Key))
                 {
@@ -369,7 +369,7 @@ namespace Ubiq.Spawning
 #endif
         }
 
-        private void Start()
+        private void Awake()
         {
             spawner = new NetworkSpawner(RoomClient.Find(this), Catalogues);
         }
@@ -377,7 +377,6 @@ namespace Ubiq.Spawning
         private void OnDestroy()
         {
             spawner.Dispose();
-            spawner = null;
         }
 
         /// <summary>
@@ -390,11 +389,7 @@ namespace Ubiq.Spawning
         /// </summary>
         public GameObject SpawnWithPeerScope(GameObject gameObject)
         {
-            if (spawner != null)
-            {
-                return spawner.SpawnWithPeerScope(gameObject);
-            }
-            return null;
+            return spawner.SpawnWithPeerScope(gameObject);
         }
 
         /// <summary>
@@ -405,20 +400,14 @@ namespace Ubiq.Spawning
         /// conditions in the shared room dictionary the object is not
         /// immediately accessible.
         /// </summary>
-        public void SpawnWithRoomScope(GameObject gameObject)
+        public INetworkSpawningTask SpawnWithRoomScope(GameObject gameObject)
         {
-            if (spawner != null)
-            {
-                spawner.SpawnWithRoomScope(gameObject);
-            }
+            return spawner.SpawnWithRoomScope(gameObject);
         }
 
         public void Despawn (GameObject gameObject)
         {
-            if (spawner != null)
-            {
-                spawner.Despawn(gameObject);
-            }
+            spawner.Despawn(gameObject);
         }
 
         public static NetworkSpawnManager Find(MonoBehaviour component)
