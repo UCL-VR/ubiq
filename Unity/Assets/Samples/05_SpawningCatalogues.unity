@@ -387,8 +387,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Catalogues:
-  - {fileID: 11400000, guid: 1c0616650378d9b479ec026c162b9e50, type: 2}
   - {fileID: 11400000, guid: b805ebd438e8c0840ad452799361527d, type: 2}
+  - {fileID: 11400000, guid: 1c0616650378d9b479ec026c162b9e50, type: 2}
 --- !u!114 &187502702
 MonoBehaviour:
   m_ObjectHideFlags: 0
