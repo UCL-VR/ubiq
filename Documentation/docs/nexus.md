@@ -6,7 +6,7 @@ The UCL VECG hosts multiple instances of the rendezvous server on nexus.cs.ucl.a
 
 The checkouts are in `/home/node` and follow the format `ubiq-[branch name]`.
 
-Currently `ubiq-master` is running on `8004`. This is the primary, public server.
+Currently `ubiq-master` is running on `8010`. This is the primary, public server.
 
 It is expected and encouraged that feature branches are created, run on nexus temporarily for development, then removed when no longer needed.
 
@@ -46,7 +46,7 @@ The `--depth 1` command downloads only the `HEAD`, which is all that is needed t
 After cloning, navigate to `~/ubiq-[branch name]/Node/` and issue the commands:
 
 1. `npm install`
-2. `pm2 start app.js --name "ubiq-[branch name]"`
+2. `pm2 start npm -- name "ubiq-[branch name]" -- start`
 
 The first installs the nodejs dependencies and the second creates the pm2 job with a unique name to identify the instance.
 
@@ -69,7 +69,7 @@ The `-n` argument shows the port numbers, rather than showing the names of typic
 To add a new rule give the commands,
 
 ```
-sudo iptables -I INPUT 5 -p tcp --dport 8004 -j ACCEPT
+sudo iptables -I INPUT 5 -p tcp --dport 8010 -j ACCEPT
 sudo service iptables save
 ```
 
