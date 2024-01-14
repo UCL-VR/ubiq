@@ -69,8 +69,8 @@ namespace Ubiq.Logging
             if (GUILayout.Button("Open Folder"))
             {
                 var path = Application.persistentDataPath;
-                path = path.Replace("/","\\");
-                System.Diagnostics.Process.Start("explorer.exe", path);
+                Debug.Log($"Opening {path} in file explorer");
+                EditorUtility.RevealInFinder(path);
             }
         }
     }
