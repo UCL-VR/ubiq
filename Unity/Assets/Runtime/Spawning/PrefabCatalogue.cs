@@ -8,10 +8,5 @@ namespace Ubiq.Spawning
     public class PrefabCatalogue : ScriptableObject
     {
         public List<GameObject> prefabs;
-
-        public int IndexOf(GameObject gameObject)
-        {
-            return prefabs.IndexOf(gameObject);
-        }
     }
 }

@@ -10,9 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4467f6c3b47040840ab7f7665d8bddbe, type: 3}
-  m_Name: Prefab Catalogue
+  m_Name: 04_Catalogue
   m_EditorClassIdentifier: 
   prefabs:
-  - {fileID: 1356097210174926172, guid: 0184af63371631847bbac12dafe6f8fc, type: 3}
-  - {fileID: 4511263541971767917, guid: 87221b841a51c2840bc5648fa3be6dfe, type: 3}
-  - {fileID: 2958351199309153149, guid: 881ec7297142bb644bc5a1d0e1873c0c, type: 3}
+  - {fileID: 7539412863525883077, guid: 2bb769ed7bd92ed49a297a793419c6b9, type: 3}
+  - {fileID: 8304551005270620439, guid: c3bfa9e47d80f9643bb55facd90c1226, type: 3}
