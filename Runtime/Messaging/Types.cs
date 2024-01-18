@@ -17,6 +17,4 @@ namespace Ubiq.Messaging
             this.rotation = transform.localRotation;
         }
     }
-
-
 }

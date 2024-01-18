@@ -127,7 +127,7 @@ namespace Ubiq.Logging
             }
             if (mirrorToConsole)
             {
-                Debug.Log(String.Format("{0} {1}", Event, arg1));
+                Debug.Log(String.Format("{0} {1} {2}", Event, arg1, arg2));
             }
         }
 

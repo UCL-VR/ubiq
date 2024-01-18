@@ -8,30 +8,70 @@ using System.Diagnostics;
 
 public static class ProjectTools
 {
-    const string TARGET_DIR_PREFS_KEY = "Ubiq.PushProjectDir";
-
-    [MenuItem ("Ubiq/Save And Mirror Project",true)]
-    private static bool ValidateSaveAndMirrorProjectMenuItem ()
+    /// <summary>
+    /// A simple class that can save its own state to the Library folder,
+    /// storing settings on a Per-Project/Checkout basis.
+    /// </summary>
+    private class ProjectPrefs
     {
-        return EditorPrefs.HasKey(TARGET_DIR_PREFS_KEY);
-    }
+        /// <summary>
+        /// The directory that the Project should be cloned to, when Save and
+        /// Mirror to Project is invoked.
+        /// </summary>
+        public string PushProjectDir;
 
-    [MenuItem ("Ubiq/Save And Mirror Project")]
-    private static void SaveAndMirrorProjectMenuItem ()
-    {
-        if (!EditorPrefs.HasKey(TARGET_DIR_PREFS_KEY))
+        public static void Save()
         {
-            return;
+            File.WriteAllText(FileName, JsonUtility.ToJson(instance));
         }
 
-        DoSaveAndMirrorProject ();
+        private static void Restore()
+        {
+            try
+            {
+                var json = File.ReadAllText(FileName);
+                instance = JsonUtility.FromJson<ProjectPrefs>(json);
+            }
+            catch
+            {
+                instance = new ProjectPrefs();
+            }
+        }
+
+        public static ProjectPrefs Get
+        {
+            get
+            {
+                if(instance == null)
+                {
+                    Restore();
+                }
+                return instance;
+            }
+        }
+
+        private static string FileName => Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Library", "UbiqProjectPrefs.json"));
+
+        private static ProjectPrefs instance;
     }
 
-    [MenuItem ("Ubiq/Save And Mirror Project To...")]
-    private static void SaveAndMirrorProjectToMenuItem ()
+    [MenuItem("Ubiq/Save And Mirror Project", true)]
+    private static bool ValidateSaveAndMirrorProjectMenuItem()
     {
-        var dir = EditorPrefs.GetString(TARGET_DIR_PREFS_KEY,"");
-        var newDir = EditorUtility.OpenFolderPanel("Destination Unity Project Folder",dir,"");
+        return !string.IsNullOrEmpty(ProjectPrefs.Get.PushProjectDir);
+    }
+
+    [MenuItem("Ubiq/Save And Mirror Project")]
+    private static void SaveAndMirrorProjectMenuItem()
+    {
+        DoSaveAndMirrorProject();
+    }
+
+    [MenuItem("Ubiq/Save And Mirror Project To...")]
+    private static void SaveAndMirrorProjectToMenuItem()
+    {
+        var dir = ProjectPrefs.Get.PushProjectDir;
+        var newDir = EditorUtility.OpenFolderPanel("Destination Unity Project Folder", dir, "");
 
         if (!Directory.Exists(newDir))
         {
@@ -39,29 +79,31 @@ public static class ProjectTools
             return;
         }
 
-        EditorPrefs.SetString(TARGET_DIR_PREFS_KEY,newDir);
+        ProjectPrefs.Get.PushProjectDir = newDir;
+        ProjectPrefs.Save();
 
-        DoSaveAndMirrorProject ();
+        DoSaveAndMirrorProject();
     }
 
-    private static void DoSaveAndMirrorProject () {
+    private static void DoSaveAndMirrorProject()
+    {
         // Get target dir
-        var targetProjectDir = EditorPrefs.GetString(TARGET_DIR_PREFS_KEY,"");
+        var targetProjectDir = ProjectPrefs.Get.PushProjectDir;
         targetProjectDir = new DirectoryInfo(targetProjectDir).FullName;
-        var targetAssetsDir = Path.Combine(targetProjectDir,"Assets");
-        var targetSettingsDir = Path.Combine(targetProjectDir,"ProjectSettings");
+        var targetAssetsDir = Path.Combine(targetProjectDir, "Assets");
+        var targetSettingsDir = Path.Combine(targetProjectDir, "ProjectSettings");
 
         // Do some validation to check we're targeting a Unity project
         if (!Directory.Exists(targetProjectDir))
         {
-            UnityEngine.Debug.LogError ("Could not save and push. Directory: "
+            UnityEngine.Debug.LogError("Could not save and push. Directory: "
                 + targetProjectDir + " could not be found");
             return;
         }
 
         if (!Directory.Exists(targetAssetsDir) || !Directory.Exists(targetSettingsDir))
         {
-            UnityEngine.Debug.LogError ("Could not save and push. Directory: "
+            UnityEngine.Debug.LogError("Could not save and push. Directory: "
                 + targetProjectDir + " needs an Assets and ProjectSettings folder "
                 + "(is it a Unity project?)");
             return;
@@ -74,9 +116,9 @@ public static class ProjectTools
         // Push (robocopy source destination /MIR)
         var sourceAssetsDir = new DirectoryInfo(Application.dataPath).FullName;
         var sourceProjectDir = Directory.GetParent(sourceAssetsDir).FullName;
-        var sourceSettingsDir = Path.Combine(sourceProjectDir,"ProjectSettings");
-        var sourcePackagesDir = Path.Combine(sourceProjectDir,"Packages");
-        var targetPackagesDir = Path.Combine(targetProjectDir,"Packages");
+        var sourceSettingsDir = Path.Combine(sourceProjectDir, "ProjectSettings");
+        var sourcePackagesDir = Path.Combine(sourceProjectDir, "Packages");
+        var targetPackagesDir = Path.Combine(targetProjectDir, "Packages");
 
         // Originally this was async, but there are events in Unity that can
         // cause assembly reloads (e.g., starting play mode) which will silently
@@ -87,14 +129,14 @@ public static class ProjectTools
         //     RunProcess("robocopy",sourcePackagesDir + " " + targetPackagesDir + @" manifest.json /MIR");
         // }).Start();
 
-        RunAndLogProcess("robocopy",@$"""{sourceAssetsDir}"" ""{targetAssetsDir}"" /MIR");
-        RunAndLogProcess("robocopy",@$"""{sourceSettingsDir}"" ""{targetSettingsDir}"" /MIR");
-        RunAndLogProcess("robocopy",@$"""{sourcePackagesDir}"" ""{targetPackagesDir}"" manifest.json /MIR");
+        RunAndLogProcess("robocopy", @$"""{sourceAssetsDir}"" ""{targetAssetsDir}"" /MIR");
+        RunAndLogProcess("robocopy", @$"""{sourceSettingsDir}"" ""{targetSettingsDir}"" /MIR");
+        RunAndLogProcess("robocopy", @$"""{sourcePackagesDir}"" ""{targetPackagesDir}"" manifest.json /MIR");
     }
 
-    static void RunAndLogProcess (string file, string args)
+    static void RunAndLogProcess(string file, string args)
     {
-        RunProcess(file,args,out string stdout,out string stderr);
+        RunProcess(file, args, out string stdout, out string stderr);
         UnityEngine.Debug.Log(file + " " + args + " " + stdout);
         if (!string.IsNullOrEmpty(stderr))
         {
@@ -102,17 +144,9 @@ public static class ProjectTools
         }
     }
 
-    static void RunProcess (string file, string args)
+    static void RunProcess(string file, string args, out string stdout, out string stderr)
     {
-        var process = CreateProcess (file,args,false);
-        process.Start();
-        process.WaitForExit();
-        process.Close();
-    }
-
-    static void RunProcess (string file, string args, out string stdout, out string stderr)
-    {
-        var process = CreateProcess (file,args,true);
+        var process = CreateProcess(file, args, true);
 
         process.Start();
 
@@ -123,10 +157,10 @@ public static class ProjectTools
         process.Close();
     }
 
-    static Process CreateProcess (string file, string args, bool redirectOutput = false)
+    static Process CreateProcess(string file, string args, bool redirectOutput = false)
     {
         var process = new Process();
-        var processInfo = new ProcessStartInfo(file,args);
+        var processInfo = new ProcessStartInfo(file, args);
         process.StartInfo.FileName = file;
         process.StartInfo.Arguments = args;
         process.StartInfo.CreateNoWindow = true;

@@ -1,24 +1,28 @@
 {
     "name": "com.ucl.ubiq",
-    "version": "0.5.0",
+    "version": "1.0.0-pre.1",
     "displayName": "Ubiq",
     "description": "Create networked VR experiences with Ubiq",
     "unity": "2021.3",
     "dependencies": {
-      "com.unity.xr.management": "3.2.16",
-      "com.unity.webrtc": "3.0.0-pre.4"
-   },
-   "keywords": [ ],
+      "com.unity.webrtc": "3.0.0-pre.7"
+    },
+    "keywords": [ ],
     "author": {
       "name": "UCL Immersive Virtual Environments Laboratory",
       "email": "ubiq@cs.ucl.ac.uk",
       "url": "https://vr.cs.ucl.ac.uk/"
     },
     "samples": [
-      {
-        "displayName": "Samples",
-        "description": "A set of samples demonstrating the capabilities of Ubiq.",
-        "path": "Samples~"
-      }
+        {
+          "displayName": "Examples",
+          "description": "Small examples of Ubiq in action. Demonstrates basic features in isolation.",
+          "path": "Samples~/Examples"
+        },
+        {
+          "displayName": "Demo (XRI)",
+          "description": "A fully-featured social demo with XR. NOTE: Will add the XR Interaction Toolkit package as a project dependency.",
+          "path": "Samples~/Demo (XRI)"
+        }
     ]
   }

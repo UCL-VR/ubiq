@@ -23,9 +23,9 @@ namespace Ubiq.Voip.Implementations.JsonHelpers
 
         private enum Classification
         {
-            Implementation,
-            IceCandidate,
-            Sdp
+            Implementation = 0,
+            IceCandidate = 1,
+            Sdp = 2
         }
 
         [Serializable]
