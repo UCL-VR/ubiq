@@ -19,7 +19,6 @@ namespace Ubiq.Messaging
 
             connections.AddRange(component.GetComponentsInParent<ConnectionManager>());
             connections.AddRange(component.GetComponentsInParent<SimpleConnection>());
-            connections.AddRange(component.GetComponentsInParent<InternalEmulator>());
             connections.AddRange(component.GetComponentsInParent<RoomClient>());
 
             if (connections.Count > 0)

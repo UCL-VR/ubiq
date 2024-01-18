@@ -5,31 +5,13 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Events;
 using Ubiq.Messaging;
-using Ubiq.Spawning;
+using Ubiq.Geometry;
 
 namespace Ubiq.Avatars
 {
     [RequireComponent(typeof(Avatar))]
     public class ThreePointTrackedAvatar : MonoBehaviour
     {
-        private struct PositionRotation
-        {
-            public Vector3 position;
-            public Quaternion rotation;
-
-            public static PositionRotation identity
-            {
-                get
-                {
-                    return new PositionRotation
-                    {
-                        position = Vector3.zero,
-                        rotation = Quaternion.identity
-                    };
-                }
-            }
-        }
-
         [Serializable]
         public class TransformUpdateEvent : UnityEvent<Vector3,Quaternion> { }
         public TransformUpdateEvent OnHeadUpdate;
@@ -88,24 +70,6 @@ namespace Ubiq.Avatars
             }
         }
 
-        // Local to world space
-        private PositionRotation TransformPosRot (PositionRotation local, Transform root)
-        {
-            var world = new PositionRotation();
-            world.position = root.TransformPoint(local.position);
-            world.rotation = root.rotation * local.rotation;
-            return world;
-        }
-
-        // World to local space
-        private PositionRotation InverseTransformPosRot (PositionRotation world, Transform root)
-        {
-            var local = new PositionRotation();
-            local.position = root.InverseTransformPoint(world.position);
-            local.rotation = Quaternion.Inverse(root.rotation) * world.rotation;
-            return local;
-        }
-
         private PositionRotation GetPosRotHint (string position, string rotation)
         {
             if (avatar == null || avatar.hints == null)
@@ -122,7 +86,7 @@ namespace Ubiq.Avatars
             {
                 posrot.rotation = rot;
             }
-            return InverseTransformPosRot(posrot,networkSceneRoot);
+            return Transforms.ToLocal(posrot,networkSceneRoot);
         }
 
         private float GetFloatHint (string node)
@@ -163,9 +127,9 @@ namespace Ubiq.Avatars
         private void OnRecv ()
         {
             // Transform with our network scene root to get world position/rotation
-            var head = TransformPosRot(state[0].head,networkSceneRoot);
-            var leftHand = TransformPosRot(state[0].leftHand,networkSceneRoot);
-            var rightHand = TransformPosRot(state[0].rightHand,networkSceneRoot);
+            var head = Transforms.ToWorld(state[0].head,networkSceneRoot);
+            var leftHand = Transforms.ToWorld(state[0].leftHand,networkSceneRoot);
+            var rightHand = Transforms.ToWorld(state[0].rightHand,networkSceneRoot);
             var leftGrip = state[0].leftGrip;
             var rightGrip = state[0].rightGrip;
 

@@ -57,8 +57,6 @@ namespace Ubiq.Voip.Implementations.Unity
         // Unity Peer Connection
         private RTCPeerConnection peerConnection;
 
-        public RTCPeerConnection PeerConnection => peerConnection; // Make this public so users can access it to add video, etc
-
         private AudioSource receiverAudioSource;
         private SpatialisationCacheFilter cacheFilter;
         private AudioStatsFilter statsFilter;
@@ -269,7 +267,7 @@ namespace Ubiq.Voip.Implementations.Unity
                         op = peerConnection.SetLocalDescription();
                         yield return op;
 
-                        Send(ctx.context, peerConnection.LocalDescription);
+                        Send(ctx.context,peerConnection.LocalDescription);
                     }
                     continue;
                 }
