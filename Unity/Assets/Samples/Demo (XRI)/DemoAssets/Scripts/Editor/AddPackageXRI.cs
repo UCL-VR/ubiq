@@ -39,6 +39,7 @@ namespace Ubiq.Samples.Demo.Editor
 
             if (request.Status == StatusCode.Success)
             {
+                EditorApplication.update -= Update;
                 Debug.Log("Ubiq added XRI to project requirements. You may be prompted to restart to enable Input backends.");
                 AssetDatabase.Refresh();
             }
