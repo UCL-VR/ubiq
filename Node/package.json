@@ -9,6 +9,9 @@
     "start": "node --loader ts-node/esm app.ts",
     "test": "jest"
   },
+  "engines" : {
+    "node" : ">=18.12.1 <19.0.0 || >=19.7.0"
+  },
   "dependencies": {
     "@types/cookie-parser": "^1.4.6",
     "@types/express": "^4.17.21",
