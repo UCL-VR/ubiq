@@ -1,18 +1,14 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Ubiq.Voip.Implementations.Null
+namespace Ubiq.Voip.Implementations
 {
-    public class PeerConnectionImpl : IPeerConnectionImpl
+    public class NullPeerConnectionImpl : IPeerConnectionImpl
     {
-#pragma warning disable CS0067
-        public event IceConnectionStateChangedDelegate iceConnectionStateChanged;
-        public event PeerConnectionStateChangedDelegate peerConnectionStateChanged;
-#pragma warning restore CS0067
         public void Dispose() {}
-        public PlaybackStats GetLastFramePlaybackStats() => new PlaybackStats();
         public void ProcessSignalingMessage(string json) {}
-        public void Setup(IPeerConnectionContext context, bool polite, List<IceServerDetails> iceServers)
+        public void Setup(IPeerConnectionContext context, bool polite, List<IceServerDetails> iceServers, Action<AudioStats> playbackStatsPushed, Action<AudioStats> recordStatsPushed, Action<IceConnectionState> iceConnectionStateChanged, Action<PeerConnectionState> peerConnectionStateChanged)
         {
             // Pretend we are connected to silence/hide warnings
             if (iceConnectionStateChanged != null)
