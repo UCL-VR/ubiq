@@ -1,3 +1,4 @@
+#if UNITY_WEBRTC || UNITY_WEBRTC_NO_VULKAN_HOOK
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -487,3 +488,4 @@ namespace Ubiq.Voip.Implementations.Unity
         }
     }
 }
+#endif

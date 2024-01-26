@@ -145,16 +145,16 @@
         "com.unity.modules.imgui": "1.0.0"
       }
     },
-    "com.unity.webrtc": {
-      "version": "3.0.0-pre.7",
+    "com.unity.webrtc-no-vulkan-hook": {
+      "version": "https://github.com/UCL-VR/unity-webrtc-no-vulkan-hook.git",
       "depth": 0,
-      "source": "registry",
+      "source": "git",
       "dependencies": {
         "com.unity.modules.jsonserialize": "1.0.0",
         "com.unity.editorcoroutines": "1.0.0",
         "com.unity.modules.audio": "1.0.0"
       },
-      "url": "https://packages.unity.com"
+      "hash": "deac61d7009e3d04bd7f8e1f8d33227bdddac153"
     },
     "com.unity.xr.core-utils": {
       "version": "2.2.3",
