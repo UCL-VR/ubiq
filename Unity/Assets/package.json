@@ -1,12 +1,10 @@
 {
     "name": "com.ucl.ubiq",
-    "version": "1.0.0-pre.2",
+    "version": "1.0.0-pre.3",
     "displayName": "Ubiq",
     "description": "Create networked VR experiences with Ubiq",
-    "unity": "2021.3",
-    "dependencies": {
-      "com.unity.webrtc": "3.0.0-pre.7"
-    },
+    "unity": "2022.3",
+    "dependencies": { },
     "keywords": [ ],
     "author": {
       "name": "UCL Immersive Virtual Environments Laboratory",
