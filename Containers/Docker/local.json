@@ -1,0 +1,28 @@
+{
+    "iceservers":
+    [
+        {
+            "uri" : "stun:stun.l.google.com:19302"
+        },
+        {
+            "uri" : "turn:UBIQ_HOSTNAME:8011",
+            "secret" : "UBIQ_TURNSECRET",
+            "timeoutSeconds" : 1440
+        }
+    ],
+    "roomserver":
+    {
+        "wss":
+        {
+            "cert":"/certs/cert.pem",
+            "key":"/certs/key.pem"
+        }
+    },
+    "status":
+    {
+        "port":8012,
+        "cert":"/certs/cert.pem",
+        "key":"/certs/key.pem",
+        "apikeys":[]
+    }
+}
