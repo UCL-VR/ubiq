@@ -18,14 +18,8 @@ jobs:
       - name: Remove everything except for our project
         run: |
           git rm -rf .
-          git checkout HEAD -- ${{ inputs.project-folder }}/Assets/Editor
-          git checkout HEAD -- ${{ inputs.project-folder }}/Assets/Editor.meta
-          git checkout HEAD -- ${{ inputs.project-folder }}/Assets/Runtime
-          git checkout HEAD -- ${{ inputs.project-folder }}/Assets/Runtime.meta
-          git checkout HEAD -- ${{ inputs.project-folder }}/Assets/package.json
-          git checkout HEAD -- ${{ inputs.project-folder }}/Assets/package.json.meta
-          git checkout HEAD -- ${{ inputs.project-folder }}/Assets/Samples
-          git mv ${{ inputs.project-folder }}/Assets/* .
+          git checkout HEAD -- ${{ inputs.project-folder }}/*
+          git mv ${{ inputs.project-folder }}/* .
           rm -rf ${{ inputs.project-folder }}
       - name: Fetch branch
         run: git fetch origin ${{ inputs.upm-branch }}:${{ inputs.upm-branch }} || true

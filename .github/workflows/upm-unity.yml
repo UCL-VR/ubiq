@@ -6,5 +6,5 @@ jobs:
   build-upm:
     uses: ./.github/workflows/build-upm-from-project-folder.yml
     with:
-      project-folder: Unity
+      project-folder: Unity/Assets/Ubiq
       upm-branch: upm
