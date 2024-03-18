@@ -3,24 +3,29 @@
     "version": "1.0.0-pre.3",
     "displayName": "Ubiq",
     "description": "Create networked VR experiences with Ubiq",
-    "unity": "2022.3",
+    "unity": "2021.3",
     "dependencies": { },
     "keywords": [ ],
     "author": {
-      "name": "UCL Immersive Virtual Environments Laboratory",
-      "email": "ubiq@cs.ucl.ac.uk",
-      "url": "https://vr.cs.ucl.ac.uk/"
+        "name": "UCL Immersive Virtual Environments Laboratory",
+        "email": "ubiq@cs.ucl.ac.uk",
+        "url": "https://vr.cs.ucl.ac.uk/"
     },
     "samples": [
         {
-          "displayName": "Examples",
-          "description": "Small examples of Ubiq in action. Demonstrates basic features in isolation.",
-          "path": "Samples~/Examples"
+            "displayName": "Examples",
+            "description": "Small examples of Ubiq in action. Demonstrates basic features in isolation.",
+            "path": "Samples~/Examples"
         },
         {
-          "displayName": "Demo (XRI)",
-          "description": "A fully-featured social demo with XR. NOTE: Will add the XR Interaction Toolkit package as a project dependency.",
-          "path": "Samples~/Demo (XRI)"
+            "displayName": "Demo (XRI)",
+            "description": "Fully-featured social demo for VR.\n<i>Will add dependencies:</i>\n • <a href=https://docs.unity3d.com/Manual/com.unity.xr.interaction.toolkit.html>com.unity.xr.interaction.toolkit</a>",
+            "path": "Samples~/Demo (XRI)"
+        },
+        {
+            "displayName": "Player (XRI + WebXR)",
+            "description": "Alternative player prefab for WebXR (and standard) build target(s). Compatible with XRI.\n<i>Will add dependencies:</i>\n • <a href=https://docs.unity3d.com/Manual/com.unity.xr.interaction.toolkit.html>com.unity.xr.interaction.toolkit</a>\n • <a href=https://github.com/De-Panther/unity-webxr-export>com.de-panther.webxr</a>\n • <a href=https://github.com/De-Panther/unity-webxr-export>com.de-panther.webxr-interactions</a>",
+            "path": "Samples~/Player (WebXR + XRI)"
         }
     ]
   }

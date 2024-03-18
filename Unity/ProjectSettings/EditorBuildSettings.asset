@@ -13,6 +13,7 @@ EditorBuildSettings:
       type: 2}
     Unity.XR.OpenVR.Settings: {fileID: 11400000, guid: 5a1428b16d224ac44a5b5cfc7281928e,
       type: 2}
+    WebXR.Settings: {fileID: 11400000, guid: d46b1f141e7f3754d93de81ed96d860e, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: e95eceaaf02a52c47b6c811807c6b9b2,
       type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: 79d0951199bfca74683d6ba7c09c2a80,

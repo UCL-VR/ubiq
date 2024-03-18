@@ -11,10 +11,10 @@ namespace Ubiq.Avatars
 {
     public abstract class AvatarHintProvider : MonoBehaviour
     {
-        public virtual Vector3 ProvideVector3() { return Vector3.zero; }
-        public virtual Quaternion ProvideQuaternion() { return Quaternion.identity; }
-        public virtual float ProvideFloat() { return 0.0f; }
-        public virtual string ProvideString() { return string.Empty; }
+        public virtual Vector3 ProvideVector3(string node) { return Vector3.zero; }
+        public virtual Quaternion ProvideQuaternion(string node) { return Quaternion.identity; }
+        public virtual float ProvideFloat(string node) { return 0.0f; }
+        public virtual string ProvideString(string node) { return string.Empty; }
     }
 
     [System.Serializable]
@@ -121,7 +121,7 @@ namespace Ubiq.Avatars
             {
                 if (type == Type.Vector3)
                 {
-                    result = provider.ProvideVector3();
+                    result = provider.ProvideVector3(node);
                     return true;
                 }
             }
@@ -136,7 +136,7 @@ namespace Ubiq.Avatars
             {
                 if (type == Type.Quaternion)
                 {
-                    result = provider.ProvideQuaternion();
+                    result = provider.ProvideQuaternion(node);
                     return true;
                 }
             }
@@ -151,7 +151,7 @@ namespace Ubiq.Avatars
             {
                 if (type == Type.Float)
                 {
-                    result = provider.ProvideFloat();
+                    result = provider.ProvideFloat(node);
                     return true;
                 }
             }
@@ -166,7 +166,7 @@ namespace Ubiq.Avatars
             {
                 if (type == Type.String)
                 {
-                    result = provider.ProvideString();
+                    result = provider.ProvideString(node);
                     return true;
                 }
             }

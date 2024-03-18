@@ -1,5 +1,5 @@
 {
-    "name": "Ubiq.XRI",
+    "name": "Ubiq.Examples.Players",
     "rootNamespace": "",
     "references": [
         "GUID:ab979a98ba0be4546bceb48f770b11c8",
