@@ -41,7 +41,7 @@ namespace Ubiq.Samples.Demo.Editor
         }
     }
 
-#if XRI_2_4_3_OR_NEWER
+#if XRI_2_5_2_OR_NEWER
     [InitializeOnLoad]
     public class RequireSamplesXRI
     {

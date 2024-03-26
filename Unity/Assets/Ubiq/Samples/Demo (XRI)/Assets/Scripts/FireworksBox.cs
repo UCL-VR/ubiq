@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Ubiq.Spawning;
-#if XRI_2_4_3_OR_NEWER
+#if XRI_2_5_2_OR_NEWER
 using UnityEngine.XR.Interaction.Toolkit;
 #endif
 
@@ -20,7 +20,7 @@ namespace Ubiq.Samples
     {
         public GameObject fireworkPrefab;
 
-#if XRI_2_4_3_OR_NEWER
+#if XRI_2_5_2_OR_NEWER
         private NetworkSpawnManager spawnManager;
         private XRGrabInteractable interactable;
 

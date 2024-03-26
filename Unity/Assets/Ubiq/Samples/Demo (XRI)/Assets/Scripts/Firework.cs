@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Ubiq.Messaging;
 using Ubiq.Spawning;
 using Ubiq.Geometry;
-#if XRI_2_4_3_OR_NEWER
+#if XRI_2_5_2_OR_NEWER
 using UnityEngine.XR.Interaction.Toolkit;
 #endif
 
@@ -20,7 +20,7 @@ namespace Ubiq.Samples
         public bool owner;
         public bool fired;
 
-#if XRI_2_4_3_OR_NEWER
+#if XRI_2_5_2_OR_NEWER
 
         private NetworkContext context;
 

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Ubiq.Avatars;
-#if XRI_2_4_3_OR_NEWER
+#if XRI_2_5_2_OR_NEWER
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 #endif
@@ -21,7 +21,7 @@ namespace Ubiq.XRI
         [SerializeField] private string rightHandPositionNode = "RightHandPosition";
         [SerializeField] private string rightHandRotationNode = "RightHandRotation";
 
-#if XRI_2_4_3_OR_NEWER
+#if XRI_2_5_2_OR_NEWER
         private XRInputModalityManager modalityManager;
 
         private void Start()

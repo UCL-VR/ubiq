@@ -1,4 +1,4 @@
-#if !UNITY_WEBRTC_NO_VULKAN_HOOK && !UBIQ_SKIPCHECK_WEBRTCCOMPATIBILITY
+#if !UNITY_WEBRTC_NO_VULKAN_HOOK && !(UNITY_WEBRTC && UBIQ_DISABLE_WEBRTCCOMPATIBILITYCHECK)
 using UnityEngine;
 using UnityEditor;
 using UbiqEditor;
@@ -23,11 +23,11 @@ namespace UbiqEditor
                 " and replace it with a modified fork which is compatible. If" +
                 " you would prefer to skip this check and prevent this" +
                 " behaviour, add the string" +
-                " UBIQ_SKIPCHECK_WEBRTCCOMPATIBILITY to your scripting define" +
+                " UBIQ_DISABLE_WEBRTCCOMPATIBILITYCHECK to your scripting define" +
                 " symbols.");
             PackageManagerHelper.Remove("com.unity.webrtc");
 #endif
-            PackageManagerHelper.Add("https://github.com/UCL-VR/unity-webrtc-no-vulkan-hook.git");
+            PackageManagerHelper.AddPackage("https://github.com/UCL-VR/unity-webrtc-no-vulkan-hook.git");
             EditorApplication.update -= Update;
         }
     }

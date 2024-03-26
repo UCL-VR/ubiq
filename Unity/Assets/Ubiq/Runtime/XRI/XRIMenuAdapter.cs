@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-#if XRI_2_4_3_OR_NEWER
+#if XRI_2_5_2_OR_NEWER
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 #endif
@@ -10,7 +10,7 @@ namespace Ubiq.XRI
 {
     public class XRIMenuAdapter : MonoBehaviour
     {
-#if XRI_2_4_3_OR_NEWER
+#if XRI_2_5_2_OR_NEWER
         private void Start()
         {
             var grab = gameObject.AddComponent<XRGrabInteractable>();
