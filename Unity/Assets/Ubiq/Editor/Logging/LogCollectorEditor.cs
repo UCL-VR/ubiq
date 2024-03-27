@@ -6,7 +6,7 @@ using UnityEditor;
 namespace Ubiq.Logging
 {
     [CustomEditor(typeof(LogCollector))]
-    public class LogCollectorEditor : Editor
+    public class LogCollectorEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {

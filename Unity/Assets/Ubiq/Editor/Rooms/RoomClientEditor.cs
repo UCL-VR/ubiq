@@ -10,7 +10,7 @@ using Ubiq.Networking;
 namespace Ubiq.Rooms
 {
     [CustomEditor(typeof(RoomClient))]
-    public class RoomClientEditor : Editor
+    public class RoomClientEditor : UnityEditor.Editor
     {
         private ReorderableList managerReorderableList;
         private SerializedProperty serversProperty;

@@ -3,7 +3,7 @@
 namespace Ubiq.Voip
 {
     [CustomEditor(typeof(VoipPeerConnection))]
-    public class VoipPeerConnectionEditor : Editor
+    public class VoipPeerConnectionEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {

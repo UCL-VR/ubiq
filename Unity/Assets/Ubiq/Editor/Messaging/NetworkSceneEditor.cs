@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Ubiq.Messaging
 {
     [CustomEditor(typeof(NetworkScene))]
-    public class NetworkSceneEditor : Editor
+    public class NetworkSceneEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {

@@ -7,7 +7,7 @@ using UnityEditorInternal;
 namespace Ubiq.Spawning
 {
     [CustomEditor(typeof(PrefabCatalogue))]
-    public class PrefabCatalogueEditor : Editor
+    public class PrefabCatalogueEditor : UnityEditor.Editor
     {
         private ReorderableList prefabsReorderableList;
         // private SerializedProperty uuids;

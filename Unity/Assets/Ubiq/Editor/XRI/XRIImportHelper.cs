@@ -1,22 +1,9 @@
-using UnityEngine;
-using UnityEditor;
-using UbiqEditor;
-
-namespace Ubiq.Samples.WebXR.Editor
+namespace Ubiq.Editor.XRI
 {
-    [InitializeOnLoad]
-    public class AddPackageXRI_WebXR
+    public static class XRIImportHelper
     {
-        static AddPackageXRI_WebXR()
+        public static void Import()
         {
-            // Custom for WebXR sample begins
-            if (RequireSamplesXRIUtil.AssetExistsFromGUID(RequireSamplesXRIUtil.DEMO_SCENE_GUID))
-            {
-                // XRI sample is already in the project, let that handle it
-                return;
-            }
-            // Custom for WebXR sample ends
-
 #if XRI_2_5_3_OR_NEWER && XRI_0_0_0_OR_NEWER
     #if !UBIQ_SILENCEWARNING_XRIVERSION
             Debug.LogWarning(
@@ -27,19 +14,13 @@ namespace Ubiq.Samples.WebXR.Editor
                 " symbols");
     #endif
 #endif
-            // Safer to interact with Unity on main thread
-            EditorApplication.update += Update;
-        }
 
-        static void Update()
-        {
 #if !XRI_0_0_0_OR_NEWER
             PackageManagerHelper.AddPackage("com.unity.xr.interaction.toolkit@2.5.2");
 #else
             PackageManagerHelper.RequireSample("com.unity.xr.interaction.toolkit","Starter Assets");
             PackageManagerHelper.RequireSample("com.unity.xr.interaction.toolkit","XR Device Simulator");
 #endif
-            EditorApplication.update -= Update;
         }
     }
 }

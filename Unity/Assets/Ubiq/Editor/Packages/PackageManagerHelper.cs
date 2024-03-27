@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Text;
 using Unity.EditorCoroutines.Editor;
 
-namespace UbiqEditor
+namespace Ubiq.Editor
 {
     public static class PackageManagerHelper
     {

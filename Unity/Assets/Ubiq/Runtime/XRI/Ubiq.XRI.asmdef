@@ -1,5 +1,5 @@
 {
-    "name": "Ubiq.Examples.Players",
+    "name": "Ubiq.XRI",
     "rootNamespace": "",
     "references": [
         "GUID:ab979a98ba0be4546bceb48f770b11c8",
@@ -22,6 +22,11 @@
             "name": "com.unity.xr.interaction.toolkit",
             "expression": "2.5.2",
             "define": "XRI_2_5_2_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.interaction.toolkit",
+            "expression": "2.5.3",
+            "define": "XRI_2_5_3_OR_NEWER"
         }
     ],
     "noEngineReferences": false

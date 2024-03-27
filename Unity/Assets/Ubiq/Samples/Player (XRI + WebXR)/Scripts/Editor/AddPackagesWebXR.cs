@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
-using UbiqEditor;
+using Ubiq.Editor;
+using Ubiq.Editor.XRI;
 
 namespace Ubiq.Samples.WebXR.Editor
 {
@@ -47,6 +48,8 @@ namespace Ubiq.Samples.WebXR.Editor
 #if WEBXRINTERACTIONS_0_22_0_OR_NEWER
             PackageManagerHelper.RequireSample("com.de-panther.webxr-interactions","XR Interaction Toolkit Sample");
 #endif
+            XRIImportHelper.Import();
+
             EditorApplication.update -= Update;
         }
     }

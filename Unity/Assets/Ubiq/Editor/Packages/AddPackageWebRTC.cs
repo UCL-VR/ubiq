@@ -1,9 +1,9 @@
 #if !UNITY_WEBRTC_NO_VULKAN_HOOK && !(UNITY_WEBRTC && UBIQ_DISABLE_WEBRTCCOMPATIBILITYCHECK)
 using UnityEngine;
 using UnityEditor;
-using UbiqEditor;
+using Ubiq.Editor;
 
-namespace UbiqEditor
+namespace Ubiq.Editor
 {
     [InitializeOnLoad]
     public class AddPackageWebRTC
