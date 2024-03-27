@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 #if XRI_2_5_2_OR_NEWER
 using UnityEngine.XR.Interaction.Toolkit;
@@ -8,7 +6,7 @@ using UnityEngine.XR.Interaction.Toolkit.UI;
 
 namespace Ubiq.XRI
 {
-    public class XRIMenuAdapter : MonoBehaviour
+    public class MenuAdapterXRI : MonoBehaviour
     {
 #if XRI_2_5_2_OR_NEWER
         private void Start()

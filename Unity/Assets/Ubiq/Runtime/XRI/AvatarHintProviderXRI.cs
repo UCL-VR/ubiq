@@ -1,15 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Ubiq.Avatars;
 #if XRI_2_5_2_OR_NEWER
-using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 #endif
 
 namespace Ubiq.XRI
 {
-    public class XRIAvatarHintProvider : AvatarHintProvider
+    public class AvatarHintProviderXRI : AvatarHintProvider
     {
         [Tooltip("The AvatarManager to provide hints for. If null, will try to find an AvatarManager in the scene at start.")]
         [SerializeField] private AvatarManager avatarManager;

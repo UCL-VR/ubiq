@@ -14,7 +14,7 @@ namespace Ubiq.Samples.Demo.Editor
 
         static void Update()
         {
-            XRIImportHelper.Import();
+            ImportHelperXRI.Import();
             EditorApplication.update -= Update;
         }
     }

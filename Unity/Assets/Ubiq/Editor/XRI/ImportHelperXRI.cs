@@ -1,6 +1,6 @@
 namespace Ubiq.Editor.XRI
 {
-    public static class XRIImportHelper
+    public static class ImportHelperXRI
     {
         public static void Import()
         {

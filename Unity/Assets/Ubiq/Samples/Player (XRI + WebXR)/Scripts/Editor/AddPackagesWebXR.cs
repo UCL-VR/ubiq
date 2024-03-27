@@ -48,7 +48,7 @@ namespace Ubiq.Samples.WebXR.Editor
 #if WEBXRINTERACTIONS_0_22_0_OR_NEWER
             PackageManagerHelper.RequireSample("com.de-panther.webxr-interactions","XR Interaction Toolkit Sample");
 #endif
-            XRIImportHelper.Import();
+            ImportHelperXRI.Import();
 
             EditorApplication.update -= Update;
         }
