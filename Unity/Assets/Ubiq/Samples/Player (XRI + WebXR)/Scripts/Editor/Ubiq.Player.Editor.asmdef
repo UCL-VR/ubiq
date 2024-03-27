@@ -45,21 +45,6 @@
             "name": "com.de-panther.webxr-interactions",
             "expression": "0.22.1",
             "define": "WEBXRINTERACTIONS_0_22_1_OR_NEWER"
-        },
-        {
-            "name": "com.unity.xr.interaction.toolkit",
-            "expression": "0.0.0",
-            "define": "XRI_0_0_0_OR_NEWER"
-        },
-        {
-            "name": "com.unity.xr.interaction.toolkit",
-            "expression": "2.5.2",
-            "define": "XRI_2_5_2_OR_NEWER"
-        },
-        {
-            "name": "com.unity.xr.interaction.toolkit",
-            "expression": "2.5.3",
-            "define": "XRI_2_5_3_OR_NEWER"
         }
     ],
     "noEngineReferences": false
