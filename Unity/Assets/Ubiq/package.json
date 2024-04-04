@@ -4,7 +4,9 @@
     "displayName": "Ubiq",
     "description": "Create networked VR experiences with Ubiq",
     "unity": "2021.3",
-    "dependencies": { },
+    "dependencies": {
+        "com.unity.shadergraph": "14.0.9"
+    },
     "keywords": [ ],
     "author": {
         "name": "UCL Immersive Virtual Environments Laboratory",
