@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using Ubiq.Editor;
 using Ubiq.Editor.XRI;
+using WebXR;
 
 namespace Ubiq.Samples.WebXR.Editor
 {
@@ -47,6 +48,29 @@ namespace Ubiq.Samples.WebXR.Editor
 #endif
 #if WEBXRINTERACTIONS_0_22_0_OR_NEWER
             PackageManagerHelper.RequireSample("com.de-panther.webxr-interactions","XR Interaction Toolkit Sample");
+#endif
+#if !UBIQ_DISABLE_WEBXRAUTOLOADOFF
+            var settings = WebXRSettings.GetSettings();
+            if (settings.AutoLoadWebXRInputSystem)
+            {
+                settings.AutoLoadWebXRInputSystem = false;
+                Debug.Log("Ubiq has set AutoLoadWebXRInputSystem to FALSE" +
+                    " in the WebXR settings. This is to allow you to build" +
+                    " for other platforms without including WebXR. If you" +
+                    " would prefer to skip this check and prevent this" +
+                    " behaviour, add the string UBIQ_DISABLE_WEBXRAUTOLOADOFF" +
+                    " to your scripting define symbols.");
+            }
+            if (settings.AutoLoadWebXRManager)
+            {
+                settings.AutoLoadWebXRManager = false;
+                Debug.Log("Ubiq has set AutoLoadWebXRManager to FALSE" +
+                    " in the WebXR settings. This is to allow you to build" +
+                    " for other platforms without including WebXR. If you" +
+                    " would prefer to skip this check and prevent this" +
+                    " behaviour, add the string UBIQ_DISABLE_WEBXRAUTOLOADOFF" +
+                    " to your scripting define symbols.");
+            }
 #endif
             ImportHelperXRI.Import();
 
