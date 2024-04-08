@@ -21,6 +21,7 @@ namespace Ubiq.Editor.XRI
 #else
             PackageManagerHelper.RequireSample("com.unity.xr.interaction.toolkit","Starter Assets");
             PackageManagerHelper.RequireSample("com.unity.xr.interaction.toolkit","XR Device Simulator");
+            PackageManagerHelper.RequireSample("com.unity.xr.interaction.toolkit","Hands Interaction Demo");
             PackageManagerHelper.RequireSample("com.unity.xr.hands","HandVisualizer");
 #endif
         }

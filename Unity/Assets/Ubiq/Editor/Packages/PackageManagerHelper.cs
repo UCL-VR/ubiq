@@ -180,14 +180,14 @@ namespace Ubiq.Editor
                 if (info.sample.Import(Sample.ImportOptions.OverridePreviousImports
                     | Sample.ImportOptions.HideImportWindow))
                 {
-                    Debug.Log($"Ubiq successfully imported sample" +
-                        "\"{info.sample}\" from package \"{info.package}\".");
+                    Debug.Log("Ubiq successfully imported sample" +
+                        $"\"{info.sample}\" from package \"{info.package}\".");
                     assetsDirty = true;
                 }
                 else
                 {
-                    Debug.LogWarning($"Ubiq failed to import sample" +
-                        "\"{info.sample}\" from package \"{info.package}\".");
+                    Debug.LogWarning("Ubiq failed to import sample" +
+                        $"\"{info.sample}\" from package \"{info.package}\".");
                 }
             }
         }
@@ -214,9 +214,9 @@ namespace Ubiq.Editor
 
                 if (packageSamples == null)
                 {
-                    Debug.LogWarning($"Ubiq is trying to find a sample" +
+                    Debug.LogWarning("Ubiq is trying to find a sample" +
                         " for the package" +
-                        " \"{ request.package }\", but the package could not" +
+                        $" \"{ request.package }\", but the package could not" +
                         " be found.");
                     continue;
                 }
@@ -240,9 +240,9 @@ namespace Ubiq.Editor
                     continue;
                 }
 
-                Debug.LogWarning($"Ubiq is trying to find the sample" +
-                    " \"{ request.sample }\" for the package" +
-                    " \"{ request.package }\", but the sample could not" +
+                Debug.LogWarning("Ubiq is trying to find the sample" +
+                    $" \"{ request.sample }\" for the package" +
+                    $" \"{ request.package }\", but the sample could not" +
                     " be found in the package.");
             }
             return samples;
