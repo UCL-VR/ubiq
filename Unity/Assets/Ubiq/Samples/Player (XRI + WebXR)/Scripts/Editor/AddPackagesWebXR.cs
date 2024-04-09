@@ -54,9 +54,11 @@ namespace Ubiq.Samples.WebXR.Editor
             PackageManagerHelper.RequireSample("com.de-panther.webxr-interactions","XR Interaction Toolkit Sample");
 
     #if !UBIQ_DISABLE_WEBXRAUTOLOADOFF
+            var modified = false;
             var settings = WebXRSettings.GetSettings();
             if (settings != null && settings.AutoLoadWebXRInputSystem)
             {
+                modified = true;
                 settings.AutoLoadWebXRInputSystem = false;
                 Debug.Log("Ubiq has set AutoLoadWebXRInputSystem to FALSE" +
                     " in the WebXR settings. This is to allow you to build" +
@@ -67,6 +69,7 @@ namespace Ubiq.Samples.WebXR.Editor
             }
             if (settings != null && settings.AutoLoadWebXRManager)
             {
+                modified = true;
                 settings.AutoLoadWebXRManager = false;
                 Debug.Log("Ubiq has set AutoLoadWebXRManager to FALSE" +
                     " in the WebXR settings. This is to allow you to build" +
@@ -74,6 +77,11 @@ namespace Ubiq.Samples.WebXR.Editor
                     " would prefer to skip this check and prevent this" +
                     " behaviour, add the string UBIQ_DISABLE_WEBXRAUTOLOADOFF" +
                     " to your scripting define symbols.");
+            }
+            if (modified)
+            {
+                EditorUtility.SetDirty(settings);
+                AssetDatabase.SaveAssetIfDirty(settings);
             }
     #endif
 #endif
