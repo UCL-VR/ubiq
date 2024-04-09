@@ -2,7 +2,9 @@ using UnityEngine;
 using UnityEditor;
 using Ubiq.Editor;
 using Ubiq.Editor.XRI;
+#if WEBXR_0_22_0_OR_NEWER
 using WebXR;
+#endif
 
 namespace Ubiq.Samples.WebXR.Editor
 {
