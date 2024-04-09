@@ -7,7 +7,7 @@ using UnityEditorInternal;
 namespace Ubiq.Networking
 {
     [CustomEditor(typeof(ConnectionDefinition))]
-    public class ConnectionDefinitionEditor : Editor
+    public class ConnectionDefinitionEditor : UnityEditor.Editor
     {
         private ReorderableList platformsReorderableList;
         private SerializedProperty platformsProperty;

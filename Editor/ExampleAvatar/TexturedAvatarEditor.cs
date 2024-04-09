@@ -6,7 +6,7 @@ using UnityEditor;
 namespace Ubiq.Samples
 {
     [CustomEditor(typeof(TexturedAvatar))]
-    public class TexturedAvatarEditor : Editor
+    public class TexturedAvatarEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {

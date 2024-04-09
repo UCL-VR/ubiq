@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Ubiq.Avatars
 {
     [CustomEditor(typeof(Avatar))]
-    public class AvatarEditor : Editor
+    public class AvatarEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {

@@ -6,14 +6,14 @@ using UnityEditor;
 namespace Ubiq.Messaging
 {
     [CustomEditor(typeof(LatencyMeter))]
-    public class LatencyMeterEditor : Editor
+    public class LatencyMeterEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
 
             EditorGUI.BeginDisabledGroup(!Application.isPlaying);
-            
+
             var component = target as LatencyMeter;
             if (GUILayout.Button("Measure Latencies"))
             {

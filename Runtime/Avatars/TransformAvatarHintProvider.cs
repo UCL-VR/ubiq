@@ -6,12 +6,12 @@ namespace Ubiq.Avatars
     {
         public Transform hintTransform;
 
-        public override Vector3 ProvideVector3()
+        public override Vector3 ProvideVector3(string node)
         {
             return hintTransform ? hintTransform.position : Vector3.zero;
         }
 
-        public override Quaternion ProvideQuaternion()
+        public override Quaternion ProvideQuaternion(string node)
         {
             return hintTransform ? hintTransform.rotation : Quaternion.identity;
         }

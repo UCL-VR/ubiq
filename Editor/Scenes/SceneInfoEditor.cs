@@ -6,7 +6,7 @@ using UnityEditor;
 namespace Ubiq.Samples
 {
     [CustomEditor(typeof(SceneInfo))]
-    public class SceneInfoEditor : Editor
+    public class SceneInfoEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {

@@ -20,8 +20,13 @@
         },
         {
             "name": "com.unity.xr.interaction.toolkit",
-            "expression": "2.4.3",
-            "define": "XRI_2_4_3_OR_NEWER"
+            "expression": "2.5.2",
+            "define": "XRI_2_5_2_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.interaction.toolkit",
+            "expression": "2.5.3",
+            "define": "XRI_2_5_3_OR_NEWER"
         }
     ],
     "noEngineReferences": false
