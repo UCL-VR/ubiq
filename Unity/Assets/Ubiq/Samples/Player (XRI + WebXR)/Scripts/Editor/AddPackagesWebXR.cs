@@ -55,7 +55,7 @@ namespace Ubiq.Samples.WebXR.Editor
 
     #if !UBIQ_DISABLE_WEBXRAUTOLOADOFF
             var settings = WebXRSettings.GetSettings();
-            if (settings.AutoLoadWebXRInputSystem)
+            if (settings != null && settings.AutoLoadWebXRInputSystem)
             {
                 settings.AutoLoadWebXRInputSystem = false;
                 Debug.Log("Ubiq has set AutoLoadWebXRInputSystem to FALSE" +
@@ -65,7 +65,7 @@ namespace Ubiq.Samples.WebXR.Editor
                     " behaviour, add the string UBIQ_DISABLE_WEBXRAUTOLOADOFF" +
                     " to your scripting define symbols.");
             }
-            if (settings.AutoLoadWebXRManager)
+            if (settings != null && settings.AutoLoadWebXRManager)
             {
                 settings.AutoLoadWebXRManager = false;
                 Debug.Log("Ubiq has set AutoLoadWebXRManager to FALSE" +
