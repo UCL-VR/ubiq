@@ -43,13 +43,15 @@ namespace Ubiq.Samples.WebXR.Editor
 #if !WEBXR_0_0_0_OR_NEWER
             PackageManagerHelper.AddPackage("https://github.com/De-Panther/unity-webxr-export.git?path=/Packages/webxr#webxr/0.22.0");
 #endif
+
 #if !WEBXRINTERACTIONS_0_0_0_OR_NEWER
             PackageManagerHelper.AddPackage("https://github.com/De-Panther/unity-webxr-export.git?path=/Packages/webxr-interactions#webxr-interactions/0.22.0");
 #endif
-#if WEBXRINTERACTIONS_0_22_0_OR_NEWER
+
+#if WEBXR_0_22_0_OR_NEWER
             PackageManagerHelper.RequireSample("com.de-panther.webxr-interactions","XR Interaction Toolkit Sample");
-#endif
-#if !UBIQ_DISABLE_WEBXRAUTOLOADOFF
+
+    #if !UBIQ_DISABLE_WEBXRAUTOLOADOFF
             var settings = WebXRSettings.GetSettings();
             if (settings.AutoLoadWebXRInputSystem)
             {
@@ -71,7 +73,9 @@ namespace Ubiq.Samples.WebXR.Editor
                     " behaviour, add the string UBIQ_DISABLE_WEBXRAUTOLOADOFF" +
                     " to your scripting define symbols.");
             }
+    #endif
 #endif
+
             ImportHelperXRI.Import();
 
             EditorApplication.update -= Update;
