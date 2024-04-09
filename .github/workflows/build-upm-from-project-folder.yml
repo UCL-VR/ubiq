@@ -32,6 +32,8 @@ jobs:
           git checkout ${{ inputs.upm-branch }}
       - name: Rename samples to prevent Unity auto-import
         run: git mv Samples Samples~
+      - name: Remove samples .meta file to stop empty folder import
+        run: git rm Samples.meta
       - name: Print folder contents (for debug)
         run: ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//  /g' -e 's/^/   /'
       - name: Config user name
