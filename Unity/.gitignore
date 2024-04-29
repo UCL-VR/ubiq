@@ -80,3 +80,5 @@ crashlytics-build.properties
 Recordings/
 
 .vsconfig
+
+.idea/
