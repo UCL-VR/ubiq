@@ -20,14 +20,12 @@ Ubiq supports Unity 2021.3 LTS or later.
 
 ## Quick Start
 
-1. Add the [Unity XR Interaction Toolkit](https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.4/manual/index.html) using the Unity Package Manager (UPM), and import the *Starter Assets* and *Device Simulator*.
-
-2. Add Ubiq using the UPM, with the ["Install package from git url..."]((https://docs.unity3d.com/Manual/upm-ui-giturl.html)) option:
+1. Add Ubiq using the UPM, with the ["Install package from git url..."]((https://docs.unity3d.com/Manual/upm-ui-giturl.html)) option:
 ```
 https://github.com/UCL-VR/ubiq.git#upm
 ```
 
-3. Select Ubiq from the package list and import the *Demo (XRI)* sample.
+2. Select Ubiq from the package list and import the *Demo (XRI)* sample.
 
 3. Open the `Assets/Samples/Ubiq/x.y.z/Demo (XRI)/Demo.unity` scene.
 
