@@ -6,7 +6,7 @@ namespace Ubiq.Editor.XRI
         {
 #if XRI_2_5_3_OR_NEWER && XRI_0_0_0_OR_NEWER
     #if !UBIQ_SILENCEWARNING_XRIVERSION
-            Debug.LogWarning(
+            UnityEngine.Debug.LogWarning(
                 "Ubiq samples require XRI = 2.5.2, but a" +
                 " different version is installed. The sample may not work" +
                 " correctly. To silence this warning, add the string" +

@@ -1,4 +1,4 @@
-#if !UNITY_WEBRTC_NO_VULKAN_HOOK && !(UNITY_WEBRTC && UBIQ_DISABLE_WEBRTCCOMPATIBILITYCHECK)
+#if !UNITY_WEBRTC_UBIQ_FORK && !(UNITY_WEBRTC && UBIQ_DISABLE_WEBRTCCOMPATIBILITYCHECK)
 using UnityEngine;
 using UnityEditor;
 using Ubiq.Editor;
@@ -27,7 +27,7 @@ namespace Ubiq.Editor
                 " symbols.");
             PackageManagerHelper.Remove("com.unity.webrtc");
 #endif
-            PackageManagerHelper.AddPackage("https://github.com/UCL-VR/unity-webrtc-no-vulkan-hook.git");
+            PackageManagerHelper.AddPackage("https://github.com/UCL-VR/unity-webrtc-ubiq-fork.git");
             EditorApplication.update -= Update;
         }
     }

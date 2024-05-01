@@ -5,7 +5,8 @@
     "description": "Create networked VR experiences with Ubiq",
     "unity": "2021.3",
     "dependencies": {
-        "com.unity.shadergraph": "14.0.9"
+        "com.unity.shadergraph": "14.0.9",
+        "com.unity.editorcoroutines": "1.0.0"
     },
     "keywords": [ ],
     "author": {
@@ -28,6 +29,11 @@
             "displayName": "Player (XRI + WebXR)",
             "description": "Alternative player prefab for WebXR (and standard) build target(s). Compatible with XRI.\n<i>Will add dependencies:</i>\n • <a href=https://docs.unity3d.com/Manual/com.unity.xr.interaction.toolkit.html>com.unity.xr.interaction.toolkit</a>\n • <a href=https://github.com/De-Panther/unity-webxr-export>com.de-panther.webxr</a>\n • <a href=https://github.com/De-Panther/unity-webxr-export>com.de-panther.webxr-interactions</a>",
             "path": "Samples~/Player (XRI + WebXR)"
+        },
+        {
+            "displayName": "Avatars (ReadyPlayerMe)",
+            "description": "Support for for Ready Player Me avatar system. Currently only works with HalfBody avatars.\n<i>Will add dependencies:</i>\n • <a href=https://github.com/readyplayerme/rpm-unity-sdk-core>com.readyplayerme.core</a>\n • <a href=https://github.com/atteneder/glTFast.html>com.atteneder.gltfast</a>\n",
+            "path": "Samples~/Avatars (ReadyPlayerMe)"
         }
     ]
   }
