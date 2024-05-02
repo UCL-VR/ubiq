@@ -25,9 +25,9 @@
             "define": "UNITY_WEBRTC"
         },
         {
-            "name": "com.unity.webrtc-no-vulkan-hook",
+            "name": "com.unity.webrtc-ubiq-fork",
             "expression": "0.0.0",
-            "define": "UNITY_WEBRTC_NO_VULKAN_HOOK"
+            "define": "UNITY_WEBRTC_UBIQ_FORK"
         }
     ],
     "noEngineReferences": false

@@ -1,4 +1,4 @@
-#if UNITY_WEBRTC || UNITY_WEBRTC_NO_VULKAN_HOOK
+#if UNITY_WEBRTC || UNITY_WEBRTC_UBIQ_FORK
 using System;
 using System.Collections;
 using System.Collections.Generic;
