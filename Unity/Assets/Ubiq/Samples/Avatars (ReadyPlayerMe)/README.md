@@ -25,9 +25,8 @@ Avatar loading is done at runtime by the `UbiqReadyPlayerMeAvatarLoader` script 
 
 ## Help! I'm seeing error CS0234
 
-This version of the ReadyPlayerMe package manages its dependencies in code. If there are compilation errors at the time it is imported, it'll never run this import code and won't correctly install its dependencies. Here's the fix:
+The ReadyPlayerMe packages used in this sample depend on one another. If something goes wrong during installation, one or more of these dependencies might be missing. The ReadyPlayerMe packages do not use preprocessor guards to prevent compilation in this case, so missing packages cause compilation errors. Your project then gets stuck in a state where dependencies are needed but the code which would import them cannot be compiled. Here's the fix:
 
-1. Delete this sample from your project folder
-2. In the package manager, remove the `Ready Player Me Core` package
-3. Ensure you have no compilation errors in your project
-4. Import this sample again
+1. In the package manager, remove the `Ready Player Me Core (Ubiq Fork)` package and the `Ready Player Me Avatar Loader` package
+2. Ensure you have no other compilation errors in your project
+3. When your project is compiling without errors, the missing packages will be detected and re-imported
