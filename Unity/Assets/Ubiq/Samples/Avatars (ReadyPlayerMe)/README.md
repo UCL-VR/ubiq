@@ -1,6 +1,6 @@
 This sample contains compatibility tools for Ready Player Me avatars in Ubiq. Currently support is only good for `HalfBody` avatars.
 
-![rpm-avatar](https://github.com/UCL-VR/ubiq-avatars-readyplayerme/assets/33021110/f25c7f6f-7b65-49d6-a964-eb3a8e00837a)
+![rpm-avatar](https://github.com/UCL-VR/ubiq/assets/33021110/b2633d5c-8b08-4041-9704-a7a053ef9b59)
 
 ## What's Included
 
