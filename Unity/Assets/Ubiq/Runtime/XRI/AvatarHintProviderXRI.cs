@@ -95,7 +95,7 @@ namespace Ubiq.XRI
 
         public override Quaternion ProvideQuaternion(string node)
         {
-            if (node == headPositionNode)
+            if (node == headRotationNode)
             {
                 return Camera.main.transform.rotation;
             }
