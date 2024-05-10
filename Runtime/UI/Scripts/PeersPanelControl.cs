@@ -118,7 +118,7 @@ namespace Ubiq.Samples
                 return;
             }
 
-            peerName.text = peer["ubiq.samples.social.name"] ?? "(unnamed)";
+            peerName.text = peer[DisplayNameManager.KEY] ?? "(unnamed)";
 
             if (meText)
             {

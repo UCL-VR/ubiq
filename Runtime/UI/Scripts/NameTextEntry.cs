@@ -56,7 +56,7 @@ namespace Ubiq.Samples.Social
         {
             if (mainMenu && mainMenu.roomClient && mainMenu.roomClient.Me != null)
             {
-                var name = mainMenu.roomClient.Me["ubiq.samples.social.name"];
+                var name = mainMenu.roomClient.Me[DisplayNameManager.KEY];
                 if(name != null)
                 {
                     textEntry.SetText(name,textEntry.defaultTextColor,true);
