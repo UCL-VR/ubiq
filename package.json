@@ -1,11 +1,11 @@
 {
     "name": "com.ucl.ubiq",
-    "version": "1.0.0-pre.6",
+    "version": "1.0.0-pre.7",
     "displayName": "Ubiq",
     "description": "Create networked VR experiences with Ubiq",
     "unity": "2021.3",
     "dependencies": {
-        "com.unity.shadergraph": "14.0.9",
+        "com.unity.shadergraph": "12.1.6",
         "com.unity.editorcoroutines": "1.0.0"
     },
     "keywords": [ ],
