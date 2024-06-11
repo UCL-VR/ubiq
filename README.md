@@ -16,7 +16,7 @@ Instructions for setting up your own server are included. Ubiq does not rely on 
 
 ## Supported Unity Versions
 
-Ubiq supports Unity 2021.3 LTS or later.
+Ubiq supports Unity 2021.3.22 LTS or later.
 
 ## Quick Start
 
