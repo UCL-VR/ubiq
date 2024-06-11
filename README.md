@@ -1,3 +1,4 @@
+
 # Welcome to Ubiq
 
 ![Picture of Avatars Waving](Documentation/docs/images/0f1c2fc3-2615-4f15-93c4-7533af6697eb.png)
@@ -15,17 +16,18 @@ Instructions for setting up your own server are included. Ubiq does not rely on 
 
 ## Supported Unity Versions
 
-Ubiq supports Unity 2021.3 LTS or later.
+Ubiq supports Unity 2021.3.22 LTS or later.
 
 ## Quick Start
 
-1. Add a git package in the Unity package manager (UPM). See UPM instructions [here](https://docs.unity3d.com/Manual/upm-ui-giturl.html).
+1. Add Ubiq using the UPM, with the ["Install package from git url..."]((https://docs.unity3d.com/Manual/upm-ui-giturl.html)) option:
 ```
 https://github.com/UCL-VR/ubiq.git#upm
 ```
-2. In the UPM window, select Ubiq from the package list and import the Samples.
 
-3. Open the `Assets/Samples/Ubiq/x.y.z/Samples/Start Here.unity` scene.
+2. Select Ubiq from the package list and import the *Demo (XRI)* sample.
+
+3. Open the `Assets/Samples/Ubiq/x.y.z/Demo (XRI)/Demo.unity` scene.
 
 4. Click `Play`.
 

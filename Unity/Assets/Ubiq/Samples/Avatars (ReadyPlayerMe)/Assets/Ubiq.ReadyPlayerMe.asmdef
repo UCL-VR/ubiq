@@ -1,0 +1,24 @@
+{
+    "name": "Ubiq.ReadyPlayerMe",
+    "rootNamespace": "",
+    "references": [
+        "GUID:ab979a98ba0be4546bceb48f770b11c8",
+        "GUID:96af4ea235d92d245a095007c6ca3701",
+        "GUID:69ab3f10cf42d0b42a6cd1353c374377"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.readyplayerme.core-ubiq-fork",
+            "expression": "0.0.0",
+            "define": "READYPLAYERME_0_0_0_OR_NEWER"
+        }
+    ],
+    "noEngineReferences": false
+}

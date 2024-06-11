@@ -1,0 +1,10 @@
+name: Update upm branch on release
+on:
+  push:
+    tags: [ 'unity-v*.*.*' ]
+jobs:
+  build-upm:
+    uses: ./.github/workflows/build-upm-from-project-folder.yml
+    with:
+      project-folder: Unity/Assets/Ubiq
+      upm-branch: upm

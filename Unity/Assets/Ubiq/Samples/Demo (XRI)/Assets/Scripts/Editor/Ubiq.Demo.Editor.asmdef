@@ -1,0 +1,30 @@
+{
+    "name": "Ubiq.Demo.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:a8b0ee606e2d3ea47a04b62a948d4604",
+        "GUID:bad2b0f10eaa41942a2cb9c40b7000d9"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.xr.interaction.toolkit",
+            "expression": "0.0.0",
+            "define": "XRI_0_0_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.interaction.toolkit",
+            "expression": "2.5.2",
+            "define": "XRI_2_5_2_OR_NEWER"
+        }
+    ],
+    "noEngineReferences": false
+}

@@ -1,0 +1,30 @@
+{
+    "name": "Ubiq.ReadyPlayerMe.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:a8b0ee606e2d3ea47a04b62a948d4604",
+        "GUID:bad2b0f10eaa41942a2cb9c40b7000d9"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.readyplayerme.core-ubiq-fork",
+            "expression": "0.0.0",
+            "define": "READYPLAYERME_0_0_0_OR_NEWER"
+        },
+        {
+            "name": "com.readyplayerme.core-ubiq-fork",
+            "expression": "1.3.4",
+            "define": "READYPLAYERME_1_3_4_OR_NEWER"
+        }
+    ],
+    "noEngineReferences": false
+}

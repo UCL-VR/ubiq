@@ -1,0 +1,50 @@
+on:
+  workflow_call:
+    inputs:
+      project-folder:
+        required: true
+        type: string
+      upm-branch:
+        required: true
+        type: string
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+      - name: Remove everything except for our project
+        run: |
+          git rm -rf .
+          git checkout HEAD -- ${{ inputs.project-folder }}/*
+          git mv ${{ inputs.project-folder }}/* .
+          rm -rf ${{ inputs.project-folder }}
+      - name: Fetch branch
+        run: git fetch origin ${{ inputs.upm-branch }}:${{ inputs.upm-branch }} || true
+      - name: Create upm branch if it does not yet exist
+        run: git branch ${{ inputs.upm-branch }} || true
+      - name: Move to upm branch without changing working copy
+        run: |
+          git checkout --detach
+          git reset --soft ${{ inputs.upm-branch }}
+          git checkout ${{ inputs.upm-branch }}
+      - name: Rename samples to prevent Unity auto-import
+        run: git mv Samples Samples~
+      - name: Remove samples .meta file to stop empty folder import
+        run: git rm -f Samples.meta
+      - name: Print folder contents (for debug)
+        run: ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//  /g' -e 's/^/   /'
+      - name: Config user name
+        run: git config --global user.name "github-actions[bot]"
+      - name: Config user email
+        run: git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Add
+        run: git add *
+      - name: Commit
+        run: git commit -m "Add upm package for ${GITHUB_REF#refs/*/}"
+      - name: Tag
+        run: git tag -a upm-${GITHUB_REF#refs/*/} -m ""
+      - name: Push
+        run: git push --follow-tags --set-upstream origin ${{ inputs.upm-branch }}

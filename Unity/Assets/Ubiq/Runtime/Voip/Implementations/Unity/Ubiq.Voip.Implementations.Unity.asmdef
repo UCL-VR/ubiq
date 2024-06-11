@@ -1,0 +1,34 @@
+{
+    "name": "Ubiq.Voip.Implementations.Unity",
+    "rootNamespace": "",
+    "references": [
+        "GUID:d43c05b6cc104384f8f68e8dad6a32fb",
+        "GUID:f12aafacab75a87499e7e45c873ffab8"
+    ],
+    "includePlatforms": [
+        "Editor",
+        "iOS",
+        "LinuxStandalone64",
+        "macOSStandalone",
+        "WindowsStandalone64"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.webrtc",
+            "expression": "0.0.0",
+            "define": "UNITY_WEBRTC"
+        },
+        {
+            "name": "com.unity.webrtc-ubiq-fork",
+            "expression": "0.0.0",
+            "define": "UNITY_WEBRTC_UBIQ_FORK"
+        }
+    ],
+    "noEngineReferences": false
+}

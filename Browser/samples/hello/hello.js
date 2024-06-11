@@ -499,7 +499,12 @@ function f(){
 }
 window.requestAnimationFrame(f);
 
-roomClient.join(config.room);
+if(config.room.length && config.room.length > 0){
+    roomClient.join(config.room);
+}
+
+// Assign the roomclient to a Tab-wide variable so we can join a room manually if we wish
+window.ubiq.roomclient = roomClient;
 
 export function hello(){
     alert("Hello World");

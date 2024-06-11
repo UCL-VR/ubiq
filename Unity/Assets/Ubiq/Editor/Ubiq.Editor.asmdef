@@ -1,0 +1,31 @@
+{
+    "name": "Ubiq.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:ab979a98ba0be4546bceb48f770b11c8",
+        "GUID:4be54a12296e0404db7080c914e17b05",
+        "GUID:478a2357cc57436488a56e564b08d223"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.webrtc",
+            "expression": "0.0.0",
+            "define": "UNITY_WEBRTC"
+        },
+        {
+            "name": "com.unity.webrtc-ubiq-fork",
+            "expression": "0.0.0",
+            "define": "UNITY_WEBRTC_UBIQ_FORK"
+        }
+    ],
+    "noEngineReferences": false
+}
