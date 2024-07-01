@@ -216,7 +216,7 @@ GameObject:
   - component: {fileID: 187502698}
   - component: {fileID: 187502697}
   - component: {fileID: 187502700}
-  - component: {fileID: 187502701}
+  - component: {fileID: 187502703}
   m_Layer: 0
   m_Name: Peer 2
   m_TagString: Untagged
@@ -284,8 +284,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Catalogues:
-  - {fileID: 11400000, guid: 11a5d331ac5f10146b5948e6a15b2bd2, type: 2}
---- !u!114 &187502701
+  - {fileID: 11400000, guid: a7bbf95643e9e2846aa0dea8e5583429, type: 2}
+--- !u!114 &187502703
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -294,7 +294,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 187502696}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 038d27d0e385c14468aeaace6829be83, type: 3}
+  m_Script: {fileID: 11500000, guid: bdaf26d942152ce45bc167a692730b10, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   spawnPoint: {fileID: 599091527}
@@ -310,7 +310,7 @@ GameObject:
   - component: {fileID: 202480396}
   - component: {fileID: 202480397}
   - component: {fileID: 202480398}
-  - component: {fileID: 202480399}
+  - component: {fileID: 202480401}
   m_Layer: 0
   m_Name: Peer 1
   m_TagString: Untagged
@@ -378,8 +378,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Catalogues:
-  - {fileID: 11400000, guid: 11a5d331ac5f10146b5948e6a15b2bd2, type: 2}
---- !u!114 &202480399
+  - {fileID: 11400000, guid: a7bbf95643e9e2846aa0dea8e5583429, type: 2}
+--- !u!114 &202480401
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -388,7 +388,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 202480394}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 038d27d0e385c14468aeaace6829be83, type: 3}
+  m_Script: {fileID: 11500000, guid: bdaf26d942152ce45bc167a692730b10, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   spawnPoint: {fileID: 319210788}
@@ -467,7 +467,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 89df70bc4086cf241892e523336eb3a1, type: 2}
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -683,7 +683,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 89df70bc4086cf241892e523336eb3a1, type: 2}
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -788,7 +788,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 89df70bc4086cf241892e523336eb3a1, type: 2}
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -893,7 +893,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 89df70bc4086cf241892e523336eb3a1, type: 2}
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1079,7 +1079,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 89df70bc4086cf241892e523336eb3a1, type: 2}
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1347,12 +1347,12 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 202480399}
-        m_TargetAssemblyTypeName: Ubiq.Examples._04_Spawner, Ubiq.Examples
+      - m_Target: {fileID: 202480401}
+        m_TargetAssemblyTypeName: Ubiq.Samples._04_Spawner, Assembly-CSharp
         m_MethodName: Spawn
         m_Mode: 2
         m_Arguments:
-          m_ObjectArgument: {fileID: 7539412863525883077, guid: 83d34170c8686a84b8aed83d5afbdac0,
+          m_ObjectArgument: {fileID: 7539412863525883077, guid: e3b27e7f53480f246bf3778677a2bc72,
             type: 3}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
           m_IntArgument: 0
@@ -1474,7 +1474,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 89df70bc4086cf241892e523336eb3a1, type: 2}
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1579,7 +1579,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 89df70bc4086cf241892e523336eb3a1, type: 2}
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1684,7 +1684,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 89df70bc4086cf241892e523336eb3a1, type: 2}
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1876,8 +1876,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 187502701}
-        m_TargetAssemblyTypeName: Ubiq.Examples._04_Spawner, Ubiq.Examples
+      - m_Target: {fileID: 187502703}
+        m_TargetAssemblyTypeName: Ubiq.Samples._04_Spawner, Assembly-CSharp
         m_MethodName: Clear
         m_Mode: 1
         m_Arguments:
@@ -2055,8 +2055,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 202480399}
-        m_TargetAssemblyTypeName: Ubiq.Examples._04_Spawner, Ubiq.Examples
+      - m_Target: {fileID: 202480401}
+        m_TargetAssemblyTypeName: Ubiq.Samples._04_Spawner, Assembly-CSharp
         m_MethodName: Clear
         m_Mode: 1
         m_Arguments:
@@ -2284,7 +2284,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 89df70bc4086cf241892e523336eb3a1, type: 2}
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2389,7 +2389,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 89df70bc4086cf241892e523336eb3a1, type: 2}
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2667,7 +2667,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 89df70bc4086cf241892e523336eb3a1, type: 2}
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2844,7 +2844,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 89df70bc4086cf241892e523336eb3a1, type: 2}
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3188,12 +3188,12 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 187502701}
-        m_TargetAssemblyTypeName: Ubiq.Examples._04_Spawner, Ubiq.Examples
+      - m_Target: {fileID: 187502703}
+        m_TargetAssemblyTypeName: Ubiq.Samples._04_Spawner, Assembly-CSharp
         m_MethodName: Spawn
         m_Mode: 2
         m_Arguments:
-          m_ObjectArgument: {fileID: 8304551005270620439, guid: e4140a3e3b26588428ae9162b8764661,
+          m_ObjectArgument: {fileID: 8304551005270620439, guid: 0e0c6d1f5479c824db04741d6ec0bb84,
             type: 3}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
           m_IntArgument: 1

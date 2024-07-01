@@ -315,9 +315,8 @@ GameObject:
   - component: {fileID: 187502699}
   - component: {fileID: 187502698}
   - component: {fileID: 187502697}
-  - component: {fileID: 187502702}
   - component: {fileID: 187502700}
-  - component: {fileID: 187502703}
+  - component: {fileID: 187502701}
   m_Layer: 0
   m_Name: Peer 2
   m_TagString: Untagged
@@ -384,9 +383,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85a8236d1040c2b439f6933935477a9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomClient: {fileID: 187502697}
-  catalogue: {fileID: 11400000, guid: b805ebd438e8c0840ad452799361527d, type: 2}
---- !u!114 &187502702
+  Catalogues:
+  - {fileID: 11400000, guid: 9eb1cd4f3b4ad2448880b589674560a5, type: 2}
+  - {fileID: 11400000, guid: 72dafba115172314aad41306072971c8, type: 2}
+--- !u!114 &187502701
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -395,22 +395,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 187502696}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 91278953fa39be149b9d63bc52dfdf51, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  EventsFilter: -1
-  Memory: 0
-  MaxMemory: 52428800
---- !u!114 &187502703
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 187502696}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bee197bef7f27944b93e0280ba48576e, type: 3}
+  m_Script: {fileID: 11500000, guid: c7099cdcc15ba9246aeb485e3e14d168, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   spawnPoint: {fileID: 599091527}
@@ -425,9 +410,8 @@ GameObject:
   - component: {fileID: 202480395}
   - component: {fileID: 202480396}
   - component: {fileID: 202480397}
-  - component: {fileID: 202480400}
   - component: {fileID: 202480398}
-  - component: {fileID: 202480401}
+  - component: {fileID: 202480399}
   m_Layer: 0
   m_Name: Peer 1
   m_TagString: Untagged
@@ -494,9 +478,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85a8236d1040c2b439f6933935477a9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomClient: {fileID: 202480397}
-  catalogue: {fileID: 11400000, guid: b805ebd438e8c0840ad452799361527d, type: 2}
---- !u!114 &202480400
+  Catalogues:
+  - {fileID: 11400000, guid: 9eb1cd4f3b4ad2448880b589674560a5, type: 2}
+  - {fileID: 11400000, guid: 72dafba115172314aad41306072971c8, type: 2}
+--- !u!114 &202480399
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -505,22 +490,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 202480394}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 91278953fa39be149b9d63bc52dfdf51, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  EventsFilter: -1
-  Memory: 0
-  MaxMemory: 52428800
---- !u!114 &202480401
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 202480394}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bee197bef7f27944b93e0280ba48576e, type: 3}
+  m_Script: {fileID: 11500000, guid: c7099cdcc15ba9246aeb485e3e14d168, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   spawnPoint: {fileID: 319210788}
@@ -1346,13 +1316,14 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 202480401}
-        m_TargetAssemblyTypeName: Ubiq.Samples._05_Spawner, Assembly-CSharp
+      - m_Target: {fileID: 202480399}
+        m_TargetAssemblyTypeName: Ubiq.Examples._05_Spawner, Ubiq.Examples
         m_MethodName: Spawn
-        m_Mode: 3
+        m_Mode: 2
         m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_ObjectArgument: {fileID: 7539412863525883077, guid: b546958cb3a559446ac9df8edf60a6d8,
+            type: 3}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
           m_IntArgument: 1
           m_FloatArgument: 1
           m_StringArgument: 
@@ -1479,13 +1450,14 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 202480401}
-        m_TargetAssemblyTypeName: Ubiq.Samples._05_Spawner, Assembly-CSharp
+      - m_Target: {fileID: 202480399}
+        m_TargetAssemblyTypeName: Ubiq.Examples._05_Spawner, Ubiq.Examples
         m_MethodName: Spawn
-        m_Mode: 3
+        m_Mode: 2
         m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_ObjectArgument: {fileID: 7539412863525883077, guid: 67f321ff4ae7b60479d6f953da2e2fb8,
+            type: 3}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0.5
           m_StringArgument: 
@@ -2177,7 +2149,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1413464178}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bad702b464285f44f8ed0aacda065b35, type: 3}
+  m_Script: {fileID: 11500000, guid: a14f3de1cadd439409f79d60c50632da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1542019675
@@ -2367,13 +2339,14 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 202480401}
-        m_TargetAssemblyTypeName: Ubiq.Samples._05_Spawner, Assembly-CSharp
+      - m_Target: {fileID: 202480399}
+        m_TargetAssemblyTypeName: Ubiq.Examples._05_Spawner, Ubiq.Examples
         m_MethodName: Spawn
-        m_Mode: 3
+        m_Mode: 2
         m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_ObjectArgument: {fileID: 7539412863525883077, guid: 24c45c5b81fb41b449e9ccc10a711069,
+            type: 3}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
           m_IntArgument: 2
           m_FloatArgument: 1.5
           m_StringArgument: 
@@ -3097,7 +3070,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2112864836}
   m_LocalRotation: {x: 0.36650118, y: 0, z: 0, w: 0.9304176}
-  m_LocalPosition: {x: 0, y: 0, z: -1041.8}
+  m_LocalPosition: {x: 0, y: 0, z: -1024}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3105,7 +3078,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 43, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -553.36}
+  m_AnchoredPosition: {x: 0, y: -534}
   m_SizeDelta: {x: 1712.77, y: 524.6}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2112864838
@@ -3141,12 +3114,14 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'The PREFAB CATALOGUE assigned to the NetworkSpawnManager must contain
-    every object you spawn in your application.
+  m_Text: 'The PREFAB CATALOGUES assigned to the NetworkSpawnManager must contain
+    every object you spawn in your application. You should add a catalogue for your
+    own objects, in addition to the Ubiq Samples catalogue.
 
 
-    This means objects can be shared
-    with an ID, and makes sure Unity includes the objects in your built application.'
+    This means objects
+    can be shared with an ID, and makes sure Unity includes the objects in your built
+    application.'
 --- !u!222 &2112864839
 CanvasRenderer:
   m_ObjectHideFlags: 0

@@ -17,7 +17,7 @@ namespace Ubiq.Examples
             manager.OnSpawned.AddListener(Manager_OnSpawned);
         }
 
-        private void Manager_OnSpawned(GameObject go, IRoom room, IPeer peer, NetworkSpawnOrigin origin)
+        private void Manager_OnSpawned(GameObject go, IRoom room, IPeer peer, string properties)
         {
             spawnPoint.GetPositionAndRotation(out var pos, out var rot);
 
@@ -27,19 +27,19 @@ namespace Ubiq.Examples
             go.transform.SetPositionAndRotation(pos,rot);
         }
 
-        public void SpawnWithPeerScope(int index)
+        public void SpawnWithPeerScope(GameObject prefab)
         {
             if (manager)
             {
-                manager.SpawnWithPeerScope(manager.catalogue.prefabs[index]);
+                manager.SpawnWithPeerScope(prefab);
             }
         }
 
-        public void SpawnWithRoomScope(int index)
+        public void SpawnWithRoomScope(GameObject prefab)
         {
             if (manager)
             {
-                manager.SpawnWithRoomScope(manager.catalogue.prefabs[index]);
+                manager.SpawnWithRoomScope(prefab);
             }
         }
     }

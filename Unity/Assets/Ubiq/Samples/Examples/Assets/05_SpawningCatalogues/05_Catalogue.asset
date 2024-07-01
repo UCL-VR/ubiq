@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: 05_Catalogue
   m_EditorClassIdentifier: 
   prefabs:
-  - {fileID: 7539412863525883077, guid: 33a1b9f6739a9f84db36db6a7066bfad, type: 3}
-  - {fileID: 7539412863525883077, guid: 0186b87e84405674a8f9aa8f73baaa50, type: 3}
-  - {fileID: 7539412863525883077, guid: 4622712253265b141995465984f11ea3, type: 3}
+  - {fileID: 7539412863525883077, guid: b546958cb3a559446ac9df8edf60a6d8, type: 3}
+  - {fileID: 7539412863525883077, guid: 24c45c5b81fb41b449e9ccc10a711069, type: 3}
+  - {fileID: 7539412863525883077, guid: 67f321ff4ae7b60479d6f953da2e2fb8, type: 3}
