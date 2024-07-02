@@ -12,36 +12,48 @@ namespace Ubiq.Avatars
     [RequireComponent(typeof(Avatar))]
     public class ThreePointTrackedAvatar : MonoBehaviour
     {
-        [Serializable]
-        public class TransformUpdateEvent : UnityEvent<Vector3,Quaternion> { }
-        public TransformUpdateEvent OnHeadUpdate;
-        public TransformUpdateEvent OnLeftHandUpdate;
-        public TransformUpdateEvent OnRightHandUpdate;
+        [Tooltip("The Avatar to get input from. If null, will try to find an Avatar among parents at start.")]
+        [SerializeField] private Avatar avatar;
 
         [Serializable]
-        public class GripUpdateEvent : UnityEvent<float> { }
+        public class PoseUpdateEvent : UnityEvent<InputVar<Pose>> { }
+        public PoseUpdateEvent OnHeadUpdate;
+        public PoseUpdateEvent OnLeftHandUpdate;
+        public PoseUpdateEvent OnRightHandUpdate;
+
+        [Serializable]
+        public class GripUpdateEvent : UnityEvent<InputVar<float>> { }
         public GripUpdateEvent OnLeftGripUpdate;
         public GripUpdateEvent OnRightGripUpdate;
-
-        private NetworkContext context;
-        private Transform networkSceneRoot;
-        private State[] state = new State[1];
-        private Avatar avatar;
-        private float lastTransmitTime;
-
+        
         [Serializable]
         private struct State
         {
-            public PositionRotation head;
-            public PositionRotation leftHand;
-            public PositionRotation rightHand;
+            public Pose head;
+            public Pose leftHand;
+            public Pose rightHand;
             public float leftGrip;
             public float rightGrip;
         }
-
+        
+        private State[] state = new State[1];
+        private NetworkContext context;
+        private Transform networkSceneRoot;
+        private float lastTransmitTime;
+        
         protected void Start()
         {
-            avatar = GetComponent<Avatar>();
+            if (!avatar)
+            {
+                avatar = GetComponentInParent<Avatar>();
+                if (!avatar)
+                {
+                    Debug.LogWarning("No Avatar could be found among parents. This script will be disabled.");
+                    enabled = false;
+                    return;
+                }
+            }
+            
             context = NetworkScene.Register(this, NetworkId.Create(avatar.NetworkId, "ThreePointTracked"));
             networkSceneRoot = context.Scene.transform;
             lastTransmitTime = Time.time;
@@ -49,64 +61,69 @@ namespace Ubiq.Avatars
 
         private void Update ()
         {
-            if(avatar.IsLocal)
+            if (!avatar.IsLocal)
             {
-                // Update state from hints
-                state[0].head = GetPosRotHint("HeadPosition","HeadRotation");
-                state[0].leftHand = GetPosRotHint("LeftHandPosition","LeftHandRotation");
-                state[0].rightHand = GetPosRotHint("RightHandPosition","RightHandRotation");
-                state[0].leftGrip = GetFloatHint("LeftGrip");
-                state[0].rightGrip = GetFloatHint("RightGrip");
-
-                // Send it through network
-                if ((Time.time - lastTransmitTime) > (1f / avatar.UpdateRate))
+                return;
+            }
+            
+            // Update state from input
+            state[0] = avatar.Input.TryGet(out IHeadAndHandsProvider p)
+                ? new State
                 {
-                    lastTransmitTime = Time.time;
-                    Send();
+                    head = ToNetwork(p.head),
+                    leftHand = ToNetwork(p.leftHand),
+                    rightHand = ToNetwork(p.rightHand),
+                    leftGrip = ToNetwork(p.leftGrip),
+                    rightGrip = ToNetwork(p.rightGrip)
                 }
+                : new State
+                { 
+                    head = ToNetwork(InputVar<Pose>.invalid),
+                    leftHand = ToNetwork(InputVar<Pose>.invalid),
+                    rightHand = ToNetwork(InputVar<Pose>.invalid),
+                    leftGrip = ToNetwork(InputVar<float>.invalid),
+                    rightGrip = ToNetwork(InputVar<float>.invalid)
+                };
 
-                // Update local listeners
-                OnRecv();
+            // Send it through network
+            if ((Time.time - lastTransmitTime) > (1f / avatar.UpdateRate))
+            {
+                lastTransmitTime = Time.time;
+                Send();
             }
+
+            // Update local listeners
+            OnStateChange();
         }
 
-        private PositionRotation GetPosRotHint (string position, string rotation)
+        private Pose ToNetwork (InputVar<Pose> input)
         {
-            if (avatar == null || avatar.hints == null)
-            {
-                return PositionRotation.identity;
-            }
-
-            var posrot = PositionRotation.identity;
-            if (avatar.hints.TryGetVector3(position, out var pos))
-            {
-                posrot.position = pos;
-            }
-            if (avatar.hints.TryGetQuaternion(rotation, out var rot))
-            {
-                posrot.rotation = rot;
-            }
-            return Transforms.ToLocal(posrot,networkSceneRoot);
+            return input.valid
+                ? Transforms.ToLocal(input.value,networkSceneRoot)
+                : GetInvalidPose();
         }
 
-        private float GetFloatHint (string node)
+        private float ToNetwork (InputVar<float> input)
         {
-            if (avatar == null || avatar.hints == null)
-            {
-                return 0.0f;
-            }
-
-            if (avatar.hints.TryGetFloat(node, out var f))
-            {
-                return f;
-            }
-            return 0.0f;
+            return input.valid ? input.value : GetInvalidFloat(); 
         }
-
+        
+        private InputVar<Pose> FromNetwork (Pose net)
+        {
+            return !IsInvalid(net)
+                ? new InputVar<Pose>(Transforms.ToWorld(net,networkSceneRoot))
+                : InputVar<Pose>.invalid;
+        }
+        
+        private InputVar<float> FromNetwork (float net)
+        {
+            return !IsInvalid(net) 
+                ? new InputVar<float>(net)
+                : InputVar<float>.invalid;
+        }
+        
         private void Send()
         {
-            // Co-ords from hints are already in local to our network scene
-            // so we can send them without any changes
             var transformBytes = MemoryMarshal.AsBytes(new ReadOnlySpan<State>(state));
 
             var message = ReferenceCountedSceneGraphMessage.Rent(transformBytes.Length);
@@ -118,26 +135,39 @@ namespace Ubiq.Avatars
         public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
         {
             MemoryMarshal.Cast<byte, State>(
-                new ReadOnlySpan<byte>(message.bytes, message.start, message.length))
+                    new ReadOnlySpan<byte>(message.bytes, message.start, message.length))
                 .CopyTo(new Span<State>(state));
-            OnRecv();
+            OnStateChange();
         }
-
+        
         // State has been set either remotely or locally so update listeners
-        private void OnRecv ()
+        private void OnStateChange ()
         {
-            // Transform with our network scene root to get world position/rotation
-            var head = Transforms.ToWorld(state[0].head,networkSceneRoot);
-            var leftHand = Transforms.ToWorld(state[0].leftHand,networkSceneRoot);
-            var rightHand = Transforms.ToWorld(state[0].rightHand,networkSceneRoot);
-            var leftGrip = state[0].leftGrip;
-            var rightGrip = state[0].rightGrip;
-
-            OnHeadUpdate.Invoke(head.position,head.rotation);
-            OnLeftHandUpdate.Invoke(leftHand.position,leftHand.rotation);
-            OnRightHandUpdate.Invoke(rightHand.position,rightHand.rotation);
-            OnLeftGripUpdate.Invoke(leftGrip);
-            OnRightGripUpdate.Invoke(rightGrip);
+            OnHeadUpdate.Invoke(FromNetwork(state[0].head));
+            OnLeftHandUpdate.Invoke(FromNetwork(state[0].leftHand));
+            OnRightHandUpdate.Invoke(FromNetwork(state[0].rightHand));
+            OnLeftGripUpdate.Invoke(FromNetwork(state[0].leftGrip));
+            OnRightGripUpdate.Invoke(FromNetwork(state[0].rightGrip));
+        }
+        
+        private static Pose GetInvalidPose()
+        {
+            return new Pose(new Vector3{x = float.NaN},Quaternion.identity);
+        }
+        
+        private static float GetInvalidFloat()
+        {
+            return float.NaN;
+        }
+        
+        private static bool IsInvalid(Pose p)
+        {
+            return float.IsNaN(p.position.x); 
+        }
+        
+        private static bool IsInvalid(float f)
+        {
+            return float.IsNaN(f);
         }
     }
 }

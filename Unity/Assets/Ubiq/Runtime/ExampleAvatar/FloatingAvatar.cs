@@ -29,6 +29,8 @@ namespace Ubiq.Samples
         private ThreePointTrackedAvatar trackedAvatar;
         private Vector3 footPosition;
         private Quaternion torsoFacing;
+        
+        private InputVar<Pose> lastGoodHeadPose;
 
         private void OnEnable()
         {
@@ -64,22 +66,46 @@ namespace Ubiq.Samples
             }
         }
 
-        private void ThreePointTrackedAvatar_OnHeadUpdate(Vector3 pos, Quaternion rot)
+        private void ThreePointTrackedAvatar_OnHeadUpdate(InputVar<Pose> pose)
         {
-            head.position = pos;
-            head.rotation = rot;
+            if (!pose.valid)
+            {
+                if (!lastGoodHeadPose.valid)
+                {
+                    headRenderer.enabled = false;
+                    return;
+                }
+                
+                pose = lastGoodHeadPose;
+            }
+            
+            head.position = pose.value.position;
+            head.rotation = pose.value.rotation;        
+            lastGoodHeadPose = pose;
         }
 
-        private void ThreePointTrackedAvatar_OnLeftHandUpdate(Vector3 pos, Quaternion rot)
+        private void ThreePointTrackedAvatar_OnLeftHandUpdate(InputVar<Pose> pose)
         {
-            leftHand.position = pos;
-            leftHand.rotation = rot;
+            if (!pose.valid)
+            {
+                leftHandRenderer.enabled = false;
+                return;
+            }
+            
+            leftHand.position = pose.value.position;
+            leftHand.rotation = pose.value.rotation;                    
         }
 
-        private void ThreePointTrackedAvatar_OnRightHandUpdate(Vector3 pos, Quaternion rot)
+        private void ThreePointTrackedAvatar_OnRightHandUpdate(InputVar<Pose> pose)
         {
-            rightHand.position = pos;
-            rightHand.rotation = rot;
+            if (!pose.valid)
+            {
+                rightHandRenderer.enabled = false;
+                return;
+            }
+    
+            rightHand.position = pose.value.position;
+            rightHand.rotation = pose.value.rotation;                    
         }
 
         private void TexturedAvatar_OnTextureChanged(Texture2D tex)

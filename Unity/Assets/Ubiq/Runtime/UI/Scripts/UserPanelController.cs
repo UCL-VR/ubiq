@@ -58,7 +58,7 @@ namespace Ubiq.Samples.Social
             if (mainMenu && mainMenu.roomClient && mainMenu.roomClient.Me != null)
             {
                 var name = mainMenu.roomClient.Me[DisplayNameManager.KEY];
-                nameText.text = name != null ? name : "(unnamed)";
+                nameText.text = !string.IsNullOrEmpty(name) ? name : "(unnamed)";
             }
         }
     }
