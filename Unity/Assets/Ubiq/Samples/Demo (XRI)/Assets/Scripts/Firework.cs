@@ -79,7 +79,7 @@ namespace Ubiq.Samples
 
         public struct Message
         {
-            public PositionRotation pose;
+            public Pose pose;
             public bool fired;
         }
 

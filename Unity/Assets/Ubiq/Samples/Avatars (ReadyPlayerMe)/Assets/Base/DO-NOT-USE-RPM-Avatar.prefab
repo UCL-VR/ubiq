@@ -59,6 +59,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84fe310786a902844b0c95606954b353, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  avatar: {fileID: 0}
   OnHeadUpdate:
     m_PersistentCalls:
       m_Calls: []
@@ -137,8 +138,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   useEyeAnimations: 1
   useVoiceAnimations: 1
-  speechIndicatorPrefab: {fileID: 4422958779889287441, guid: 85384dbfffb336d4b96168ccfd27db98,
-    type: 3}
+  useHandSkeletonAnimations: 1
+  speechIndicatorPrefab: {fileID: 4422958779889287441, guid: 85384dbfffb336d4b96168ccfd27db98, type: 3}
   leftGripRotations:
   - {x: 0.5716737, y: -0.03990227, z: -0.055872135, w: 0.8176034}
   - {x: 0.5740653, y: -0.0041019074, z: -0.0070600975, w: 0.8187688}
