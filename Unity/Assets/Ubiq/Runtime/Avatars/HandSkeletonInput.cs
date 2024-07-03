@@ -19,22 +19,21 @@ namespace Ubiq
         public class HandSkeletonUpdateEvent : UnityEvent<HandSkeleton> { }
         
         /// <summary>
-        /// Event called when new hand skeleton input information has been
-        /// received.
+        /// Invoked when new hand skeleton input information has been received.
         /// </summary>
         public HandSkeletonUpdateEvent OnHandUpdate;
         
         /// <summary>
-        /// Event called when new hand skeleton input information has been
-        /// received. This version is a convenience event that is only called
-        /// for the left hand.
+        /// Invoked when new hand skeleton input information has been received.
+        /// This version is a convenience event that is only called for the left
+        /// hand.
         /// </summary>
         public HandSkeletonUpdateEvent OnLeftHandUpdate;
         
         /// <summary>
-        /// Event called when new hand skeleton input information has been
-        /// received. This version is a convenience event that is only called
-        /// for the right hand.
+        /// Invoked when new hand skeleton input information has been received.
+        /// This version is a convenience event that is only called for the
+        /// right hand.
         /// </summary>
         public HandSkeletonUpdateEvent OnRightHandUpdate;
         
@@ -135,7 +134,7 @@ namespace Ubiq
         private void UpdateState()
         {
             // Update input to latest
-            if (avatar.Input.TryGet(out IHandSkeletonProvider p))
+            if (avatar.input.TryGet(out IHandSkeletonProvider p))
             {
                 ToNetwork(p.leftHandSkeleton,p.rightHandSkeleton,netSkeleton);
             }
