@@ -1,12 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using UnityEngine;
-using UnityEngine.Serialization;
-using UnityEngine.SpatialTracking;
-using Handedness = Ubiq.HandSkeleton.Handedness;
 using Joint = Ubiq.HandSkeleton.Joint;
-using Finger = Ubiq.HandSkeleton.Finger;
 
 namespace Ubiq
 {
@@ -17,9 +10,6 @@ namespace Ubiq
     public class HandSkeletonDriver : MonoBehaviour
     {
 
-        // [Tooltip("Whether to warn if any joints are missing. If false, will silently ignore missing joints.")]
-        // [SerializeField] private bool warnIfMissingJoints = true;
-        
         [SerializeField] private Transform[] bones = new Transform[(int)Joint.EndMarker];
         [SerializeField] private Pose[] offsets = new Pose[(int)Joint.EndMarker];
         

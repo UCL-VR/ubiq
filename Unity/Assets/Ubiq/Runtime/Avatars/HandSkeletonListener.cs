@@ -1,17 +1,18 @@
 ﻿using UnityEngine;
+using UnityEngine.Serialization;
 using Handedness = Ubiq.HandSkeleton.Handedness;
 
 namespace Ubiq
 {
     /// <summary>
-    /// Connects <see cref="HandSkeletonEvents"/> and
+    /// Connects <see cref="HandSkeletonInput"/> and
     /// <see cref="HandSkeletonDriver"/>. Note that this will not set the bone
     /// mapping as it is unique to each hand model.
     /// </summary>
     public class HandSkeletonListener : MonoBehaviour
     {
-        [Tooltip("The source of the hand skeleton. If null, will try to find a HandSkeletonEvents among parents at start.")]
-        [SerializeField] private HandSkeletonEvents events;
+        [Tooltip("The source of the hand skeleton. If null, will try to find a HandSkeletonInput among parents at start.")]
+        [SerializeField] private HandSkeletonInput input;
         [Tooltip("The driver responsible for manipulating the bones. If null, will try to find a HandSkeletonDriver among children at start.")]
         [SerializeField] private HandSkeletonDriver driver;
         [Tooltip("Whether this component drives the left or right hand. Invalid handedness means no hand will be driven.")]
@@ -39,13 +40,13 @@ namespace Ubiq
         
         private void Start()
         {
-            if (!events)
+            if (!input)
             {
-                events = GetComponentInParent<HandSkeletonEvents>();
+                input = GetComponentInParent<HandSkeletonInput>();
 
-                if (!events)
+                if (!input)
                 {
-                    Debug.LogWarning("No HandSkeletonEvents could be found among parents. This script will be disabled.");
+                    Debug.LogWarning("No HandSkeletonInput could be found among parents. This script will be disabled.");
                     enabled = false;
                     return;
                 }
@@ -76,9 +77,9 @@ namespace Ubiq
             switch (handedness)
             {
                 case Handedness.Left : 
-                    events?.OnLeftHandUpdate.AddListener(Events_OnHandUpdate); break;
+                    input?.OnLeftHandUpdate.AddListener(Events_OnHandUpdate); break;
                 case Handedness.Right : 
-                    events?.OnRightHandUpdate.AddListener(Events_OnHandUpdate); break;
+                    input?.OnRightHandUpdate.AddListener(Events_OnHandUpdate); break;
             }
         }
         
@@ -87,9 +88,9 @@ namespace Ubiq
             switch (handedness)
             {
                 case Handedness.Left : 
-                    events?.OnLeftHandUpdate.RemoveListener(Events_OnHandUpdate); break;
+                    input?.OnLeftHandUpdate.RemoveListener(Events_OnHandUpdate); break;
                 case Handedness.Right : 
-                    events?.OnRightHandUpdate.RemoveListener(Events_OnHandUpdate); break;
+                    input?.OnRightHandUpdate.RemoveListener(Events_OnHandUpdate); break;
             }
         }
         

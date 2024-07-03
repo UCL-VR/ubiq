@@ -44,7 +44,7 @@ namespace Ubiq.ReadyPlayerMe
         
         private UbiqReadyPlayerMeLoader loader;
         private ThreePointTrackedAvatar trackedAvatar;
-        private HandSkeletonEvents skeletonEvents;
+        private HandSkeletonInput skeletonInput;
         
         private Transform head;
         private Transform armature;
@@ -79,9 +79,9 @@ namespace Ubiq.ReadyPlayerMe
             trackedAvatar.OnLeftGripUpdate.AddListener(ThreePointTrackedAvatar_OnLeftGripUpdate);
             trackedAvatar.OnRightGripUpdate.AddListener(ThreePointTrackedAvatar_OnRightGripUpdate);
         
-            skeletonEvents = GetComponentInParent<HandSkeletonEvents>();
-            Debug.Assert(skeletonEvents,"Requires HandSkeletonEvents");
-            skeletonEvents.OnHandUpdate.AddListener(SkeletonEvents_OnHandUpdate);
+            skeletonInput = GetComponentInParent<HandSkeletonInput>();
+            Debug.Assert(skeletonInput,"Requires HandSkeletonInput");
+            skeletonInput.OnHandUpdate.AddListener(SkeletonEvents_OnHandUpdate);
             
             loader = GetComponent<UbiqReadyPlayerMeLoader>();
             Debug.Assert(loader,"Requires UbiqReadyPlayerMeLoader");
@@ -107,11 +107,11 @@ namespace Ubiq.ReadyPlayerMe
             }
             trackedAvatar = null;
             
-            if (skeletonEvents)
+            if (skeletonInput)
             {
-                skeletonEvents.OnHandUpdate.RemoveListener(SkeletonEvents_OnHandUpdate);
+                skeletonInput.OnHandUpdate.RemoveListener(SkeletonEvents_OnHandUpdate);
             }
-            skeletonEvents = null;
+            skeletonInput = null;
         
             if (loader)
             {

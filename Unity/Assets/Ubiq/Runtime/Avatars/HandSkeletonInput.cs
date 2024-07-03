@@ -10,7 +10,12 @@ using Handedness = Ubiq.HandSkeleton.Handedness;
 
 namespace Ubiq
 {
-    public class HandSkeletonEvents : MonoBehaviour
+    /// <summary>
+    /// Makes <see cref="HandSkeleton"/> information available to an avatar.
+    /// Input will be sourced from <see cref="Avatar.input"/> if this is a
+    /// local avatar or over the network if this is remote.
+    /// </summary>
+    public class HandSkeletonInput : MonoBehaviour
     {
         [Tooltip("The Avatar to get input from. If null, will try to find an Avatar among parents at start.")]
         [SerializeField] private Avatar avatar;

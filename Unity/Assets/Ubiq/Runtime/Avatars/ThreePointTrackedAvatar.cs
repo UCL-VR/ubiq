@@ -67,7 +67,7 @@ namespace Ubiq.Avatars
             }
             
             // Update state from input
-            state[0] = avatar.Input.TryGet(out IHeadAndHandsProvider p)
+            state[0] = avatar.input.TryGet(out IHeadAndHandsProvider p)
                 ? new State
                 {
                     head = ToNetwork(p.head),

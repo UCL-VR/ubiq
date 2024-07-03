@@ -2,7 +2,7 @@
 using Ubiq.Avatars;
 using UnityEngine;
 
-namespace Ubiq.Runtime.Avatars.Input
+namespace Ubiq
 {
     public interface IHandSkeletonProvider : AvatarInput.IProvider
     {
