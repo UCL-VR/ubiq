@@ -19,7 +19,7 @@ namespace Ubiq.Examples
             manager.OnSpawned.AddListener(Manager_OnSpawned);
         }
 
-        private void Manager_OnSpawned(GameObject go, IRoom room, IPeer peer, NetworkSpawnOrigin origin)
+        private void Manager_OnSpawned(GameObject go, IRoom room, IPeer peer, string properties)
         {
             if (peer == GetComponent<RoomClient>().Me)
             {
@@ -42,9 +42,8 @@ namespace Ubiq.Examples
             locallySpawned.Clear();
         }
 
-        public void Spawn(int prefabIndex)
+        public void Spawn(GameObject prefab)
         {
-            var prefab = manager.catalogue.prefabs[prefabIndex];
             manager.SpawnWithPeerScope(prefab);
         }
     }

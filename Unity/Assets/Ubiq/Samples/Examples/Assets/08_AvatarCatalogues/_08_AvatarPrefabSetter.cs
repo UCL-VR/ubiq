@@ -7,10 +7,10 @@ namespace Ubiq.Examples
 {
     public class _08_AvatarPrefabSetter : MonoBehaviour
     {
-        public void Set(int index)
+        public void Set(GameObject prefab)
         {
             var manager = GetComponent<AvatarManager>();
-            manager.avatarPrefab = manager.avatarCatalogue.prefabs[index];
+            manager.avatarPrefab = prefab;
         }
     }
 }

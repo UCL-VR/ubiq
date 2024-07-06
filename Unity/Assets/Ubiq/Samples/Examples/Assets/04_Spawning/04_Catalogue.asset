@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: 04_Catalogue
   m_EditorClassIdentifier: 
   prefabs:
-  - {fileID: 7539412863525883077, guid: 2bb769ed7bd92ed49a297a793419c6b9, type: 3}
-  - {fileID: 8304551005270620439, guid: c3bfa9e47d80f9643bb55facd90c1226, type: 3}
+  - {fileID: 7539412863525883077, guid: 83d34170c8686a84b8aed83d5afbdac0, type: 3}
+  - {fileID: 8304551005270620439, guid: e4140a3e3b26588428ae9162b8764661, type: 3}

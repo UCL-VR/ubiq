@@ -174,6 +174,17 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 5397502033434242698, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
+        type: 3}
+      propertyPath: Catalogues.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5397502033434242698, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
+        type: 3}
+      propertyPath: Catalogues.Array.data[0]
+      value: 
+      objectReference: {fileID: 11400000, guid: 9eb1cd4f3b4ad2448880b589674560a5,
+        type: 2}
     - target: {fileID: 7068762446378101729, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
         type: 3}
       propertyPath: m_LocalPosition.x

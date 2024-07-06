@@ -71,13 +71,10 @@ namespace Ubiq.Avatars
 
         private void Start()
         {
-            spawner = new NetworkSpawner(NetworkScene.Find(this),
-                RoomClient, avatarCatalogue, "ubiq.avatars.");
-            spawner.OnSpawned += OnSpawned;
-            spawner.OnDespawned += OnDespawned;
-
+            spawner = new NetworkSpawner(RoomClient, avatarCatalogue, "ubiq.avatars.");
+            spawner.OnSpawned.AddListener(OnSpawned);
+            spawner.OnDespawned.AddListener(OnDespawned);
             RoomClient.OnPeerUpdated.AddListener(OnPeerUpdated);
-
             UpdateLocalAvatar();
         }
 
@@ -89,15 +86,14 @@ namespace Ubiq.Avatars
         private void OnDestroy()
         {
             RoomClient.OnPeerUpdated.RemoveListener(OnPeerUpdated);
-
-            spawner.OnSpawned -= OnSpawned;
-            spawner.OnDespawned -= OnDespawned;
+            spawner.OnSpawned.RemoveListener(OnSpawned);
+            spawner.OnDespawned.RemoveListener(OnDespawned);
             spawner.Dispose();
             spawner = null;
         }
 
         private void OnSpawned(GameObject gameObject, IRoom room,
-            IPeer peer, NetworkSpawnOrigin origin)
+            IPeer peer, String properties)
         {
             var avatar = gameObject.GetComponentInChildren<Avatar>();
             avatar.SetPeer(peer);

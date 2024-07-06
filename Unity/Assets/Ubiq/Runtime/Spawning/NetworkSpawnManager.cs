@@ -5,7 +5,6 @@ using System.Linq;
 using UnityEngine;
 using Ubiq.Messaging;
 using Ubiq.Rooms;
-using Ubiq.Logging;
 using UnityEngine.Events;
 
 namespace Ubiq.Spawning
@@ -21,285 +20,292 @@ namespace Ubiq.Spawning
         NetworkId NetworkId { get; set; }
     }
 
+    public class OnSpawnedEvent : UnityEvent<GameObject, IRoom, IPeer, String> { }
+    public class OnDespawnedEvent : UnityEvent<GameObject, IRoom, IPeer> { }
+
+    /// <summary>
+    /// Represents a Task of Spawning a specific object. When Spawning into
+    /// a Room, this object can be used to wait for the Spawned Object to be
+    /// created locally, and to return it. The object can be yielded in a 
+    /// co-routine.
+    /// </summary>
+    public interface INetworkSpawningTask : IEnumerator
+    {
+        GameObject Spawned { get; }
+    }
+
     public class NetworkSpawner : IDisposable
     {
-        public NetworkScene scene { get; private set; }
-        public RoomClient roomClient { get; private set; }
-        public PrefabCatalogue catalogue { get; private set; }
         public string propertyPrefix { get; private set; }
 
-        public delegate void SpawnEventHandler(GameObject gameObject, IRoom room, IPeer peer, NetworkSpawnOrigin origin);
-        public event SpawnEventHandler OnSpawned = delegate { };
-        public delegate void DespawnEventHandler(GameObject gameObject, IRoom room, IPeer peer);
-        public event DespawnEventHandler OnDespawned = delegate { };
+        private RoomClient roomClient;
+        private Transform parent; // Parent for newly spawned GameObjects. It is OK for it to be null.
 
-        private IRoom prevSpawnerRoom;
-        private Dictionary<string, GameObject> spawnedForRoom = new Dictionary<string, GameObject>();
-        private Dictionary<IPeer, Dictionary<string, GameObject>> spawnedForPeers = new Dictionary<IPeer, Dictionary<string, GameObject>>();
+        // Maps to and from a portable identifier of that Prefab in the project
 
-        private List<string> tmpStrings = new List<string>();
-        private List<INetworkSpawnable> tmpSpawnables = new List<INetworkSpawnable>();
-        private List<NetworkId> tmpNetworkIds = new List<NetworkId>();
+        private Dictionary<string, GameObject> IdToPrefab = new Dictionary<string, GameObject>();
+        private Dictionary<GameObject, string> prefabToId = new Dictionary<GameObject, string>();
+
+        public OnSpawnedEvent OnSpawned = new OnSpawnedEvent();
+        public OnDespawnedEvent OnDespawned = new OnDespawnedEvent();
+
+        // All the spawned items currently in existence, keyed by their owner
+        // (most likely a Room or Peer, but may be something else in the future...)
+
+        private Dictionary<object, Dictionary<string, GameObject>> spawnedItems = new Dictionary<object, Dictionary<string, GameObject>>();
+        private Dictionary<GameObject, object> spawnedToOwner = new Dictionary<GameObject, object>();
+        private Dictionary<GameObject, string> spawnedToKey = new Dictionary<GameObject, string>();
+        private HashSet<string> keysToDespawn = new HashSet<string>();
+        private Dictionary<string, NetworkSpawningTask> tasks = new Dictionary<string, NetworkSpawningTask>();
 
         [Serializable]
         private struct Message
         {
             public NetworkId creatorPeer;
-            public int catalogueIndex;
+            public string prefabId;
+            public string properties;
         }
 
-        public NetworkSpawner(NetworkScene scene, RoomClient roomClient,
-            PrefabCatalogue catalogue, string propertyPrefix = "ubiq.spawner.")
+        /// <summary>
+        /// Adds a GameObject, making it Spawnable. The key of the GameObject is
+        /// based on its name. Scene GameObjects or GameObjects created at
+        /// runtime can be added, but keep in mind they need to be added at each
+        /// Peer before they will work.
+        /// </summary>
+        public void AddPrefab(GameObject prefab)
         {
-            this.scene = scene;
+            var id = prefab.name;
+            var i = 0;
+            while (IdToPrefab.ContainsKey(id))
+            {
+                id = $"{id}{i++}";
+            }
+            IdToPrefab[id] = prefab;
+            prefabToId[prefab] = id;
+        }
+
+        /// <summary>
+        /// Returns the key used to uniquely identify this Prefab among all
+        /// Prefabs when instantiating it.
+        /// </summary>
+        public string GetPrefabId(GameObject prefab)
+        {
+            return prefabToId[prefab];
+        }
+
+        public NetworkSpawner(RoomClient roomClient, IEnumerable<PrefabCatalogue> catalogues, string propertyPrefix = "ubiq.spawner.")
+        {
+            foreach (var catalogue in catalogues)
+            {
+                foreach (var item in catalogue.prefabs)
+                {
+                    AddPrefab(item);
+                }
+            }
             this.roomClient = roomClient;
-            this.catalogue = catalogue;
             this.propertyPrefix = propertyPrefix;
+            this.parent = NetworkScene.Find(roomClient).transform;
+            AddListeners();
+        }
 
-            roomClient.OnJoinedRoom.AddListener(OnJoinedRoom);
-            roomClient.OnRoomUpdated.AddListener(OnRoomUpdated);
+        public NetworkSpawner(RoomClient roomClient, PrefabCatalogue catalogue, string propertyPrefix = "ubiq.spawner.")
+        {
+            foreach (var item in catalogue.prefabs)
+            {
+                AddPrefab(item);
+            }
+            this.roomClient = roomClient;
+            this.propertyPrefix = propertyPrefix;
+            AddListeners();
+        }
 
-            roomClient.OnPeerAdded.AddListener(OnPeerAdded);
-            roomClient.OnPeerUpdated.AddListener(OnPeerUpdated);
-            roomClient.OnPeerRemoved.AddListener(OnPeerRemoved);
+        private void AddListeners()
+        {
+            roomClient.OnJoinedRoom.AddListener(UpdateRoom);
+            roomClient.OnRoomUpdated.AddListener(UpdateRoom);
+            roomClient.OnPeerAdded.AddListener(UpdatePeer);
+            roomClient.OnPeerUpdated.AddListener(UpdatePeer);
+            roomClient.OnPeerRemoved.AddListener(RemovePeer);
         }
 
         public void Dispose()
         {
-            if (roomClient)
+            roomClient.OnJoinedRoom.RemoveListener(UpdateRoom);
+            roomClient.OnRoomUpdated.RemoveListener(UpdateRoom);
+            roomClient.OnPeerAdded.RemoveListener(UpdatePeer);
+            roomClient.OnPeerUpdated.RemoveListener(UpdatePeer);
+            roomClient.OnPeerRemoved.RemoveListener(RemovePeer);
+        }
+
+        /// <summary>
+        /// Given a set of Properties, which describe a list of instantiated
+        /// GameObjects and their parameters, belonging to an owner, create or
+        /// destroy Spawned GameObjects within it as required. 
+        /// The owner object is a regular object used as a key for a particular
+        /// scope - it is most likely to be an IRoom or IPeer, though in theory 
+        /// any object could be used. This method updates all the dictionaries 
+        /// and issues the callbacks. It should be used whereever possible, when
+        /// spawned items need to be updated.
+        /// </summary>
+        private void UpdateSpawned(IEnumerable<KeyValuePair<string, string>> properties, object owner)
+        {
+            // Check all the keys in the scope's properties against the currently
+            // spawned items so see if any need to be created or destroyed.
+
+            spawnedItems.TryGetValue(owner, out var spawned);
+
+            if (spawned == null)
             {
-                roomClient.OnJoinedRoom.RemoveListener(OnJoinedRoom);
-                roomClient.OnRoomUpdated.RemoveListener(OnRoomUpdated);
-
-                roomClient.OnPeerAdded.RemoveListener(OnPeerAdded);
-                roomClient.OnPeerUpdated.RemoveListener(OnPeerUpdated);
-                roomClient.OnPeerRemoved.RemoveListener(OnPeerRemoved);
+                spawned = new Dictionary<string, GameObject>();
+                spawnedItems.Add(owner, spawned);
             }
-        }
 
-        private void OnJoinedRoom(IRoom room)
-        {
-            UpdateRoom(room);
-        }
+            foreach (var item in spawned.Keys)
+            {
+                keysToDespawn.Add(item);
+            }
 
-        static private NetworkSpawnOrigin GetOrigin(bool local)
-        {
-            return local ? NetworkSpawnOrigin.Local : NetworkSpawnOrigin.Remote;
-        }
+            foreach (var property in properties.Where(p => p.Key.StartsWith(propertyPrefix)))
+            {
+                if (!spawned.ContainsKey(property.Key))
+                {
+                    var msg = JsonUtility.FromJson<Message>(property.Value);
+                    var local = msg.creatorPeer == roomClient.Me.networkId;
+                    var go = InstantiateAndSetIds(property.Key, msg.prefabId, local);
+                    spawned.Add(property.Key, go);
+                    spawnedToOwner[go] = owner;
+                    spawnedToKey[go] = property.Key;
+                    OnSpawned.Invoke(go, owner as IRoom, owner as IPeer, msg.properties);
+                    if (tasks.TryGetValue(property.Key, out var task))
+                    {
+                        tasks.Remove(property.Key);
+                        task.Fulfill(go);
+                    }
+                }
+                else
+                {
+                    // This item still exists so mark it as so
+                    keysToDespawn.Remove(property.Key);
+                }
+            }
 
-        private void OnRoomUpdated(IRoom room)
-        {
-            UpdateRoom(room);
+            // Remove any instances no longer present in the keys
+
+            foreach (var item in keysToDespawn)
+            {
+                var go = spawned[item];
+                if (go)
+                {
+                    OnDespawned.Invoke(go, owner as IRoom, owner as IPeer);
+                    GameObject.Destroy(go);
+                }
+                spawned.Remove(item);
+                spawnedToOwner.Remove(go);
+                spawnedToKey.Remove(go);
+            }
+
+            keysToDespawn.Clear();
         }
 
         private void UpdateRoom(IRoom room)
         {
-            // Spawn all unspawned objects for this room
-            foreach (var item in room)
-            {
-                if (item.Key.StartsWith(propertyPrefix))
-                {
-                    if (!spawnedForRoom.ContainsKey(item.Key))
-                    {
-                        var msg = JsonUtility.FromJson<Message>(item.Value);
-                        var local = msg.creatorPeer == roomClient.Me.networkId;
-                        var go = InstantiateAndSetIds(item.Key, msg.catalogueIndex, local);
-
-                        spawnedForRoom.Add(item.Key, go);
-                        OnSpawned(go, room, peer: null, GetOrigin(local));
-                    }
-                }
-            }
-
-            // Remove any spawned items no longer present in properties
-            tmpStrings.Clear();
-            foreach (var item in spawnedForRoom)
-            {
-                if (room[item.Key] == string.Empty)
-                {
-                    tmpStrings.Add(item.Key);
-                }
-            }
-
-            foreach (var key in tmpStrings)
-            {
-                var go = spawnedForRoom[key];
-                if (go)
-                {
-                    OnDespawned(go, room, peer: null);
-                    GameObject.Destroy(go);
-                }
-                spawnedForRoom.Remove(key);
-            }
-        }
-
-        private void OnPeerAdded(IPeer peer)
-        {
-            UpdatePeer(peer);
-        }
-
-        private void OnPeerUpdated(IPeer peer)
-        {
-            UpdatePeer(peer);
+            UpdateSpawned(room.Where(pair => pair.Key.StartsWith(propertyPrefix)), room);
         }
 
         private void UpdatePeer(IPeer peer)
         {
-            spawnedForPeers.TryGetValue(peer, out var spawnedForPeer);
-
-            // Spawn all unspawned objects for this peer
-            foreach (var item in peer)
-            {
-                if (item.Key.StartsWith(propertyPrefix))
-                {
-                    if (spawnedForPeer == null)
-                    {
-                        spawnedForPeer = new Dictionary<string, GameObject>();
-                        spawnedForPeers.Add(peer, spawnedForPeer);
-                    }
-
-                    if (!spawnedForPeer.ContainsKey(item.Key))
-                    {
-                        var msg = JsonUtility.FromJson<Message>(item.Value);
-                        var local = msg.creatorPeer == roomClient.Me.networkId;
-                        var go = InstantiateAndSetIds(item.Key, msg.catalogueIndex, local);
-
-                        spawnedForPeer.Add(item.Key, go);
-                        OnSpawned(go, room: null, peer, GetOrigin(local));
-                    }
-                }
-            }
-
-            // Remove any spawned items no longer present in properties
-            if (spawnedForPeer == null)
-            {
-                return;
-            }
-
-            tmpStrings.Clear();
-            foreach (var item in spawnedForPeer)
-            {
-                if (peer[item.Key] == string.Empty)
-                {
-                    tmpStrings.Add(item.Key);
-                }
-            }
-
-            foreach (var key in tmpStrings)
-            {
-                var go = spawnedForPeer[key];
-                if (go)
-                {
-                    OnDespawned(go, room: null, peer);
-                    GameObject.Destroy(go);
-                }
-
-                spawnedForPeer.Remove(key);
-            }
+            UpdateSpawned(peer.Where(pair => pair.Key.StartsWith(propertyPrefix)), peer);
         }
 
-        private void OnPeerRemoved(IPeer peer)
+        private void RemovePeer(IPeer peer)
         {
-            // Remove all objects spawned for this peer
-            if (spawnedForPeers.TryGetValue(peer, out var spawned))
+            UpdateSpawned(Enumerable.Empty<KeyValuePair<string, string>>(), peer);
+            spawnedItems.Remove(peer);
+        }
+
+        /// <summary>
+        /// Spawn an entity with Peer scope. All Components implementing the
+        /// INetworkSpawnable interface will have their NetworkIds set and
+        /// synced. Should a Peer leave scope for any reason, its spawned 
+        /// objects will be removed.
+        /// </summary>
+        public GameObject SpawnWithPeerScope(GameObject prefab, string properties = "")
+        {
+            var key = $"{ propertyPrefix }{ NetworkId.Unique() }"; // Uniquely id the whole object
+            roomClient.Me[key] = JsonUtility.ToJson(new Message()
             {
-                foreach (var go in spawned.Values)
-                {
-                    GameObject.Destroy(go);
-                }
-                spawnedForPeers.Remove(peer);
+                creatorPeer = roomClient.Me.networkId,
+                prefabId = GetPrefabId(prefab),
+                properties = properties
+            });
+
+            UpdateSpawned(roomClient.Me, roomClient.Me); // This will immediately create the entries in the spawnedItems dictionary for roomClient.Me
+
+            return spawnedItems[roomClient.Me][key];
+        }
+
+        /// <summary>
+        /// Spawn an entity with Room scope. All Components implementing the
+        /// INetworkSpawnable interface will have their NetworkIds set and
+        /// synced. On leaving the Room, objects spawned this way will be
+        /// removed locally but will persist within the Room.
+        /// </summary>
+        public INetworkSpawningTask SpawnWithRoomScope(GameObject prefab, string properties = "")
+        {
+            var key = $"{ propertyPrefix }{ NetworkId.Unique() }"; // Uniquely id the whole object
+            roomClient.Room[key] = JsonUtility.ToJson(new Message()
+            {
+                creatorPeer = roomClient.Me.networkId,
+                prefabId = GetPrefabId(prefab),
+                properties = properties
+            });
+
+            var task = new NetworkSpawningTask();
+            tasks.Add(key, task);
+            return task;
+        }
+
+        private class NetworkSpawningTask : INetworkSpawningTask
+        {              
+            public void Fulfill(GameObject instance)
+            {
+                Spawned = instance;
+            }
+
+            public object Current => null;
+            public GameObject Spawned { get; private set; }
+            public bool MoveNext() => Spawned == null;
+
+            public void Reset()
+            {
             }
         }
 
         public void Despawn(GameObject gameObject)
         {
-            string key = null;
-            foreach (var kvp in spawnedForRoom)
+            var owner = spawnedToOwner[gameObject];
+            var key = spawnedToKey[gameObject];
+
+            // This snippet sets the key on the room to nothing, which is the
+            // same as removing it. When the room changes are reflected back,
+            // the object will be despawned by UpdateSpawned.
+            if (owner is IRoom)
             {
-                if (kvp.Value == gameObject)
-                {
-                    key = kvp.Key;
-                    break;
-                }
+                (owner as IRoom)[key] = null;
             }
 
-            // For room scope objects, despawn when we hear back from server
-            if (key != null)
+            if (owner is IPeer)
             {
-                roomClient.Room[key] = string.Empty;
-                return;
-            }
-
-            if (key == null && spawnedForPeers.TryGetValue(roomClient.Me, out var spawned))
-            {
-                foreach (var kvp in spawned)
+                if (owner != roomClient.Me)
                 {
-                    if (kvp.Value == gameObject)
-                    {
-                        key = kvp.Key;
-                        break;
-                    }
+                    throw new Exception("Cannot Despawn another Peer's GameObject - you can only destroy objects belonging to yourself or the Room");
                 }
-
-                // For (local) peer scope objects, despawn immediately
-                if (key != null)
+                else
                 {
-                    OnDespawned(gameObject, room: null, peer: roomClient.Me);
-                    GameObject.Destroy(gameObject);
-                    spawned.Remove(key);
-
                     roomClient.Me[key] = null;
+                    UpdateSpawned(roomClient.Me, roomClient.Me);
                 }
             }
-        }
-
-        /// <summary>
-        /// Spawn an entity with peer scope. All Components implementing the
-        /// INetworkSpawnable interface will have their NetworkIDs set and
-        /// synced. Should a peer leave scope for any other peer, accompanying
-        /// objects for the leaving peer will be removed for the other peer. As
-        /// only the local peer can set values in their own properties, the
-        /// object is created and immediately accessible.
-        /// </summary>
-        public GameObject SpawnWithPeerScope(GameObject gameObject)
-        {
-            var key = $"{ propertyPrefix }{ NetworkId.Unique() }"; // Uniquely id the whole object
-            var catalogueIdx = ResolveIndex(gameObject);
-
-            var go = InstantiateAndSetIds(key, catalogueIdx, local: true);
-            if (!spawnedForPeers.ContainsKey(roomClient.Me))
-            {
-                spawnedForPeers.Add(roomClient.Me, new Dictionary<string, GameObject>());
-            }
-            spawnedForPeers[roomClient.Me].Add(key, go);
-            OnSpawned(go, room: null, roomClient.Me, GetOrigin(local: true));
-
-            roomClient.Me[key] = JsonUtility.ToJson(new Message()
-            {
-                creatorPeer = roomClient.Me.networkId,
-                catalogueIndex = catalogueIdx,
-            });
-
-            return go;
-        }
-
-        /// <summary>
-        /// Spawn an entity with room scope. All Components implementing the
-        /// INetworkSpawnable interface will have their NetworkIDs set and
-        /// synced. On leaving the room, objects spawned this way will be
-        /// removed locally but will persist within the room. To avoid race
-        /// conditions in the shared room dictionary the object is not
-        /// immediately accessible.
-        /// </summary>
-        public void SpawnWithRoomScope(GameObject gameObject)
-        {
-            var key = $"{ propertyPrefix }{ NetworkId.Unique() }"; // Uniquely id the whole object
-            var catalogueIdx = ResolveIndex(gameObject);
-            roomClient.Room[key] = JsonUtility.ToJson(new Message()
-            {
-                creatorPeer = roomClient.Me.networkId,
-                catalogueIndex = catalogueIdx,
-            });
         }
 
         private static NetworkId ParseNetworkId(string key, string propertyPrefix)
@@ -311,61 +317,48 @@ namespace Ubiq.Spawning
             return NetworkId.Null;
         }
 
-        private GameObject InstantiateAndSetIds(string key, int catalogueIdx, bool local)
+        private GameObject InstantiateAndSetIds(string propertyKey, string prefabId, bool local)
         {
-            var networkId = ParseNetworkId(key, propertyPrefix);
+            var networkId = ParseNetworkId(propertyKey, propertyPrefix);
             if (networkId == NetworkId.Null)
             {
                 return null;
             }
 
-            var go = GameObject.Instantiate(catalogue.prefabs[catalogueIdx]);
-            tmpSpawnables.Clear();
-            go.GetComponentsInChildren<INetworkSpawnable>(true, tmpSpawnables);
+            var go = GameObject.Instantiate(IdToPrefab[prefabId], parent);
 
-            for (int i = 0; i < tmpSpawnables.Count; i++)
+            uint i = 1;
+            foreach (var item in go.GetComponentsInChildren<INetworkSpawnable>(true))
             {
-                tmpSpawnables[i].NetworkId = NetworkId.Create(networkId, (uint)(i + 1));
-            }
+                item.NetworkId = NetworkId.Create(networkId, i++);
+            } 
 
             return go;
-        }
-
-        private int ResolveIndex(GameObject gameObject)
-        {
-            var i = catalogue.IndexOf(gameObject);
-            Debug.Assert(i >= 0, $"Could not find {gameObject.name} in Catalogue. Ensure that you've added your new prefab to the Catalogue on NetworkSpawner before trying to instantiate it.");
-            return i;
         }
     }
 
     public class NetworkSpawnManager : MonoBehaviour
     {
-        public RoomClient roomClient;
-        public PrefabCatalogue catalogue;
+        // As the contents of this list are processed on Awake, it can only
+        // be updated at design time.
+        [SerializeField]
+        private List<PrefabCatalogue> Catalogues = new List<PrefabCatalogue>();
 
-        public class OnSpawnedEvent : UnityEvent<GameObject, IRoom, IPeer, NetworkSpawnOrigin> { }
-        public class OnDespawnedEvent : UnityEvent<GameObject, IRoom, IPeer> { }
-
-        public OnSpawnedEvent OnSpawned = new OnSpawnedEvent();
-        public OnDespawnedEvent OnDespawned = new OnDespawnedEvent();
+        public OnSpawnedEvent OnSpawned => spawner.OnSpawned;
+        public OnDespawnedEvent OnDespawned => spawner.OnDespawned;
 
         private NetworkSpawner spawner;
 
         private void Reset()
         {
-            if (roomClient == null)
-            {
-                roomClient = GetComponentInParent<RoomClient>();
-            }
 #if UNITY_EDITOR
-            if (catalogue == null)
+            if (Catalogues.Count <= 0)
             {
                 try
                 {
                     var asset = UnityEditor.AssetDatabase.FindAssets("Prefab Catalogue").FirstOrDefault();
                     var path = UnityEditor.AssetDatabase.GUIDToAssetPath(asset);
-                    catalogue = UnityEditor.AssetDatabase.LoadAssetAtPath<PrefabCatalogue>(path);
+                    Catalogues.Add(UnityEditor.AssetDatabase.LoadAssetAtPath<PrefabCatalogue>(path));
                 }
                 catch
                 {
@@ -375,73 +368,73 @@ namespace Ubiq.Spawning
 #endif
         }
 
-        private void Start()
+        private void Awake()
         {
-            spawner = new NetworkSpawner(NetworkScene.Find(this), roomClient, catalogue);
-            spawner.OnSpawned += Spawner_OnSpawned;
-            spawner.OnDespawned += Spawner_OnDespawned;
+            spawner = new NetworkSpawner(RoomClient.Find(this), Catalogues);
         }
 
         private void OnDestroy()
         {
-            spawner.OnSpawned -= Spawner_OnSpawned;
-            spawner.OnDespawned -= Spawner_OnDespawned;
             spawner.Dispose();
-            spawner = null;
         }
 
         /// <summary>
-        /// Spawn an entity with peer scope. All Components implementing the
+        /// Spawn an entity with Peer scope. All Components implementing the
         /// INetworkSpawnable interface will have their NetworkIDs set and
-        /// synced. Should a peer leave scope for any other peer, accompanying
-        /// objects for the leaving peer will be removed for the other peer. As
-        /// only the local peer can set values in their own properties, the
-        /// object is created and immediately accessible.
+        /// synced. Should a Peer leave the scope of another Peer, for example,
+        /// by moving to a different Room, that all the objects created by this
+        /// Peer will be removed from that other Peer.
         /// </summary>
         public GameObject SpawnWithPeerScope(GameObject gameObject)
         {
-            if (spawner != null)
-            {
-                return spawner.SpawnWithPeerScope(gameObject);
-            }
-            return null;
+            return spawner.SpawnWithPeerScope(gameObject);
         }
 
         /// <summary>
-        /// Spawn an entity with room scope. All Components implementing the
+        /// Spawn an entity with Peer scope. All Components implementing the
         /// INetworkSpawnable interface will have their NetworkIDs set and
-        /// synced. On leaving the room, objects spawned this way will be
-        /// removed locally but will persist within the room. To avoid race
-        /// conditions in the shared room dictionary the object is not
-        /// immediately accessible.
+        /// synced. Should a Peer leave the scope of another Peer, for example,
+        /// by moving to a different Room, that all the objects created by this
+        /// Peer will be removed from that other Peer.
+        /// Includes a Properties field that follows the Instance and is passed
+        /// to every Peer that spawns the object via OnSpawned. The properties
+        /// cannot be changed once the object is spawned.
         /// </summary>
-        public void SpawnWithRoomScope(GameObject gameObject)
+        public GameObject SpawnWithPeerScope(GameObject gameObject, string properties)
         {
-            if (spawner != null)
-            {
-                spawner.SpawnWithRoomScope(gameObject);
-            }
+            return spawner.SpawnWithPeerScope(gameObject, properties);
+        }
+
+        /// <summary>
+        /// Spawn an entity with Room scope. All Components implementing the
+        /// INetworkSpawnable interface will have their NetworkIDs set and
+        /// synced. On leaving the Room, objects spawned this way will be
+        /// removed locally but will persist within the Room. This is the case
+        /// even for the Peer that created the object.
+        /// </summary>
+        public INetworkSpawningTask SpawnWithRoomScope(GameObject gameObject)
+        {
+            return spawner.SpawnWithRoomScope(gameObject);
+        }
+
+        /// <summary>
+        /// Spawn an entity with Room scope. All Components implementing the
+        /// INetworkSpawnable interface will have their NetworkIDs set and
+        /// synced. On leaving the Room, objects spawned this way will be
+        /// removed locally but will persist within the Room. This is the case
+        /// even for the Peer that created the object.
+        /// Includes a Properties field that follows the Instance and is passed
+        /// to every Peer that spawns the object via OnSpawned. The properties
+        /// cannot be changed once the object is spawned.
+        /// </summary>
+        public INetworkSpawningTask SpawnWithRoomScope(GameObject gameObject, string properties)
+        {
+            return spawner.SpawnWithRoomScope(gameObject, properties);
         }
 
         public void Despawn (GameObject gameObject)
         {
-            if (spawner != null)
-            {
-                spawner.Despawn(gameObject);
-            }
-        }
-
-        private void Spawner_OnSpawned(GameObject gameObject, IRoom room,
-            IPeer peer, NetworkSpawnOrigin origin)
-        {
-            gameObject.transform.parent = transform;
-            OnSpawned.Invoke(gameObject, room, peer, origin);
-        }
-
-        private void Spawner_OnDespawned(GameObject gameObject, IRoom room,
-            IPeer peer)
-        {
-            OnDespawned.Invoke(gameObject, room, peer);
+            spawner.Despawn(gameObject);
         }
 
         public static NetworkSpawnManager Find(MonoBehaviour component)
