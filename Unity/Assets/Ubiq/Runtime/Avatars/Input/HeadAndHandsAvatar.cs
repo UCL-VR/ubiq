@@ -1,18 +1,21 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Events;
 using Ubiq.Messaging;
 using Ubiq.Geometry;
+using Avatar = Ubiq.Avatars.Avatar;
 
-namespace Ubiq.Avatars
+namespace Ubiq
 {
-    [RequireComponent(typeof(Avatar))]
-    public class ThreePointTrackedAvatar : MonoBehaviour
+    /// <summary>
+    /// Makes <see cref="IHeadAndHandsInput"/> information available to an
+    /// avatar. Input will be sourced from <see cref="Avatar.input"/> if this is
+    /// a local avatar or over the network if this is remote.
+    /// </summary>
+    public class HeadAndHandsAvatar : MonoBehaviour
     {
-        [Tooltip("The Avatar to get input from. If null, will try to find an Avatar among parents at start.")]
+        [Tooltip("The Avatar to use as the source of input. If null, will try to find an Avatar among parents at start.")]
         [SerializeField] private Avatar avatar;
 
         [Serializable]
@@ -54,7 +57,7 @@ namespace Ubiq.Avatars
                 }
             }
             
-            context = NetworkScene.Register(this, NetworkId.Create(avatar.NetworkId, "ThreePointTracked"));
+            context = NetworkScene.Register(this, NetworkId.Create(avatar.NetworkId, nameof(HeadAndHandsAvatar)));
             networkSceneRoot = context.Scene.transform;
             lastTransmitTime = Time.time;
         }
@@ -67,14 +70,14 @@ namespace Ubiq.Avatars
             }
             
             // Update state from input
-            state[0] = avatar.input.TryGet(out IHeadAndHandsProvider p)
+            state[0] = avatar.input.TryGet(out IHeadAndHandsInput src)
                 ? new State
                 {
-                    head = ToNetwork(p.head),
-                    leftHand = ToNetwork(p.leftHand),
-                    rightHand = ToNetwork(p.rightHand),
-                    leftGrip = ToNetwork(p.leftGrip),
-                    rightGrip = ToNetwork(p.rightGrip)
+                    head = ToNetwork(src.head),
+                    leftHand = ToNetwork(src.leftHand),
+                    rightHand = ToNetwork(src.rightHand),
+                    leftGrip = ToNetwork(src.leftGrip),
+                    rightGrip = ToNetwork(src.rightGrip)
                 }
                 : new State
                 { 

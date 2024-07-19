@@ -17,19 +17,20 @@ namespace Ubiq.Samples
         [Tooltip("Speed at which the hand model will change grip strength in units/second. A speed of 2 will change from 0 (no grip) to 1 (full grip) in 0.5 seconds, for example. Set to 0 to disable smoothing")]
         public float smoothingSpeed = 4;
 
-        private ThreePointTrackedAvatar trackedAvatar;
+        private HeadAndHandsAvatar headAndHandsAvatar;
         private Animator animator;
         private float targetGrip;
         private float currentGrip;
+        private static readonly int gripProperty = Animator.StringToHash("Grip");
 
         private void Start()
         {
-            trackedAvatar = GetComponentInParent<ThreePointTrackedAvatar>();
+            headAndHandsAvatar = GetComponentInParent<HeadAndHandsAvatar>();
             animator = GetComponent<Animator>();
 
-            if (!trackedAvatar)
+            if (!headAndHandsAvatar)
             {
-                Debug.LogWarning("No ThreePointTrackedAvatar found among parents");
+                Debug.LogWarning("No HeadAndHandsAvatar found among parents");
                 enabled = false;
                 return;
             }
@@ -43,11 +44,11 @@ namespace Ubiq.Samples
 
             if (side == Side.Left)
             {
-                trackedAvatar.OnLeftGripUpdate.AddListener(OnGripUpdate);
+                headAndHandsAvatar.OnLeftGripUpdate.AddListener(OnGripUpdate);
             }
             else
             {
-                trackedAvatar.OnRightGripUpdate.AddListener(OnGripUpdate);
+                headAndHandsAvatar.OnRightGripUpdate.AddListener(OnGripUpdate);
             }
         }
 
@@ -70,7 +71,7 @@ namespace Ubiq.Samples
             }
             var delta = smoothingSpeed * Time.deltaTime;
             currentGrip = Mathf.MoveTowards(currentGrip,targetGrip,delta);
-            animator.SetFloat("Grip",currentGrip);
+            animator.SetFloat(gripProperty,currentGrip);
         }
     }
 }

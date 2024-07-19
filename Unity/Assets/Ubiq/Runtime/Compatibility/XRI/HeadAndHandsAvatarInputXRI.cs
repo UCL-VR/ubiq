@@ -9,19 +9,18 @@ using UnityEngine.XR.Interaction.Toolkit.Inputs;
 
 namespace Ubiq.XRI
 {
-    public class HeadAndHandsProviderXRI : MonoBehaviour, IHeadAndHandsProvider
+    public class HeadAndHandsAvatarInputXRI : MonoBehaviour, IHeadAndHandsInput
     {
         [Tooltip("The AvatarManager to provide input to. If null, will try to find an AvatarManager in the scene at start.")]
         [SerializeField] private AvatarManager avatarManager;
-
+        
         public int priority => 0;
-        public bool isProviding => isActiveAndEnabled;
+        public bool active => isActiveAndEnabled;
         public InputVar<Pose> head => Head();
         public InputVar<Pose> leftHand => LeftHand();
         public InputVar<Pose> rightHand => RightHand();
         public InputVar<float> leftGrip => LeftGrip();
         public InputVar<float> rightGrip => RightGrip();
-        
         
 #if !XRI_2_5_2_OR_NEWER
 
@@ -139,12 +138,12 @@ namespace Ubiq.XRI
                 enabled = false;
             }
             
-            avatarManager.input.AddProvider((IHeadAndHandsProvider)this);
+            avatarManager.input.Add((IHeadAndHandsInput)this);
         }
 
         private void OnDestroy()
         {
-            avatarManager?.input?.RemoveProvider((IHeadAndHandsProvider)this);
+            avatarManager?.input?.Remove((IHeadAndHandsInput)this);
         }
 #endif
     }

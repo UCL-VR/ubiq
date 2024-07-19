@@ -3,20 +3,20 @@ using UnityEngine;
 
 namespace Ubiq
 {
-    public interface IHeadAndHandsProvider : AvatarInput.IProvider
+    public interface IHeadAndHandsInput : AvatarInput.IInput
     {
         /// <summary>
-        /// Head position and rotation in world space. May be invalid.
+        /// Head position and rotation in world space.
         /// </summary>
         InputVar<Pose> head { get; } 
         
         /// <summary>
-        /// Left hand position and rotation in world space. May be invalid.
+        /// Left hand position and rotation in world space.
         /// </summary>
         InputVar<Pose> leftHand { get; }
 
         /// <summary>
-        /// Right hand position and rotation in world space. May be invalid.
+        /// Right hand position and rotation in world space.
         /// </summary>
         InputVar<Pose> rightHand { get; }
         

@@ -7,97 +7,95 @@ namespace Ubiq.Avatars
 {
     public class AvatarInput
     {
-        public interface IProvider
+        public interface IInput
         {
             /// <summary>
-            /// Tiebreaker for providers. Higher priority providers are returned
-            /// first. If multiple providers share the same priority, the
-            /// provider added later will be returned first.
+            /// Tiebreaker for inputs. Higher priority inputs of the type are
+            /// returned first. If multiple inputs of the same type share the
+            /// same priority, the input added later will be returned first.
             /// </summary>
             int priority { get; }
             /// <summary>
-            /// Providers which are not enabled will not be returned by the
+            /// Inputs which are not active will not be returned by the
             /// input system. 
             /// </summary>
-            bool isProviding { get; }
+            bool active { get; }
         }
         
-        private Dictionary<Type, List<IProvider>> providersByType = new();
+        private Dictionary<Type, List<IInput>> inputsByType = new();
         
         /// <summary>
-        /// Add a provider of a given type. If the provider is already present
+        /// Add an input of a given type. If the input is already present
         /// it will not be added again.
         /// </summary>
-        /// <param name="provider">The provider to add.</param>
-        public void AddProvider<T>(T provider) where T : IProvider
+        /// <param name="input">The input to add.</param>
+        public void Add<T>(T input) where T : IInput
         {
-            if (!providersByType.TryGetValue(typeof(T),
-                    out List<IProvider> providers))
+            if (!inputsByType.TryGetValue(typeof(T), out List<IInput> inputs))
             {
-                providers = new List<IProvider>();
-                providersByType.Add(typeof(T),providers);
+                inputs = new List<IInput>();
+                inputsByType.Add(typeof(T),inputs);
             }
             
-            if (!providers.Contains(provider))
+            if (!inputs.Contains(input))
             {
-                providers.Add(provider);
+                inputs.Add(input);
             }
         }
         
         /// <summary>
-        /// Remove a hint provider for a node. It is generally more efficient
-        /// not to remove hint providers if they are likely to be added again
-        /// soon. Instead, set the isProviding variable in IProvider to false.
-        /// This will let provider requests fall through to the next provider,
-        /// and helps to reduce memory allocations which can lead to garbage
-        /// collection hitches. 
+        /// Remove an input. It is generally more efficient not to remove
+        /// inputs if they are likely to be added again soon. Instead, set the
+        /// active variable in IInput to false. This will let requests fall
+        /// through to the next input, and helps to reduce memory allocations
+        /// which can lead to garbage collection hitches.
         /// </summary>
-        /// <param name="provider">The provider to remove.</param>
-        public void RemoveProvider<T>(T provider) where T : IProvider
+        /// <param name="input">The input to remove.</param>
+        public void Remove<T>(T input) where T : IInput
         {
-            if (!providersByType.TryGetValue(typeof(T),out List<IProvider> providers))
+            if (!inputsByType.TryGetValue(typeof(T),out List<IInput> inputs))
             {
                 return;
             }
             
-            var index = providers.IndexOf(provider);
+            var index = inputs.IndexOf(input);
             if (index < 0)
             {
                 return;
             }
             
-            providers.RemoveAt(index);
+            inputs.RemoveAt(index);
             
-            if (providers.Count == 0)
+            if (inputs.Count == 0)
             {
-                providersByType.Remove(typeof(T));    
+                inputsByType.Remove(typeof(T));    
             }
         }
 
         /// <summary>
-        /// Attempt to find a hint provider of a given type.
+        /// Attempt to find an input of a given type.
         /// </summary>
-        /// <param name="provider">The provider, if found.</param>
-        /// <returns>True if the provider has been found.</returns>
-        public bool TryGet<T>(out T provider) where T : IProvider
+        /// <param name="input">The input, if found.</param>
+        /// <returns>True if the input has been found.</returns>
+        public bool TryGet<T>(out T input) where T : IInput
         {
-            provider = default;
+            input = default;
             var found = false;
 
-            if (providersByType.TryGetValue(typeof(T),out List<IProvider> providers))
+            if (inputsByType.TryGetValue(typeof(T),out List<IInput> inputs))
             {
                 var priority = 0;
-                for (var i = 0; i < providers.Count; i++)
+                for (var i = 0; i < inputs.Count; i++)
                 {
-                    if (!providers[i].isProviding)
+                    if (!inputs[i].active)
                     {
                         continue;
                     }
                     
-                    if (!found || providers[i].priority >= priority)
+                    if (!found || inputs[i].priority >= priority)
                     {
-                        provider = (T)providers[i];
-                        priority = providers[i].priority;
+                        input = (T)inputs[i];
+                        priority = inputs[i].priority;
                         found = true;
                     }
                 }

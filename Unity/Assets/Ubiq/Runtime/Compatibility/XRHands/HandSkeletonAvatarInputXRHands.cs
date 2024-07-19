@@ -12,7 +12,7 @@ using Handedness = Ubiq.HandSkeleton.Handedness;
 
 namespace Ubiq.XRHands
 {
-    public class HandSkeletonProviderXRHands : MonoBehaviour, IHandSkeletonProvider
+    public class HandSkeletonAvatarInputXRHands : MonoBehaviour, IHandSkeletonInput
     {
         [Tooltip("The AvatarManager to provide input to. If null, will try to find an AvatarManager in the scene at start.")]
         [SerializeField] private AvatarManager avatarManager;
@@ -25,7 +25,7 @@ namespace Ubiq.XRHands
         }
         
         public int priority => 0;
-        public bool isProviding => isActiveAndEnabled;
+        public bool active => isActiveAndEnabled;
         public HandSkeleton leftHandSkeleton => Left();
         public HandSkeleton rightHandSkeleton => Right();
 
@@ -93,7 +93,7 @@ namespace Ubiq.XRHands
             
             Require(ref leftSkeleton, Handedness.Left);
             Require(ref rightSkeleton, Handedness.Right);
-            avatarManager.input.AddProvider((IHandSkeletonProvider)this);
+            avatarManager.input.Add((IHandSkeletonInput)this);
             
             origin = GetComponentInChildren<XROrigin>();
         }

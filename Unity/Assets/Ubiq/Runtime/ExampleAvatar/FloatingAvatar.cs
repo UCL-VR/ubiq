@@ -26,7 +26,7 @@ namespace Ubiq.Samples
         public AnimationCurve torsoFacingCurve;
 
         private TexturedAvatar texturedAvatar;
-        private ThreePointTrackedAvatar trackedAvatar;
+        private HeadAndHandsAvatar headAndHandsAvatar;
         private Vector3 footPosition;
         private Quaternion torsoFacing;
         
@@ -34,13 +34,13 @@ namespace Ubiq.Samples
 
         private void OnEnable()
         {
-            trackedAvatar = GetComponentInParent<ThreePointTrackedAvatar>();
+            headAndHandsAvatar = GetComponentInParent<HeadAndHandsAvatar>();
 
-            if (trackedAvatar)
+            if (headAndHandsAvatar)
             {
-                trackedAvatar.OnHeadUpdate.AddListener(ThreePointTrackedAvatar_OnHeadUpdate);
-                trackedAvatar.OnLeftHandUpdate.AddListener(ThreePointTrackedAvatar_OnLeftHandUpdate);
-                trackedAvatar.OnRightHandUpdate.AddListener(ThreePointTrackedAvatar_OnRightHandUpdate);
+                headAndHandsAvatar.OnHeadUpdate.AddListener(HeadAndHandsEvents_OnHeadUpdate);
+                headAndHandsAvatar.OnLeftHandUpdate.AddListener(HeadAndHandsEvents_OnLeftHandUpdate);
+                headAndHandsAvatar.OnRightHandUpdate.AddListener(HeadAndHandsEvents_OnRightHandUpdate);
             }
 
             texturedAvatar = GetComponentInParent<TexturedAvatar>();
@@ -53,11 +53,11 @@ namespace Ubiq.Samples
 
         private void OnDisable()
         {
-            if (trackedAvatar && trackedAvatar != null)
+            if (headAndHandsAvatar && headAndHandsAvatar != null)
             {
-                trackedAvatar.OnHeadUpdate.RemoveListener(ThreePointTrackedAvatar_OnHeadUpdate);
-                trackedAvatar.OnLeftHandUpdate.RemoveListener(ThreePointTrackedAvatar_OnLeftHandUpdate);
-                trackedAvatar.OnRightHandUpdate.RemoveListener(ThreePointTrackedAvatar_OnRightHandUpdate);
+                headAndHandsAvatar.OnHeadUpdate.RemoveListener(HeadAndHandsEvents_OnHeadUpdate);
+                headAndHandsAvatar.OnLeftHandUpdate.RemoveListener(HeadAndHandsEvents_OnLeftHandUpdate);
+                headAndHandsAvatar.OnRightHandUpdate.RemoveListener(HeadAndHandsEvents_OnRightHandUpdate);
             }
 
             if (texturedAvatar && texturedAvatar != null)
@@ -66,7 +66,7 @@ namespace Ubiq.Samples
             }
         }
 
-        private void ThreePointTrackedAvatar_OnHeadUpdate(InputVar<Pose> pose)
+        private void HeadAndHandsEvents_OnHeadUpdate(InputVar<Pose> pose)
         {
             if (!pose.valid)
             {
@@ -84,7 +84,7 @@ namespace Ubiq.Samples
             lastGoodHeadPose = pose;
         }
 
-        private void ThreePointTrackedAvatar_OnLeftHandUpdate(InputVar<Pose> pose)
+        private void HeadAndHandsEvents_OnLeftHandUpdate(InputVar<Pose> pose)
         {
             if (!pose.valid)
             {
@@ -92,18 +92,20 @@ namespace Ubiq.Samples
                 return;
             }
             
+            leftHandRenderer.enabled = true;
             leftHand.position = pose.value.position;
             leftHand.rotation = pose.value.rotation;                    
         }
 
-        private void ThreePointTrackedAvatar_OnRightHandUpdate(InputVar<Pose> pose)
+        private void HeadAndHandsEvents_OnRightHandUpdate(InputVar<Pose> pose)
         {
             if (!pose.valid)
             {
                 rightHandRenderer.enabled = false;
                 return;
             }
-    
+
+            rightHandRenderer.enabled = true;
             rightHand.position = pose.value.position;
             rightHand.rotation = pose.value.rotation;                    
         }

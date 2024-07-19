@@ -17,8 +17,8 @@ namespace Ubiq.ReadyPlayerMe
         
         public GameObject speechIndicatorPrefab;
         
-        private Vector3 headPositionOffset = new Vector3(0.0f,-0.063000001f,0.0f);
-        private Quaternion headRotationOffset = new Quaternion(0.0f,0.0f,0.0f,1.0f);
+        private Vector3 headPositionOffset = new (0.0f,-0.063000001f,0.0f);
+        private Quaternion headRotationOffset = new (0.0f,0.0f,0.0f,1.0f);
         
         [SerializeField] [HideInInspector] private List<Quaternion> leftGripRotations = new List<Quaternion>();
         [SerializeField] [HideInInspector] private List<Quaternion> rightGripRotations = new List<Quaternion>();
@@ -40,11 +40,11 @@ namespace Ubiq.ReadyPlayerMe
             public List<Vector3> initialLocalPositions;
         }
         
-        private Vector3 speechIndicatorPositionOffset = new Vector3(0.0f,0.0f,0.0f);
+        private Vector3 speechIndicatorPositionOffset = new (0.0f,0.0f,0.0f);
         
         private UbiqReadyPlayerMeLoader loader;
-        private ThreePointTrackedAvatar trackedAvatar;
-        private HandSkeletonInput skeletonInput;
+        private HeadAndHandsAvatar headAndHandsAvatar;
+        private HandSkeletonAvatar handSkeletonAvatar;
         
         private Transform head;
         private Transform armature;
@@ -71,17 +71,17 @@ namespace Ubiq.ReadyPlayerMe
                 releaseRotations = rightReleaseRotations
             };
             
-            trackedAvatar = GetComponentInParent<ThreePointTrackedAvatar>();
-            Debug.Assert(trackedAvatar,"Requires ThreePointTrackedAvatar");
-            trackedAvatar.OnHeadUpdate.AddListener(ThreePointTrackedAvatar_OnHeadUpdate);
-            trackedAvatar.OnLeftHandUpdate.AddListener(ThreePointTrackedAvatar_OnLeftHandUpdate);
-            trackedAvatar.OnRightHandUpdate.AddListener(ThreePointTrackedAvatar_OnRightHandUpdate);
-            trackedAvatar.OnLeftGripUpdate.AddListener(ThreePointTrackedAvatar_OnLeftGripUpdate);
-            trackedAvatar.OnRightGripUpdate.AddListener(ThreePointTrackedAvatar_OnRightGripUpdate);
+            headAndHandsAvatar = GetComponentInParent<HeadAndHandsAvatar>();
+            Debug.Assert(headAndHandsAvatar,"Requires HeadAndHandsAvatar");
+            headAndHandsAvatar.OnHeadUpdate.AddListener(HeadAndHandsEvents_OnHeadUpdate);
+            headAndHandsAvatar.OnLeftHandUpdate.AddListener(HeadAndHandsEvents_OnLeftHandUpdate);
+            headAndHandsAvatar.OnRightHandUpdate.AddListener(HeadAndHandsEvents_OnRightHandUpdate);
+            headAndHandsAvatar.OnLeftGripUpdate.AddListener(HeadAndHandsEvents_OnLeftGripUpdate);
+            headAndHandsAvatar.OnRightGripUpdate.AddListener(HeadAndHandsEvents_OnRightGripUpdate);
         
-            skeletonInput = GetComponentInParent<HandSkeletonInput>();
-            Debug.Assert(skeletonInput,"Requires HandSkeletonInput");
-            skeletonInput.OnHandUpdate.AddListener(SkeletonEvents_OnHandUpdate);
+            handSkeletonAvatar = GetComponentInParent<HandSkeletonAvatar>();
+            Debug.Assert(handSkeletonAvatar,"Requires HandSkeletonAvatar");
+            handSkeletonAvatar.OnHandUpdate.AddListener(HandSkeletonEvents_OnHandUpdate);
             
             loader = GetComponent<UbiqReadyPlayerMeLoader>();
             Debug.Assert(loader,"Requires UbiqReadyPlayerMeLoader");
@@ -97,21 +97,21 @@ namespace Ubiq.ReadyPlayerMe
         
         private void OnDestroy()
         {
-            if (trackedAvatar)
+            if (headAndHandsAvatar)
             {
-                trackedAvatar.OnHeadUpdate.RemoveListener(ThreePointTrackedAvatar_OnHeadUpdate);
-                trackedAvatar.OnLeftHandUpdate.RemoveListener(ThreePointTrackedAvatar_OnLeftHandUpdate);
-                trackedAvatar.OnRightHandUpdate.RemoveListener(ThreePointTrackedAvatar_OnRightHandUpdate);
-                trackedAvatar.OnLeftGripUpdate.RemoveListener(ThreePointTrackedAvatar_OnLeftGripUpdate);
-                trackedAvatar.OnRightGripUpdate.RemoveListener(ThreePointTrackedAvatar_OnRightGripUpdate);
+                headAndHandsAvatar.OnHeadUpdate.RemoveListener(HeadAndHandsEvents_OnHeadUpdate);
+                headAndHandsAvatar.OnLeftHandUpdate.RemoveListener(HeadAndHandsEvents_OnLeftHandUpdate);
+                headAndHandsAvatar.OnRightHandUpdate.RemoveListener(HeadAndHandsEvents_OnRightHandUpdate);
+                headAndHandsAvatar.OnLeftGripUpdate.RemoveListener(HeadAndHandsEvents_OnLeftGripUpdate);
+                headAndHandsAvatar.OnRightGripUpdate.RemoveListener(HeadAndHandsEvents_OnRightGripUpdate);
             }
-            trackedAvatar = null;
+            headAndHandsAvatar = null;
             
-            if (skeletonInput)
+            if (handSkeletonAvatar)
             {
-                skeletonInput.OnHandUpdate.RemoveListener(SkeletonEvents_OnHandUpdate);
+                handSkeletonAvatar.OnHandUpdate.RemoveListener(HandSkeletonEvents_OnHandUpdate);
             }
-            skeletonInput = null;
+            handSkeletonAvatar = null;
         
             if (loader)
             {
@@ -151,37 +151,37 @@ namespace Ubiq.ReadyPlayerMe
             indicator.transform.localPosition = speechIndicatorPositionOffset;
         }
         
-        private void ThreePointTrackedAvatar_OnHeadUpdate(InputVar<Pose> input)
+        private void HeadAndHandsEvents_OnHeadUpdate(InputVar<Pose> input)
         {
             headInputVar = input;
             UpdateHead();
         }
         
-        private void ThreePointTrackedAvatar_OnLeftHandUpdate(InputVar<Pose> input)
+        private void HeadAndHandsEvents_OnLeftHandUpdate(InputVar<Pose> input)
         {
             left.pose = input;
             UpdateHand(left);
         }
         
-        private void ThreePointTrackedAvatar_OnRightHandUpdate(InputVar<Pose> input)
+        private void HeadAndHandsEvents_OnRightHandUpdate(InputVar<Pose> input)
         {
             right.pose = input;
             UpdateHand(right);
         }
         
-        private void ThreePointTrackedAvatar_OnLeftGripUpdate(InputVar<float> input)
+        private void HeadAndHandsEvents_OnLeftGripUpdate(InputVar<float> input)
         {
             left.grip = input;
             UpdateHand(left);
         }
         
-        private void ThreePointTrackedAvatar_OnRightGripUpdate(InputVar<float> input)
+        private void HeadAndHandsEvents_OnRightGripUpdate(InputVar<float> input)
         {
             right.grip = input;
             UpdateHand(right);
         }
         
-        private void SkeletonEvents_OnHandUpdate(HandSkeleton hand)
+        private void HandSkeletonEvents_OnHandUpdate(HandSkeleton hand)
         {
             if (hand.handedness == HandSkeleton.Handedness.Left)
             {
@@ -407,8 +407,8 @@ namespace Ubiq.ReadyPlayerMe
                 }
                 
                 right.lastGrip = left.lastGrip = -1; // Force update
-                ThreePointTrackedAvatar_OnLeftGripUpdate(new InputVar<float>(0.0f));
-                ThreePointTrackedAvatar_OnRightGripUpdate(new InputVar<float>(0.0f));
+                HeadAndHandsEvents_OnLeftGripUpdate(new InputVar<float>(0.0f));
+                HeadAndHandsEvents_OnRightGripUpdate(new InputVar<float>(0.0f));
             }
         }
         

@@ -11,13 +11,13 @@ using Handedness = Ubiq.HandSkeleton.Handedness;
 namespace Ubiq
 {
     /// <summary>
-    /// Makes <see cref="HandSkeleton"/> information available to an avatar.
-    /// Input will be sourced from <see cref="Avatar.input"/> if this is a
-    /// local avatar or over the network if this is remote.
+    /// Makes <see cref="IHandSkeletonInput"/> information available to an
+    /// avatar. Input will be sourced from <see cref="Avatar.input"/> if this is
+    /// a local avatar or over the network if this is remote.
     /// </summary>
-    public class HandSkeletonInput : MonoBehaviour
+    public class HandSkeletonAvatar : MonoBehaviour
     {
-        [Tooltip("The Avatar to get input from. If null, will try to find an Avatar among parents at start.")]
+        [Tooltip("The Avatar to use as the source of input. If null, will try to find an Avatar among parents at start.")]
         [SerializeField] private Avatar avatar;
         
         [Serializable]
@@ -82,7 +82,7 @@ namespace Ubiq
             rightSkeleton = new WritableSkeleton(Handedness.Right);
             netSkeleton = new Pose[(int)Joint.Count*2];
             
-            context = NetworkScene.Register(this, NetworkId.Create(avatar.NetworkId, "HandSkeleton"));
+            context = NetworkScene.Register(this, NetworkId.Create(avatar.NetworkId, nameof(HandSkeletonAvatar)));
             networkSceneRoot = context.Scene.transform;
             lastTransmitTime = Time.time;
         }
@@ -139,9 +139,9 @@ namespace Ubiq
         private void UpdateState()
         {
             // Update input to latest
-            if (avatar.input.TryGet(out IHandSkeletonProvider p))
+            if (avatar.input.TryGet(out IHandSkeletonInput src))
             {
-                ToNetwork(p.leftHandSkeleton,p.rightHandSkeleton,netSkeleton);
+                ToNetwork(src.leftHandSkeleton,src.rightHandSkeleton,netSkeleton);
             }
             else
             {

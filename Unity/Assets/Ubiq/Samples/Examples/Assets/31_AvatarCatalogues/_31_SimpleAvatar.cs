@@ -1,58 +1,57 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Ubiq.Messaging;
-using Ubiq.Spawning;
 
 namespace Ubiq.Examples
 {
-    public class _31_SimpleAvatar : MonoBehaviour, INetworkSpawnable
+    public class _31_SimpleAvatar : MonoBehaviour
     {
-        private Ubiq.Avatars.Avatar avatar;
-        private NetworkContext context;
-
-        // This networkId will be assigned by the spawner
-        public NetworkId NetworkId { get; set; }
-
-        private Transform networkSceneRoot;
+        private PoseAvatar poseAvatar;
 
         private void Start()
         {
-            avatar = GetComponent<Ubiq.Avatars.Avatar>();
-
-            // Register using the NetworkID assigned to us by the spawner
-            context = NetworkScene.Register(this, NetworkId);
-            networkSceneRoot = context.Scene.transform;
+            poseAvatar = GetComponent<PoseAvatar>();
+            poseAvatar.OnPoseUpdate.AddListener(PoseAvatar_OnPoseUpdate);
+            
+            SetVisibility(false, force:true);
         }
 
-        private void Update()
+        private void OnDestroy()
         {
-            //TODO
-            // if (avatar.IsLocal)
-            // {
-            //     if (avatar.hints.TryGetVector3("Position",out var position))
-            //     {
-            //         transform.position = position;
-            //
-            //         // Send position local to network scene. The co-ords will get
-            //         // converted to world space relative to the OTHER network scene
-            //         // on arriving at the remote user. This is not strictly
-            //         // required, but allows us to have two network scenes in one
-            //         // Unity scene for debugging and visualisation etc.
-            //         var localPosition = networkSceneRoot.InverseTransformPoint(position);
-            //         context.SendJson<Vector3>(localPosition);
-            //     }
-            // }
+            if (poseAvatar)
+            {
+                poseAvatar.OnPoseUpdate.RemoveListener(PoseAvatar_OnPoseUpdate);
+            }
         }
 
-        public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+        private void PoseAvatar_OnPoseUpdate(InputVar<Pose> pose)
         {
-            // Receive position local to network scene
-            var localPosition = message.FromJson<Vector3>();
-
-            // Convert to world space relative to THIS network scene
-            var worldPosition = networkSceneRoot.TransformPoint(localPosition);
-            transform.position = worldPosition;
+            if (!pose.valid)
+            {
+                SetVisibility(false);
+                return;
+            }
+            
+            SetVisibility(true);
+            transform.SetPositionAndRotation(pose.value.position, pose.value.rotation);
+        }
+        
+        private readonly List<Renderer> _reusableRenderers = new List<Renderer>();
+        private bool visible;
+        
+        private void SetVisibility(bool visible, bool force = false)
+        {
+            if (!force && this.visible == visible)
+            {
+                return;
+            }
+            
+            GetComponentsInChildren(_reusableRenderers);
+            for (int i = 0; i < _reusableRenderers.Count; i++)
+            {
+                _reusableRenderers[i].enabled = visible;
+            }
+            
+            this.visible = visible;
         }
     }
 }

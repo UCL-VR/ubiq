@@ -14,10 +14,10 @@ namespace Ubiq.ReadyPlayerMe
     /// </summary>
     public class UbiqReadyPlayerMeExample : MonoBehaviour
     {
-        private class HeadAndHandsProvider : IHeadAndHandsProvider
+        private class HeadAndHandsInput : IHeadAndHandsInput
         {
             public int priority => 0;
-            public bool isProviding => owner.isActiveAndEnabled;
+            public bool active => owner.isActiveAndEnabled;
             public InputVar<Pose> head => 
                 new (new Pose(new Vector3(0.0f,1.3f,0.0f),Quaternion.identity));
             public InputVar<Pose> leftHand =>
@@ -29,7 +29,7 @@ namespace Ubiq.ReadyPlayerMe
             
             private UbiqReadyPlayerMeExample owner;
             
-            public HeadAndHandsProvider(UbiqReadyPlayerMeExample owner)
+            public HeadAndHandsInput(UbiqReadyPlayerMeExample owner)
             {
                 this.owner = owner;
             }
@@ -41,7 +41,7 @@ namespace Ubiq.ReadyPlayerMe
         
         const string EXPLAINER_SUFFIX = "\n\nSee README in sample folder for instructions on changing model or using in Ubiq";
         
-        private IHeadAndHandsProvider headAndHandsProvider;
+        private IHeadAndHandsInput headAndHandsInput;
         
         private void Start()
         {
@@ -63,8 +63,8 @@ namespace Ubiq.ReadyPlayerMe
                 }
             }
             
-            headAndHandsProvider = new HeadAndHandsProvider(this);
-            avatarManager.input.AddProvider(headAndHandsProvider);
+            headAndHandsInput = new HeadAndHandsInput(this);
+            avatarManager.input.Add(headAndHandsInput);
         }
         
         private void Update()

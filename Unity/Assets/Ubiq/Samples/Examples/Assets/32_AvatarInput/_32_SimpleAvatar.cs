@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Ubiq.Examples
 {
-    public class _30_SimpleAvatar : MonoBehaviour
+    public class _32_SimpleAvatar : MonoBehaviour
     {
         private PoseAvatar poseAvatar;
 

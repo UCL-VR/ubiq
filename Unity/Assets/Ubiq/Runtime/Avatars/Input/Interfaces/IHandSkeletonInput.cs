@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Ubiq
 {
-    public interface IHandSkeletonProvider : AvatarInput.IProvider
+    public interface IHandSkeletonInput : AvatarInput.IInput
     {
         /// <summary>
         /// A collection of joints representing the skeleton of the left hand.
