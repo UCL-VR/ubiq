@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using Ubiq.Avatars;
 using Ubiq.Geometry;
-using Unity.XR.CoreUtils;
-using UnityEngine;
 using Handedness = Ubiq.HandSkeleton.Handedness; 
 using Joint = Ubiq.HandSkeleton.Joint;
+
+#if XRCOREUTILS_2_2_0_OR_NEWER
+using Unity.XR.CoreUtils;
+#endif
 
 #if XRHANDS_0_0_0_OR_NEWER
 using UnityEngine.XR.Hands;
@@ -24,7 +27,7 @@ namespace Ubiq.XRHands
         [Tooltip("Higher priority inputs will override lower priority inputs of the same type if multiple exist.")]
         public int priority = 0;
         
-#if XRHANDS_0_0_0_OR_NEWER
+#if XRHANDS_0_0_0_OR_NEWER && XRCOREUTILS_2_2_0_OR_NEWER
         
         private class HandSkeletonInput : IHandSkeletonInput
         {

@@ -18,6 +18,11 @@
             "name": "com.unity.xr.hands",
             "expression": "0.0.0",
             "define": "XRHANDS_0_0_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.core-utils",
+            "expression": "2.2.0",
+            "define": "XRCOREUTILS_2_2_0_OR_NEWER"
         }
     ],
     "noEngineReferences": false
