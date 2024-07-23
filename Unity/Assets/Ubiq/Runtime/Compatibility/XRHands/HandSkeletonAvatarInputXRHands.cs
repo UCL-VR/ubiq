@@ -12,10 +12,32 @@ using Handedness = Ubiq.HandSkeleton.Handedness;
 
 namespace Ubiq.XRHands
 {
-    public class HandSkeletonAvatarInputXRHands : MonoBehaviour, IHandSkeletonInput
+    public class HandSkeletonAvatarInputXRHands : MonoBehaviour
     {
         [Tooltip("The AvatarManager to provide input to. If null, will try to find an AvatarManager in the scene at start.")]
         [SerializeField] private AvatarManager avatarManager;
+        [Tooltip("The GameObject containing the XROrigin. If null, will try to find an XROrigin in the scene at Start. Note we use a GameObject reference here rather than a direct reference to avoid serialization issues should XR CoreUtils not be present.")]
+        [SerializeField] private GameObject xrOriginGameObject;
+        [Tooltip("Higher priority inputs will override lower priority inputs of the same type if multiple exist.")]
+        public int priority = 0;
+        
+#if XRHANDS_0_0_0_OR_NEWER
+        
+        private class HandSkeletonInput : IHandSkeletonInput
+        {
+            public int priority => owner.priority;
+            public bool active => owner.isActiveAndEnabled;
+            
+            public HandSkeleton leftHandSkeleton => owner.Left();
+            public HandSkeleton rightHandSkeleton => owner.Right();
+            
+            private HandSkeletonAvatarInputXRHands owner;
+            
+            public HandSkeletonInput(HandSkeletonAvatarInputXRHands owner)
+            {
+                this.owner = owner;
+            }
+        }
         
         private class WritableSkeleton
         {
@@ -23,59 +45,15 @@ namespace Ubiq.XRHands
             public List<InputVar<Pose>> joints;
             public bool isDirty;
         }
-        
-        public int priority => 0;
-        public bool active => isActiveAndEnabled;
-        public HandSkeleton leftHandSkeleton => Left();
-        public HandSkeleton rightHandSkeleton => Right();
 
         private WritableSkeleton leftSkeleton;
         private WritableSkeleton rightSkeleton;
         
-        private void Require(ref WritableSkeleton skeleton, Handedness handedness)
-        {
-            if (skeleton != null)
-            {
-                return;
-            }
-            
-            var joints = new List<InputVar<Pose>>();
-            for (var i = Joint.BeginMarker.Idx(); i < Joint.EndMarker.Idx(); i++)
-            {
-                joints.Add(InputVar<Pose>.invalid);
-            }
-            skeleton = new WritableSkeleton
-            {
-                joints = joints,
-                hand = new HandSkeleton(handedness,joints.AsReadOnly()),
-                isDirty = false
-            };
-        }
-        
-        private HandSkeleton Left()
-        {
-            Require(ref leftSkeleton, Handedness.Left);
-            PollLeft();
-            return leftSkeleton.hand;
-        }
-        
-        private HandSkeleton Right()
-        {
-            Require(ref rightSkeleton, Handedness.Right);
-            PollRight();
-            return rightSkeleton.hand;
-        }
-        
-#if !XRHANDS_0_0_0_OR_NEWER
-        
-        private void PollLeft() {}
-        private void PollRight() {}
-        
-#else // XRHANDS_0_0_0_OR_NEWER
-        
-        static readonly List<XRHandSubsystem> k_SubsystemsReuse = new ();
+        private static readonly List<XRHandSubsystem> k_SubsystemsReuse = new ();
         private XRHandSubsystem subsystem;
         private XROrigin origin;
+        
+        private HandSkeletonInput input;
         
         private void Start()
         {
@@ -91,11 +69,33 @@ namespace Ubiq.XRHands
                 }
             }
             
-            Require(ref leftSkeleton, Handedness.Left);
-            Require(ref rightSkeleton, Handedness.Right);
-            avatarManager.input.Add((IHandSkeletonInput)this);
+            if (xrOriginGameObject)
+            {
+                origin = xrOriginGameObject.GetComponent<XROrigin>();
+                
+                if (!origin)
+                {
+                    Debug.LogWarning("XROriginGameObject supplied but no " +
+                                     "XROrigin component could be found. Will" +
+                                     " attempt to find an XROrigin in scene.");
+                }
+            }
             
-            origin = GetComponentInChildren<XROrigin>();
+            if (!origin)
+            {
+                origin = FindObjectOfType<XROrigin>();
+                
+                if (!origin)
+                {
+                    Debug.LogWarning("No XROrigin found. The local avatar" +
+                                     " will not be have its input driven by " +
+                                     "XRI");
+                    return;
+                }
+            }
+            
+            input = new HandSkeletonInput(this);
+            avatarManager.input.Add((IHandSkeletonInput)input);
         }
         
         private void Update()
@@ -119,9 +119,48 @@ namespace Ubiq.XRHands
 
         private void OnDestroy()
         {
+            if (avatarManager)
+            {
+                avatarManager.input?.Remove((IHandSkeletonInput)input);
+            }
+            
             ClearSubsystem();
             Invalidate(leftSkeleton?.joints);
             Invalidate(rightSkeleton?.joints);
+        }
+        
+        private HandSkeleton Left()
+        {
+            Require(ref leftSkeleton, Handedness.Left);
+            PollLeft();
+            return leftSkeleton.hand;
+        }
+        
+        private HandSkeleton Right()
+        {
+            Require(ref rightSkeleton, Handedness.Right);
+            PollRight();
+            return rightSkeleton.hand;
+        }
+        
+        private void Require(ref WritableSkeleton skeleton, Handedness handedness)
+        {
+            if (skeleton != null)
+            {
+                return;
+            }
+            
+            var joints = new List<InputVar<Pose>>();
+            for (var i = Joint.BeginMarker.Idx(); i < Joint.EndMarker.Idx(); i++)
+            {
+                joints.Add(InputVar<Pose>.invalid);
+            }
+            skeleton = new WritableSkeleton
+            {
+                joints = joints,
+                hand = new HandSkeleton(handedness,joints.AsReadOnly()),
+                isDirty = true
+            };
         }
         
         private void SetSubsystem(XRHandSubsystem subsystem)
@@ -134,6 +173,7 @@ namespace Ubiq.XRHands
             }
             
             this.subsystem = subsystem;
+            
             SetDirty(leftSkeleton, true);
             SetDirty(rightSkeleton, true);
             

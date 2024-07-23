@@ -67,7 +67,7 @@ namespace Ubiq
         {
             if (avatarManager)
             {
-                avatarManager.input.Remove((IHeadAndHandsInput)input);
+                avatarManager.input?.Remove((IHeadAndHandsInput)input);
             }
         }
     }

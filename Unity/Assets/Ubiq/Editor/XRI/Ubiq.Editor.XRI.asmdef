@@ -29,8 +29,8 @@
         },
         {
             "name": "com.unity.xr.interaction.toolkit",
-            "expression": "2.5.3",
-            "define": "XRI_2_5_3_OR_NEWER"
+            "expression": "2.6.0",
+            "define": "XRI_2_6_0_OR_NEWER"
         },
         {
             "name": "com.unity.xr.hands",

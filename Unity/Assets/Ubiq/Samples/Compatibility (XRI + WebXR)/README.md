@@ -3,10 +3,9 @@ This prefab can be used as a drop-in replacement for 'XR Interaction Setup' from
 ## To make Ubiq's 'Demo (XRI)' sample WebXR compatible ##
 
 1. Open the Demo scene from the Demo (XRI) sample.
-2. Delete or disable the XR Interaction Setup prefab in the Hierarchy.
-3. Drag in the 'Player (XRI + WebXR)' prefab from this sample.
+2. Drag in the 'Ubiq Player Bridge (WebXR)' prefab from this sample.
 
-You're done! The prefab is compatible with XRI interactions, so nothing else needs changing. This works thanks to the (excellent!) WebXR-Interactions plugin by De-Panther (https://github.com/De-Panther/unity-webxr-export).
+You're done! The WebXR plugin is compatible with XRI interactions, so nothing else needs changing. This works thanks to the (excellent!) WebXR-Interactions plugin by De-Panther (https://github.com/De-Panther/unity-webxr-export).
 
 ## (Optional) Switching to the Universal Render Pipeline ##
 
@@ -15,7 +14,7 @@ The Universal Render Pipeline (URP) does not seem to be strictly required to bui
 1. Import the URP package (com.unity.render-pipelines.universal)
 2. In Edit > Project Settings > Graphics, set the Scriptable Render Pipeline Settings asset to WebXR_PipelineAsset
 
-You may also want to increase MSAA on the pipeline asset. It's inexpensive on the URP's Forward+ rendering path, and can significantly increase comfort in VR.
+You may also want to increase MSAA on the pipeline asset. It's inexpensive on the URP's Forward rendering path, and can significantly increase comfort in VR.
 
 ## (Optional) Switch to Gamma color space ##
 
