@@ -4,11 +4,14 @@ using Ubiq.Avatars;
 using Ubiq.Geometry;
 using Unity.XR.CoreUtils;
 using UnityEngine;
-using UnityEngine.XR.Hands;
+using Handedness = Ubiq.HandSkeleton.Handedness; 
 using Joint = Ubiq.HandSkeleton.Joint;
+
+#if XRHANDS_0_0_0_OR_NEWER
+using UnityEngine.XR.Hands;
 using UpdateSuccessFlags = UnityEngine.XR.Hands.XRHandSubsystem.UpdateSuccessFlags;
 using UpdateType = UnityEngine.XR.Hands.XRHandSubsystem.UpdateType;
-using Handedness = Ubiq.HandSkeleton.Handedness; 
+#endif
 
 namespace Ubiq.XRHands
 {
