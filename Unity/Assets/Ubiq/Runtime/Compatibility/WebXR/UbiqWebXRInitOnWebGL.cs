@@ -34,11 +34,11 @@ namespace Ubiq.WebXR
     {
         [Tooltip("The InputActionReference to add to the InputActionManager component. If null, WebGL/WebXR builds will not function correctly. Note we use a ScriptableObject reference here rather than a direct reference to avoid serialization issues should the InputSystem package not be present.")]
         [SerializeField] private ScriptableObject inputActionAsset;
-        [Tooltip("The GameObject containing the InputActionManager component that this component will add WebXR input actions to. If null, will try to find an InputActionManager among children at awake. Note we use a GameObject reference here rather than a direct reference to avoid serialization issues should the XR Interaction Toolkit not be present.")]
+        [Tooltip("The GameObject containing the InputActionManager component that this component will add WebXR input actions to. If null, will try to find an InputActionManager in the scene at Start. Note we use a GameObject reference here rather than a direct reference to avoid serialization issues should the XR Interaction Toolkit not be present.")]
         [SerializeField] private GameObject inputActionManager;
-        [Tooltip("The GameObject containing the XROrigin. If null, will try to find an XROrigin among children at awake. Note we use a GameObject reference here rather than a direct reference to avoid serialization issues should XR CoreUtils not be present.")]
+        [Tooltip("The GameObject containing the XROrigin. If null, will try to find an XROrigin in the scene at Start. Note we use a GameObject reference here rather than a direct reference to avoid serialization issues should XR CoreUtils not be present.")]
         [SerializeField] private GameObject xrOriginGameObject;
-        [Tooltip("The GameObject containing the various scripts WebXR needs to run. If null, will try to find a GameObject containing the WebXRManager component among children at Awake.")]
+        [Tooltip("The GameObject containing the various scripts WebXR needs to run. If null, will try to find a GameObject containing the WebXRManager component in the scene at Start.")]
         [SerializeField] private GameObject webXRGameObject;
         
 #if WEBXR_0_22_0_OR_NEWER && XRI_2_5_2_OR_NEWER && INPUTSYSTEM_1_7_0_OR_NEWER && XRCOREUTILS_2_2_0_OR_NEWER && UNITY_WEBGL 
@@ -48,7 +48,7 @@ namespace Ubiq.WebXR
         private GameObject _webXRGameObject;
         private WebXRManager _webXRManager;
         
-        private void OnEnable()
+        private void Start()
         {
             // Always verify input variables if we're using the WebGL
             // build target. We won't use it in the editor, but it gives the
@@ -81,28 +81,44 @@ namespace Ubiq.WebXR
                                  "WebGL/WebXR builds.");
             }
             
-            _xrOrigin = xrOriginGameObject 
-                ? xrOriginGameObject.GetComponent<XROrigin>() 
-                : GetComponentInChildren<XROrigin>();
+            if (xrOriginGameObject)
+            {
+                _xrOrigin = xrOriginGameObject.GetComponent<XROrigin>();
+                
+                if (!_xrOrigin)
+                {
+                    Debug.LogWarning("XROriginGameObject supplied but no " +
+                                     "XROrigin component could be found. Will" +
+                                     " attempt to find an XROrigin in scene.");
+                }
+            }
             
             if (!_xrOrigin)
             {
-                Debug.LogWarning("No XROrigin found. This player rig " +
-                                 "will not function correctly in WebGL/WebXR " +
-                                 "builds.");
+                _xrOrigin = FindObjectOfType<XROrigin>();
+                
+                if (!_xrOrigin)
+                {
+                    Debug.LogWarning("No XROrigin found. This player rig " +
+                                     "will not function correctly in WebGL/WebXR " +
+                                     "builds.");
+                    return;
+                }
             }
             
-            if (!webXRGameObject)
-            {
-                var manager = GetComponentInChildren<WebXRManager>(includeInactive:true); 
-                _webXRGameObject = manager ? manager.gameObject : null; 
-            }
+            _webXRGameObject = webXRGameObject;
             
             if (!_webXRGameObject)
             {
-                Debug.LogWarning("No WebXR GameObject found. This player rig " +
-                                 "will not function correctly in WebGL/WebXR " +
-                                 "builds.");
+                var manager = FindObjectOfType<WebXRManager>(includeInactive:true);
+                _webXRGameObject = manager ? manager.gameObject : null;
+                
+                if (!_webXRGameObject)
+                {
+                    Debug.LogWarning("No WebXR GameObject found. This player rig " +
+                                     "will not function correctly in WebGL/WebXR " +
+                                     "builds.");
+                }
             }
             
             if (_webXRGameObject)
