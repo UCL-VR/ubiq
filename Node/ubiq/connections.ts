@@ -270,6 +270,15 @@ export class TcpConnectionWrapper implements IConnectionWrapper {
                 // we have just received the complete header
                 if (this.bufferRead === this.header.length) {
                     const length = this.header.readInt32LE(0)
+                    // Sanity check the length.
+                    // If a packet greater than 100 Mb is attempted it is probably not a valid client connection.
+                    // Since we call Message.Wrap in this method, the size must be at least the minimum Message
+                    // size (12) to be a valid message.
+                    if (length < 12 || length > 100 * 1024 * 1024) {
+                        console.log(`Received message with expected length of ${length}. Force closing connection.`)
+                        this.close()
+                        return
+                    }
                     this.data = Buffer.alloc(length + this.headersize)
                     this.data.read = this.header.copy(this.data, 0, 0, this.headersize) // Message Wrapper expects the header.
                 }
