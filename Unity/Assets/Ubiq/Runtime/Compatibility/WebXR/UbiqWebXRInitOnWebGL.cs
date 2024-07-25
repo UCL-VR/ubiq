@@ -35,7 +35,7 @@ namespace Ubiq.WebXR
         [Tooltip("The InputActionReference to add to the InputActionManager component. If null, WebGL/WebXR builds will not function correctly. Note we use a ScriptableObject reference here rather than a direct reference to avoid serialization issues should the InputSystem package not be present.")]
         [SerializeField] private ScriptableObject inputActionAsset;
         [Tooltip("The GameObject containing the InputActionManager component that this component will add WebXR input actions to. If null, will try to find an InputActionManager in the scene at Start. Note we use a GameObject reference here rather than a direct reference to avoid serialization issues should the XR Interaction Toolkit not be present.")]
-        [SerializeField] private GameObject inputActionManager;
+        [SerializeField] private GameObject inputActionManagerGameObject;
         [Tooltip("The GameObject containing the XROrigin. If null, will try to find an XROrigin in the scene at Start. Note we use a GameObject reference here rather than a direct reference to avoid serialization issues should XR CoreUtils not be present.")]
         [SerializeField] private GameObject xrOriginGameObject;
         [Tooltip("The GameObject containing the various scripts WebXR needs to run. If null, will try to find a GameObject containing the WebXRManager component in the scene at Start.")]
@@ -70,17 +70,42 @@ namespace Ubiq.WebXR
         
         private void VerifyAndGatherInput()
         {
-            _inputActionManager = inputActionManager 
-                ? inputActionManager.GetComponent<InputActionManager>() 
-                : GetComponentInChildren<InputActionManager>();
+            VerifyAndGatherInputActionManager();
+            VerifyAndGatherXROrigin();
+            VerifyAndGatherWebXR();
+            VerifyInputActionAsset();
+        }
+        
+        private void VerifyAndGatherInputActionManager()
+        {
+            if (inputActionManagerGameObject)
+            {
+                _inputActionManager = inputActionManagerGameObject.GetComponent<InputActionManager>();
+                
+                if (!_inputActionManager)
+                {
+                    Debug.LogWarning("InputActionManagerGameObject supplied " +
+                                     "but no InputActionManager component " +
+                                     "could be found. Will attempt to find" +
+                                     " an InputActionManager in scene.");
+                }
+            }
             
             if (!_inputActionManager)
             {
-                Debug.LogWarning("No InputActionManager could be found. This " +
-                                 "player rig will not function correctly in " +
-                                 "WebGL/WebXR builds.");
+                _inputActionManager = FindObjectOfType<InputActionManager>();
+                
+                if (!_inputActionManager)
+                {
+                    Debug.LogWarning("No InputActionManager could be found. " +
+                                     "This player rig will not function " +
+                                     "correctly in WebGL/WebXR builds.");
+                }
             }
-            
+        }
+        
+        private void VerifyAndGatherXROrigin()
+        {
             if (xrOriginGameObject)
             {
                 _xrOrigin = xrOriginGameObject.GetComponent<XROrigin>();
@@ -100,14 +125,15 @@ namespace Ubiq.WebXR
                 if (!_xrOrigin)
                 {
                     Debug.LogWarning("No XROrigin found. This player rig " +
-                                     "will not function correctly in WebGL/WebXR " +
-                                     "builds.");
-                    return;
+                                     "will not function correctly in " +
+                                     "WebGL/WebXR builds.");
                 }
             }
-            
+        }
+        
+        private void VerifyAndGatherWebXR()
+        {
             _webXRGameObject = webXRGameObject;
-            
             if (!_webXRGameObject)
             {
                 var manager = FindObjectOfType<WebXRManager>(includeInactive:true);
@@ -120,7 +146,6 @@ namespace Ubiq.WebXR
                                      "builds.");
                 }
             }
-            
             if (_webXRGameObject)
             {
                 _webXRManager = _webXRGameObject.GetComponent<WebXRManager>();
@@ -133,14 +158,16 @@ namespace Ubiq.WebXR
                                      "WebGL/WebXR builds.");
                 }
             }
-            
+        }
+        
+        private void VerifyInputActionAsset()
+        {
             if (!inputActionAsset)
             {
                 Debug.LogWarning("No InputActionAsset supplied. This player " +
                                  "rig will not function correctly in " +
                                  "WebGL/WebXR builds.");
             }
-            
             if (inputActionAsset)
             {
                 _inputActionAsset = inputActionAsset as InputActionAsset;
