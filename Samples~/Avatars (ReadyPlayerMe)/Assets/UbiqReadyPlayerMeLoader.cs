@@ -23,6 +23,7 @@ namespace Ubiq.ReadyPlayerMe
         [SerializeField] private string avatarUrl = "https://api.readyplayer.me/v1/avatars/632d65e99b4c6a4352a9b8db.glb";
         private GameObject avatar;
         private CompletionEventArgs avatarArgs;
+        private AvatarObjectLoader loader;
         
         private void Start()
         {
@@ -45,6 +46,14 @@ namespace Ubiq.ReadyPlayerMe
                 avatar = null;
                 avatarArgs = null;
             }
+            
+            if (loader != null)
+            {
+                loader.OnFailed -= Failed;
+                loader.OnCompleted -= Completed;
+                loader.Cancel();
+                loader = null;
+            }
         }
         
         public void Load(string url, bool clean = false)
@@ -60,11 +69,11 @@ namespace Ubiq.ReadyPlayerMe
         
             if (url != null)
             {
-                var avatarLoader = new AvatarObjectLoader();
-                avatarLoader.AvatarConfig = avatarConfig;
-                avatarLoader.OnFailed += Failed;
-                avatarLoader.OnCompleted += Completed;
-                avatarLoader.LoadAvatar(avatarUrl);
+                loader = new AvatarObjectLoader();
+                loader.AvatarConfig = avatarConfig;
+                loader.OnFailed += Failed;
+                loader.OnCompleted += Completed;
+                loader.LoadAvatar(avatarUrl);
             }
         }
         

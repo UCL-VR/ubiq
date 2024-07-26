@@ -4,6 +4,8 @@ using UnityEngine;
 using Ubiq.Avatars;
 using Ubiq.Voip;
 using ReadyPlayerMe.AvatarLoader;
+using Pose = UnityEngine.Pose;
+using Joint = Ubiq.HandSkeleton.Joint;
 
 namespace Ubiq.ReadyPlayerMe
 {
@@ -11,56 +13,76 @@ namespace Ubiq.ReadyPlayerMe
     {
         public bool useEyeAnimations;
         public bool useVoiceAnimations;
+        public bool useHandSkeletonAnimations;
         
         public GameObject speechIndicatorPrefab;
         
-        private Vector3 headPositionOffset = new Vector3(0.0f,-0.063000001f,0.0f);
-        private Quaternion headRotationOffset = new Quaternion(0.0f,0.0f,0.0f,1.0f);
-        private Vector3 leftHandPositionOffset = new Vector3(-0.0149999997f,-0.0299999993f,-0.0700000003f);
-        private Quaternion leftHandRotationOffset = new Quaternion(0.488744467f,0.575827956f,0.42057842f,0.502657831f);
-        private Vector3 rightHandPositionOffset = new Vector3(0.0149999997f,-0.0299999993f,-0.0700000003f);
-        private Quaternion rightHandRotationOffset = new Quaternion(-0.488744438f,0.575827897f,0.42057842f,-0.502657771f);
+        private Vector3 headPositionOffset = new (0.0f,-0.063000001f,0.0f);
+        private Quaternion headRotationOffset = new (0.0f,0.0f,0.0f,1.0f);
         
         [SerializeField] [HideInInspector] private List<Quaternion> leftGripRotations = new List<Quaternion>();
         [SerializeField] [HideInInspector] private List<Quaternion> rightGripRotations = new List<Quaternion>();
         [SerializeField] [HideInInspector] private List<Quaternion> leftReleaseRotations = new List<Quaternion>();
         [SerializeField] [HideInInspector] private List<Quaternion> rightReleaseRotations = new List<Quaternion>();
         
-        private Vector3 speechIndicatorPositionOffset = new Vector3(0.0f,0.0f,0.0f);
+        private class HandInfo
+        {
+            public InputVar<Pose> pose = InputVar<Pose>.invalid;
+            public Pose poseOffset;
+            public InputVar<float> grip = InputVar<float>.invalid;
+            public float lastGrip = -1;
+            public Transform transform;
+            public List<Transform> bones;
+            public HandSkeleton skeleton;
+            public HandSkeletonDriver driver;
+            public List<Quaternion> gripRotations;
+            public List<Quaternion> releaseRotations;
+            public List<Vector3> initialLocalPositions;
+        }
+        
+        private Vector3 speechIndicatorPositionOffset = new (0.0f,0.0f,0.0f);
         
         private UbiqReadyPlayerMeLoader loader;
-        private ThreePointTrackedAvatar trackedAvatar;
+        private HeadAndHandsAvatar headAndHandsAvatar;
+        private HandSkeletonAvatar handSkeletonAvatar;
         
         private Transform head;
-        private Transform leftHand;
-        private Transform rightHand;
         private Transform armature;
         
-        private List<Transform> leftHandBones = new List<Transform>();
-        private List<Transform> rightHandBones = new List<Transform>();
+        private InputVar<Pose> headInputVar;
         
-        private float lastLeftGrip = -1;
-        private float lastRightGrip = -1;
-        
-        private Vector3 headPosition;
-        private Quaternion headRotation;
-        private Vector3 leftHandPosition;
-        private Quaternion leftHandRotation;
-        private float leftGrip;
-        private Vector3 rightHandPosition;
-        private Quaternion rightHandRotation;
-        private float rightGrip;
+        private HandInfo left;
+        private HandInfo right;
         
         private void Start()
         {
-            trackedAvatar = GetComponentInParent<ThreePointTrackedAvatar>();
-            Debug.Assert(trackedAvatar,"Requires ThreePointTrackedAvatar");
-            trackedAvatar.OnHeadUpdate.AddListener(ThreePointTrackedAvatar_OnHeadUpdate);
-            trackedAvatar.OnLeftHandUpdate.AddListener(ThreePointTrackedAvatar_OnLeftHandUpdate);
-            trackedAvatar.OnRightHandUpdate.AddListener(ThreePointTrackedAvatar_OnRightHandUpdate);
-            trackedAvatar.OnLeftGripUpdate.AddListener(ThreePointTrackedAvatar_OnLeftGripUpdate);
-            trackedAvatar.OnRightGripUpdate.AddListener(ThreePointTrackedAvatar_OnRightGripUpdate);
+            left = new HandInfo {
+                poseOffset = new Pose(
+                    new Vector3(-0.0149999997f,-0.0299999993f,-0.0700000003f),
+                    new Quaternion(0.488744467f,0.575827956f,0.42057842f,0.502657831f)),
+                gripRotations = leftGripRotations,
+                releaseRotations = leftReleaseRotations
+            };
+            right = new HandInfo {
+                poseOffset = new Pose(
+                    new Vector3(0.0149999997f,-0.0299999993f,-0.0700000003f),
+                    new Quaternion(-0.488744438f,0.575827897f,0.42057842f,-0.502657771f)),
+                gripRotations = rightGripRotations,
+                releaseRotations = rightReleaseRotations
+            };
+            
+            headAndHandsAvatar = GetComponentInParent<HeadAndHandsAvatar>();
+            Debug.Assert(headAndHandsAvatar,"Requires HeadAndHandsAvatar");
+            headAndHandsAvatar.OnHeadUpdate.AddListener(HeadAndHandsEvents_OnHeadUpdate);
+            headAndHandsAvatar.OnLeftHandUpdate.AddListener(HeadAndHandsEvents_OnLeftHandUpdate);
+            headAndHandsAvatar.OnRightHandUpdate.AddListener(HeadAndHandsEvents_OnRightHandUpdate);
+            headAndHandsAvatar.OnLeftGripUpdate.AddListener(HeadAndHandsEvents_OnLeftGripUpdate);
+            headAndHandsAvatar.OnRightGripUpdate.AddListener(HeadAndHandsEvents_OnRightGripUpdate);
         
+            handSkeletonAvatar = GetComponentInParent<HandSkeletonAvatar>();
+            Debug.Assert(handSkeletonAvatar,"Requires HandSkeletonAvatar");
+            handSkeletonAvatar.OnHandUpdate.AddListener(HandSkeletonEvents_OnHandUpdate);
+            
             loader = GetComponent<UbiqReadyPlayerMeLoader>();
             Debug.Assert(loader,"Requires UbiqReadyPlayerMeLoader");
         
@@ -75,15 +97,21 @@ namespace Ubiq.ReadyPlayerMe
         
         private void OnDestroy()
         {
-            if (trackedAvatar)
+            if (headAndHandsAvatar)
             {
-                trackedAvatar.OnHeadUpdate.RemoveListener(ThreePointTrackedAvatar_OnHeadUpdate);
-                trackedAvatar.OnLeftHandUpdate.RemoveListener(ThreePointTrackedAvatar_OnLeftHandUpdate);
-                trackedAvatar.OnRightHandUpdate.RemoveListener(ThreePointTrackedAvatar_OnRightHandUpdate);
-                trackedAvatar.OnLeftGripUpdate.RemoveListener(ThreePointTrackedAvatar_OnLeftGripUpdate);
-                trackedAvatar.OnRightGripUpdate.RemoveListener(ThreePointTrackedAvatar_OnRightGripUpdate);
+                headAndHandsAvatar.OnHeadUpdate.RemoveListener(HeadAndHandsEvents_OnHeadUpdate);
+                headAndHandsAvatar.OnLeftHandUpdate.RemoveListener(HeadAndHandsEvents_OnLeftHandUpdate);
+                headAndHandsAvatar.OnRightHandUpdate.RemoveListener(HeadAndHandsEvents_OnRightHandUpdate);
+                headAndHandsAvatar.OnLeftGripUpdate.RemoveListener(HeadAndHandsEvents_OnLeftGripUpdate);
+                headAndHandsAvatar.OnRightGripUpdate.RemoveListener(HeadAndHandsEvents_OnRightGripUpdate);
             }
-            trackedAvatar = null;
+            headAndHandsAvatar = null;
+            
+            if (handSkeletonAvatar)
+            {
+                handSkeletonAvatar.OnHandUpdate.RemoveListener(HandSkeletonEvents_OnHandUpdate);
+            }
+            handSkeletonAvatar = null;
         
             if (loader)
             {
@@ -93,135 +121,146 @@ namespace Ubiq.ReadyPlayerMe
             loader = null;
         }
         
-        private void Update()
+        private void UpdateHead()
         {
             if (!loader.isLoaded)
             {
                 return;
             }
-        
-            if (loader.loadedArgs.Metadata.BodyType == BodyType.FullBody)
+            
+            if (!headInputVar.valid || !armature)
             {
-                UpdateFullBody();
-            }
-            else
-            {
-                UpdateHalfBody();
+                return;
             }
             
-            return;
-            
-            void UpdateFullBody()
+            var headLocalPos = armature.InverseTransformPoint(head.position);
+            var headLocalRot = Quaternion.Inverse(armature.rotation) * head.rotation;
+    
+            var localHeadTRS = Matrix4x4.Translate(headLocalPos) 
+                               * Matrix4x4.Rotate(headLocalRot);
+            var armatureTRS = Matrix4x4.Translate(headInputVar.value.position) 
+                              * Matrix4x4.Rotate(headInputVar.value.rotation) 
+                              * localHeadTRS.inverse;
+            armature.position = armatureTRS.GetPosition();
+            armature.rotation = armatureTRS.rotation;
+    
+            armature.Translate(headPositionOffset,Space.Self);
+            armature.localRotation *= headRotationOffset;
+    
+            var indicator = GetComponentInChildren<VoipSpeechIndicator>();
+            indicator.transform.localPosition = speechIndicatorPositionOffset;
+        }
+        
+        private void HeadAndHandsEvents_OnHeadUpdate(InputVar<Pose> input)
+        {
+            headInputVar = input;
+            UpdateHead();
+        }
+        
+        private void HeadAndHandsEvents_OnLeftHandUpdate(InputVar<Pose> input)
+        {
+            left.pose = input;
+            UpdateHand(left);
+        }
+        
+        private void HeadAndHandsEvents_OnRightHandUpdate(InputVar<Pose> input)
+        {
+            right.pose = input;
+            UpdateHand(right);
+        }
+        
+        private void HeadAndHandsEvents_OnLeftGripUpdate(InputVar<float> input)
+        {
+            left.grip = input;
+            UpdateHand(left);
+        }
+        
+        private void HeadAndHandsEvents_OnRightGripUpdate(InputVar<float> input)
+        {
+            right.grip = input;
+            UpdateHand(right);
+        }
+        
+        private void HandSkeletonEvents_OnHandUpdate(HandSkeleton hand)
+        {
+            if (hand.handedness == HandSkeleton.Handedness.Left)
             {
-                
+                left.skeleton = hand;
+                UpdateHand(left);
             }
-        
-            void UpdateHalfBody()
+            else if (hand.handedness == HandSkeleton.Handedness.Right)
             {
-                if (head && armature)
-                {
-                    var headLocalPos = armature.InverseTransformPoint(head.position);
-                    var headLocalRot = Quaternion.Inverse(armature.rotation) * head.rotation;
+                right.skeleton = hand;
+                UpdateHand(right);
+            }
+        }
         
-                    var localHeadTRS = TR(headLocalPos,headLocalRot);
-                    var armatureTRS = Matrix4x4.Translate(headPosition) 
-                                      * Matrix4x4.Rotate(headRotation) 
-                                      * localHeadTRS.inverse;
-                    armature.position = armatureTRS.GetPosition();
-                    armature.rotation = armatureTRS.rotation;
-        
-                    armature.Translate(headPositionOffset,Space.Self);
-                    armature.localRotation *= headRotationOffset;
-        
-                    var indicator = GetComponentInChildren<VoipSpeechIndicator>();
-                    indicator.transform.localPosition = speechIndicatorPositionOffset;
-                }
+        private void UpdateHand(HandInfo hand)
+        {
+            if (!loader.isLoaded)
+            {
+                return;
+            }
+            
+            if (hand.skeleton.TryGetPose(Joint.Wrist,out _))
+            {
+                hand.transform.localScale = Vector3.one;
                 
-                if (leftHand)
-                {
-                    leftHand.position = leftHandPosition;
-                    leftHand.rotation = leftHandRotation;
-        
-                    leftHand.Translate(leftHandPositionOffset,Space.Self);
-                    leftHand.localRotation *= leftHandRotationOffset;
-                }
+                // If we can get a wrist pose, assume we have hand tracking
+                hand.driver.SetPoses(hand.skeleton);
                 
-                if (rightHand)
-                {
-                    rightHand.position = rightHandPosition;
-                    rightHand.rotation = rightHandRotation;
-        
-                    rightHand.Translate(rightHandPositionOffset,Space.Self);
-                    rightHand.localRotation *= rightHandRotationOffset;
-                }
+                // Mark grip animation dirty in case we switch back to controllers
+                hand.lastGrip = -1;
+                return;
+            }
+            
+            if (hand.pose.valid)
+            {
+                hand.transform.localScale = Vector3.one;
                 
-                // Avoid unecessary slerps
-                if (lastLeftGrip != leftGrip)
+                // We have a pose for the hand, probably from a controller
+                hand.transform.SetPositionAndRotation(
+                    hand.pose.value.position,
+                    hand.pose.value.rotation);
+                hand.transform.Translate(hand.poseOffset.position,Space.Self);
+                hand.transform.localRotation *= hand.poseOffset.rotation;
+                
+                // We may also have data for a simple grip animation
+                var grip = hand.grip.valid 
+                    ? hand.grip.value 
+                    : 0.0f;
+                
+                // Avoid unnecessary slerps
+                if (!Mathf.Approximately(hand.lastGrip, grip))
                 {
-                    for(int i = 0; i < leftHandBones.Count; i++)
+                    for(var i = 0; i < hand.bones.Count; i++)
                     {
-                        var rot = Quaternion.Slerp(
-                            leftReleaseRotations[i],
-                            leftGripRotations[i],
-                            leftGrip);
-                        leftHandBones[i].localRotation = rot;
+                        hand.bones[i].localPosition = hand.initialLocalPositions[i];
+                        hand.bones[i].localRotation = Quaternion.Slerp(
+                            hand.releaseRotations[i],
+                            hand.gripRotations[i],
+                            grip);
                     }
-                    lastLeftGrip = leftGrip;
+                    hand.lastGrip = grip;
                 }
                 
-                if (lastRightGrip != rightGrip)
-                {
-                    for(int i = 0; i < rightHandBones.Count; i++)
-                    {
-                        var rot = Quaternion.Slerp(
-                            rightReleaseRotations[i],
-                            rightGripRotations[i],
-                            rightGrip);
-                        rightHandBones[i].localRotation = rot;
-                    }
-                    lastRightGrip = rightGrip;
-                }
+                return;
             }
-        }
-        
-        private static Matrix4x4 TR(Vector3 pos, Quaternion rot)
-        {
-            return Matrix4x4.Translate(pos) * Matrix4x4.Rotate(rot);
-        }
-        
-        private void ThreePointTrackedAvatar_OnHeadUpdate(Vector3 pos, Quaternion rot)
-        {
-            headPosition = pos;
-            headRotation = rot;
-        }
-        
-        private void ThreePointTrackedAvatar_OnLeftHandUpdate(Vector3 pos, Quaternion rot)
-        {
-            leftHandPosition = pos;
-            leftHandRotation = rot;
-        }
-        
-        private void ThreePointTrackedAvatar_OnRightHandUpdate(Vector3 pos, Quaternion rot)
-        {
-            rightHandPosition = pos;
-            rightHandRotation = rot;
-        }
-        
-        private void ThreePointTrackedAvatar_OnLeftGripUpdate(float grip)
-        {
-            leftGrip = grip;
             
-        }
-        
-        private void ThreePointTrackedAvatar_OnRightGripUpdate(float grip)
-        {
-            rightGrip = grip;
+            // We have neither pose nor skeleton, so hide the hands
+            hand.transform.localScale = Vector3.zero;
         }
         
         private void Loader_Completed(CompletionEventArgs args)
         {
-            if (useEyeAnimations) args.Avatar.AddComponent<EyeAnimationHandler>();
-            if (useVoiceAnimations) args.Avatar.AddComponent<UbiqReadyPlayerMeVoiceHandler>();
+            if (useEyeAnimations)
+            {
+                args.Avatar.AddComponent<EyeAnimationHandler>();
+            }
+            if (useVoiceAnimations)
+            {
+                args.Avatar.AddComponent<UbiqReadyPlayerMeVoiceHandler>();
+            }
         
             if (args.Metadata.BodyType == BodyType.FullBody)
             {
@@ -238,8 +277,8 @@ namespace Ubiq.ReadyPlayerMe
             {
                 var t = args.Avatar.transform;
                 head = t.Find("Armature/Hips/Spine/Spine1/Spine2/Neck/Head");
-                leftHand = t.Find("Armature/Hips/Spine/Spine1/Spine2/LeftShoulder/LeftArm/LeftForeArm/LeftHand");
-                rightHand = t.Find("Armature/Hips/Spine/Spine1/Spine2/RightShoulder/RightArm/RightForeArm/RightHand");
+                left.transform = t.Find("Armature/Hips/Spine/Spine1/Spine2/LeftShoulder/LeftArm/LeftForeArm/LeftHand");
+                right.transform = t.Find("Armature/Hips/Spine/Spine1/Spine2/RightShoulder/RightArm/RightForeArm/RightHand");
             }
             
             void InitHalfBody()
@@ -247,8 +286,8 @@ namespace Ubiq.ReadyPlayerMe
                 var t = args.Avatar.transform;
                 armature = t.Find("Armature");
                 head = t.Find("Armature/Hips/Spine/Neck/Head");
-                leftHand = t.Find("Armature/Hips/Spine/LeftHand");
-                rightHand = t.Find("Armature/Hips/Spine/RightHand");
+                left.transform = t.Find("Armature/Hips/Spine/LeftHand");
+                right.transform = t.Find("Armature/Hips/Spine/RightHand");
         
                 if (head && TryGetComponent<VoipAvatar>(out var voipAvatar))
                 {
@@ -262,53 +301,127 @@ namespace Ubiq.ReadyPlayerMe
                 // loader and does not seem to be functional
                 Destroy(GetComponentInChildren<Animation>());
         
-                if (leftHand)
+                if (left.transform)
                 {
-                    leftHandBones.Clear();
-                    leftHandBones.Add(leftHand.Find("LeftHandIndex1"));
-                    leftHandBones.Add(leftHand.Find("LeftHandIndex1/LeftHandIndex2"));
-                    leftHandBones.Add(leftHand.Find("LeftHandIndex1/LeftHandIndex2/LeftHandIndex3"));
-                    leftHandBones.Add(leftHand.Find("LeftHandMiddle1"));
-                    leftHandBones.Add(leftHand.Find("LeftHandMiddle1/LeftHandMiddle2"));
-                    leftHandBones.Add(leftHand.Find("LeftHandMiddle1/LeftHandMiddle2/LeftHandMiddle3"));
-                    leftHandBones.Add(leftHand.Find("LeftHandRing1"));
-                    leftHandBones.Add(leftHand.Find("LeftHandRing1/LeftHandRing2"));
-                    leftHandBones.Add(leftHand.Find("LeftHandRing1/LeftHandRing2/LeftHandRing3"));
-                    leftHandBones.Add(leftHand.Find("LeftHandPinky1"));
-                    leftHandBones.Add(leftHand.Find("LeftHandPinky1/LeftHandPinky2"));
-                    leftHandBones.Add(leftHand.Find("LeftHandPinky1/LeftHandPinky2/LeftHandPinky3"));
-                    leftHandBones.Add(leftHand.Find("LeftHandThumb1"));
-                    leftHandBones.Add(leftHand.Find("LeftHandThumb1/LeftHandThumb2"));
-                    leftHandBones.Add(leftHand.Find("LeftHandThumb1/LeftHandThumb2/LeftHandThumb3"));
+                    if (left.bones == null)
+                    {
+                        left.bones = new List<Transform>();
+                    }
+                    left.bones.Clear();
+                    if (left.initialLocalPositions == null)
+                    {
+                        left.initialLocalPositions = new List<Vector3>();
+                    }
+                    left.initialLocalPositions.Clear();
+                    AddBone(left,"LeftHandIndex1");
+                    AddBone(left,"LeftHandIndex1/LeftHandIndex2");
+                    AddBone(left,"LeftHandIndex1/LeftHandIndex2/LeftHandIndex3");
+                    AddBone(left,"LeftHandMiddle1");
+                    AddBone(left,"LeftHandMiddle1/LeftHandMiddle2");
+                    AddBone(left,"LeftHandMiddle1/LeftHandMiddle2/LeftHandMiddle3");
+                    AddBone(left,"LeftHandRing1");
+                    AddBone(left,"LeftHandRing1/LeftHandRing2");
+                    AddBone(left,"LeftHandRing1/LeftHandRing2/LeftHandRing3");
+                    AddBone(left,"LeftHandPinky1");
+                    AddBone(left,"LeftHandPinky1/LeftHandPinky2");
+                    AddBone(left,"LeftHandPinky1/LeftHandPinky2/LeftHandPinky3");
+                    AddBone(left,"LeftHandThumb1");
+                    AddBone(left,"LeftHandThumb1/LeftHandThumb2");
+                    AddBone(left,"LeftHandThumb1/LeftHandThumb2/LeftHandThumb3");
                 }
-                if (rightHand)
+                if (right.transform)
                 {
-                    rightHandBones.Clear();
-                    rightHandBones.Add(rightHand.Find("RightHandIndex1"));
-                    rightHandBones.Add(rightHand.Find("RightHandIndex1/RightHandIndex2"));
-                    rightHandBones.Add(rightHand.Find("RightHandIndex1/RightHandIndex2/RightHandIndex3"));
-                    rightHandBones.Add(rightHand.Find("RightHandMiddle1"));
-                    rightHandBones.Add(rightHand.Find("RightHandMiddle1/RightHandMiddle2"));
-                    rightHandBones.Add(rightHand.Find("RightHandMiddle1/RightHandMiddle2/RightHandMiddle3"));
-                    rightHandBones.Add(rightHand.Find("RightHandRing1"));
-                    rightHandBones.Add(rightHand.Find("RightHandRing1/RightHandRing2"));
-                    rightHandBones.Add(rightHand.Find("RightHandRing1/RightHandRing2/RightHandRing3"));
-                    rightHandBones.Add(rightHand.Find("RightHandPinky1"));
-                    rightHandBones.Add(rightHand.Find("RightHandPinky1/RightHandPinky2"));
-                    rightHandBones.Add(rightHand.Find("RightHandPinky1/RightHandPinky2/RightHandPinky3"));
-                    rightHandBones.Add(rightHand.Find("RightHandThumb1"));
-                    rightHandBones.Add(rightHand.Find("RightHandThumb1/RightHandThumb2"));
-                    rightHandBones.Add(rightHand.Find("RightHandThumb1/RightHandThumb2/RightHandThumb3"));
+                    if (right.bones == null)
+                    {
+                        right.bones = new List<Transform>();
+                    }
+                    right.bones.Clear();
+                    if (right.initialLocalPositions == null)
+                    {
+                        right.initialLocalPositions = new List<Vector3>();
+                    }
+                    right.initialLocalPositions.Clear();
+                    AddBone(right,"RightHandIndex1");
+                    AddBone(right,"RightHandIndex1/RightHandIndex2");
+                    AddBone(right,"RightHandIndex1/RightHandIndex2/RightHandIndex3");
+                    AddBone(right,"RightHandMiddle1");
+                    AddBone(right,"RightHandMiddle1/RightHandMiddle2");
+                    AddBone(right,"RightHandMiddle1/RightHandMiddle2/RightHandMiddle3");
+                    AddBone(right,"RightHandRing1");
+                    AddBone(right,"RightHandRing1/RightHandRing2");
+                    AddBone(right,"RightHandRing1/RightHandRing2/RightHandRing3");
+                    AddBone(right,"RightHandPinky1");
+                    AddBone(right,"RightHandPinky1/RightHandPinky2");
+                    AddBone(right,"RightHandPinky1/RightHandPinky2/RightHandPinky3");
+                    AddBone(right,"RightHandThumb1");
+                    AddBone(right,"RightHandThumb1/RightHandThumb2");
+                    AddBone(right,"RightHandThumb1/RightHandThumb2/RightHandThumb3");
                 }
-                lastLeftGrip = lastRightGrip = -1; // Force update
-                ThreePointTrackedAvatar_OnLeftGripUpdate(grip:0);
-                ThreePointTrackedAvatar_OnRightGripUpdate(grip:0);
+                
+                if (useHandSkeletonAnimations && left.transform)
+                {
+                    var offset = new Pose(Vector3.zero,Quaternion.Euler(90,0,0));
+                    left.driver = args.Avatar.AddComponent<HandSkeletonDriver>();
+                    var i = 0;
+                    left.driver.ClearBones();
+                    left.driver.SetBone(Joint.Wrist,left.transform,offset);
+                    left.driver.SetBone(Joint.IndexProximal,left.bones[i++],offset);
+                    left.driver.SetBone(Joint.IndexIntermediate,left.bones[i++],offset);
+                    left.driver.SetBone(Joint.IndexDistal,left.bones[i++],offset);
+                    left.driver.SetBone(Joint.MiddleProximal,left.bones[i++],offset);
+                    left.driver.SetBone(Joint.MiddleIntermediate,left.bones[i++],offset);
+                    left.driver.SetBone(Joint.MiddleDistal,left.bones[i++],offset);
+                    left.driver.SetBone(Joint.RingProximal,left.bones[i++],offset);
+                    left.driver.SetBone(Joint.RingIntermediate,left.bones[i++],offset);
+                    left.driver.SetBone(Joint.RingDistal,left.bones[i++],offset);
+                    left.driver.SetBone(Joint.LittleProximal,left.bones[i++],offset);
+                    left.driver.SetBone(Joint.LittleIntermediate,left.bones[i++],offset);
+                    left.driver.SetBone(Joint.LittleDistal,left.bones[i++],offset);
+                    left.driver.SetBone(Joint.ThumbMetacarpal,left.bones[i++],offset);
+                    left.driver.SetBone(Joint.ThumbProximal,left.bones[i++],offset);
+                    left.driver.SetBone(Joint.ThumbDistal,left.bones[i],offset);
+                }
+                
+                if (useHandSkeletonAnimations && right.transform)
+                {
+                    var offset = new Pose(Vector3.zero,Quaternion.Euler(90,0,0));
+                    right.driver = args.Avatar.AddComponent<HandSkeletonDriver>();
+                    var i = 0;
+                    right.driver.ClearBones();
+                    right.driver.SetBone(Joint.Wrist,right.transform,offset);
+                    right.driver.SetBone(Joint.IndexProximal,right.bones[i++],offset);
+                    right.driver.SetBone(Joint.IndexIntermediate,right.bones[i++],offset);
+                    right.driver.SetBone(Joint.IndexDistal,right.bones[i++],offset);
+                    right.driver.SetBone(Joint.MiddleProximal,right.bones[i++],offset);
+                    right.driver.SetBone(Joint.MiddleIntermediate,right.bones[i++],offset);
+                    right.driver.SetBone(Joint.MiddleDistal,right.bones[i++],offset);
+                    right.driver.SetBone(Joint.RingProximal,right.bones[i++],offset);
+                    right.driver.SetBone(Joint.RingIntermediate,right.bones[i++],offset);
+                    right.driver.SetBone(Joint.RingDistal,right.bones[i++],offset);
+                    right.driver.SetBone(Joint.LittleProximal,right.bones[i++],offset);
+                    right.driver.SetBone(Joint.LittleIntermediate,right.bones[i++],offset);
+                    right.driver.SetBone(Joint.LittleDistal,right.bones[i++],offset);
+                    right.driver.SetBone(Joint.ThumbMetacarpal,right.bones[i++],offset);
+                    right.driver.SetBone(Joint.ThumbProximal,right.bones[i++],offset);
+                    right.driver.SetBone(Joint.ThumbDistal,right.bones[i],offset);
+                }
+                
+                right.lastGrip = left.lastGrip = -1; // Force update
+                HeadAndHandsEvents_OnLeftGripUpdate(new InputVar<float>(0.0f));
+                HeadAndHandsEvents_OnRightGripUpdate(new InputVar<float>(0.0f));
             }
         }
         
         private void Loader_Failed(FailureEventArgs args)
         {
         
+        }
+        
+        private static void AddBone(HandInfo hand, string path)
+        {
+            var bone = hand.transform.Find(path);
+            hand.bones.Add(bone);
+            hand.initialLocalPositions.Add(bone.localPosition);
         }
     }
 }

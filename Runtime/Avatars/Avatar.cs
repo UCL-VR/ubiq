@@ -38,7 +38,7 @@ namespace Ubiq.Avatars
         /// Peer is set externally (using SetPeer()). This must be done as soon as the Avatar is created.
         /// </remarks>
         public IPeer Peer { get; private set; }
-        public AvatarHints hints { get; private set; }
+        public AvatarInput input { get; private set; }
 
         /// <summary>
         /// Emitted when the properties of the Peer this Avatar belongs to are updated.
@@ -49,7 +49,6 @@ namespace Ubiq.Avatars
         /// The Update Rate (in Hz) that Components should use. This is suggested only and some Components may decide they need a higher rate.
         /// </summary>
         public int UpdateRate = 60;
-
 
         // These properties should be set by whatever Component controls the avatar.
         public Vector3 Position { get; set; }
@@ -101,9 +100,9 @@ namespace Ubiq.Avatars
             }
         }
 
-        public void SetHints(AvatarHints hints)
+        public void SetInput(AvatarInput input)
         {
-            this.hints = hints;
+            this.input = input;
         }
 
         private bool hasStarted = false;

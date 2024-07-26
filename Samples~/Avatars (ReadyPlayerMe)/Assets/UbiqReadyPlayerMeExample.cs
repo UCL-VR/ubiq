@@ -1,29 +1,47 @@
 #if READYPLAYERME_0_0_0_OR_NEWER
-using System.Numerics;
 using UnityEngine;
 using UnityEngine.UI;
 using ReadyPlayerMe.AvatarLoader;
 using Ubiq.Avatars;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
+using Pose = UnityEngine.Pose;
 
 namespace Ubiq.ReadyPlayerMe
 {
-    // Quick sample script to show loading status and visualize avatars
-    public class UbiqReadyPlayerMeExample : AvatarHintProvider
+    /// <summary>
+    /// Quick sample script to show loading status and visualize avatars.
+    /// </summary>
+    public class UbiqReadyPlayerMeExample : MonoBehaviour
     {
+        private class HeadAndHandsInput : IHeadAndHandsInput
+        {
+            public int priority => 0;
+            public bool active => owner.isActiveAndEnabled;
+            public InputVar<Pose> head => 
+                new (new Pose(new Vector3(0.0f,1.3f,0.0f),Quaternion.identity));
+            public InputVar<Pose> leftHand =>
+                new (new Pose(new Vector3(-0.25f,0.8f,0.2f),Quaternion.identity));
+            public InputVar<Pose> rightHand =>
+                new (new Pose(new Vector3(0.25f,0.8f,0.2f),Quaternion.identity));
+            public InputVar<float> leftGrip => InputVar<float>.invalid;
+            public InputVar<float> rightGrip => InputVar<float>.invalid;
+            
+            private UbiqReadyPlayerMeExample owner;
+            
+            public HeadAndHandsInput(UbiqReadyPlayerMeExample owner)
+            {
+                this.owner = owner;
+            }
+        }
+                
         private UbiqReadyPlayerMeLoader loader;
         private Text argsText;
         private AvatarManager avatarManager;
         
-        const string HEAD_POSITION_NODE = "HeadPosition";
-        const string HEAD_ROTATION_NODE = "HeadRotation";
-        const string LEFT_HAND_POSITION_NODE = "LeftHandPosition";
-        const string LEFT_HAND_ROTATION_NODE = "LeftHandRotation";
-        const string RIGHT_HAND_POSITION_NODE = "RightHandPosition";
-        const string RIGHT_HAND_ROTATION_NODE = "RightHandRotation";
-        
         const string EXPLAINER_SUFFIX = "\n\nSee README in sample folder for instructions on changing model or using in Ubiq";
+        
+        private IHeadAndHandsInput headAndHandsInput;
         
         private void Start()
         {
@@ -33,6 +51,20 @@ namespace Ubiq.ReadyPlayerMe
         
             argsText = canvas.transform.Find("Play Mode/Status Args Text").GetComponent<Text>();
             argsText.text = "Waiting for avatar to load...";
+            
+            if (!avatarManager)
+            {
+                avatarManager = FindObjectOfType<AvatarManager>();
+                if (!avatarManager)
+                {
+                    Debug.LogWarning("No NetworkScene could be found in this Unity scene. This script will be disabled.");
+                    enabled = false;
+                    return;
+                }
+            }
+            
+            headAndHandsInput = new HeadAndHandsInput(this);
+            avatarManager.input.Add(headAndHandsInput);
         }
         
         private void Update()
@@ -47,46 +79,10 @@ namespace Ubiq.ReadyPlayerMe
                 }
             }
             
-            if (!avatarManager)
-            {
-                avatarManager = FindObjectOfType<AvatarManager>();
-                if (avatarManager)
-                {
-                    avatarManager.hints.SetProvider(HEAD_POSITION_NODE,AvatarHints.Type.Vector3,this);
-                    avatarManager.hints.SetProvider(HEAD_ROTATION_NODE,AvatarHints.Type.Quaternion,this);
-                    avatarManager.hints.SetProvider(LEFT_HAND_POSITION_NODE,AvatarHints.Type.Vector3,this);
-                    avatarManager.hints.SetProvider(LEFT_HAND_ROTATION_NODE,AvatarHints.Type.Quaternion,this);
-                    avatarManager.hints.SetProvider(RIGHT_HAND_POSITION_NODE,AvatarHints.Type.Vector3,this);
-                    avatarManager.hints.SetProvider(RIGHT_HAND_ROTATION_NODE,AvatarHints.Type.Quaternion,this);
-                }
-            }
-            
             if (loader && loader.isLoaded)
             {
                 Camera.main.transform.RotateAround(Vector3.zero,Vector3.up,Time.deltaTime*45);
             }
-        }
-
-        public override Vector3 ProvideVector3(string node)
-        {
-            return node switch
-            {
-                HEAD_POSITION_NODE => new Vector3(0.0f,1.3f,0.0f),
-                LEFT_HAND_POSITION_NODE => new Vector3(-0.25f,0.8f,0.2f),
-                RIGHT_HAND_POSITION_NODE => new Vector3(0.25f,0.8f,0.2f),
-                _ => default
-            };
-        }
-        
-        public override Quaternion ProvideQuaternion(string node)
-        {
-            return node switch
-            {
-                HEAD_POSITION_NODE => Quaternion.identity,
-                LEFT_HAND_POSITION_NODE => Quaternion.identity,
-                RIGHT_HAND_POSITION_NODE => Quaternion.identity,
-                _ => default
-            };
         }
         
         private void OnDestroy()
