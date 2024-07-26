@@ -1,0 +1,29 @@
+{
+    "name": "Ubiq.XRHands",
+    "rootNamespace": "",
+    "references": [
+        "GUID:ab979a98ba0be4546bceb48f770b11c8",
+        "GUID:ce522b6ed64c8be4c989a1d26d0e3275",
+        "GUID:dc960734dc080426fa6612f1c5fe95f3"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.xr.hands",
+            "expression": "0.0.0",
+            "define": "XRHANDS_0_0_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.core-utils",
+            "expression": "2.2.0",
+            "define": "XRCOREUTILS_2_2_0_OR_NEWER"
+        }
+    ],
+    "noEngineReferences": false
+}

@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 3444175152561107260}
   - component: {fileID: 2075108970}
   - component: {fileID: 2075108969}
+  - component: {fileID: 6904088986375408410}
   m_Layer: 0
   m_Name: DO-NOT-USE-RPM-Avatar
   m_TagString: Untagged
@@ -59,6 +60,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84fe310786a902844b0c95606954b353, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  avatar: {fileID: 0}
   OnHeadUpdate:
     m_PersistentCalls:
       m_Calls: []
@@ -72,6 +74,28 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   OnRightGripUpdate:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &6904088986375408410
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3172939939781028348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a100c20a72cc433419067c92b3ebd6f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  avatar: {fileID: 0}
+  OnHandUpdate:
+    m_PersistentCalls:
+      m_Calls: []
+  OnLeftHandUpdate:
+    m_PersistentCalls:
+      m_Calls: []
+  OnRightHandUpdate:
     m_PersistentCalls:
       m_Calls: []
 --- !u!1 &3697956481738282287
@@ -137,6 +161,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   useEyeAnimations: 1
   useVoiceAnimations: 1
+  useHandSkeletonAnimations: 1
   speechIndicatorPrefab: {fileID: 4422958779889287441, guid: 85384dbfffb336d4b96168ccfd27db98,
     type: 3}
   leftGripRotations:

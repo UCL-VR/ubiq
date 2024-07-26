@@ -16,7 +16,7 @@ Instructions for setting up your own server are included. Ubiq does not rely on 
 
 ## Supported Unity Versions
 
-Ubiq supports Unity 2021.3.22 LTS or later.
+Ubiq supports Unity 2021.3.22 LTS or later. If you are building for WebXR, we recommend using Unity 2022.3.16 due to an [issue](https://github.com/De-Panther/unity-webxr-export/issues/367) with later minor versions. 
 
 ## Quick Start
 

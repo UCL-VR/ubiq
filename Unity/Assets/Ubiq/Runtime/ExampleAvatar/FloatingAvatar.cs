@@ -26,19 +26,21 @@ namespace Ubiq.Samples
         public AnimationCurve torsoFacingCurve;
 
         private TexturedAvatar texturedAvatar;
-        private ThreePointTrackedAvatar trackedAvatar;
+        private HeadAndHandsAvatar headAndHandsAvatar;
         private Vector3 footPosition;
         private Quaternion torsoFacing;
+        
+        private InputVar<Pose> lastGoodHeadPose;
 
         private void OnEnable()
         {
-            trackedAvatar = GetComponentInParent<ThreePointTrackedAvatar>();
+            headAndHandsAvatar = GetComponentInParent<HeadAndHandsAvatar>();
 
-            if (trackedAvatar)
+            if (headAndHandsAvatar)
             {
-                trackedAvatar.OnHeadUpdate.AddListener(ThreePointTrackedAvatar_OnHeadUpdate);
-                trackedAvatar.OnLeftHandUpdate.AddListener(ThreePointTrackedAvatar_OnLeftHandUpdate);
-                trackedAvatar.OnRightHandUpdate.AddListener(ThreePointTrackedAvatar_OnRightHandUpdate);
+                headAndHandsAvatar.OnHeadUpdate.AddListener(HeadAndHandsEvents_OnHeadUpdate);
+                headAndHandsAvatar.OnLeftHandUpdate.AddListener(HeadAndHandsEvents_OnLeftHandUpdate);
+                headAndHandsAvatar.OnRightHandUpdate.AddListener(HeadAndHandsEvents_OnRightHandUpdate);
             }
 
             texturedAvatar = GetComponentInParent<TexturedAvatar>();
@@ -51,11 +53,11 @@ namespace Ubiq.Samples
 
         private void OnDisable()
         {
-            if (trackedAvatar && trackedAvatar != null)
+            if (headAndHandsAvatar && headAndHandsAvatar != null)
             {
-                trackedAvatar.OnHeadUpdate.RemoveListener(ThreePointTrackedAvatar_OnHeadUpdate);
-                trackedAvatar.OnLeftHandUpdate.RemoveListener(ThreePointTrackedAvatar_OnLeftHandUpdate);
-                trackedAvatar.OnRightHandUpdate.RemoveListener(ThreePointTrackedAvatar_OnRightHandUpdate);
+                headAndHandsAvatar.OnHeadUpdate.RemoveListener(HeadAndHandsEvents_OnHeadUpdate);
+                headAndHandsAvatar.OnLeftHandUpdate.RemoveListener(HeadAndHandsEvents_OnLeftHandUpdate);
+                headAndHandsAvatar.OnRightHandUpdate.RemoveListener(HeadAndHandsEvents_OnRightHandUpdate);
             }
 
             if (texturedAvatar && texturedAvatar != null)
@@ -64,22 +66,48 @@ namespace Ubiq.Samples
             }
         }
 
-        private void ThreePointTrackedAvatar_OnHeadUpdate(Vector3 pos, Quaternion rot)
+        private void HeadAndHandsEvents_OnHeadUpdate(InputVar<Pose> pose)
         {
-            head.position = pos;
-            head.rotation = rot;
+            if (!pose.valid)
+            {
+                if (!lastGoodHeadPose.valid)
+                {
+                    headRenderer.enabled = false;
+                    return;
+                }
+                
+                pose = lastGoodHeadPose;
+            }
+            
+            head.position = pose.value.position;
+            head.rotation = pose.value.rotation;        
+            lastGoodHeadPose = pose;
         }
 
-        private void ThreePointTrackedAvatar_OnLeftHandUpdate(Vector3 pos, Quaternion rot)
+        private void HeadAndHandsEvents_OnLeftHandUpdate(InputVar<Pose> pose)
         {
-            leftHand.position = pos;
-            leftHand.rotation = rot;
+            if (!pose.valid)
+            {
+                leftHandRenderer.enabled = false;
+                return;
+            }
+            
+            leftHandRenderer.enabled = true;
+            leftHand.position = pose.value.position;
+            leftHand.rotation = pose.value.rotation;                    
         }
 
-        private void ThreePointTrackedAvatar_OnRightHandUpdate(Vector3 pos, Quaternion rot)
+        private void HeadAndHandsEvents_OnRightHandUpdate(InputVar<Pose> pose)
         {
-            rightHand.position = pos;
-            rightHand.rotation = rot;
+            if (!pose.valid)
+            {
+                rightHandRenderer.enabled = false;
+                return;
+            }
+
+            rightHandRenderer.enabled = true;
+            rightHand.position = pose.value.position;
+            rightHand.rotation = pose.value.rotation;                    
         }
 
         private void TexturedAvatar_OnTextureChanged(Texture2D tex)
