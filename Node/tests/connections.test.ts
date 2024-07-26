@@ -68,4 +68,18 @@ describe('Connections', () => {
             connection.socket.write(b)
         }).catch(done)
     })
+
+    test('Server can handle malformed packet - zero length', done => {
+        createTcpConnection().then((connection) => {
+            connection.onClose.push(() => { // Expect server to close connection gracefully
+                tcpPing().then(done).catch(done) // Check that the server is still present for other users
+            })
+
+            // Send a packet with a length of zero
+            const b = new Uint8Array(4)
+            const view = new DataView(b.buffer)
+            view.setInt32(0, 0, true)
+            connection.socket.write(b)
+        }).catch(done)
+    })
 })
