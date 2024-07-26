@@ -41,7 +41,7 @@ namespace Ubiq.WebXR
         [Tooltip("The GameObject containing the various scripts WebXR needs to run. If null, will try to find a GameObject containing the WebXRManager component in the scene at Start.")]
         [SerializeField] private GameObject webXRGameObject;
         
-#if WEBXR_0_22_0_OR_NEWER && XRI_2_5_2_OR_NEWER && INPUTSYSTEM_1_7_0_OR_NEWER && XRCOREUTILS_2_2_0_OR_NEWER && UNITY_WEBGL 
+#if WEBXR_0_22_0_OR_NEWER && XRI_2_5_2_OR_NEWER && INPUTSYSTEM_1_7_0_OR_NEWER && XRCOREUTILS_2_2_0_OR_NEWER && UNITY_WEBGL
         private InputActionAsset _inputActionAsset;
         private InputActionManager _inputActionManager;
         private XROrigin _xrOrigin;
@@ -211,6 +211,9 @@ namespace Ubiq.WebXR
                     _xrOrigin.CameraYOffset = 0.0f;
                     _xrOrigin.CameraFloorOffsetObject.transform.localPosition = 
                         Vector3.zero;
+
+                    // Fire the event
+                    Ubiq.XR.Notifications.XRNotifications.HmdMounted();
                 }
                 
                 state = State.XR;
@@ -224,6 +227,9 @@ namespace Ubiq.WebXR
                     _xrOrigin.CameraYOffset = cameraYOffset;
                     _xrOrigin.CameraFloorOffsetObject.transform.localPosition = 
                         Vector3.up * cameraYOffset;
+
+                    // Fire the event
+                    Ubiq.XR.Notifications.XRNotifications.HmdUnmounted();
                 }
                 
                 state = State.Normal;
