@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit;
 using Ubiq.XR.Notifications;
 
-namespace Ubiq
+namespace Ubiq.Samples
 {
     /// <summary>
     /// Allows the mouse to control the orientation of the Camera.
