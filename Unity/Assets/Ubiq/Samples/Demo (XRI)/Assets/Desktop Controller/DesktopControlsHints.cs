@@ -17,7 +17,6 @@ namespace Ubiq.Samples
         {
             next.onClick.AddListener(Next);
             hide.onClick.AddListener(() => { this.gameObject.SetActive(false); });
-            //Hints[index].SetActive(true);
         }
 
         public void Next()

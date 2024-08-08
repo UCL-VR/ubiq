@@ -218,21 +218,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Desktop Controller
       objectReference: {fileID: 0}
-    - target: {fileID: 5637312654450173782, guid: ff023e59e9ac5a1469fd1b584e5d6d59,
-        type: 3}
-      propertyPath: m_Camera
-      value: 
-      objectReference: {fileID: 969063366}
-    - target: {fileID: 5637312654450173782, guid: ff023e59e9ac5a1469fd1b584e5d6d59,
-        type: 3}
-      propertyPath: m_RenderMode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5637312654450173782, guid: ff023e59e9ac5a1469fd1b584e5d6d59,
-        type: 3}
-      propertyPath: m_PlaneDistance
-      value: 1
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -247,12 +232,6 @@ Transform:
 --- !u!1 &969063365 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 9014170783809206332, guid: 895f6f3c2d334633b5800312285058d2,
-    type: 3}
-  m_PrefabInstance: {fileID: 2065098753}
-  m_PrefabAsset: {fileID: 0}
---- !u!20 &969063366 stripped
-Camera:
-  m_CorrespondingSourceObject: {fileID: 9014170783809206330, guid: 895f6f3c2d334633b5800312285058d2,
     type: 3}
   m_PrefabInstance: {fileID: 2065098753}
   m_PrefabAsset: {fileID: 0}
