@@ -211,6 +211,9 @@ namespace Ubiq.WebXR
                     _xrOrigin.CameraYOffset = 0.0f;
                     _xrOrigin.CameraFloorOffsetObject.transform.localPosition = 
                         Vector3.zero;
+
+                    // Fire the event
+                    Ubiq.XR.Notifications.XRNotifications.HmdMounted();
                 }
                 
                 state = State.XR;
@@ -224,6 +227,9 @@ namespace Ubiq.WebXR
                     _xrOrigin.CameraYOffset = cameraYOffset;
                     _xrOrigin.CameraFloorOffsetObject.transform.localPosition = 
                         Vector3.up * cameraYOffset;
+
+                    // Fire the event
+                    Ubiq.XR.Notifications.XRNotifications.HmdUnmounted();
                 }
                 
                 state = State.Normal;
