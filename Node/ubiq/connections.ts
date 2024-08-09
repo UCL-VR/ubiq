@@ -254,6 +254,10 @@ export class TcpConnectionWrapper implements IConnectionWrapper {
     }
 
     onData (array: Buffer): void {
+        if (this.closed) {
+            return // We shouldn't be receiving anything if the connection is closed, but if for whatever reason we do, don't try to process them
+        }
+
         const fragment = Buffer.from(array.buffer, array.byteOffset, array.byteLength)
         let offset = 0
         let available = fragment.length - offset
@@ -276,7 +280,9 @@ export class TcpConnectionWrapper implements IConnectionWrapper {
                     // size (12) to be a valid message.
                     if (length < 12 || length > 100 * 1024 * 1024) {
                         console.log(`Received message with expected length of ${length}. Force closing connection.`)
+                        this.onClose.map(callback => callback())
                         this.close()
+                        this.closed = true
                         return
                     }
                     this.data = Buffer.alloc(length + this.headersize)
