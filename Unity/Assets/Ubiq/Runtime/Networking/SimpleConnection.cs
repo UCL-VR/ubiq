@@ -16,6 +16,7 @@ namespace Ubiq.Networking
     {
         ReferenceCountedMessage Receive();
         void Send(ReferenceCountedMessage m);
+        
     }
 
     /// <summary>

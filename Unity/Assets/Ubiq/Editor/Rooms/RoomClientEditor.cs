@@ -92,7 +92,7 @@ namespace Ubiq.Rooms
                 EditorGUILayout.HelpBox("Joined Room " + component.Room.UUID, MessageType.Info);
             }
 
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("reconnectBehaviour"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("timeoutBehaviour"));
 
             foldoutRooms = EditorGUILayout.BeginFoldoutHeaderGroup(foldoutRooms, "Available Rooms");
 
