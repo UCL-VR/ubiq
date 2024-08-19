@@ -228,7 +228,7 @@ namespace Ubiq.Rooms
                 return peers.Values;
             }
         }
-
+        
         /// <summary>
         /// A list of default servers to connect to on start-up. The network must only have one RoomServer or
         /// undefined behaviour will result.
@@ -252,7 +252,7 @@ namespace Ubiq.Rooms
         private RoomInterfaceFriend room = new RoomInterfaceFriend();
         private NetworkScene scene;
         private NetworkId objectid; // The Id of the RoomClient object itself
-        private string joinRoomUuidOnConnection;
+        private Guid joinRoomOnConnection = Guid.Empty;
 
         private List<Action> actions = new List<Action>();
 
@@ -578,10 +578,10 @@ namespace Ubiq.Rooms
                         pingReceived = Time.realtimeSinceStartup;
                         PlayerNotifications.Delete(ref notification);
                         
-                        if (joinRoomUuidOnConnection != null)
+                        if (joinRoomOnConnection != Guid.Empty)
                         {
-                            Join(new Guid(joinRoomUuidOnConnection));
-                            joinRoomUuidOnConnection = null;
+                            Join(joinRoomOnConnection);
+                            joinRoomOnConnection = Guid.Empty;
                         }
                     }
                     break;
@@ -677,8 +677,15 @@ namespace Ubiq.Rooms
             // Drop all connections
             scene.ClearConnections();
 
-            joinRoomUuidOnConnection = rejoin ? room.UUID : null;
+            if (rejoin && Guid.TryParse(room.UUID, out var uuid))
+            {
+                joinRoomOnConnection = uuid;
+            }
 
+            if (!rejoin)
+            {
+                joinRoomOnConnection = Guid.Empty;
+            }
             
             // Join empty room
             room.Reset();
