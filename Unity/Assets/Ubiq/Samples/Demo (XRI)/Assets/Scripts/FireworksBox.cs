@@ -10,10 +10,10 @@ using UnityEngine.XR.Interaction.Toolkit;
 namespace Ubiq.Samples
 {
     /// <summary>
-    /// The Fireworks Box is a basic interactive object. This object uses the NetworkSpawner
-    /// to create shared objects (fireworks).
-    /// The Box can be grasped and moved around, but note that the Box itself is *not* network
-    /// enabled, and each player has their own copy.
+    /// The Fireworks Box is a basic interactive object. This object uses the
+    /// NetworkSpawner to create shared objects (fireworks). The Box can be
+    /// grasped and moved around, but note that the Box itself is *not* network
+    /// enabled. Each player has their own copy.
     /// </summary>
     [RequireComponent(typeof(Rigidbody))]
     public class FireworksBox : MonoBehaviour
@@ -23,12 +23,14 @@ namespace Ubiq.Samples
 #if XRI_2_5_2_OR_NEWER
         private NetworkSpawnManager spawnManager;
         private XRGrabInteractable interactable;
+        private XRInteractionManager interactionManager;
 
         private void Start()
         {
             spawnManager = NetworkSpawnManager.Find(this);
             interactable = GetComponent<XRGrabInteractable>();
-
+            interactionManager = interactable.interactionManager;
+            
             interactable.activated.AddListener(XRGrabInteractable_Activated);
         }
 
@@ -43,6 +45,23 @@ namespace Ubiq.Samples
             var firework = go.GetComponent<Firework>();
             firework.transform.position = transform.position;
             firework.owner = true;
+            
+            if (!interactionManager)
+            {
+                return;
+            }
+
+            // Force the interactor(hand) to drop the box and grab the firework
+            var selectInteractor = eventArgs.interactorObject as IXRSelectInteractor;
+            if (selectInteractor != null)
+            {
+                interactionManager.SelectExit(
+                    selectInteractor,
+                    this.interactable);
+                interactionManager.SelectEnter(
+                    selectInteractor,
+                    firework.GetComponent<XRGrabInteractable>());
+            }
         }
 #endif
     }

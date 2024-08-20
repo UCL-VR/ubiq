@@ -973,16 +973,6 @@ PrefabInstance:
       propertyPath: m_RootOrder
       value: 4
       objectReference: {fileID: 0}
-    - target: {fileID: 1296376847062281280, guid: 76e53f38a7ad1c44bb05311d46bf216d,
-        type: 3}
-      propertyPath: m_ColorPropertyName
-      value: _Color
-      objectReference: {fileID: 0}
-    - target: {fileID: 3240370694413710571, guid: 76e53f38a7ad1c44bb05311d46bf216d,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 95740d400bace5446a4a35862ade2f81, type: 2}
     - target: {fileID: 4819973546623887357, guid: 76e53f38a7ad1c44bb05311d46bf216d,
         type: 3}
       propertyPath: m_RootOrder

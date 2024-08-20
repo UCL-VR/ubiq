@@ -23,6 +23,8 @@ namespace Ubiq.Samples
 #if XRI_2_5_2_OR_NEWER
 
         private NetworkContext context;
+        private Vector3 flightForce;
+        private float explodeTime;
 
         private void Awake()
         {
@@ -42,6 +44,12 @@ namespace Ubiq.Samples
         public void XRGrabInteractable_Activated(ActivateEventArgs eventArgs)
         {
             fired = true;
+            
+            flightForce = new Vector3(
+                x:(Random.value - 0.5f)*0.2f, 
+                y:0.3f, 
+                z:(Random.value - 0.5f)*0.2f);
+            explodeTime = Time.time + 10.0f; 
 
             // Force the interactor(hand) to drop the firework
             var interactor = (XRBaseInteractor)eventArgs.interactorObject;
@@ -60,12 +68,18 @@ namespace Ubiq.Samples
             if(owner && fired)
             {
                 body.isKinematic = false;
-                body.AddForce(transform.up * 0.75f, ForceMode.Force);
+                body.AddForce(flightForce, ForceMode.Force);
 
                 if (!particles.isPlaying)
                 {
                     particles.Play();
-                    body.AddForce(new Vector3(Random.value, Random.value, Random.value) * 1.1f, ForceMode.Force);
+                    body.AddForce(Vector3.up * 2.0f, ForceMode.Impulse);
+                }
+                
+                if (Time.time > explodeTime)
+                {
+                    NetworkSpawnManager.Find(this).Despawn(gameObject);
+                    return;
                 }
             }
             if(!owner && fired)
@@ -77,7 +91,7 @@ namespace Ubiq.Samples
             }
         }
 
-        public struct Message
+        private struct Message
         {
             public Pose pose;
             public bool fired;
