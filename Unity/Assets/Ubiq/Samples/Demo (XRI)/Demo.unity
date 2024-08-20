@@ -132,7 +132,7 @@ GameObject:
   m_Component:
   - component: {fileID: 261526883}
   m_Layer: 0
-  m_Name: Ubiq Interactables
+  m_Name: Ubiq Interactables (XRI)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1488,6 +1488,6 @@ SceneRoots:
   - {fileID: 1995168927}
   - {fileID: 8839457145026391851}
   - {fileID: 1925563522}
-  - {fileID: 742749608137116523}
   - {fileID: 261526883}
+  - {fileID: 742749608137116523}
   - {fileID: 2065098753}

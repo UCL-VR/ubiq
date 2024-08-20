@@ -245,7 +245,7 @@ namespace Ubiq.Rooms
         public static readonly float HeartbeatInterval = 1f;
         public static readonly float HeartbeatWarningThreshold = 5f;
         public static readonly float HeartbeatTimeoutThreshold = 10.0f;
-
+        
         public TimeoutBehaviour timeoutBehaviour = TimeoutBehaviour.ReconnectAndRejoin;
 
         private PeerInterfaceFriend me = new PeerInterfaceFriend(Guid.NewGuid().ToString());
@@ -705,9 +705,8 @@ namespace Ubiq.Rooms
                 OnPeerRemoved.Invoke(peer);
             }
 
-            // Reset ping
+            // Reset ping so we have a small window before we try again
             pingReceived = Time.realtimeSinceStartup;
-            PlayerNotifications.Delete(ref notification);
             
             // Reconnect all connections
             foreach (var server in servers)
