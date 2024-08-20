@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Ubiq.XR.Notifications
@@ -11,7 +12,7 @@ namespace Ubiq.XR.Notifications
     public class PlayerNotificationsCanvas : MonoBehaviour
     {
         [Tooltip("The camera which will show notifications. Defaults to the camera with the MainCamera tag.")]
-        public Camera camera;
+        public Camera notificationCamera;
         
         private Canvas canvas;
         private Text messages;
@@ -35,10 +36,10 @@ namespace Ubiq.XR.Notifications
         // Start is called before the first frame update
         void Start()
         {
-            if (!camera)
+            if (!notificationCamera)
             {
-                camera = Camera.main;
-                if (!camera)
+                notificationCamera = Camera.main;
+                if (!notificationCamera)
                 {
                     Debug.LogWarning("No Camera supplied and no camera found " +
                                      " with the MainCamera tag in this" +
@@ -50,7 +51,7 @@ namespace Ubiq.XR.Notifications
             }
             
             canvas = GetComponentInChildren<Canvas>(includeInactive:true);
-            canvas.worldCamera = camera;
+            canvas.worldCamera = notificationCamera;
             canvas.gameObject.SetActive(false);
             
             messages = GetComponentInChildren<Text>(includeInactive:true);
