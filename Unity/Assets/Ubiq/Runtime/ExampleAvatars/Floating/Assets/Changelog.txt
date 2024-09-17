@@ -1,0 +1,29 @@
+
+
+	Kenney Character Assets
+	(www.kenney.nl)
+
+	### Version 4 ###
+
+	• 20 animal skins added
+	• 10 animal accessories added
+
+	### Version 3 ###
+
+	• 4 new skins added
+	• Unity importing improvements
+	• Animation fixes
+
+	### Version 2a ###
+
+	• Fixed animations for use in Unreal Engine
+
+	### Version 2 ###
+
+	• 11 new skins added
+	• 4 new animations added
+	• Unity sample package added
+
+	### Version 1 ###
+
+	• Initial release

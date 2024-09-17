@@ -122,6 +122,74 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1001 &9645494
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2592011007710657933, guid: 2e62b01f42067844d8004b554a90dedf,
+        type: 3}
+      propertyPath: m_Name
+      value: Ubiq MMVR Avatar Input
+      objectReference: {fileID: 0}
+    - target: {fileID: 4132170291569262069, guid: 2e62b01f42067844d8004b554a90dedf,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4132170291569262069, guid: 2e62b01f42067844d8004b554a90dedf,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4132170291569262069, guid: 2e62b01f42067844d8004b554a90dedf,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -2.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4132170291569262069, guid: 2e62b01f42067844d8004b554a90dedf,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4132170291569262069, guid: 2e62b01f42067844d8004b554a90dedf,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4132170291569262069, guid: 2e62b01f42067844d8004b554a90dedf,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4132170291569262069, guid: 2e62b01f42067844d8004b554a90dedf,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4132170291569262069, guid: 2e62b01f42067844d8004b554a90dedf,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4132170291569262069, guid: 2e62b01f42067844d8004b554a90dedf,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4132170291569262069, guid: 2e62b01f42067844d8004b554a90dedf,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2e62b01f42067844d8004b554a90dedf, type: 3}
 --- !u!1 &261526882
 GameObject:
   m_ObjectHideFlags: 0
@@ -1072,7 +1140,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 224cea7ef5dc3834a9cb9d5faa3740d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  camera: {fileID: 0}
+  notificationCamera: {fileID: 0}
 --- !u!114 &8476147870999282891
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1141,6 +1209,12 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -22.5
       objectReference: {fileID: 0}
+    - target: {fileID: 1082635309853141966, guid: 73369a530bd8253469d623a3ea6dcff9,
+        type: 3}
+      propertyPath: avatarPrefab
+      value: 
+      objectReference: {fileID: 3511423271710470833, guid: 16ec8d6c40ff626459c1647d481d7c6a,
+        type: 3}
     - target: {fileID: 1253916436262327332, guid: 73369a530bd8253469d623a3ea6dcff9,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -1488,6 +1562,7 @@ SceneRoots:
   - {fileID: 1995168927}
   - {fileID: 8839457145026391851}
   - {fileID: 1925563522}
+  - {fileID: 9645494}
   - {fileID: 261526883}
   - {fileID: 742749608137116523}
   - {fileID: 2065098753}
