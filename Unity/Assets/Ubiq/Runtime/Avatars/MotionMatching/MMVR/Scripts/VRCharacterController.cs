@@ -48,8 +48,6 @@ namespace Ubiq.MotionMatching.MMVR
 
             PositionHMD = new float3();
             RotationHMD = new quaternion();
-
-            Application.targetFrameRate = Mathf.RoundToInt(1.0f / DatabaseDeltaTime);
         }
 
         protected override void OnUpdate()
@@ -57,8 +55,6 @@ namespace Ubiq.MotionMatching.MMVR
             Tracker tracker = HMDTracker;
             float3 currentPos = GetCurrentHMDPosition();
             quaternion currentRot = GetCurrentHMDRotation();
-
-            Debug.Log(HMDDevice.position);
 
             // Input
             float3 desiredVelocity = tracker.GetSmoothedVelocity();

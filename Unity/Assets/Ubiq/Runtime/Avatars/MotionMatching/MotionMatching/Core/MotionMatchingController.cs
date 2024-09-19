@@ -21,7 +21,6 @@ namespace Ubiq.MotionMatching
 
         public MotionMatchingCharacterController CharacterController;
         public MotionMatchingData MMData;
-        public bool LockFPS = true;
         public float SearchTime = 10.0f / 60.0f; // Motion Matching search every SearchTime seconds
         public bool UseBVHSearch = true; // Use Bounding Volume Hierarchy acceleration structure for the search.
         public bool Inertialize = true; // Should inertialize transitions after a big change of the pose
@@ -74,6 +73,7 @@ namespace Ubiq.MotionMatching
         private float3 LeftLowerLegLocalForward, RightLowerLegLocalForward;
         private int LeftToesIndex, LeftFootIndex, LeftLowerLegIndex, LeftUpperLegIndex;
         private int RightToesIndex, RightFootIndex, RightLowerLegIndex, RightUpperLegIndex;
+        private PoseVector poseVector;
 
         private void Awake()
         {
@@ -103,17 +103,7 @@ namespace Ubiq.MotionMatching
             // FPS
             DatabaseFrameTime = PoseSet.FrameTime;
             DatabaseFrameRate = Mathf.RoundToInt(1.0f / DatabaseFrameTime);
-            if (LockFPS)
-            {
-                Application.targetFrameRate = DatabaseFrameRate;
-                Debug.Log("[Motion Matching] Updated Target FPS: " + Application.targetFrameRate);
-            }
-            else
-            {
-                Application.targetFrameRate = -1;
-                Debug.LogWarning("[Motion Matching] LockFPS is not set. Motion Matching will malfunction if the application frame rate is higher than the animation database.");
-            }
-
+            
             // Other initialization
             SearchResult = new NativeArray<int>(1, Allocator.Persistent);
             int numberFeatures = (MMData.TrajectoryFeatures.Count + MMData.PoseFeatures.Count);
@@ -226,22 +216,18 @@ namespace Ubiq.MotionMatching
                 // Advance
                 SearchTimeLeft -= deltaTime;
             }
-            // Always advance one (bestFrame from motion matching is the best match to the current frame, but we want to move to the next frame)
-            // Ideally the applications runs at 1.0f/FrameTime fps (to match the database) however, as this may not happen, we may need to skip some frames
-            // from the database, e.g., if 1.0f/FrameTime = 60 and our game runes at 30, we need to advance 2 frames at each update
-            // However, as we are using Application.targetFrameRate=1.0f/FrameTime, we do not consider the case where the application runs faster than the database
             CurrentFrameTime += DatabaseFrameRate * deltaTime; // DatabaseFrameRate / (1.0f / deltaTime)
             CurrentFrame = (int)math.floor(CurrentFrameTime);
 
-            UpdateTransformAndSkeleton(CurrentFrame);
+            UpdateTransformAndSkeleton();
             PROFILE.END_SAMPLE_PROFILING("Motion Matching Total");
         }
 
         private void UpdateAnimationSpaceOrigin()
         {
-            PoseSet.GetPose(CurrentFrame, out PoseVector mmPose);
-            AnimationSpaceOriginPos = mmPose.JointLocalPositions[0];
-            InverseAnimationSpaceOriginRot = math.inverse(mmPose.JointLocalRotations[0]);
+            InterpolatePose(PoseSet,CurrentFrameTime, ref poseVector);
+            AnimationSpaceOriginPos = poseVector.JointLocalPositions[0];
+            InverseAnimationSpaceOriginRot = math.inverse(poseVector.JointLocalRotations[0]);
             MMTransformOriginPose = SkeletonTransforms[0].position;
             MMTransformOriginRot = SkeletonTransforms[0].rotation;
         }
@@ -249,6 +235,79 @@ namespace Ubiq.MotionMatching
         private void OnInputChangedQuickly()
         {
             SearchTimeLeft = 0; // Force search
+        }
+        
+        /// <summary>
+        /// Interpolates a pose between the closest two indices.
+        /// </summary>
+        private static void InterpolatePose(PoseSet poseSet, float poseIndex,
+            ref PoseVector pose)
+        {
+            var indexFloor = Mathf.FloorToInt(poseIndex);
+            var indexCeil = Mathf.CeilToInt(poseIndex);
+            poseSet.GetPose(indexFloor, out var poseFloor);
+            poseSet.GetPose(indexCeil, out var poseCeil);
+            var t = poseIndex % 1;
+            if (poseIndex < 0)
+            {
+                // Correct so in range [0,1) where 0 is floor and 1 is ceil
+                t = (1 - (t * -1)) % 0;
+            }
+            
+            if (pose.JointLocalPositions == null ||
+                pose.JointLocalPositions.Length != poseFloor.JointLocalPositions.Length)
+            {
+                pose.JointLocalPositions = new float3[poseFloor.JointLocalPositions.Length];
+            }
+            for (int i = 0; i < pose.JointLocalPositions.Length; i++)
+            {
+                pose.JointLocalPositions[i] = math.lerp(
+                    poseFloor.JointLocalPositions[i],
+                    poseCeil.JointLocalPositions[i],
+                    t);
+            }
+            
+            if (pose.JointLocalRotations == null ||
+                pose.JointLocalRotations.Length != poseFloor.JointLocalRotations.Length)
+            {
+                pose.JointLocalRotations = new quaternion[poseFloor.JointLocalRotations.Length];
+            }
+            for (int i = 0; i < pose.JointLocalRotations.Length; i++)
+            {
+                pose.JointLocalRotations[i] = math.slerp(
+                    poseFloor.JointLocalRotations[i],
+                    poseCeil.JointLocalRotations[i],
+                    t);
+            }
+            
+            if (pose.JointLocalVelocities == null ||
+                pose.JointLocalVelocities.Length != poseFloor.JointLocalVelocities.Length)
+            {
+                pose.JointLocalVelocities = new float3[poseFloor.JointLocalVelocities.Length];
+            }
+            for (int i = 0; i < pose.JointLocalVelocities.Length; i++)
+            {
+                pose.JointLocalVelocities[i] = math.lerp(
+                    poseFloor.JointLocalVelocities[i],
+                    poseCeil.JointLocalVelocities[i],
+                    t);
+            }
+            
+            if (pose.JointLocalAngularVelocities == null ||
+                pose.JointLocalAngularVelocities.Length != poseFloor.JointLocalAngularVelocities.Length)
+            {
+                pose.JointLocalAngularVelocities = new float3[poseFloor.JointLocalAngularVelocities.Length];
+            }
+            for (int i = 0; i < pose.JointLocalAngularVelocities.Length; i++)
+            {
+                pose.JointLocalAngularVelocities[i] = math.lerp(
+                    poseFloor.JointLocalAngularVelocities[i],
+                    poseCeil.JointLocalAngularVelocities[i],
+                    t);
+            }
+            
+            pose.LeftFootContact = poseFloor.LeftFootContact && poseCeil.LeftFootContact;
+            pose.RightFootContact = poseFloor.RightFootContact && poseCeil.RightFootContact;
         }
 
         private int SearchMotionMatching()
@@ -345,20 +404,20 @@ namespace Ubiq.MotionMatching
             FeatureSet.NormalizeTrajectory(vector);
         }
 
-        private void UpdateTransformAndSkeleton(int frameIndex)
+        private void UpdateTransformAndSkeleton()
         {
-            PoseSet.GetPose(frameIndex, out PoseVector pose);
+            InterpolatePose(PoseSet,CurrentFrameTime, ref poseVector);
             // Update Inertialize if enabled
             if (Inertialize)
             {
-                Inertialization.Update(pose, InertializeHalfLife, Time.deltaTime);
+                Inertialization.Update(poseVector, InertializeHalfLife, Time.deltaTime);
             }
             // Simulation Bone
             float3 previousPosition = SkeletonTransforms[0].position;
             quaternion previousRotation = SkeletonTransforms[0].rotation;
             // animation space to local space
-            float3 localSpacePos = math.mul(InverseAnimationSpaceOriginRot, pose.JointLocalPositions[0] - AnimationSpaceOriginPos);
-            quaternion localSpaceRot = math.mul(InverseAnimationSpaceOriginRot, pose.JointLocalRotations[0]);
+            float3 localSpacePos = math.mul(InverseAnimationSpaceOriginRot, poseVector.JointLocalPositions[0] - AnimationSpaceOriginPos);
+            quaternion localSpaceRot = math.mul(InverseAnimationSpaceOriginRot, poseVector.JointLocalRotations[0]);
             // local space to world space
             SkeletonTransforms[0].position = math.mul(MMTransformOriginRot, localSpacePos) + MMTransformOriginPose;
             SkeletonTransforms[0].rotation = math.mul(MMTransformOriginRot, localSpaceRot);
@@ -375,15 +434,15 @@ namespace Ubiq.MotionMatching
             }
             else
             {
-                for (int i = 1; i < pose.JointLocalRotations.Length; i++)
+                for (int i = 1; i < poseVector.JointLocalRotations.Length; i++)
                 {
-                    SkeletonTransforms[i].localRotation = pose.JointLocalRotations[i];
+                    SkeletonTransforms[i].localRotation = poseVector.JointLocalRotations[i];
                 }
             }
             // Hips Position
-            SkeletonTransforms[1].localPosition = Inertialize ? Inertialization.InertializedHips : pose.JointLocalPositions[1];
+            SkeletonTransforms[1].localPosition = Inertialize ? Inertialization.InertializedHips : poseVector.JointLocalPositions[1];
             // Foot Lock
-            UpdateFootLock(pose);
+            UpdateFootLock(poseVector);
             // Post processing the transforms
             if (OnSkeletonTransformUpdated != null) OnSkeletonTransformUpdated.Invoke();
         }
@@ -669,8 +728,6 @@ namespace Ubiq.MotionMatching
             // Character
             if (PoseSet == null) return;
 
-            int currentFrame = CurrentFrame;
-            PoseSet.GetPose(currentFrame, out PoseVector pose);
             float3 characterOrigin = SkeletonTransforms[0].position;
             float3 characterForward = SkeletonTransforms[0].forward;
             if (DebugCurrent)
@@ -695,7 +752,7 @@ namespace Ubiq.MotionMatching
             // Feature Set
             if (FeatureSet == null) return;
 
-            FeatureDebug.DrawFeatureGizmos(FeatureSet, MMData, SpheresRadius, currentFrame, characterOrigin, characterForward,
+            FeatureDebug.DrawFeatureGizmos(FeatureSet, MMData, SpheresRadius, CurrentFrame, characterOrigin, characterForward,
                                            SkeletonTransforms, PoseSet.Skeleton, DebugPose, DebugTrajectory);
         }
 #endif
