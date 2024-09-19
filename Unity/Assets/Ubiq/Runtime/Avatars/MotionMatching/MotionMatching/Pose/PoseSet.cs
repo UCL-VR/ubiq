@@ -168,7 +168,11 @@ namespace Ubiq.MotionMatching
 
         public bool IsPoseValidForPrediction(int poseIndex)
         {
-            Debug.Assert(poseIndex >= 0 && poseIndex < Poses.Count, "Pose index out of range");
+            if (poseIndex < 0 || poseIndex >= Poses.Count)
+            {
+                return false;
+            }
+            
             // Check the validity of the pose
             bool isPredictionSafe = true;
             for (int i = 0; i < Clips.Count && isPredictionSafe; ++i)
@@ -181,6 +185,23 @@ namespace Ubiq.MotionMatching
             }
             return isPredictionSafe;
         }
+        
+        /// <summary>
+        /// Returns pose at the given index. If the index is out of bounds of
+        /// the pose array, wrap infinitely.
+        /// </summary>
+        private void GetPoseWrapping(int poseIndex, out PoseVector pose)
+        {
+            var i = poseIndex;
+            var c = Poses.Count;
+            if (i < 0)
+            {
+                // Ensure negative values wrap in the same way as positive
+                // values (e.g., going under 0 will start at 'count').
+                i = c - ((i * -1) % c);
+            }
+            pose = Poses[i % c];
+        }
 
         /// <summary>
         /// Returns the pose at the given index.
@@ -189,7 +210,7 @@ namespace Ubiq.MotionMatching
         public bool GetPose(int poseIndex, out PoseVector pose)
         {
             bool isPredictionSafe = IsPoseValidForPrediction(poseIndex);
-            pose = Poses[poseIndex];
+            GetPoseWrapping(poseIndex, out pose);
             return isPredictionSafe;
         }
 
