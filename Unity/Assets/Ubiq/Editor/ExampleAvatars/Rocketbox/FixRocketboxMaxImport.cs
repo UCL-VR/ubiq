@@ -23,7 +23,7 @@ public class FixRocketboxMaxImport : AssetPostprocessor
         material.color = Color.white;
         // Second Unity's transparent  materials still show specular highlights and thus hair looks 
         // like glass sheets. The material mode "Fade" goes to full transparent. 
-        if (material.GetFloat("_Mode") == 3f)
+        if (material.HasFloat("_Mode") && material.GetFloat("_Mode") == 3f)
             material.SetFloat("_Mode", 2f);
     }
 

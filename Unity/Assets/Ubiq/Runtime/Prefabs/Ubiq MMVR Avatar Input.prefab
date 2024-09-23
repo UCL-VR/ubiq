@@ -46,17 +46,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MotionMatching: {fileID: 1333441170003284834}
   HMDDevice: {fileID: 6105042885270604938}
-  ResponsivenessPositions: 0.75
-  ResponsivenessDirections: 0.75
-  ThresholdNotifyVelocityChange: 0.1
+  ResponsivenessPositions: 0.8
+  ResponsivenessDirections: 0.4
+  ThresholdNotifyVelocityChange: 0.05
   DebugCurrent: 1
   DebugPrediction: 1
   DebugClamping: 1
   DoAdjustment: 1
-  PositionAdjustmentHalflife: 0.1
-  RotationAdjustmentHalflife: 0.1
-  PosMaximumAdjustmentRatio: 0.1
-  RotMaximumAdjustmentRatio: 0.1
+  PositionAdjustmentHalflife: 0.2
+  RotationAdjustmentHalflife: 1
+  PosMaximumAdjustmentRatio: 2
+  RotMaximumAdjustmentRatio: 2
   DoClamping: 1
   MaxDistanceSimulationBoneAndObject: 0.1
 --- !u!1 &2012668465844734589
@@ -321,14 +321,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CharacterController: {fileID: 2049070439989925958}
   MMData: {fileID: 11400000, guid: a3adc94482efd8f47894c74d70aa0da0, type: 2}
-  LockFPS: 1
   SearchTime: 0.16666667
   UseBVHSearch: 1
   Inertialize: 1
   FootLock: 1
   FootUnlockDistance: 0.2
   InertializeHalfLife: 0.1
-  Responsiveness: 1
+  Responsiveness: 0.5
   Quality: 1
   FeatureWeights:
   - 1

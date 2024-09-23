@@ -140,9 +140,7 @@ PlayerSettings:
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
   bundleVersion: 0.1.0
-  preloadedAssets:
-  - {fileID: -4339239440091091223, guid: e95eceaaf02a52c47b6c811807c6b9b2, type: 2}
-  - {fileID: 4507882563717074579, guid: 79d0951199bfca74683d6ba7c09c2a80, type: 2}
+  preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -453,7 +451,9 @@ PlayerSettings:
   openGLRequireES31: 0
   openGLRequireES31AEP: 0
   openGLRequireES32: 1
-  m_TemplateCustomTags: {}
+  m_TemplateCustomTags:
+    DESCRIPTION: 
+    WEBXR_POLYFILL_CONFIG: 
   mobileMTRendering:
     Android: 1
     iPhone: 1
@@ -706,7 +706,7 @@ PlayerSettings:
   webGLDebugSymbols: 0
   webGLEmscriptenArgs: 
   webGLModulesDirectory: 
-  webGLTemplate: APPLICATION:Default
+  webGLTemplate: PROJECT:WebXRFullView2020
   webGLAnalyzeBuildSize: 0
   webGLUseEmbeddedResources: 0
   webGLCompressionFormat: 1
