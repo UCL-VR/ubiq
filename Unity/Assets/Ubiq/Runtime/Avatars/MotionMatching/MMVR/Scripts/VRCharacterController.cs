@@ -53,8 +53,8 @@ namespace Ubiq.MotionMatching.MMVR
         protected override void OnUpdate()
         {
             Tracker tracker = HMDTracker;
-            float3 currentPos = GetCurrentHMDPosition();
-            quaternion currentRot = GetCurrentHMDRotation();
+            float3 currentPos = HMDTracker.Device.position;
+            quaternion currentRot = HMDTracker.Device.rotation;
 
             // Input
             float3 desiredVelocity = tracker.GetSmoothedVelocity();
@@ -68,13 +68,13 @@ namespace Ubiq.MotionMatching.MMVR
             quaternion desiredRotation = tracker.DesiredRotation;
 
             // Rotations
-            tracker.PredictRotations(currentRot, desiredRotation, DatabaseDeltaTime);
+            tracker.PredictRotations(currentRot, desiredRotation);
 
             // Positions
-            tracker.PredictPositions(currentPos, desiredVelocity, DatabaseDeltaTime);
+            tracker.PredictPositions(currentPos, desiredVelocity);
 
             // Update Character Controller
-            PositionHMD = HMDTracker.Device.position;
+            PositionHMD = tracker.ComputeNewPos(currentPos, desiredVelocity);
             RotationHMD = tracker.ComputeNewRot(currentRot, desiredRotation);
 
             // Adjust MotionMatching to pull the character (moving MotionMatching) towards the Simulation Object (character controller)
@@ -273,7 +273,7 @@ namespace Ubiq.MotionMatching.MMVR
                 PredictedAngularVelocities = new float3[NumberPredictionRot];
             }
 
-            public void PredictRotations(quaternion currentRotation, quaternion desiredRotation, float averagedDeltaTime)
+            public void PredictRotations(quaternion currentRotation, quaternion desiredRotation)
             {
                 for (int i = 0; i < NumberPredictionRot; i++)
                 {
@@ -282,32 +282,20 @@ namespace Ubiq.MotionMatching.MMVR
                     PredictedAngularVelocities[i] = AngularVelocity;
                     // Predict
                     Spring.SimpleSpringDamperImplicit(ref PredictedRotations[i], ref PredictedAngularVelocities[i],
-                                                      desiredRotation, 1.0f - Controller.ResponsivenessDirections, TrajectoryRotPredictionFrames[i] * averagedDeltaTime);
+                                                      desiredRotation, 1.0f - Controller.ResponsivenessDirections, TrajectoryRotPredictionFrames[i] * Controller.DatabaseDeltaTime);
                 }
             }
 
             /* https://theorangeduck.com/page/spring-roll-call#controllers */
-            public void PredictPositions(float3 currentPos, float3 desiredVelocity, float averagedDeltaTime)
+            public void PredictPositions(float3 currentPos, float3 desiredVelocity)
             {
-                int lastPredictionFrames = 0;
                 for (int i = 0; i < NumberPredictionPos; ++i)
                 {
-                    if (i == 0)
-                    {
-                        PredictedPosition[i] = currentPos;
-                        PredictedVelocity[i] = Velocity;
-                        PredictedAcceleration[i] = Acceleration;
-                    }
-                    else
-                    {
-                        PredictedPosition[i] = PredictedPosition[i - 1];
-                        PredictedVelocity[i] = PredictedVelocity[i - 1];
-                        PredictedAcceleration[i] = PredictedAcceleration[i - 1];
-                    }
-                    int diffPredictionFrames = TrajectoryPosPredictionFrames[i] - lastPredictionFrames;
-                    lastPredictionFrames = TrajectoryPosPredictionFrames[i];
+                    PredictedPosition[i] = currentPos;
+                    PredictedVelocity[i] = Velocity;
+                    PredictedAcceleration[i] = Acceleration;
                     Spring.CharacterPositionUpdate(ref PredictedPosition[i], ref PredictedVelocity[i], ref PredictedAcceleration[i],
-                                                   desiredVelocity, 1.0f - Controller.ResponsivenessPositions, diffPredictionFrames * averagedDeltaTime);
+                                                   desiredVelocity, 1.0f - Controller.ResponsivenessPositions, TrajectoryPosPredictionFrames[i] * Controller.DatabaseDeltaTime);
                 }
             }
 
@@ -317,12 +305,18 @@ namespace Ubiq.MotionMatching.MMVR
                 Spring.SimpleSpringDamperImplicit(ref newRotation, ref AngularVelocity, desiredRotation, 1.0f - Controller.ResponsivenessDirections, Time.deltaTime);
                 return newRotation;
             }
+            
+            public float3 ComputeNewPos(float3 currentPos, float3 desiredSpeed)
+            {
+                float3 newPos = currentPos;
+                Spring.CharacterPositionUpdate(ref newPos, ref Velocity, ref Acceleration, desiredSpeed, 1.0f - Controller.ResponsivenessPositions, Time.deltaTime);
+                return newPos;
+            }
 
             public float3 GetSmoothedVelocity()
             {
-                float dt = Controller.DatabaseDeltaTime;
                 float3 currentInputPos = (float3)Device.position;
-                float3 currentSpeed = (currentInputPos - PrevInputPos) / dt; // pretend it's fixed frame rate
+                float3 currentSpeed = (currentInputPos - PrevInputPos) / Time.deltaTime;
                 PrevInputPos = currentInputPos;
 
                 PreviousVelocities[PreviousVelocitiesIndex] = currentSpeed;
