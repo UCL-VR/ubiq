@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
@@ -184,7 +185,7 @@ namespace Ubiq.MotionMatching.MMVR
             float rot = leftHandRot * math.sign(math.dot(hipsTargetForward, forwardLeftHand)) +
                         rightHandRot * math.sign(math.dot(hipsTargetForward, forwardRightHand));
             quaternion targetRotation = math.mul(quaternion.AxisAngle(hipsTargetUp, math.radians(rot)), hipsTarget.Rotation);
-            RotationChainIK.Solve(hipsTarget.Rotation, targetRotation, SpineChain[2..], InitSpineChain[2..], false, true);
+            RotationChainIK.Solve(hipsTarget.Rotation, targetRotation, new Span<Transform>(SpineChain,2,SpineChain.Length-2), new Span<quaternion>(InitSpineChain,2,InitSpineChain.Length-2), false, true);
         }
 
         private void InitArms(Transform[] skeleton, quaternion[] initRotations)
