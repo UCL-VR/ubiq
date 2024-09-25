@@ -117,15 +117,14 @@ namespace Ubiq
         
         private void RefreshHierarchy()
         {
-            IHeadAndHandsInput input;
-            if (!avatarManager.input.TryGet(out input))
+            if (!avatarManager.input.TryGet(out IHeadAndHandsInput hhInput))
             {
                 Debug.LogWarning("Missing IHeadAndHandsInput. Ensure there is an input of this type in the scene.");
                 return;
             }
             
-            var inputHead = input.head.value;
-            if (!input.head.valid)
+            var inputHead = hhInput.head.value;
+            if (!hhInput.head.valid)
             {
                 // TODO
                 Debug.LogWarning("Invalid head pose. Not currently handled.");
@@ -147,8 +146,8 @@ namespace Ubiq
             head.position = inputHead.position;
             head.rotation = inputHead.rotation;
             
-            var inputLeftHand = input.leftHand.value;
-            if (!input.leftHand.valid)
+            var inputLeftHand = hhInput.leftHand.value;
+            if (!hhInput.leftHand.valid)
             {
                 inputLeftHand = new Pose(leftHandFallback.position,leftHandFallback.rotation);
             }
@@ -158,8 +157,8 @@ namespace Ubiq
             leftHand.position = inputLeftHand.position;
             leftHand.rotation = inputLeftHand.rotation;
             
-            var inputRightHand = input.rightHand.value;
-            if (!input.rightHand.valid)
+            var inputRightHand = hhInput.rightHand.value;
+            if (!hhInput.rightHand.valid)
             {
                 inputRightHand = new Pose(rightHandFallback.position,rightHandFallback.rotation);
             }
