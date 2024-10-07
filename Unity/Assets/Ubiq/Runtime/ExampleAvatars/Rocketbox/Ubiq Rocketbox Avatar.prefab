@@ -1037,7 +1037,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6830692fab92a2747b58c1328626d13b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Input: {fileID: 0}
+  avatar: {fileID: 0}
+  OnPosesUpdated:
+    m_PersistentCalls:
+      m_Calls: []
+  OnHasInputChanged:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &3568468265119144766
 GameObject:
   m_ObjectHideFlags: 0
@@ -1265,11 +1271,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6acccd80495f8b64ba316c971c82318f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  OnlyHMD: 0
-  SmoothingHalfLife: 0.1
-  HeadTracker: {fileID: 0}
-  LeftTracker: {fileID: 0}
-  RightTracker: {fileID: 0}
+  mmvrAvatar: {fileID: 0}
+  SmoothingHalfLife: 0
+  lowerBodyAvatar: {fileID: 0}
   Joints:
   - HumanBodyBone: 0
     Transform: {fileID: 5455537665072198373}
@@ -1438,22 +1442,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef72adde078ccb443965311162e2cfc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mmvrAvatar: {fileID: 0}
+  OnSkeletonUpdated:
+    m_PersistentCalls:
+      m_Calls: []
   UpdateRootTransform: 1
   UpdateLegTransforms: 1
-  LowerBodySource: {fileID: 0}
   Calibration: {fileID: 11400000, guid: c73620e78b50f2c45937137d8748075c, type: 2}
-  LeftPose:
-    ankle:
-      position: 0
-      radius: 0
-      spread: 0
-    knee: 0
-  RightPose:
-    ankle:
-      position: 0
-      radius: 0
-      spread: 0
-    knee: 0
   DrawLegs: 0
   DrawKnee: 0
   UpdateCalibration: 0

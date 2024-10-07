@@ -473,9 +473,16 @@ namespace Ubiq.Rooms
             me.networkId = scene.Id;
             objectid = NetworkId.Create(scene.Id, "RoomClient");
             scene.AddProcessor(objectid, ProcessMessage);
-            foreach (var item in servers)
+            foreach (var server in servers)
             {
-                Connect(item);
+                try
+                {
+                    Connect(server);
+                }
+                catch(Exception e)
+                {
+                    Debug.LogWarning(e.ToString());
+                }
             }
         }
 
@@ -717,7 +724,7 @@ namespace Ubiq.Rooms
                 }
                 catch(Exception e)
                 {
-                    Debug.LogError(e.ToString());
+                    Debug.LogWarning(e.ToString());
                 }
             }
         }

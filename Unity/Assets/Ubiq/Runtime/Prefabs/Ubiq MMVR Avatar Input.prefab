@@ -100,6 +100,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4132170291569262069}
+  - component: {fileID: 7504150794781395488}
   - component: {fileID: 4048830181758323240}
   m_Layer: 0
   m_Name: Ubiq MMVR Avatar Input
@@ -129,6 +130,26 @@ Transform:
   - {fileID: 6873644987178881795}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7504150794781395488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2592011007710657933}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73070efaa1016fc47a3b4023d9a33be2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  readme: 'This GameObject generates full body motion from head and hand positions
+    using motion matching and inverse kinematics. The input is then forwarded to
+    an avatar using Ubiq''s Avatar Input system.
+
+
+    If you know you will not be
+    using this kind of input (f.ex., you will not be using full body avatars), you
+    can safely delete or deactivate this GameObject for a performance boost.'
 --- !u!114 &4048830181758323240
 MonoBehaviour:
   m_ObjectHideFlags: 0

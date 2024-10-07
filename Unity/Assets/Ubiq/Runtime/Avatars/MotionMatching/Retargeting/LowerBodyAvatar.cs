@@ -19,7 +19,6 @@ namespace Ubiq.MotionMatching
         public bool UpdateRootTransform = true;
         public bool UpdateLegTransforms = true;
 
-        public LowerBody LowerBodySource;
         public LowerBodyAvatarCalibration Calibration;
 
         [Header("Debug")]

@@ -116,7 +116,7 @@ QualitySettings:
     shadowCascade2Split: 0.33333334
     shadowCascade4Split: {x: 0.074999996, y: 0.23541668, z: 0.5312501}
     shadowmaskMode: 0
-    skinWeights: 2
+    skinWeights: 4
     globalTextureMipmapLimit: 0
     textureMipmapLimitSettings: []
     anisotropicTextures: 1
