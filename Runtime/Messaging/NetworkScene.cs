@@ -267,9 +267,9 @@ namespace Ubiq.Messaging
                 {
                     c.Dispose();
                 }
-                catch
+                catch (Exception e)
                 {
-
+                    Debug.LogWarning(e);
                 }
             }
             connections.Clear();

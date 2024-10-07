@@ -118,10 +118,9 @@ namespace Ubiq.Voip.Implementations.Unity
         }
 
         /// <summary>
-        /// Indicate a new user to the microphone, with an optional callback
-        /// for audio stats. If run as part of a coroutine, this will complete
-        /// when the microphone is ready to be used. If the user has already
-        /// been added, the callback will be replaced.
+        /// Indicate a new user to the microphone. If run as part of a
+        /// coroutine, this will complete when the microphone is ready to be
+        /// used. 
         /// </summary>
         public IEnumerator AddUser(GameObject user)
         {

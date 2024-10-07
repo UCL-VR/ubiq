@@ -48,13 +48,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   readme: "This GameObject connects an XRI player prefab to Ubiq through Ubiq's Avatar
     Input system. \n\nUbiq uses this input to drive the avatar that appears on this
-    machine (the 'local' avatar). These inputs also get sent over the network so
-    that the movements of this avatar are in sync with its copies on other user's
-    machines (where the copies are 'remote' avatars).\n\nNormally you would slot
-    the visuals for the user's body in among the player prefab hierarchy. With Ubiq,
-    we recommend you do not include visuals here. Instead, create a custom avatar
-    prefab and add it to Ubiq's Avatar system (see the Avatar Manager). This way
-    you can use the same avatar for local and remote users."
+    machine (the 'local' avatar). The local avatar then sends these inputs over the
+    network so that the movements of this avatar are in sync with its copies on other
+    user's machines (where the copies are 'remote' avatars).\n\nNormally you would
+    slot the visuals for the user's body in among the player prefab hierarchy. With
+    Ubiq, we instead recommend that you create a custom avatar prefab and add it
+    to Ubiq's Avatar system (see the Avatar Manager). This way you can use the same
+    avatar for local and remote users, and easily change avatar at runtime."
 --- !u!114 &9186234166527958117
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -68,6 +68,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   avatarManager: {fileID: 0}
+  xrOriginGameObject: {fileID: 0}
+  priority: 0
 --- !u!114 &4346861353672037042
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -81,3 +83,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   avatarManager: {fileID: 0}
+  xrOriginGameObject: {fileID: 0}
+  priority: 0
