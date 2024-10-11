@@ -1,4 +1,4 @@
-This prefab can be used as a drop-in replacement for 'XR Interaction Setup' from the XR Interaction Toolkit. 
+This prefab can be used to attach required WebXR managers when part part of a WebGL build. It will also fix various small issues when going into and out of XR mode.  
 
 ## To make Ubiq's 'Demo (XRI)' sample WebXR compatible ##
 
