@@ -4,9 +4,9 @@ namespace Ubiq.Editor.XRI
     {
         public static void Import()
         {
-#if XRI_2_6_0_OR_NEWER && !UBIQ_SILENCEWARNING_XRIVERSION
+#if XRI_3_0_0_OR_NEWER && !UBIQ_SILENCEWARNING_XRIVERSION
             UnityEngine.Debug.LogWarning(
-                "Ubiq samples require XRI = 2.5.[2+], but a" +
+                "Ubiq samples require XRI = 2.[5+].X, but a" +
                 " different version is installed. The sample may not work" +
                 " correctly. To silence this warning, add the string" +
                 " UBIQ_SILENCEWARNING_XRIVERSION to your scripting define" +
