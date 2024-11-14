@@ -1,6 +1,4 @@
-using Org.BouncyCastle.Crypto.Macs;
-using System.Collections;
-using System.Collections.Generic;
+#if XRI_2_5_2_OR_NEWER
 using UnityEngine;
 
 namespace Ubiq.Samples
@@ -24,3 +22,4 @@ namespace Ubiq.Samples
         }
     }
 }
+#endif

@@ -1,8 +1,5 @@
-using Org.BouncyCastle.Asn1.IsisMtt.X509;
-using System.Collections;
-using System.Collections.Generic;
+#if XRI_2_5_2_OR_NEWER
 using UnityEngine;
-using static Ubiq.Geometry.Query;
 
 namespace Ubiq.Samples
 {
@@ -73,3 +70,4 @@ namespace Ubiq.Samples
         }
     }
 }
+#endif

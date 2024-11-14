@@ -1,3 +1,4 @@
+#if XRI_2_5_2_OR_NEWER
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,12 +28,6 @@ namespace Ubiq.Samples
         }
 
         public float offset = 0;
-
-        private void Update()
-        {
-
-
-
-        }
     }
 }
+#endif

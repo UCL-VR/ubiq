@@ -1,3 +1,4 @@
+#if XRI_2_5_2_OR_NEWER
 using System.Collections;
 using System.Collections.Generic;
 using Unity.XR.CoreUtils;
@@ -66,3 +67,4 @@ namespace Ubiq.Samples
         }
     }
 }
+#endif

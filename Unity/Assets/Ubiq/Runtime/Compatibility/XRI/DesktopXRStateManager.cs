@@ -1,3 +1,4 @@
+#if XRI_2_5_2_OR_NEWER
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -63,3 +64,4 @@ public class DesktopXRStateManager : MonoBehaviour
         }
     }
 }
+#endif

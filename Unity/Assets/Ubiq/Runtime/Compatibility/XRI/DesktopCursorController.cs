@@ -1,5 +1,6 @@
-using Unity.XR.CoreUtils;
+#if XRI_2_5_2_OR_NEWER
 using UnityEngine;
+using Unity.XR.CoreUtils;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -107,3 +108,4 @@ public class DesktopCursorController : MonoBehaviour
         CursorImage.rectTransform.anchoredPosition = position;
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if XRI_2_5_2_OR_NEWER
 using System.Collections;
 using System.Collections.Generic;
 using Unity.XR.CoreUtils;
@@ -24,3 +25,4 @@ public class DesktopLocomotionProvider : ContinuousMoveProviderBase
         return Move.action.ReadValue<Vector2>() * moveSpeed;
     }
 }
+#endif
