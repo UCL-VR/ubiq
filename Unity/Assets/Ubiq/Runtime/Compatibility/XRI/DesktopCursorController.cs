@@ -1,9 +1,9 @@
-#if XRI_2_5_2_OR_NEWER
+#if XRI_3_0_7_OR_NEWER
 using UnityEngine;
 using Unity.XR.CoreUtils;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.XR.Interaction.Toolkit;
+
 using Ubiq.XR.Notifications;
 
 /// <summary>
@@ -20,7 +20,7 @@ public class DesktopCursorController : MonoBehaviour
     public InputActionReference Activate;
 
     public XROrigin XROrigin;
-    public XRRayInteractor RayInteractor;
+    public UnityEngine.XR.Interaction.Toolkit.Interactors.XRRayInteractor RayInteractor;
     public UnityEngine.UI.Image CursorImage;
 
     public Color InteractableHoverColour = Color.cyan;

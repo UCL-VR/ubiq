@@ -1,0 +1,52 @@
+{
+    "name": "Ubiq.Editor.XRI",
+    "rootNamespace": "",
+    "references": [
+        "GUID:ab979a98ba0be4546bceb48f770b11c8",
+        "GUID:a8b0ee606e2d3ea47a04b62a948d4604",
+        "GUID:fe685ec1767f73d42b749ea8045bfe43",
+        "GUID:ce522b6ed64c8be4c989a1d26d0e3275"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.xr.interaction.toolkit",
+            "expression": "0.0.0",
+            "define": "XRI_0_0_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.interaction.toolkit",
+            "expression": "3.0.7",
+            "define": "XRI_3_0_7_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.interaction.toolkit",
+            "expression": "3.1.0",
+            "define": "XRI_3_1_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.hands",
+            "expression": "0.0.0",
+            "define": "XRHANDS_0_0_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.hands",
+            "expression": "1.5.0",
+            "define": "XRHANDS_1_5_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.hands",
+            "expression": "1.6.0",
+            "define": "XRHANDS_1_6_0_OR_NEWER"
+        }
+    ],
+    "noEngineReferences": false
+}

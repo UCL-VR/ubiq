@@ -1,4 +1,4 @@
-#if XRI_2_5_2_OR_NEWER
+#if XRI_3_0_7_OR_NEWER
 using UnityEngine;
 
 namespace Ubiq.Samples

@@ -19,8 +19,8 @@
     "versionDefines": [
         {
             "name": "com.unity.xr.interaction.toolkit",
-            "expression": "2.5.2",
-            "define": "XRI_2_5_2_OR_NEWER"
+            "expression": "3.0.7",
+            "define": "XRI_3_0_7_OR_NEWER"
         },
         {
             "name": "com.de-panther.webxr",

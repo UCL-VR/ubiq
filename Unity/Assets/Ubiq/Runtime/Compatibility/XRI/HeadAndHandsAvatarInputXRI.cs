@@ -1,10 +1,12 @@
 using UnityEngine;
 using Ubiq.Avatars;
 
-#if XRI_2_5_2_OR_NEWER
+#if XRI_3_0_7_OR_NEWER
 using Unity.XR.CoreUtils;
+using UnityEngine.XR.Hands;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 #endif
 
 namespace Ubiq.XRI
@@ -18,7 +20,7 @@ namespace Ubiq.XRI
         [Tooltip("Higher priority inputs will override lower priority inputs of the same type if multiple exist.")]
         public int priority = 0;
         
-#if XRI_2_5_2_OR_NEWER
+#if XRI_3_0_7_OR_NEWER
         private class HeadAndHandsInput : IHeadAndHandsInput
         {
             public int priority => owner.priority;
@@ -40,9 +42,24 @@ namespace Ubiq.XRI
         
         private XROrigin origin;
         private XRInputModalityManager modalityManager;
-        private XRBaseController leftController;
-        private XRBaseController rightController;
+        private NearFarInteractor leftInteractor;
+        private NearFarInteractor rightInteractor;
+        private Transform leftHandPalmJoint;
+        private Transform rightHandPalmJoint;
         
+        // Additional transformations to make the palm pose roughly match 
+        // the pointerPose provided by OpenXR. These are only approximations 
+        // and may not be a good fit for different hand sizes/poses.
+        private Matrix4x4 leftPalmOffset = Matrix4x4.TRS(
+            pos: new Vector3(0.0199999996f,-0.00999999978f,0.0700000003f),
+            q: Quaternion.Euler(0,-9.93000031f,-84.8099976f),
+            s: Vector3.one);
+        
+        private Matrix4x4 rightPalmOffset = Matrix4x4.TRS(
+            pos: new Vector3(-0.0199999996f,-0.00999999978f,0.0700000003f),
+            q: Quaternion.Euler(0,9.93000031f,84.8099976f),
+            s: Vector3.one);
+            
         private HeadAndHandsInput input;
         
         private void Start()
@@ -108,14 +125,49 @@ namespace Ubiq.XRI
             }
         }
             
-        private static Transform GetActiveHand(GameObject controller, 
-            GameObject hand)
+        private static void GetActiveHand(GameObject controller, 
+            GameObject hand, ref Transform cachedPalmJoint, 
+            out Transform trans, out bool isHand)
         {
-            return controller && controller.activeInHierarchy
-                ? controller.transform
-                : hand && hand.activeInHierarchy
-                    ? hand.transform
-                    : null;
+            if (controller && controller.activeInHierarchy)
+            {
+                trans = controller.transform;
+                isHand = false;
+                return;
+            }
+            
+            if (hand && hand.activeInHierarchy)
+            {
+                if (cachedPalmJoint)
+                {
+                    trans = cachedPalmJoint;
+                    isHand = true;
+                }
+                
+                var driver = hand.GetComponentInChildren<XRHandSkeletonDriver>();
+                if (driver && driver.jointTransformReferences.Count > 0)
+                {
+                    for (var i = 0; i < driver.jointTransformReferences.Count; i++)
+                    {
+                        var joint = driver.jointTransformReferences[i];  
+                        if (joint.xrHandJointID == XRHandJointID.Palm)
+                        {
+                            trans = cachedPalmJoint = joint.jointTransform;
+                            isHand = true;
+                            return;
+                        }
+                    }
+                    
+                    Debug.LogWarning("No palm pose in hand driver. This may " +
+                                     "indicate that the hand tracking " +
+                                     "provider does not provide palm " +
+                                     "poses. Cannot supply hand position to " +
+                                     "avatar through hand tracking.");
+                }
+            }
+            
+            trans = null;
+            isHand = false;
         }
         
         private InputVar<Pose> Head()
@@ -132,57 +184,71 @@ namespace Ubiq.XRI
         
         private InputVar<Pose> LeftHand()
         {
-            var hand = GetActiveHand(
+            GetActiveHand(
                 modalityManager.leftController,
-                modalityManager.leftHand);
-            if (!hand)
+                modalityManager.leftHand, 
+                ref leftHandPalmJoint, out var trans, out var isHand);
+            if (!trans)
             {
                 return InputVar<Pose>.invalid;
             }
-                
-            hand.GetPositionAndRotation(out var p, out var r);
+            
+            trans.GetPositionAndRotation(out var p, out var r);
+            if (isHand)
+            {
+                var mat = trans.localToWorldMatrix * leftPalmOffset;
+                p = mat.GetPosition();
+                r = mat.rotation;
+            }
             return new InputVar<Pose>(new Pose(p,r));
         }
         
         private InputVar<Pose> RightHand()
         {
-            var hand = GetActiveHand(
+            GetActiveHand(
                 modalityManager.rightController,
-                modalityManager.rightHand);
-            if (!hand)
+                modalityManager.rightHand,
+                ref rightHandPalmJoint, out var trans, out var isHand);
+            if (!trans)
             {
                 return InputVar<Pose>.invalid;
             }
                 
-            hand.GetPositionAndRotation(out var p, out var r);
+            trans.GetPositionAndRotation(out var p, out var r);
+            if (isHand)
+            {
+                var mat = trans.localToWorldMatrix * rightPalmOffset;
+                p = mat.GetPosition();
+                r = mat.rotation;
+            }
             return new InputVar<Pose>(new Pose(p,r));
         }
         
         private InputVar<float> LeftGrip()
         {
-            if (!leftController && modalityManager.leftController)
+            if (!leftInteractor && modalityManager.leftController)
             {
-                leftController = modalityManager.leftController.
-                    GetComponent<XRBaseController>();
+                leftInteractor = modalityManager.leftController.
+                    GetComponentInChildren<NearFarInteractor>();
             }
             
-            return leftController
-                ? new InputVar<float>(
-                    leftController.selectInteractionState.value)
+            return leftInteractor 
+                   && leftInteractor.selectInput.TryReadValue(out var grip)
+                ? new InputVar<float>(grip)
                 : InputVar<float>.invalid;
         }
         
         private InputVar<float> RightGrip()
         {
-            if (!rightController && modalityManager.rightController)
+            if (!rightInteractor && modalityManager.rightController)
             {
-                rightController = modalityManager.rightController.
-                    GetComponent<XRBaseController>();
+                rightInteractor = modalityManager.rightController.
+                    GetComponentInChildren<NearFarInteractor>();
             }
             
-            return rightController 
-                ? new InputVar<float>(
-                    rightController.selectInteractionState.value)
+            return rightInteractor 
+                   && rightInteractor.selectInput.TryReadValue(out var grip) 
+                ? new InputVar<float>(grip)
                 : InputVar<float>.invalid;  
         }
 #endif

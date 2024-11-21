@@ -1,10 +1,10 @@
-#if XRI_2_5_2_OR_NEWER
+#if XRI_3_0_7_OR_NEWER
 using System.Collections;
 using System.Collections.Generic;
 using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.XR.Interaction.Toolkit;
+
 using Ubiq.XR.Notifications;
 
 namespace Ubiq.Samples
@@ -18,7 +18,7 @@ namespace Ubiq.Samples
         public InputActionReference Enable;
         public InputActionReference EnableOverride;
 
-        public XRRayInteractor RayInteractor;
+        public UnityEngine.XR.Interaction.Toolkit.Interactors.XRRayInteractor RayInteractor;
 
         public XROrigin XROrigin;
         public float Sensitivity = 0.25f;
