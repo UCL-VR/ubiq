@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be29ea62d6b556f4896c36e94a1af409, type: 3}
   m_Name: ReadyPlayerMe Calibration
   m_EditorClassIdentifier: 
-  HipsToLocal: {x: 91.85999, y: -0.09301758, z: -0.09301758}
-  LocalToLeg: {x: 0, y: 180, z: 0}
+  HipsToLocal: {x: 0, y: 0, z: 0}
+  LocalToLeg: {x: -90, y: 180, z: 0}
