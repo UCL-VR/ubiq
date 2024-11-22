@@ -884,7 +884,7 @@ namespace Ubiq.MotionMatching
                 }
 
                 // Show the context menu
-                dropdownMenu.DropDown(new Rect(e.position, Vector2.zero), element);
+                dropdownMenu.DropDown(new Rect(e.position, Vector2.zero), element, false);
             }
         }
 
