@@ -13,16 +13,16 @@
       "hash": "76f76584a113b240a4ec11f324b17302bde9a53a"
     },
     "com.de-panther.webxr": {
-      "version": "https://github.com/De-Panther/unity-webxr-export.git?path=/Packages/webxr",
+      "version": "https://github.com/De-Panther/unity-webxr-export.git?path=/Packages/webxr#webxr/0.22.1",
       "depth": 0,
       "source": "git",
       "dependencies": {
         "com.unity.xr.management": "3.2.13"
       },
-      "hash": "99acaf3cd0b17353309eb01650560546d84d692c"
+      "hash": "f3965a1a66d4852c99f0b1be90d4b71ab5a4dea0"
     },
     "com.de-panther.webxr-interactions": {
-      "version": "https://github.com/De-Panther/unity-webxr-export.git?path=/Packages/webxr-interactions",
+      "version": "https://github.com/De-Panther/unity-webxr-export.git?path=/Packages/webxr-interactions#webxr-interactions/0.22.0",
       "depth": 0,
       "source": "git",
       "dependencies": {

@@ -24,8 +24,8 @@
         },
         {
             "name": "com.de-panther.webxr",
-            "expression": "0.22.0",
-            "define": "WEBXR_0_22_0_OR_NEWER"
+            "expression": "0.22.1",
+            "define": "WEBXR_0_22_1_OR_NEWER"
         },
         {
             "name": "com.de-panther.webxr-interactions",

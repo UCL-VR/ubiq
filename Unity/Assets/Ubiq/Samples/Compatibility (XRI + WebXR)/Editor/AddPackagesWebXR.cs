@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using Ubiq.Editor;
 using Ubiq.Editor.XRI;
-#if WEBXR_0_22_0_OR_NEWER
+#if WEBXR_0_22_1_OR_NEWER
 using WebXR;
 #endif
 
@@ -13,44 +13,47 @@ namespace Ubiq.Samples.WebXR.Editor
     {
         static AddPackageWebXR()
         {
-#if !UBIQ_SILENCEWARNING_WEBXRVERSION
-    #if WEBXR_0_22_1_OR_NEWER && WEBXR_0_0_0_OR_NEWER
-            var package = "WebXR";
-            var version = "0.22.0";
-            Debug.LogWarning(
-                $"Ubiq sample Player (XRI + WebXR) requires {package} = {version}, but an" +
-                " different version is installed. The sample may not work" +
-                " correctly. To silence this warning, add the string" +
-                " UBIQ_SILENCEWARNING_WEBXRVERSION to your scripting define" +
-                " symbols");
-    #endif
-    #if WEBXRINTERACTIONS_0_22_1_OR_NEWER && WEBXRINTERACTIONS_0_0_0_OR_NEWER
-            var package = "WebXR-Interactions";
-            var version = "0.22.0";
-            Debug.LogWarning(
-                $"Ubiq sample Player (XRI + WebXR) requires {package} = {version}, but a" +
-                " different version is installed. The sample may not work" +
-                " correctly. To silence this warning, add the string" +
-                " UBIQ_SILENCEWARNING_WEBXRVERSION to your scripting define" +
-                " symbols");
-    #endif
-#endif
-
             // Safer to interact with Unity on main thread
             EditorApplication.update += Update;
         }
 
         static void Update()
         {
-#if !WEBXR_0_0_0_OR_NEWER
-            PackageManagerHelper.AddPackage("https://github.com/De-Panther/unity-webxr-export.git?path=/Packages/webxr#webxr/0.22.0");
+            string package, version;
+#if !WEBXR_0_22_1_OR_NEWER || WEBXR_0_22_2_OR_NEWER
+    #if WEBXR_0_0_0_OR_NEWER 
+            package = "WebXR";
+            version = "0.22.1";
+            Debug.LogWarning(
+                $"Ubiq sample Compatibility (XRI + WebXR) requires "+
+                $"{package} = {version}, but different version is installed. "+
+                $"Ubiq will remove this package and replace it with "+
+                $"version {version}. If you would prefer to skip this check"+
+                $" and prevent this behaviour, add the string "+
+                $"UBIQ_DISABLE_WEBXRCOMPATIBILITYCHECK to your scripting "+
+                $"define symbols.");
+            PackageManagerHelper.RemovePackage("com.de-panther.webxr");
+    #endif
+            PackageManagerHelper.AddPackage("https://github.com/De-Panther/unity-webxr-export.git?path=/Packages/webxr#webxr/0.22.1");
 #endif
-
-#if !WEBXRINTERACTIONS_0_0_0_OR_NEWER
+#if !WEBXRINTERACTIONS_0_22_0_OR_NEWER || WEBXRINTERACTIONS_0_22_1_OR_NEWER
+    #if WEBXRINTERACTIONS_0_0_0_OR_NEWER 
+            package = "WebXR-Interactions";
+            version = "0.22.0";
+            Debug.LogWarning(
+                $"Ubiq sample Compatibility (XRI + WebXR) requires "+
+                $"{package} = {version}, but different version is installed. "+
+                $"Ubiq will remove this package and replace it with "+
+                $"version {version}. If you would prefer to skip this check"+
+                $" and prevent this behaviour, add the string "+
+                $"UBIQ_DISABLE_WEBXRCOMPATIBILITYCHECK to your scripting "+
+                $"define symbols.");
+            PackageManagerHelper.RemovePackage("com.de-panther.webxr-interactions");
+    #endif
             PackageManagerHelper.AddPackage("https://github.com/De-Panther/unity-webxr-export.git?path=/Packages/webxr-interactions#webxr-interactions/0.22.0");
 #endif
-
-#if WEBXR_0_22_0_OR_NEWER
+            
+#if WEBXR_0_22_1_OR_NEWER
             PackageManagerHelper.RequireSample("com.de-panther.webxr-interactions","XR Interaction Toolkit Sample");
 
     #if !UBIQ_DISABLE_WEBXRAUTOLOADOFF

@@ -8,7 +8,7 @@ using UnityEngine.XR;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 #endif
 
-#if WEBXR_0_22_0_OR_NEWER
+#if WEBXR_0_22_1_OR_NEWER
 using WebXR;
 #endif
 
@@ -41,7 +41,7 @@ namespace Ubiq.WebXR
         [Tooltip("The GameObject containing the various scripts WebXR needs to run. If null, will try to find a GameObject containing the WebXRManager component in the scene at Start.")]
         [SerializeField] private GameObject webXRGameObject;
         
-#if WEBXR_0_22_0_OR_NEWER && XRI_3_0_7_OR_NEWER && INPUTSYSTEM_1_7_0_OR_NEWER && XRCOREUTILS_2_2_0_OR_NEWER && UNITY_WEBGL 
+#if WEBXR_0_22_1_OR_NEWER && XRI_3_0_7_OR_NEWER && INPUTSYSTEM_1_7_0_OR_NEWER && XRCOREUTILS_2_2_0_OR_NEWER && UNITY_WEBGL 
         private InputActionAsset _inputActionAsset;
         private InputActionManager _inputActionManager;
         private XROrigin _xrOrigin;
