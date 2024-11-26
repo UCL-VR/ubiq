@@ -19,16 +19,15 @@ namespace Ubiq.Samples.WebXR.Editor
 
         static void Update()
         {
-            string package, version;
 #if !WEBXR_0_22_1_OR_NEWER || WEBXR_0_22_2_OR_NEWER
     #if WEBXR_0_0_0_OR_NEWER 
-            package = "WebXR";
-            version = "0.22.1";
+            var corePackage = "WebXR";
+            var coreVersion = "0.22.1";
             Debug.LogWarning(
                 $"Ubiq sample Compatibility (XRI + WebXR) requires "+
-                $"{package} = {version}, but different version is installed. "+
+                $"{corePackage} = {coreVersion}, but different version is installed. "+
                 $"Ubiq will remove this package and replace it with "+
-                $"version {version}. If you would prefer to skip this check"+
+                $"version {coreVersion}. If you would prefer to skip this check"+
                 $" and prevent this behaviour, add the string "+
                 $"UBIQ_DISABLE_WEBXRCOMPATIBILITYCHECK to your scripting "+
                 $"define symbols.");
@@ -38,13 +37,13 @@ namespace Ubiq.Samples.WebXR.Editor
 #endif
 #if !WEBXRINTERACTIONS_0_22_0_OR_NEWER || WEBXRINTERACTIONS_0_22_1_OR_NEWER
     #if WEBXRINTERACTIONS_0_0_0_OR_NEWER 
-            package = "WebXR-Interactions";
-            version = "0.22.0";
+            var interactionsPackage = "WebXR-Interactions";
+            var interactionsVersion = "0.22.0";
             Debug.LogWarning(
                 $"Ubiq sample Compatibility (XRI + WebXR) requires "+
-                $"{package} = {version}, but different version is installed. "+
+                $"{interactionsPackage} = {interactionsVersion}, but different version is installed. "+
                 $"Ubiq will remove this package and replace it with "+
-                $"version {version}. If you would prefer to skip this check"+
+                $"version {interactionsVersion}. If you would prefer to skip this check"+
                 $" and prevent this behaviour, add the string "+
                 $"UBIQ_DISABLE_WEBXRCOMPATIBILITYCHECK to your scripting "+
                 $"define symbols.");
