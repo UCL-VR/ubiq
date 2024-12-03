@@ -53,9 +53,9 @@ namespace Ubiq.Samples
             fired = true;
             
             flightForce = new Vector3(
-                x:(Random.value - 0.5f)*0.2f, 
-                y:0.3f, 
-                z:(Random.value - 0.5f)*0.2f);
+                x:(Random.value - 0.5f)*0.05f, 
+                y:3.0f, 
+                z:(Random.value - 0.5f)*0.05f);
             explodeTime = Time.time + 10.0f; 
 
             // No longer interactable
@@ -63,7 +63,7 @@ namespace Ubiq.Samples
             interactable.enabled = false;
         }
 
-        private void Update()
+        private void FixedUpdate()
         {
             if(owner)
             {
@@ -77,7 +77,7 @@ namespace Ubiq.Samples
                 if (!particles.isPlaying)
                 {
                     particles.Play();
-                    body.AddForce(Vector3.up * 2.0f, ForceMode.Impulse);
+                    body.AddForce(transform.up * 2.0f, ForceMode.Impulse);
                 }
                 
                 if (Time.time > explodeTime)
