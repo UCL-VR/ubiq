@@ -40,11 +40,16 @@ namespace Ubiq.Samples
             context = NetworkScene.Register(this);
 
             var grab = GetComponent<XRGrabInteractable>();
-            grab.activated.AddListener(XRGrabInteractable_Activated);
+            grab.selectExited.AddListener(Interactable_SelectExited);
         }
 
-        public void XRGrabInteractable_Activated(ActivateEventArgs eventArgs)
+        private void Interactable_SelectExited(SelectExitEventArgs eventArgs)
         {
+            if (fired)
+            {
+                return;
+            }
+            
             fired = true;
             
             flightForce = new Vector3(
@@ -53,12 +58,9 @@ namespace Ubiq.Samples
                 z:(Random.value - 0.5f)*0.2f);
             explodeTime = Time.time + 10.0f; 
 
-            // Force the interactor(hand) to drop the firework
-            var interactor = (XRBaseInteractor)eventArgs.interactorObject;
-            interactor.allowSelect = false;
+            // No longer interactable
             var interactable = (XRGrabInteractable)eventArgs.interactableObject;
             interactable.enabled = false;
-            interactor.allowSelect = true;
         }
 
         private void Update()
