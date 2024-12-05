@@ -7,14 +7,20 @@ mergeInto(LibraryManager.library, {
             return false;
         }
 
-        Module.myws = new WebSocket(new URL(UTF8ToString(url)));
-        Module.myws.binaryType = 'arraybuffer';
-        Module.myws.messages = [];
-        Module.myws.onmessage = function(ev) {
-            Module.myws.messages.push(new Uint8Array(ev.data));
-           
+        try
+        {
+            Module.myws = new WebSocket(new URL(UTF8ToString(url)));
+            Module.myws.binaryType = 'arraybuffer';
+            Module.myws.messages = [];
+            Module.myws.onmessage = function(ev) {
+                Module.myws.messages.push(new Uint8Array(ev.data));           
+            }
+            return true;
+        } 
+        catch
+        {
+            return false;
         }
-        return true;
     },
 
     JsWebSocketPlugin_IsConnecting: function() {
@@ -77,6 +83,6 @@ mergeInto(LibraryManager.library, {
 
     JsWebSocketPlugin_Close: function() {
         Module.myws.close();
+        Module.myws = undefined;
     }
 });
-
