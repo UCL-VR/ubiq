@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using Ubiq.Messaging;
 using Ubiq.Spawning;
 using Ubiq.Geometry;
-#if XRI_2_5_2_OR_NEWER
+#if XRI_3_0_7_OR_NEWER
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 #endif
 
 namespace Ubiq.Samples
@@ -20,7 +22,7 @@ namespace Ubiq.Samples
         public bool owner;
         public bool fired;
 
-#if XRI_2_5_2_OR_NEWER
+#if XRI_3_0_7_OR_NEWER
 
         private NetworkContext context;
         private Vector3 flightForce;
@@ -38,28 +40,30 @@ namespace Ubiq.Samples
             context = NetworkScene.Register(this);
 
             var grab = GetComponent<XRGrabInteractable>();
-            grab.activated.AddListener(XRGrabInteractable_Activated);
+            grab.selectExited.AddListener(Interactable_SelectExited);
         }
 
-        public void XRGrabInteractable_Activated(ActivateEventArgs eventArgs)
+        private void Interactable_SelectExited(SelectExitEventArgs eventArgs)
         {
+            if (fired)
+            {
+                return;
+            }
+            
             fired = true;
             
             flightForce = new Vector3(
-                x:(Random.value - 0.5f)*0.2f, 
-                y:0.3f, 
-                z:(Random.value - 0.5f)*0.2f);
+                x:(Random.value - 0.5f)*0.05f, 
+                y:3.0f, 
+                z:(Random.value - 0.5f)*0.05f);
             explodeTime = Time.time + 10.0f; 
 
-            // Force the interactor(hand) to drop the firework
-            var interactor = (XRBaseInteractor)eventArgs.interactorObject;
-            interactor.allowSelect = false;
+            // No longer interactable
             var interactable = (XRGrabInteractable)eventArgs.interactableObject;
             interactable.enabled = false;
-            interactor.allowSelect = true;
         }
 
-        private void Update()
+        private void FixedUpdate()
         {
             if(owner)
             {
@@ -73,7 +77,7 @@ namespace Ubiq.Samples
                 if (!particles.isPlaying)
                 {
                     particles.Play();
-                    body.AddForce(Vector3.up * 2.0f, ForceMode.Impulse);
+                    body.AddForce(transform.up * 2.0f, ForceMode.Impulse);
                 }
                 
                 if (Time.time > explodeTime)

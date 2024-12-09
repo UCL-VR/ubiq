@@ -6,6 +6,7 @@
         "GUID:f12aafacab75a87499e7e45c873ffab8"
     ],
     "includePlatforms": [
+        "Android",
         "Editor",
         "iOS",
         "LinuxStandalone64",
@@ -26,7 +27,7 @@
         },
         {
             "name": "com.unity.webrtc-ubiq-fork",
-            "expression": "0.0.0",
+            "expression": "3.0.1-pre.7",
             "define": "UNITY_WEBRTC_UBIQ_FORK"
         }
     ],

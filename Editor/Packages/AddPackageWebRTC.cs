@@ -25,9 +25,13 @@ namespace Ubiq.Editor
                 " behaviour, add the string" +
                 " UBIQ_DISABLE_WEBRTCCOMPATIBILITYCHECK to your scripting define" +
                 " symbols.");
-            PackageManagerHelper.RemoveProvider("com.unity.webrtc");
+            PackageManagerHelper.RemovePackage("com.unity.webrtc");
 #endif
-            PackageManagerHelper.AddPackage("https://github.com/UCL-VR/unity-webrtc-ubiq-fork.git");
+            // Remove previous versions
+            PackageManagerHelper.RemovePackage("com.unity.webrtc-no-vulkan-hook");
+            PackageManagerHelper.RemovePackage("com.unity.webrtc-ubiq-fork");
+            
+            PackageManagerHelper.AddPackage("https://github.com/UCL-VR/unity-webrtc-ubiq-fork.git#v3.0.1-pre.7");
             EditorApplication.update -= Update;
         }
     }

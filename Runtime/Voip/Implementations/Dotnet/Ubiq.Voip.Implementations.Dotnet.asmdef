@@ -6,6 +6,7 @@
     ],
     "includePlatforms": [],
     "excludePlatforms": [
+        "Android",
         "Editor",
         "iOS",
         "LinuxStandalone64",

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Ubiq.Messaging;
 using Ubiq.Spawning;
@@ -6,20 +7,18 @@ using UnityEngine;
 
 namespace Ubiq.Avatars
 {
-    public class AvatarDataGenerator : MonoBehaviour, INetworkSpawnable
+    public class AvatarDataGenerator : MonoBehaviour
     {
         public int BytesPerMessage = 0;
 
         private float lastTransmitTime;
         private Avatar avatar;
-        private NetworkContext context;
-
-        public NetworkId NetworkId { get; set; }
-
-        private void Awake()
+        private NetworkScene networkScene;
+        
+        private void Start()
         {
             avatar = GetComponentInParent<Avatar>();
-            context = NetworkScene.Register(this);
+            networkScene = NetworkScene.Find(this);
         }
 
         private void Update()
@@ -28,12 +27,8 @@ namespace Ubiq.Avatars
             {
                 lastTransmitTime = Time.time;
                 var message = ReferenceCountedSceneGraphMessage.Rent(BytesPerMessage);
-                context.Send(message);
+                networkScene.Send(NetworkId.Unique(), message);
             }
-        }
-
-        public void ProcessMessage (ReferenceCountedSceneGraphMessage msg)
-        {
         }
     }
 }

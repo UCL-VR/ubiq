@@ -106,17 +106,9 @@ namespace Ubiq.Editor
 
         private static IEnumerator ProcessPackages()
         {
-            var upmRequest = null as AddAndRemoveRequest;
-            if (packageRequests.Count > 0)
-            {
-                GetUnique(packageRequests, out var adds, out var removes);
-                LogPackageModificationMessage(adds,removes);
-
-#if !UBIQ_DISABLE_PACKAGEIMPORT
-                upmRequest = Client.AddAndRemove(adds,removes);
-#else
+#if UBIQ_DISABLE_PACKAGEIMPORT
     #if !UBIQ_SILENCEWARNING_DISABLEPACKAGEIMPORT
-                Debug.LogWarning("Ubiq will not modify packages as the" +
+            Debug.LogWarning("Ubiq will not modify packages as the" +
                     " scripting define symbol UBIQ_DISABLE_PACKAGEIMPORT is" +
                     " present. Please ensure you manage the required packages" +
                     " manually, or Ubiq may not function as intended. To" +
@@ -124,10 +116,35 @@ namespace Ubiq.Editor
                     " UBIQ_SILENCEWARNING_DISABLEPACKAGEIMPORT to your scripting"
                     " define symbols.");
     #endif
+            packageRequests.Clear();
+            yield break;
 #endif
-                packageRequests.Clear();
+            
+            if (packageRequests.Count == 0)
+            {
+                yield break;
+            }
+            
+            GetUnique(packageRequests, out var adds, out var removes);
+            packageRequests.Clear();
+            LogPackageModificationMessage(adds,removes);
+            
+            // First check if the packages for removal are present
+            var listRequest = Client.List(
+                offlineMode:true,includeIndirectDependencies:false);
+            while (listRequest != null)
+            {
+                if (listRequest.IsCompleted)
+                {
+                    Filter(ref removes, listRequest.Result);
+                    listRequest = null;
+                }
+                
+                yield return null;
             }
 
+            // Now do the actual add/remove
+            var upmRequest = Client.AddAndRemove(adds,removes);
             while (upmRequest != null)
             {
                 if (upmRequest.Status == StatusCode.Failure)
@@ -138,10 +155,8 @@ namespace Ubiq.Editor
                     Debug.LogError($"Ubiq was unable to modify project requirements. Error: {error}");
                     upmRequest = null;
                 }
-
-                if (upmRequest.Status == StatusCode.Success)
+                else if (upmRequest.Status == StatusCode.Success)
                 {
-                    var collection = (PackageCollection)upmRequest.Result;
                     Debug.Log("Ubiq successfully modified project requirements.");
                     upmRequest = null;
                     assetsDirty = true;
@@ -149,6 +164,8 @@ namespace Ubiq.Editor
 
                 yield return null;
             }
+            
+            yield return null;
         }
 
         private static IEnumerator ProcessSamples()
@@ -246,6 +263,24 @@ namespace Ubiq.Editor
                     " be found in the package.");
             }
             return samples;
+        }
+        
+        private static void Filter(ref string[] names, PackageCollection collection)
+        {
+            var result = new List<string>();
+            foreach (var requestedPackage in names)
+            {
+                foreach (var existingPackage in collection)
+                {
+                    if (existingPackage.name == requestedPackage)
+                    {
+                        result.Add(requestedPackage);
+                        break;
+                    }
+                }
+            }
+            
+            names = result.ToArray();
         }
 
         private static void GetUnique(List<PackageRequest> requests,
