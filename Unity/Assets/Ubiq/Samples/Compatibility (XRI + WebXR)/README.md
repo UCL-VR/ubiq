@@ -5,7 +5,7 @@ This prefab can be used to attach required WebXR managers when part part of a We
 1. Open the Demo scene from the Demo (XRI) sample.
 2. Drag in the 'Ubiq Player Bridge (WebXR)' prefab from this sample.
 
-You're done! The WebXR plugin is compatible with XRI interactions, so nothing else needs changing. This works thanks to the (excellent!) WebXR-Interactions plugin by De-Panther (https://github.com/De-Panther/unity-webxr-export).
+You're done! The WebXR plugin is compatible with XRI interactions, so nothing else needs changing. This works thanks to the (excellent!) WebXR-Interactions plugin by De-Panther (https://github.com/De-Panther/unity-webxr-export), which builds on the original WebVR plugin by Mozilla.
 
 ## (Optional) Switching to the Universal Render Pipeline ##
 
@@ -14,11 +14,11 @@ The Universal Render Pipeline (URP) does not seem to be strictly required to bui
 1. Import the URP package (com.unity.render-pipelines.universal)
 2. In Edit > Project Settings > Graphics, set the Scriptable Render Pipeline Settings asset to WebXR_PipelineAsset
 
-You may also want to increase MSAA on the pipeline asset. It's inexpensive on the URP's Forward rendering path, and can significantly increase comfort in VR.
+## (If using a Unity version prior to Unity 6) Switch to Gamma color space ##
 
-## (Optional) Switch to Gamma color space ##
+As with URP, gamma space shading is not a strict requirement, but is recommended by WebXR-Export. This is likely because the WebGL DXT-compression extension Unity uses to make linear space shading possible does not appear to be supported on mobile. 
 
-As with URP, gamma space shading is not a strict requirement, but is recommended by WebXR-Export. This is likely because the WebGL DXT-compression extension Unity uses to make linear space shading possible does not appear to be supported on mobile.
+NOTE: Specifically for Unity 6, linear color space is the default for new Unity projects, and is also compatible with WebXR-Export. This means you can likely skip this step. If you are on Unity 6 and using a Gamma color space, follow the steps below, but instead change the color space to Linear.
 
 A linear color space is more true to life, but shading in gamma space can look fine too - what's important is just that if you do plan to switch for your project, do it early! After switching, your existing scenes will look different in the other color space due to changes in how lighting is calculated.
 
