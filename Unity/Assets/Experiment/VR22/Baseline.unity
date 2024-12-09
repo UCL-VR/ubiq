@@ -664,14 +664,6 @@ MonoBehaviour:
     UpdateRate: 60
     Padding: 500
     ManageRooms: 1
-  - Bot: {fileID: 2044676199132764484, guid: 8969237717949e3418c9f0385e21c460, type: 3}
-    UpdateRate: 60
-    Padding: 500
-    ManageRooms: 1
-  - Bot: {fileID: 2739430715554702360, guid: f48c26e946b7fc644bf1eaebc31a8bd3, type: 3}
-    UpdateRate: 60
-    Padding: 500
-    ManageRooms: 1
   - Bot: {fileID: 2739430715554702360, guid: f48c26e946b7fc644bf1eaebc31a8bd3, type: 3}
     UpdateRate: 60
     Padding: 500
