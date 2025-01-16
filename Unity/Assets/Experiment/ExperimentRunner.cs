@@ -56,6 +56,7 @@ public class ExperimentRunner : MonoBehaviour
         LocalLogCollector.StartCollection();
         Controller.OnMessage("RTT", OnRTT);
         Controller.OnMessage("Position", OnPosition);
+        Controller.OnMessage("BotDestination", OnBotDestination);
     }
 
     private void OnRTT(string ev)
@@ -68,6 +69,12 @@ public class ExperimentRunner : MonoBehaviour
     {
         var report = JsonUtility.FromJson<BotExperimentScript.PositionReport>(parms);
         experiment.Log("Position", report.slice, report.position, report.velocity);
+    }
+
+    private void OnBotDestination(string parms)
+    {
+        var destination = JsonUtility.FromJson<Vector3>(parms);
+        experiment.Log("BotDestination", parms);
     }
 
     public void Begin()
@@ -153,6 +160,7 @@ public class ExperimentRunner : MonoBehaviour
                 break;
             }
         }
+        Debug.Log("Prefab: " + prefab + " | " + Manager.BotPrefabs[prefab].name);
 
         if(condition.ManageRooms)
         {
