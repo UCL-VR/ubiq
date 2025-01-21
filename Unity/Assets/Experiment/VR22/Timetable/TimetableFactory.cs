@@ -13,7 +13,7 @@ public class TimetableFactory : MonoBehaviour
     public class TimetableEvent
     {
         public string Name;
-        public Transform Location;
+        public Room Location;
         public int StartTime;
         public int EndTime;
     }

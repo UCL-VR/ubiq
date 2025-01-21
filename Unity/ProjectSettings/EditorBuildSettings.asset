@@ -17,9 +17,12 @@ EditorBuildSettings:
   - enabled: 0
     path: 
     guid: 00000000000000000000000000000000
-  - enabled: 1
+  - enabled: 0
     path: Assets/Experiment/VR22/Baseline.unity
     guid: 57414d2a96cb7ad419be95bbfc35e699
+  - enabled: 1
+    path: Assets/Experiment/VR22/Timetable.unity
+    guid: 7e6f8108cb47c4693be2670e50523f8d
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 94853b5e64b20ad4ea201d84aa95b8d9,
       type: 2}

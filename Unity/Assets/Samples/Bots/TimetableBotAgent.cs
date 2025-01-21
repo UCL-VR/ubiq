@@ -63,7 +63,7 @@ namespace Ubiq.Samples.Bots
                 return;
             }
 
-            print("bot id: " + gameObject.name + " | time: " + Time.time  + " | destination: " + navMeshAgent.destination + " | nextEvent: " + nextEvent + " | next event location: " + events[nextEvent].Location.position + "| location: " + transform.position +  "| remaining distance: " + navMeshAgent.remainingDistance);
+            print("bot id: " + gameObject.name + " | time: " + Time.time  + " | destination: " + navMeshAgent.destination + " | nextEvent: " + nextEvent + " | next event location: " + events[nextEvent].Location.transform.position + "| location: " + transform.position +  "| remaining distance: " + navMeshAgent.remainingDistance);
 
             if (destination != null)
             {
@@ -76,8 +76,14 @@ namespace Ubiq.Samples.Bots
 
             if (nextEvent != -1 && events[nextEvent].StartTime < Time.time)
             {
-                navMeshAgent.SetDestination(events[nextEvent].Location.position);
+                navMeshAgent.SetDestination(events[nextEvent].Location.transform.position);
             }
+        }
+
+        public void JoinRoom(Guid roomId)
+        {
+            Debug.Log("Bot " + gameObject.name + " joined room " + roomId);
+
         }
 
         private void OnDrawGizmos()
