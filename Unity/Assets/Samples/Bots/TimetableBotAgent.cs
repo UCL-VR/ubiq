@@ -47,11 +47,8 @@ namespace Ubiq.Samples.Bots
             }
             logEmitter = new ExperimentLogEmitter(this);
 
-            string directory = Path.GetDirectoryName(filePath);
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
+            destination = events[nextEvent].Location.transform.position;
+            navMeshAgent.SetDestination(events[nextEvent].Location.transform.position);
             Debug.Log("events count: " + events.Count + "nextEvent: " + nextEvent);
         }
 
@@ -63,9 +60,9 @@ namespace Ubiq.Samples.Bots
                 return;
             }
 
-            print("bot id: " + gameObject.name + " | time: " + Time.time  + " | destination: " + navMeshAgent.destination + " | nextEvent: " + nextEvent + " | next event location: " + events[nextEvent].Location.transform.position + "| location: " + transform.position +  "| remaining distance: " + navMeshAgent.remainingDistance);
+            print("bot id: " + gameObject.name + " | time: " + Time.time + "| location: " + transform.position + " | destination: " + navMeshAgent.destination + " | nextEvent: " + nextEvent + " | next event start time: " + events[nextEvent].StartTime + " | next event location: " + events[nextEvent].Location.transform.position + "| remaining distance: " + navMeshAgent.remainingDistance);
 
-            if (destination != null)
+            if (destination != null) // when bot has arrived
             {
                 if (Vector3.Distance(destination, transform.position) < 1f)
                 {
@@ -76,6 +73,7 @@ namespace Ubiq.Samples.Bots
 
             if (nextEvent != -1 && events[nextEvent].StartTime < Time.time)
             {
+                destination = events[nextEvent].Location.transform.position;
                 navMeshAgent.SetDestination(events[nextEvent].Location.transform.position);
             }
         }

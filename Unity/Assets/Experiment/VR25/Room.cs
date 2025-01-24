@@ -17,7 +17,7 @@ public class Room : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Debug.Log("Room created with id: " + roomId);
+        Debug.Log("Room created with id: " + roomId + " at position: " + transform.position + " with box collider scale:" + GetComponent<BoxCollider>().size);
     }
 
     // Update is called once per frame
@@ -33,7 +33,8 @@ public class Room : MonoBehaviour
    
         if (other.gameObject.tag == "Player")
         {
-            // RoomJoin bot = other.gameObject.GetComponent<RoomJoin>();
+            RoomJoin bot = other.gameObject.GetComponent<RoomJoin>();
+            bot.JoinRoom(roomId);
 
 
             Debug.Log("Player entered room " + roomId);
