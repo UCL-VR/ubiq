@@ -1,9 +1,9 @@
 #if XRI_3_0_7_OR_NEWER
 using UnityEngine;
 
-namespace Ubiq.Samples
+namespace Ubiq.Compatibility.XRI.TraditionalControls
 {
-    public class DesktopControlsCanvas : MonoBehaviour
+    public class TraditionalControlsCanvas : MonoBehaviour
     {
         private void Awake()
         {

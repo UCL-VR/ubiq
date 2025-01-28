@@ -1,5 +1,5 @@
 {
-    "name": "Desktop Actions",
+    "name": "Traditional Controls",
     "maps": [
         {
             "name": "Desktop",
@@ -63,7 +63,7 @@
                     "name": "Look Enable",
                     "type": "Button",
                     "id": "b7847876-b1bc-4b39-b9cf-29c3c6452b1b",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -72,7 +72,7 @@
                     "name": "Look Enable Override",
                     "type": "Button",
                     "id": "71b67860-28cb-42eb-81d3-124601270d8b",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -138,6 +138,17 @@
                     "name": "",
                     "id": "6d65ae23-f921-4a95-8a0d-66810bec677d",
                     "path": "<Mouse>/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Look",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "252f6ffe-89d5-44f4-b809-5d17544efc91",
+                    "path": "<Touchscreen>/delta",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -237,6 +248,17 @@
                     "name": "",
                     "id": "079220f0-4c22-487e-a0b3-bd26fc800eb7",
                     "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Look Enable",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b5700805-3fb3-4e1c-a350-6667affd970e",
+                    "path": "<Touchscreen>/Press",
                     "interactions": "",
                     "processors": "",
                     "groups": "",

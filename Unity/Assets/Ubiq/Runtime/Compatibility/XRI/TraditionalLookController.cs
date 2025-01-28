@@ -1,18 +1,16 @@
 #if XRI_3_0_7_OR_NEWER
-using System.Collections;
-using System.Collections.Generic;
 using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 using Ubiq.XR.Notifications;
 
-namespace Ubiq.Samples
+namespace Ubiq.Compatibility.XRI.TraditionalControls
 {
     /// <summary>
-    /// Allows the mouse to control the orientation of the Camera.
+    /// Allows mouse or touch inputs to control the orientation of the Camera.
     /// </summary>
-    public class DesktopLookController : MonoBehaviour
+    public class TraditionalLookController : MonoBehaviour
     {
         public InputActionReference Look;
         public InputActionReference Enable;
@@ -23,6 +21,8 @@ namespace Ubiq.Samples
         public XROrigin XROrigin;
         public float Sensitivity = 0.25f;
 
+        private bool isSuppressed;
+        
         private void Awake()
         {
             if (!XROrigin)
@@ -53,12 +53,40 @@ namespace Ubiq.Samples
 
         void Update()
         {
-            if ((Enable.action.ReadValue<float>() > 0 && RayInteractor.interactablesSelected.Count == 0) || EnableOverride.action.ReadValue<float>() > 0)
+            if (isSuppressed)
             {
-                var look = Look.action.ReadValue<Vector2>();
-                XROrigin.transform.Rotate(Vector3.up, look.x * Sensitivity);
-                XROrigin.CameraFloorOffsetObject.transform.Rotate(Vector3.right, look.y * Sensitivity * -0.5f);
+                isSuppressed = false;
+                return;
             }
+            
+            if ((Enable.action.ReadValue<float>() > 0 && RayInteractor.interactablesSelected.Count == 0) 
+                || EnableOverride.action.ReadValue<float>() > 0)
+            {
+                AddDelta(Look.action.ReadValue<Vector2>());
+            }
+        }
+        
+        public void AddDelta(Vector2 delta)
+        {
+            XROrigin.transform.Rotate(Vector3.up, delta.x * Sensitivity);
+            XROrigin.CameraFloorOffsetObject.transform.Rotate(Vector3.right, delta.y * Sensitivity * -0.5f);
+        }
+        
+        /// <summary>
+        /// Prevent camera rotations for one frame. Resume immediately with
+        /// <see cref="ClearSuppression"/>. 
+        /// </summary>
+        public void SuppressThisFrame()
+        {
+            isSuppressed = true;
+        }
+        
+        /// <summary>
+        /// Immediately resume camera rotations.
+        /// </summary>
+        public void ClearSuppression()
+        {
+            isSuppressed = false;
         }
 
         public void ResetPitch()
