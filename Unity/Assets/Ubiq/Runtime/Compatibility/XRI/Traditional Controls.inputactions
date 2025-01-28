@@ -150,7 +150,7 @@
                     "id": "252f6ffe-89d5-44f4-b809-5d17544efc91",
                     "path": "<Touchscreen>/delta",
                     "interactions": "",
-                    "processors": "",
+                    "processors": "ScaleVector2(x=0.5,y=0.5)",
                     "groups": "",
                     "action": "Look",
                     "isComposite": false,
