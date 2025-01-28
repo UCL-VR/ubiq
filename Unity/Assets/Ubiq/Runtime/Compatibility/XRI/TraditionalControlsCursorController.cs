@@ -16,7 +16,6 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
     /// </summary>
     public class TraditionalControlsCursorController : MonoBehaviour
     {
-        public List<RuntimePlatform> disableForPlatforms; 
         public InputActionReference CursorPosition;
         public InputActionReference TranslateAnchor;
         public InputActionReference Select;
@@ -28,16 +27,13 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
     
         public Color InteractableHoverColour = Color.cyan;
     
+        private bool disableCursor;
+    
         private void Awake()
         {
             if (!XROrigin)
             {
                 XROrigin = GetComponentInParent<XROrigin>();
-            }
-            
-            if (disableForPlatforms.Contains(Application.platform))
-            {
-                enabled = false;
             }
         }
     
@@ -49,6 +45,8 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
             Select.action.Enable();
             XRNotifications.OnHmdMounted += OnHmdAdded;
             XRNotifications.OnHmdUnmounted += OnHmdRemoved;
+            
+            disableCursor = Application.isMobilePlatform;
         }
     
         public void OnHmdAdded()
@@ -80,6 +78,11 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
     
         private void UpdateCursor()
         {
+            if (disableCursor)
+            {
+                return;
+            }
+            
             Vector3 position = CursorPosition.action.ReadValue<Vector2>();
     
             CursorImage.enabled = true;
