@@ -20,9 +20,8 @@ namespace Ubiq.Samples.Bots
         public Vector3 destination;
         List<TimetableFactory.TimetableEvent> events;
         private int nextEvent = -1;
+        private TimetableFactory.TimetableEvent currentEvent;
         // ExperimentLogEmitter logEmitter;
-
-        public float Radius = 10f;
 
         private void Awake()
         {
@@ -33,22 +32,8 @@ namespace Ubiq.Samples.Bots
         // Start is called before the first frame update
         void Start()
         {
-            // if (nextEvent == -1)
-            // {
-            //     for (int i = 0; i < events.Count; i++)
-            //     {
-            //         if (events[i].StartTime > Time.time)
-            //         {
-            //             nextEvent = i;
-            //             break;
-            //         }
-            //     }
-            // }
-            // logEmitter = new ExperimentLogEmitter(this);
             LookForNextEvent();
-            // destination = events[nextEvent].Location.transform.position;
-            // navMeshAgent.SetDestination(events[nextEvent].Location.transform.position);
-            Debug.Log("events count: " + events.Count + "nextEvent: " + nextEvent);
+            // Debug.Log("events count: " + events.Count + "nextEvent: " + nextEvent);
         }
 
         // Update is called once per frame
@@ -63,9 +48,14 @@ namespace Ubiq.Samples.Bots
             {
                 if (Vector3.Distance(destination, transform.position) < 1f)// when bot has arrived
                 {
+                    currentEvent = events[nextEvent];
                     if (ReadyToLeave())
                     {
                         LookForNextEvent();
+                    }
+                    else
+                    {
+                        WanderWithinRoom();
                     }
                 }
             }
@@ -86,6 +76,7 @@ namespace Ubiq.Samples.Bots
 
         private void LookForNextEvent()
         {
+            currentEvent = null;
             for (int i = nextEvent + 1; i < events.Count; i++)
             {
                 print($"!!! event {i} start time: {events[i].StartTime} | current time: {Time.time} | events[i].StartTime > Time.time: {events[i].StartTime > Time.time}");
@@ -95,7 +86,7 @@ namespace Ubiq.Samples.Bots
                 }
                 nextEvent = i;
             }
-            print($"!!! next event: {nextEvent}");
+            // print($"!!! next event: {nextEvent}");
 
             if (nextEvent != -1)
             {
@@ -107,6 +98,30 @@ namespace Ubiq.Samples.Bots
         private bool ReadyToLeave()
         {
             return Time.time > events[nextEvent].EndTime;
+        }
+
+        private void WanderWithinRoom()
+        {
+            if (!navMeshAgent.isActiveAndEnabled)
+            {
+                return;
+            }
+
+            if (currentEvent == null)
+            {
+                return;
+            }
+
+            NavMeshHit hit;
+
+            int i = 0;
+            do
+            {
+                i++;
+                destination = currentEvent.Location.transform.position + UnityEngine.Random.insideUnitSphere * currentEvent.Location.size.x / 2;
+            } while (!NavMesh.SamplePosition(destination, out hit, float.MaxValue, NavMesh.AllAreas) && i < 100);
+            destination = hit.position;
+            navMeshAgent.destination = destination;
         }
 
         private void OnDrawGizmos()
