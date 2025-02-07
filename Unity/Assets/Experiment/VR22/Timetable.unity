@@ -889,7 +889,7 @@ MonoBehaviour:
   Controller: {fileID: 1598876982}
   Manager: {fileID: 1161235699}
   LocalLogCollector: {fileID: 1135745796}
-  NumBots: 5
+  NumBots: 10
   Conditions:
   - Bot: {fileID: 2044676199132764484, guid: 24a291ec46b56476db226be2ca423978, type: 3}
     UpdateRate: 60
