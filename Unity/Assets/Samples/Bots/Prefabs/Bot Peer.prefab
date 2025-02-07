@@ -1,31 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &4582468772106666299
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4904968254606135837}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 69bc849c5e61100449026641d44f3d5b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &5855053901045494291
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4904968254606135837}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d3b94402c6116c940a2f428c9e90eb95, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Clip: {fileID: 8300000, guid: 249851a6e20528b4a95809eb1105dd2c, type: 3}
-  IsPaused: 0
 --- !u!1 &4904968254921343995
 GameObject:
   m_ObjectHideFlags: 0
@@ -220,12 +194,12 @@ PrefabInstance:
     - target: {fileID: 3130174346742382869, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
         type: 3}
       propertyPath: networkId.a
-      value: 208930076
+      value: 3432495685
       objectReference: {fileID: 0}
     - target: {fileID: 3130174346742382869, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
         type: 3}
       propertyPath: networkId.b
-      value: 3939690110
+      value: 529910333
       objectReference: {fileID: 0}
     - target: {fileID: 3130174346742382869, guid: 2fb578800afc87244b5ba3a0fbbd11c0,
         type: 3}
@@ -768,3 +742,29 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 2740646385457298556}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &4582468772106666299
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4904968254606135837}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69bc849c5e61100449026641d44f3d5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &5855053901045494291
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4904968254606135837}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3b94402c6116c940a2f428c9e90eb95, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Clip: {fileID: 8300000, guid: 249851a6e20528b4a95809eb1105dd2c, type: 3}
+  IsPaused: 0

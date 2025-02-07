@@ -19,9 +19,8 @@ namespace Ubiq.Samples.Bots
         private Action<string, string> sendMessageBack;
         public Vector3 destination;
         List<TimetableFactory.TimetableEvent> events;
-        private int nextEvent = 0;
-        ExperimentLogEmitter logEmitter;
-        private string filePath = "/Users/peterbox/UCL/fyp/build/timetabledBotAgent.txt";
+        private int nextEvent = -1;
+        // ExperimentLogEmitter logEmitter;
 
         public float Radius = 10f;
 
@@ -34,21 +33,21 @@ namespace Ubiq.Samples.Bots
         // Start is called before the first frame update
         void Start()
         {
-            if (nextEvent == 0)
-            {
-                for (int i = 0; i < events.Count; i++)
-                {
-                    if (events[i].StartTime > Time.time)
-                    {
-                        nextEvent = i;
-                        break;
-                    }
-                }
-            }
-            logEmitter = new ExperimentLogEmitter(this);
-
-            destination = events[nextEvent].Location.transform.position;
-            navMeshAgent.SetDestination(events[nextEvent].Location.transform.position);
+            // if (nextEvent == -1)
+            // {
+            //     for (int i = 0; i < events.Count; i++)
+            //     {
+            //         if (events[i].StartTime > Time.time)
+            //         {
+            //             nextEvent = i;
+            //             break;
+            //         }
+            //     }
+            // }
+            // logEmitter = new ExperimentLogEmitter(this);
+            LookForNextEvent();
+            // destination = events[nextEvent].Location.transform.position;
+            // navMeshAgent.SetDestination(events[nextEvent].Location.transform.position);
             Debug.Log("events count: " + events.Count + "nextEvent: " + nextEvent);
         }
 
@@ -59,29 +58,55 @@ namespace Ubiq.Samples.Bots
             {
                 return;
             }
-
-            print("bot id: " + gameObject.name + " | time: " + Time.time + "| location: " + transform.position + " | destination: " + navMeshAgent.destination + " | nextEvent: " + nextEvent + " | next event start time: " + events[nextEvent].StartTime + " | next event location: " + events[nextEvent].Location.transform.position + "| remaining distance: " + navMeshAgent.remainingDistance);
-
-            if (destination != null) // when bot has arrived
+            
+            if (destination != null)
             {
-                if (Vector3.Distance(destination, transform.position) < 1f)
+                if (Vector3.Distance(destination, transform.position) < 1f)// when bot has arrived
                 {
-                    return;
+                    if (ReadyToLeave())
+                    {
+                        LookForNextEvent();
+                    }
                 }
             }
-
-
-            if (nextEvent != -1 && events[nextEvent].StartTime < Time.time)
+            else
             {
-                destination = events[nextEvent].Location.transform.position;
-                navMeshAgent.SetDestination(events[nextEvent].Location.transform.position);
+                LookForNextEvent();
+                return;
             }
+
+            // print("bot id: " + gameObject.name + " | time: " + Time.time + "| location: " + transform.position + " | destination: " + navMeshAgent.destination + " | nextEvent: " + nextEvent + " | next event start time: " + events[nextEvent].StartTime + " | next event location: " + events[nextEvent].Location.transform.position + "| remaining distance: " + navMeshAgent.remainingDistance);
         }
 
         public void JoinRoom(Guid roomId)
         {
             Debug.Log("Bot " + gameObject.name + " joined room " + roomId);
 
+        }
+
+        private void LookForNextEvent()
+        {
+            for (int i = nextEvent + 1; i < events.Count; i++)
+            {
+                print($"!!! event {i} start time: {events[i].StartTime} | current time: {Time.time} | events[i].StartTime > Time.time: {events[i].StartTime > Time.time}");
+                if (events[i].StartTime > Time.time)
+                {
+                    break;
+                }
+                nextEvent = i;
+            }
+            print($"!!! next event: {nextEvent}");
+
+            if (nextEvent != -1)
+            {
+                destination = events[nextEvent].Location.transform.position;
+                navMeshAgent.SetDestination(events[nextEvent].Location.transform.position);
+            }
+        }
+
+        private bool ReadyToLeave()
+        {
+            return Time.time > events[nextEvent].EndTime;
         }
 
         private void OnDrawGizmos()
