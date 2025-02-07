@@ -7,7 +7,7 @@ using Ubiq.Samples.Bots;
 
 public class Room : MonoBehaviour
 {
-    public Guid roomId {get; private set;};
+    public Guid roomId {get; private set;}
     public Vector3 size {get; private set;}
 
     private BoxCollider boxCollider;
