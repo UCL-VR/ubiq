@@ -12,7 +12,7 @@ process.argv.slice(2).forEach(element => {
     nconf.file(element,element);
 });
 nconf.file('local', 'config/local.json');
-nconf.file('default', 'config/default.json');
+nconf.file('default', 'config/vrst_baseline.json');
 
 roomServer = new RoomServer();
 roomServer.addStatusStream(nconf.get('roomserver:statusLogFile'));

@@ -398,10 +398,10 @@ MonoBehaviour:
   - Name: Coffe Break
     Location: {fileID: 41127999}
     StartTime: 85
-    EndTime: 120
+    EndTime: 95
   - Name: Back to Room 2
     Location: {fileID: 1886528760}
-    StartTime: 120
+    StartTime: 95
     EndTime: 1000000
 --- !u!4 &562782348
 Transform:
@@ -1025,14 +1025,14 @@ MonoBehaviour:
     listen_on_ip: 
     listen_on_port: 
     send_to_ip: localhost
-    send_to_port: 8007
+    send_to_port: 8009
     type: 0
   DefaultBotServer:
     listen_on_ip: 
     listen_on_port: 
     send_to_ip: localhost
-    send_to_port: 8007
-    type: 0
+    send_to_port: 8010
+    type: 3
   ControlRoomId: 87ef0572-67ea-43cc-b2d9-a242428ce929
 --- !u!4 &1567755671
 Transform:

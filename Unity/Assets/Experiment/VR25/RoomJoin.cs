@@ -45,6 +45,7 @@ public class RoomJoin : MonoBehaviour
 
     public void LeaveRoom()
     {
+        currentRoomId = Guid.Empty;
         roomClient.Join(corridorJoinCode);
     }
 }
