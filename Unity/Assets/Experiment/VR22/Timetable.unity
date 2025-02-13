@@ -394,15 +394,15 @@ MonoBehaviour:
   - Name: Room2
     Location: {fileID: 1886528760}
     StartTime: 70
-    EndTime: 85
+    EndTime: 90
   - Name: Coffe Break
     Location: {fileID: 41127999}
-    StartTime: 85
-    EndTime: 95
+    StartTime: 90
+    EndTime: 100
   - Name: Back to Room 2
     Location: {fileID: 1886528760}
-    StartTime: 95
-    EndTime: 1000000
+    StartTime: 100
+    EndTime: 10000000
 --- !u!4 &562782348
 Transform:
   m_ObjectHideFlags: 0
@@ -605,7 +605,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: -1444460858095362738, guid: 3524b442a4a3db04590867d15113845b, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
