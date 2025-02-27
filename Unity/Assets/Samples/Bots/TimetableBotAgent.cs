@@ -161,23 +161,11 @@ namespace Ubiq.Samples.Bots
                     continue;
 
 
-                TimetableFactory.TimetableEvent e = publicTimetable[i];
 
-                TimetableFactory.TimetableEvent newEvent = new TimetableFactory.TimetableEvent();
-                newEvent.Name = e.Name;
-                newEvent.Location = e.Location;
-                newEvent.StartTime = Util.GaussianRandom(e.StartTime, 10f);
-                newEvent.EndTime = e.EndTime;
-                events.Add(newEvent);
+                events.Add(Customize(publicTimetable[i]));
             }
 
-            TimetableFactory.TimetableEvent lastE = publicTimetable[publicTimetable.Count - 1];
-            TimetableFactory.TimetableEvent newLastEvent = new TimetableFactory.TimetableEvent();
-            newLastEvent.Name = lastE.Name;
-            newLastEvent.Location = lastE.Location;
-            newLastEvent.StartTime = Util.GaussianRandom(lastE.StartTime, 10f);
-            newLastEvent.EndTime = lastE.EndTime;
-            events.Add(newLastEvent);
+            events.Add(Customize(publicTimetable[publicTimetable.Count - 1]));
 
             // Make sure the end time of last event is large enough
             if (events.Count > 0)
@@ -186,7 +174,7 @@ namespace Ubiq.Samples.Bots
             } 
         }
 
-        private TimetableFactory.TimetableEvent Customize(TimetableFactory.TimetableEvent e, float noise)
+        private TimetableFactory.TimetableEvent Customize(TimetableFactory.TimetableEvent e, float noise=10f)
         {
             TimetableFactory.TimetableEvent newEvent = new TimetableFactory.TimetableEvent();
             newEvent.Name = e.Name;
