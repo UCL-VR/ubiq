@@ -7,6 +7,11 @@ using Ubiq.Samples.Bots;
 
 public class Room : MonoBehaviour
 {
+    /// <summary>
+    /// Sometimes we would like a room to have a collider (so that bots can access its size and wander within the boundaries), but not an actual networking room,
+    /// in that case, this room would be a subregion of the main hallway, and we would not want to create a new room for it.
+    /// </summary>
+    public bool IsNetworkingRoom = true;
     public Guid roomId {get; private set;}
     public Vector3 size {get; private set;}
 
@@ -36,6 +41,9 @@ public class Room : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+        if (!IsNetworkingRoom)
+            return;
+
         Debug.Log("OnTriggerEnter called!!!!! at " + roomId);
         
    
@@ -51,6 +59,9 @@ public class Room : MonoBehaviour
 
     void OnTriggerExit(Collider other)
     {
+        if (!IsNetworkingRoom)
+            return;
+
         Debug.Log("OnTriggerExit called!!!!! at " + roomId);
         if (other.gameObject.tag == "Player")
         {

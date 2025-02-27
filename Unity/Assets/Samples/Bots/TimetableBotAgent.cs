@@ -25,20 +25,23 @@ namespace Ubiq.Samples.Bots
 
         private void Awake()
         {
+            Debug.Log("Bot " + gameObject.name + " awake");
             navMeshAgent = GetComponent<NavMeshAgent>();
-            events = TimetableFactory.Instance.Events;
+            CustomizeTimetable();
         }
 
         // Start is called before the first frame update
         void Start()
         {
+            Debug.Log("Bot " + gameObject.name + " start");
             LookForNextEvent();
-            // Debug.Log("events count: " + events.Count + "nextEvent: " + nextEvent);
+            Debug.Log("events count: " + events.Count + "nextEvent: " + nextEvent);
         }
 
         // Update is called once per frame
         void Update()
         {
+            // Debug.Log("nextEvent: "+nextEvent);
             if (!navMeshAgent.isActiveAndEnabled)
             {
                 return;
@@ -62,10 +65,7 @@ namespace Ubiq.Samples.Bots
             else
             {
                 LookForNextEvent();
-                return;
-            }
-
-            print("bot id: " + gameObject.name + " | time: " + Time.time + "| location: " + transform.position + " | destination: " + navMeshAgent.destination + " | nextEvent: " + nextEvent + " | next event start time: " + events[nextEvent].StartTime + " | next event location: " + events[nextEvent].Location.transform.position + "| remaining distance: " + navMeshAgent.remainingDistance);
+            }    
         }
 
         public void JoinRoom(Guid roomId)
@@ -79,14 +79,13 @@ namespace Ubiq.Samples.Bots
             currentEvent = null;
             for (int i = nextEvent + 1; i < events.Count; i++)
             {
-                print($"!!! event {i} start time: {events[i].StartTime} | current time: {Time.time} | events[i].StartTime > Time.time: {events[i].StartTime > Time.time}");
                 if (events[i].StartTime > Time.time)
                 {
                     break;
                 }
                 nextEvent = i;
             }
-            // print($"!!! next event: {nextEvent}");
+            print($"!!! next event: {nextEvent}");
 
             if (nextEvent != -1)
             {
@@ -97,7 +96,15 @@ namespace Ubiq.Samples.Bots
 
         private bool ReadyToLeave()
         {
-            return Time.time > events[nextEvent].EndTime;
+            if (nextEvent == -1)
+            {
+                return false;
+            }
+            if (nextEvent >= events.Count - 1)
+            {
+                return false;
+            }
+            return Time.time > events[nextEvent + 1].StartTime;
         }
 
         private void WanderWithinRoom()
@@ -122,6 +129,47 @@ namespace Ubiq.Samples.Bots
             } while (!NavMesh.SamplePosition(destination, out hit, float.MaxValue, NavMesh.AllAreas) && i < 100);
             destination = hit.position;
             navMeshAgent.destination = destination;
+        }
+
+        /// <summary>
+        /// Perturb the public timetable to create a customized timetable for the bot.
+        /// This works by iterating through every event, and add a zero-meaned Gaussian noise to the start and end time of the event.
+        /// When adding noise, it is also essential to validate that the new start and end time do not overlap with other events.
+        /// The new timetable is stored in the events list.
+        /// </summary>
+        private void CustomizeTimetable()
+        {
+            List<TimetableFactory.TimetableEvent> publicTimetable = TimetableFactory.Instance.Events;
+
+            events = new List<TimetableFactory.TimetableEvent>();
+
+            for (int i = 0; i < publicTimetable.Count; i++)
+            {
+                // Choose whether to add the event to the bot's timetable
+                if (i == 0)  // Always add the first event as-is
+                {                
+                    events.Add(publicTimetable[i]);
+                    continue;
+                }
+                if (UnityEngine.Random.value > 0.5f)
+                    continue;
+
+
+                TimetableFactory.TimetableEvent e = publicTimetable[i];
+
+                TimetableFactory.TimetableEvent newEvent = new TimetableFactory.TimetableEvent();
+                newEvent.Name = e.Name;
+                newEvent.Location = e.Location;
+                newEvent.StartTime = Util.GaussianRandom(e.StartTime, 10f);
+                newEvent.EndTime = e.EndTime;
+                events.Add(newEvent);
+            }
+
+            // Make sure the end time of last event is large enough
+            if (events.Count > 0)
+            {
+                events[events.Count - 1].EndTime = publicTimetable[publicTimetable.Count - 1].EndTime;
+            } 
         }
 
         private void OnDrawGizmos()

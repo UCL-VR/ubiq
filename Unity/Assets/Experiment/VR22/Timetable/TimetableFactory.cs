@@ -14,8 +14,8 @@ public class TimetableFactory : MonoBehaviour
     {
         public string Name;
         public Room Location;
-        public int StartTime;
-        public int EndTime;
+        public float StartTime;
+        public float EndTime;
     }
     public List<TimetableEvent> Events;
 

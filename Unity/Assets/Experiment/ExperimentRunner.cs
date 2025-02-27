@@ -18,8 +18,10 @@ public class ExperimentRunner : MonoBehaviour
     public BotsController Controller; // For the bots
     public BotsManager Manager; // For the prefab list
     public LogCollector LocalLogCollector; // For the log collector
+    public int LifetimeSeconds; // How long to run the experiment
 
     private LogEmitter experiment;
+    private float startTime = -1f;
 
     [Serializable]
     public class Condition
@@ -57,6 +59,24 @@ public class ExperimentRunner : MonoBehaviour
         Controller.OnMessage("RTT", OnRTT);
         Controller.OnMessage("Position", OnPosition);
         Controller.OnMessage("BotDestination", OnBotDestination);
+
+    }
+
+    private void Update()
+    {
+        if (startTime > 0 && Time.time - startTime > LifetimeSeconds)
+        {
+            experiment.Log("ExperimentComplete");
+            LocalLogCollector.StopCollection();
+
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#endif
+
+#if UNITY_STANDALONE
+            Application.Quit();
+#endif
+        }
     }
 
     private void OnRTT(string ev)
@@ -79,6 +99,7 @@ public class ExperimentRunner : MonoBehaviour
 
     public void Begin()
     {
+        startTime = Time.time;
         StartCoroutine(RunAllConditions());
         StartCoroutine(Step());
         StartCoroutine(Step2());
