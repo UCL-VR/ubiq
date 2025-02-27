@@ -16,7 +16,7 @@ namespace Ubiq.Samples.Bots
     public class BotsManager : MonoBehaviour
     {
         public GameObject[] BotPrefabs;
-        public int NumBots { get => bots.Count; }
+        public int NumBots { get => bots.Count(b => b != null); }
         public float Fps { get { return FpsMovingAverage.Mean(); } private set { FpsMovingAverage.Update(value); } }
         public string Guid { get; private set; }
         public string Pid { get; private set; }
@@ -302,8 +302,14 @@ namespace Ubiq.Samples.Bots
                 case "SendMessage":
                     {
                         var request = message.FromJson<SendMessage>();
-                        foreach (var bot in bots)
+                        // foreach (var bot in bots)
+                        for (int i = 0; i < bots.Count; i++)
                         {
+                            var bot = bots[i];
+                            if (bot == null)
+                            {
+                                continue;
+                            }
                             bot.SendMessage(request.MethodName, request.Parameter, SendMessageOptions.DontRequireReceiver);
                         }
                     }

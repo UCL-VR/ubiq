@@ -392,10 +392,10 @@ MonoBehaviour:
   - Name: Room1
     Location: {fileID: 308516933}
     StartTime: 30
-    EndTime: 50
+    EndTime: 60
   - Name: Coffe Break
     Location: {fileID: 41127999}
-    StartTime: 50
+    StartTime: 60
     EndTime: 70
   - Name: Room2
     Location: {fileID: 1886528760}
@@ -408,6 +408,10 @@ MonoBehaviour:
   - Name: Back to Room 2
     Location: {fileID: 1886528760}
     StartTime: 100
+    EndTime: 10000000
+  - Name: Exit
+    Location: {fileID: 1749262442}
+    StartTime: 160
     EndTime: 10000000
 --- !u!4 &562782348
 Transform:

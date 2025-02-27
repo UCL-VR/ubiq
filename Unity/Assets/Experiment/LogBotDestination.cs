@@ -25,7 +25,7 @@ public class LogBotDestination : MonoBehaviour
         if (destination == null || destination != timetableBotAgent.destination)
         {
             destination = timetableBotAgent.destination;
-            logEmitter.Log("BotDestination", destination.ToString());
+            // logEmitter.Log("BotDestination", destination.ToString());
         }
     }
 }
