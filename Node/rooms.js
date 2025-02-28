@@ -858,5 +858,6 @@ Schema.add({
 
 module.exports = {
     RoomServer,
-    Room
+    Room,
+    JoinCode
 }

@@ -199,7 +199,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d46303ab4f1344fda99aa3b6ce066e11, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IsNetworkingRoom: 1
+  IsNetworkingRoom: 0
+  guidString: 
 --- !u!1 &124854115
 GameObject:
   m_ObjectHideFlags: 0
@@ -342,6 +343,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   IsNetworkingRoom: 1
+  guidString: 76004b5d-17a9-430f-b952-90bb236614dc
 --- !u!65 &308516934
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -457,6 +459,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   IsNetworkingRoom: 1
+  guidString: 
 --- !u!4 &609749641
 Transform:
   m_ObjectHideFlags: 0
@@ -1376,6 +1379,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   IsNetworkingRoom: 0
+  guidString: 
 --- !u!1 &1886528758
 GameObject:
   m_ObjectHideFlags: 0
@@ -1422,6 +1426,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   IsNetworkingRoom: 1
+  guidString: 4123c01e-884e-4660-a7d0-2e1321def0fe
 --- !u!65 &1886528761
 BoxCollider:
   m_ObjectHideFlags: 0

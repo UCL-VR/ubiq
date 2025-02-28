@@ -1,5 +1,6 @@
 const { WrappedWebSocketServer, WrappedTcpServer } = require("./ubiq")
-const { RoomServer } = require("./rooms");
+const { RoomServer} = require("./rooms");
+const { KnnRoomServer} = require("./knnroomserver");
 const { IceServerProvider } = require("./ice");
 const nconf = require('nconf');
 
@@ -14,7 +15,8 @@ process.argv.slice(2).forEach(element => {
 nconf.file('local', 'config/local.json');
 nconf.file('default', 'config/vrst_baseline.json');
 
-roomServer = new RoomServer();
+roomServer = new KnnRoomServer();
+// roomServer = new RoomServer();
 roomServer.addStatusStream(nconf.get('roomserver:statusLogFile'));
 roomServer.addServer(new WrappedTcpServer(nconf.get('roomserver:ports:tcp')));
 roomServer.addServer(new WrappedWebSocketServer(nconf.get('roomserver:ports:ws')));

@@ -12,6 +12,7 @@ public class Room : MonoBehaviour
     /// in that case, this room would be a subregion of the main hallway, and we would not want to create a new room for it.
     /// </summary>
     public bool IsNetworkingRoom = true;
+    public string guidString;
     public Guid roomId {get; private set;}
     public Vector3 size {get; private set;}
 
@@ -19,7 +20,11 @@ public class Room : MonoBehaviour
 
     void Awake()
     {
-        roomId = Guid.NewGuid();
+        // roomId = Guid.NewGuid();
+        if (guidString == "")
+            roomId = Guid.NewGuid();
+        else
+            roomId = Guid.Parse(guidString);
         
         boxCollider = gameObject.GetComponent<BoxCollider>();
         size = Vector3.zero;
