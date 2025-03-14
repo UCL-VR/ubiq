@@ -1135,13 +1135,13 @@ MonoBehaviour:
   DefaultCommandServer:
     listen_on_ip: 
     listen_on_port: 
-    send_to_ip: localhost
+    send_to_ip: ubig1-2025.cs.ucl.ac.uk
     send_to_port: 8009
     type: 0
   DefaultBotServer:
     listen_on_ip: 
     listen_on_port: 
-    send_to_ip: localhost
+    send_to_ip: ubig1-2025.cs.ucl.ac.uk
     send_to_port: 8010
     type: 3
   ControlRoomId: 87ef0572-67ea-43cc-b2d9-a242428ce929

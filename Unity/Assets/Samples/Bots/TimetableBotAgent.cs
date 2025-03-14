@@ -25,7 +25,6 @@ namespace Ubiq.Samples.Bots
 
         private void Awake()
         {
-            Debug.Log("Bot " + gameObject.name + " awake");
             navMeshAgent = GetComponent<NavMeshAgent>();
             events = new List<TimetableFactory.TimetableEvent>();
 
@@ -35,7 +34,6 @@ namespace Ubiq.Samples.Bots
         // Start is called before the first frame update
         void Start()
         {
-            Debug.Log("Bot " + gameObject.name + " start");
             LookForNextEvent();
             Debug.Log("events count: " + events.Count + "nextEvent: " + nextEvent);
         }
@@ -93,7 +91,6 @@ namespace Ubiq.Samples.Bots
                 }
                 nextEvent = i;
             }
-            print($"!!! next event: {nextEvent}");
 
             if (nextEvent != -1)
             {

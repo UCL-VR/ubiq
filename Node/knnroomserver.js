@@ -98,6 +98,18 @@ class KnnRoomServer extends RoomServer {
                 console.log(room.uuid + " created with joincode " + joincode + " and k = " + k);
 
             }
+            // Bots Room (Meeting hall corridor) also needs to be a KnnRoom
+            else if (name.includes("Bots Room"))
+            {
+                k = Object.values(this.roomGuids)[0];
+                room = new KnnRoom(this);
+                room.uuid = uuid;
+                room.joincode = joincode;
+                room.publish = publish;
+                room.name = name;
+                room.k = k; // Set the k value for the KnnRoom    
+                console.log(name + " | " + room.uuid + " created with joincode " + joincode + " and k = " + k);
+            }
             else {
                 room = new Room(this);
                 room.uuid = uuid;
