@@ -18,7 +18,7 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
 
             bool IXRInputValueReader<Vector2>.TryReadValue(out Vector2 value)
             {
-                value = thumbstick.ReadCurrentValue();
+                value = thumbstick.ReadCurrentValue() * sensitivity;
                 return true;
             }
             

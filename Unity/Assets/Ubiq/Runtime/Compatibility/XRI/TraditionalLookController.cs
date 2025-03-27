@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 using Ubiq.XR.Notifications;
+using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace Ubiq.Compatibility.XRI.TraditionalControls
 {
@@ -16,23 +18,20 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
         public InputActionReference Enable;
         public InputActionReference EnableOverride;
 
-        public UnityEngine.XR.Interaction.Toolkit.Interactors.XRRayInteractor RayInteractor;
-
         public XROrigin XROrigin;
+        public XRInteractionManager interactionManager;
         public float Sensitivity = 0.25f;
 
         private bool isSuppressed;
         
-        private void Awake()
-        {
-            if (!XROrigin)
-            {
-                XROrigin = GetComponentInParent<XROrigin>();
-            }
-        }
-
         void Start()
         {
+            XROrigin = XROrigin 
+                ? XROrigin 
+                : GetComponentInParent<XROrigin>();
+            interactionManager = interactionManager 
+                ? interactionManager 
+                : FindAnyObjectByType<XRInteractionManager>();
             Look.action.Enable();
             Enable.action.Enable();
             EnableOverride.action.Enable();
@@ -59,7 +58,9 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
                 return;
             }
             
-            if ((Enable.action.ReadValue<float>() > 0 && RayInteractor.interactablesSelected.Count == 0) 
+            if ((Enable.action.ReadValue<float>() > 0 
+                 && !interactionManager.IsHandSelecting(InteractorHandedness.Left)
+                 && !interactionManager.IsHandSelecting(InteractorHandedness.Right)) 
                 || EnableOverride.action.ReadValue<float>() > 0)
             {
                 AddDelta(Look.action.ReadValue<Vector2>());

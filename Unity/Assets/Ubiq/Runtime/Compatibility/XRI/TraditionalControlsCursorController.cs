@@ -5,6 +5,8 @@ using Unity.XR.CoreUtils;
 using UnityEngine.InputSystem;
 
 using Ubiq.XR.Notifications;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace Ubiq.Compatibility.XRI.TraditionalControls
 {
@@ -22,12 +24,13 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
         public InputActionReference Activate;
     
         public XROrigin XROrigin;
-        public UnityEngine.XR.Interaction.Toolkit.Interactors.XRRayInteractor RayInteractor;
+        public NearFarInteractor Interactor;
         public UnityEngine.UI.Image CursorImage;
     
         public Color InteractableHoverColour = Color.cyan;
     
         private bool disableCursor;
+        private Canvas canvas;
     
         private void Awake()
         {
@@ -39,6 +42,8 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
     
         void Start()
         {
+            canvas = GetComponentInChildren<Canvas>();
+            
             CursorPosition.action.Enable();
             TranslateAnchor.action.Enable();
             Activate.action.Enable();
@@ -84,26 +89,26 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
             }
             
             Vector3 position = CursorPosition.action.ReadValue<Vector2>();
-    
-            CursorImage.enabled = true;
-            CursorImage.color = Color.white;
-    
-            if (RayInteractor.TryGetHitInfo(out _, out _, out _, 
-                    out var isValidTarget))
+            position.x = position.x / canvas.scaleFactor;
+            position.y = position.y / canvas.scaleFactor;
+            
+            CursorImage.enabled = false;
+            
+            var distance = Mathf.Infinity;
+            if (Interactor.TryGetCurrentUIRaycastResult(out var uiRaycast))
             {
-                if (isValidTarget)
+                distance = uiRaycast.distance * distance;
+                CursorImage.enabled = true;
+                CursorImage.color = Color.white;
+            }
+            
+            var hovered = Interactor.interactablesHovered;
+            for (int i = 0; i < hovered.Count; i++)
+            {
+                if (hovered[i].GetDistanceSqrToInteractor(Interactor) < distance)
                 {
                     CursorImage.enabled = true;
                     CursorImage.color = InteractableHoverColour;
-                }
-
-                if (RayInteractor.TryGetCurrentRaycast(out _, out _, 
-                        out var uiRaycastHit, out _, out var isUIHitClosest))
-                {
-                    if (uiRaycastHit.HasValue && isUIHitClosest)
-                    {
-                        CursorImage.enabled = false;
-                    }
                 }
             }
     
