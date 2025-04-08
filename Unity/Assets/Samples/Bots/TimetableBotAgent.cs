@@ -34,8 +34,9 @@ namespace Ubiq.Samples.Bots
         // Start is called before the first frame update
         void Start()
         {
-            LookForNextEvent();
             Debug.Log("events count: " + events.Count + "nextEvent: " + nextEvent);
+            LookForNextEvent();
+            Debug.Log("UPDATED - nextEvent: " + nextEvent);
         }
 
         // Update is called once per frame
@@ -85,6 +86,7 @@ namespace Ubiq.Samples.Bots
             currentEvent = null;
             for (int i = nextEvent + 1; i < events.Count; i++)
             {
+                Debug.Log(Time.time + "Looking for next event: " + events[i].Name + " at time: " + events[i].StartTime);
                 if (events[i].StartTime > Time.time)
                 {
                     break;
@@ -94,8 +96,14 @@ namespace Ubiq.Samples.Bots
 
             if (nextEvent != -1)
             {
-                destination = events[nextEvent].Location.transform.position;
-                navMeshAgent.SetDestination(events[nextEvent].Location.transform.position);
+                Room room = RoomFactory.Instance.Locations[events[nextEvent].RoomIndex];
+                if (room == null)
+                {
+                    Debug.LogError("Room not found for event: " + events[nextEvent].Name);
+                    return;
+                }
+                destination = room.transform.position;
+                navMeshAgent.SetDestination(room.transform.position);
             }
         }
 
@@ -125,12 +133,18 @@ namespace Ubiq.Samples.Bots
             }
 
             NavMeshHit hit;
+            Room currentRoom = RoomFactory.Instance.Locations[currentEvent.RoomIndex];
+            if (currentRoom == null)
+            {
+                Debug.LogError("Room not found for event: " + currentEvent.Name);
+                return;
+            }
 
             int i = 0;
             do
             {
                 i++;
-                destination = currentEvent.Location.transform.position + UnityEngine.Random.insideUnitSphere * currentEvent.Location.size.x / 2;
+                destination = currentRoom.transform.position + UnityEngine.Random.insideUnitSphere * currentRoom.size.x / 2;
             } while (!NavMesh.SamplePosition(destination, out hit, float.MaxValue, NavMesh.AllAreas) && i < 100);
             destination = hit.position;
             navMeshAgent.destination = destination;
@@ -144,7 +158,7 @@ namespace Ubiq.Samples.Bots
         /// </summary>
         private void CustomizeTimetable()
         {
-            List<TimetableFactory.TimetableEvent> publicTimetable = TimetableFactory.Instance.Events;
+            List<TimetableFactory.TimetableEvent> publicTimetable = BotsManager.Find(GetComponent<Bot>()).GetTimetableEvents();
 
             for (int i = 0; i < publicTimetable.Count - 1; i++)
             {
@@ -167,6 +181,7 @@ namespace Ubiq.Samples.Bots
             // Make sure the end time of last event is large enough
             if (events.Count > 0)
             {
+                events[events.Count - 1].StartTime = Mathf.Min(events[events.Count - 1].StartTime, publicTimetable[publicTimetable.Count - 1].StartTime + 15f); // Clamp start time of leaving the room to be at most 15 seconds after the original start time. This is under the assumption that the start time of the last event is 20 seconds before the end of the experiment.
                 events[events.Count - 1].EndTime = publicTimetable[publicTimetable.Count - 1].EndTime;
             } 
         }
@@ -175,7 +190,7 @@ namespace Ubiq.Samples.Bots
         {
             TimetableFactory.TimetableEvent newEvent = new TimetableFactory.TimetableEvent();
             newEvent.Name = e.Name;
-            newEvent.Location = e.Location;
+            newEvent.RoomIndex = e.RoomIndex;
             newEvent.StartTime = Util.GaussianRandom(e.StartTime, noise);
             newEvent.EndTime = e.EndTime;
             return newEvent;

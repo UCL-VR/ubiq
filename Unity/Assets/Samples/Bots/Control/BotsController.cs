@@ -207,6 +207,14 @@ namespace Ubiq.Samples.Bots
             LastMessageTime = Time.realtimeSinceStartup;
         }
 
+        public void UpdateTimetable(List<TimetableFactory.TimetableEvent> events)
+        {
+            if (networkScene)
+            {
+                networkScene.SendJson(Id, new UpdateTimetable(events));
+            }
+        }
+
         public void UpdateSettings()
         {
             if (networkScene)

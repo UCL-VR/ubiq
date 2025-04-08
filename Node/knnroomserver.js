@@ -1,6 +1,7 @@
 const { Message, NetworkId, Schema, SerialisedDictionary, Uuid } = require("./ubiq");
 const { RoomServer, Room, JoinCode } = require('./rooms');
 const { KnnRoom } = require('./knnroom');
+const { KnnHostRoom } = require('./knnhostroom');
 const fs = require('fs');
 const csv = require('csv-parser');
 
@@ -8,6 +9,7 @@ class KnnRoomServer extends RoomServer {
     constructor() {
         super();
         this.roomGuids = {};
+        this.roomIsHosted = {};
         this.loadRoomGuids();
     }
 
@@ -17,7 +19,8 @@ class KnnRoomServer extends RoomServer {
             .pipe(csv())
             .on('data', (row) => {
                 this.roomGuids[row.Guid] = parseInt(row.k, 10);
-                console.log(row.Guid + " has k = " + this.roomGuids[row.Guid]);
+                this.roomIsHosted[row.Guid] = row.Hosted;
+                console.log(row.Guid + " has k = " + this.roomGuids[row.Guid] + ", Hosted = " + this.roomIsHosted[row.Guid]);
             })
             .on('end', () => {
                 console.log('RoomGuids.csv file successfully processed');
@@ -89,7 +92,12 @@ class KnnRoomServer extends RoomServer {
             var room;
             if (this.roomGuids.hasOwnProperty(uuid)) {
                 k = this.roomGuids[uuid];
-                room = new KnnRoom(this);
+                if (this.roomIsHosted[uuid] == "true") {
+                    room = new KnnHostRoom(this);
+                }
+                else {
+                    room = new KnnRoom(this);
+                }
                 room.uuid = uuid;
                 room.joincode = joincode;
                 room.publish = publish;

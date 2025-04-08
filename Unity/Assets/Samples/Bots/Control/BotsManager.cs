@@ -78,6 +78,8 @@ namespace Ubiq.Samples.Bots
         private NetworkScene networkScene;
         private RoomClient roomClient;
 
+        private List<TimetableFactory.TimetableEvent> _timetableEvents;
+
         public class BotPeerEvent : UnityEvent<Bot>
         {
         }
@@ -146,6 +148,16 @@ namespace Ubiq.Samples.Bots
             AddBotsToRoom(bot);
         }
 
+        private void SetTimetableEvents(List<TimetableFactory.TimetableEvent> events)
+        {
+            _timetableEvents = events;
+        }
+
+        public List<TimetableFactory.TimetableEvent> GetTimetableEvents()
+        {
+            return _timetableEvents;
+        }
+
         public void AddBots(int index, int count)
         {
             for (int i = 0; i < count; i++)
@@ -166,6 +178,10 @@ namespace Ubiq.Samples.Bots
         {
             foreach (var bot in bots)
             {
+                if (bot == null)
+                {
+                    continue;
+                }
                 GameObject.Destroy(bot.transform.parent.gameObject);
             }
             bots.Clear();
@@ -267,6 +283,11 @@ namespace Ubiq.Samples.Bots
             var Base = message.FromJson<Message>();
             switch (Base.Type)
             {
+                case "UpdateTimetable":
+                    {
+                        SetTimetableEvents(message.FromJson<UpdateTimetable>().Events);
+                    }
+                    break;
                 case "UpdateBotManagerSettings":
                     {
                         var Message = message.FromJson<BotManagerSettings>();

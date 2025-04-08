@@ -18,7 +18,7 @@ public class ExperimentRunner : MonoBehaviour
     public BotsController Controller; // For the bots
     public BotsManager Manager; // For the prefab list
     public LogCollector LocalLogCollector; // For the log collector
-    public int LifetimeSeconds; // How long to run the experiment
+    public int LifetimePerConditionSeconds; // How long to run the experiment
 
     private LogEmitter experiment;
     private float startTime = -1f;
@@ -64,24 +64,28 @@ public class ExperimentRunner : MonoBehaviour
 
     private void Update()
     {
-        if (startTime > 0 && Time.time - startTime > LifetimeSeconds)
-        {
-            experiment.Log("ExperimentComplete");
-            LocalLogCollector.StopCollection();
+//         if (startTime > 0 && Time.time - startTime > LifetimePerConditionSeconds * Conditions.Count)
+//         {
+//             experiment.Log("ExperimentComplete");
+//             LocalLogCollector.StopCollection();
 
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-#endif
+// #if UNITY_EDITOR
+//             UnityEditor.EditorApplication.isPlaying = false;
+// #endif
 
-#if UNITY_STANDALONE
-            Application.Quit();
-#endif
-        }
+// #if UNITY_STANDALONE
+//             Application.Quit();
+// #endif
+        
     }
 
     private void OnRTT(string ev)
     {
         var measurement = JsonUtility.FromJson<LatencyMeter.Measurement>(ev);
+        if (measurement.time > 1000)
+        {
+            Debug.LogWarning("RTT: " + measurement.time + "ms, FrameTime: " + measurement.frameTime + ", " +  measurement.source + " -> " + measurement.destination);
+        }
         experiment.Log("RTT", measurement.source, measurement.destination, measurement.time, measurement.frameTime);
     }
 
@@ -111,6 +115,16 @@ public class ExperimentRunner : MonoBehaviour
         {
             yield return Run(i);
         }
+        
+        LocalLogCollector.StopCollection();
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
+
+#if UNITY_STANDALONE
+        Application.Quit();
+#endif
     }
 
     public IEnumerator Step()
@@ -188,6 +202,11 @@ public class ExperimentRunner : MonoBehaviour
             Controller.CreateBotsRoom();
         }
 
+        foreach (BotManagerProxy manager in Controller.BotManagers)
+        {
+            manager.UpdateTimetable(IncrementEventStartTime());
+        }
+
         float startTime = Time.time;
 
         int botManager = 0;
@@ -212,8 +231,33 @@ public class ExperimentRunner : MonoBehaviour
             yield return new WaitForSeconds(1.5f); // Every second add a new bot to a manager process in order
         }
 
+        float timeToWait = LifetimePerConditionSeconds - numBots * 1.5f;
+        if (timeToWait < 0)
+        {
+            timeToWait = 0;
+        }
+        Debug.Log("Waiting " + timeToWait + " seconds for bots to settle.");
+        yield return new WaitForSeconds(timeToWait);
+
         experiment.Log("ExperimentComplete"); // Footer for last log file (if any)
 
         Debug.Log("Condition " + conditionIndex + " Complete.");
+    }
+
+    private List<TimetableFactory.TimetableEvent> IncrementEventStartTime()
+    {
+        float increment = Time.time;
+
+        List<TimetableFactory.TimetableEvent> events = TimetableFactory.Instance.Events;
+        List<TimetableFactory.TimetableEvent> newEvents = new List<TimetableFactory.TimetableEvent>();
+        foreach (var e in events)
+        {
+            TimetableFactory.TimetableEvent newEvent = new TimetableFactory.TimetableEvent();
+            newEvent.Name = e.Name;
+            newEvent.RoomIndex = e.RoomIndex;
+            newEvent.StartTime = e.StartTime + increment; // Increment start time by 1 second
+            newEvents.Add(newEvent);
+        }
+        return newEvents;
     }
 }
