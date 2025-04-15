@@ -450,6 +450,8 @@ class RoomPeer {
     uuid: string
     properties: PropertyDictionary
     sessionId: string
+    intervalId: NodeJS.Timeout | null = null
+    previousTime: Date | null = null
     constructor (server: RoomServer, connection: IConnectionWrapper) {
         this.server = server
         this.server.stats.connections += 1
@@ -465,6 +467,17 @@ class RoomPeer {
         this.connection.onMessage.push(this.onMessage.bind(this))
         this.connection.onClose.push(this.onClose.bind(this))
         this.sessionId = Uuid.generate()
+        this.intervalId = setInterval(() => {
+            const currentTime = new Date();
+            if (this.previousTime) {
+                const timeDifferenceMs = currentTime.getTime() - this.previousTime.getTime();
+
+                if (timeDifferenceMs >= 10000) {
+                    console.log(`Peer ${this.uuid}: Timeout. Dropping.`);
+                    this.connection.close();
+                }
+            }
+        }, 10000)
     }
 
     onMessage (message: Message): void {
@@ -472,6 +485,7 @@ class RoomPeer {
         this.server.stats.bytesIn += message.length
         if (NetworkId.Compare(message.networkId, this.server.networkId)) {
             try {
+                this.previousTime = new Date();
                 const object = RoomServerMessage.parse(message.toObject())
                 switch (object.type) {
                     case 'Join':
@@ -561,6 +575,10 @@ class RoomPeer {
     }
 
     onClose (): void {
+        if (this.intervalId) {
+            clearInterval(this.intervalId)
+            this.intervalId = null
+        }
         this.room.removePeer(this)
         this.server.stats.connections -= 1
     }
