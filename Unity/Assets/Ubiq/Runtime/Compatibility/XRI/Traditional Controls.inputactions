@@ -2,7 +2,7 @@
     "name": "Traditional Controls",
     "maps": [
         {
-            "name": "Desktop",
+            "name": "Traditional",
             "id": "c3614474-62f1-425d-819e-6867376d54bc",
             "actions": [
                 {
@@ -36,7 +36,7 @@
                     "name": "Select",
                     "type": "Button",
                     "id": "5ab50480-058b-49e2-b941-327bb892ffd4",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -169,6 +169,17 @@
                 },
                 {
                     "name": "",
+                    "id": "8188961f-b560-4c12-af2f-ce4b0476ca6f",
+                    "path": "<Touchscreen>/Press",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "9cbd5c98-9da6-4567-b5e9-4aa3faa5b5d2",
                     "path": "<Mouse>/rightButton",
                     "interactions": "",
@@ -215,6 +226,17 @@
                     "name": "",
                     "id": "fdfb824b-4ca6-4850-8d7d-d72e828a07de",
                     "path": "<Mouse>/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Cursor Position",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "009a38eb-4e3e-4ca4-a590-253aedfecaca",
+                    "path": "<Pointer>/position",
                     "interactions": "",
                     "processors": "",
                     "groups": "",

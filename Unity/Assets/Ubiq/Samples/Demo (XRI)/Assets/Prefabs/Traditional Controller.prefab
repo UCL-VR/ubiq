@@ -49,7 +49,7 @@ MonoBehaviour:
   m_LineRenderer: {fileID: 6984555433922941810}
   m_CurveVisualObject: {fileID: 1226139412773339306}
   m_OverrideLineOrigin: 1
-  m_LineOriginTransform: {fileID: 1194542701495355033}
+  m_LineOriginTransform: {fileID: 3700785461672009736}
   m_VisualPointCount: 20
   m_MaxVisualCurveDistance: 10
   m_RestingVisualLineLength: 0.25
@@ -288,9 +288,6 @@ LineRenderer:
   m_ReflectionProbeUsage: 0
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1015,7 +1012,6 @@ GameObject:
   - component: {fileID: 1194542701495355033}
   - component: {fileID: 1226139412773339306}
   - component: {fileID: 2385142850034368060}
-  - component: {fileID: 5445943027228986076}
   - component: {fileID: 4061390830221935064}
   - component: {fileID: 8443568572074953138}
   m_Layer: 0
@@ -1034,11 +1030,12 @@ Transform:
   m_GameObject: {fileID: 4140189629305354631}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8795658849691140214}
+  - {fileID: 3700785461672009736}
   m_Father: {fileID: 291365661117087098}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1226139412773339306
@@ -1178,8 +1175,8 @@ MonoBehaviour:
   m_HapticHoverCancelDuration: 0
   m_AllowHoverHapticsWhileSelecting: 1
   m_InteractionAttachController: {fileID: 2385142850034368060}
-  m_EnableNearCasting: 1
-  m_NearInteractionCaster: {fileID: 5445943027228986076}
+  m_EnableNearCasting: 0
+  m_NearInteractionCaster: {fileID: 0}
   m_NearCasterSortingStrategy: 1
   m_SortNearTargetsAfterTargetFilter: 0
   m_EnableFarCasting: 1
@@ -1252,7 +1249,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 792f6c7eaa1a4b82abf8351559ac97eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_TransformToFollow: {fileID: 1194542701495355033}
+  m_TransformToFollow: {fileID: 3700785461672009736}
   m_MotionStabilizationMode: 1
   m_PositionStabilization: 0.25
   m_AngleStabilization: 20
@@ -1267,28 +1264,6 @@ MonoBehaviour:
   m_MinAdditionalVelocityScalar: 0.05
   m_MaxAdditionalVelocityScalar: 1.5
   m_EnableDebugLines: 0
---- !u!114 &5445943027228986076
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4140189629305354631}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 48139a683d3b4ac3a37cd5d24f71acf1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_CastOrigin: {fileID: 1194542701495355033}
-  m_EnableStabilization: 0
-  m_PositionStabilization: 0.25
-  m_AngleStabilization: 20
-  m_AimTargetObject: {fileID: 0}
-  m_PhysicsLayerMask:
-    serializedVersion: 2
-    m_Bits: 1
-  m_PhysicsTriggerInteraction: 1
-  m_CastRadius: 0.1
 --- !u!114 &4061390830221935064
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1312,7 +1287,7 @@ MonoBehaviour:
   m_RaycastTriggerInteraction: 1
   m_RaycastSnapVolumeInteraction: 1
   m_TargetNumCurveSegments: 1
-  m_HitDetectionType: 2
+  m_HitDetectionType: 0
   m_CastDistance: 10
   m_SphereCastRadius: 0.1
   m_ConeCastAngle: 6
@@ -2081,6 +2056,37 @@ MonoBehaviour:
     - {fileID: 3030134155112814323}
     - {fileID: 293250926743342829}
     showHideButton: 1
+--- !u!1 &7219114262654117517
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3700785461672009736}
+  m_Layer: 0
+  m_Name: AttachPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3700785461672009736
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7219114262654117517}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1194542701495355033}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7332490301502228144
 GameObject:
   m_ObjectHideFlags: 0
@@ -2445,8 +2451,8 @@ MonoBehaviour:
   Enable: {fileID: -7471766368886327773, guid: 8bb7dcecedabd454eb5d370707c527b7, type: 3}
   EnableOverride: {fileID: -2423238742321946493, guid: 8bb7dcecedabd454eb5d370707c527b7,
     type: 3}
-  RayInteractor: {fileID: 0}
   XROrigin: {fileID: 0}
+  interactionManager: {fileID: 0}
   Sensitivity: 0.25
 --- !u!1 &8337114364075585407
 GameObject:

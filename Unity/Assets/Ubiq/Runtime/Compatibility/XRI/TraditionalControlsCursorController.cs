@@ -5,7 +5,6 @@ using Unity.XR.CoreUtils;
 using UnityEngine.InputSystem;
 
 using Ubiq.XR.Notifications;
-using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace Ubiq.Compatibility.XRI.TraditionalControls
@@ -16,6 +15,7 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
     /// intuitively. This Component also maintains a reticule to help users identify
     /// when they are over an interactive object.
     /// </summary>
+    [DefaultExecutionOrder(-1000)]
     public class TraditionalControlsCursorController : MonoBehaviour
     {
         public InputActionReference CursorPosition;
@@ -66,7 +66,9 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
     
         void Update()
         {
-            CursorImage.enabled = false;
+            // Seems to help prevent 'sticky' selects when using Touch controls 
+            Interactor.allowSelect = Select.action.IsPressed();
+            
             UpdateTransform();
             UpdateCursor();
         }
@@ -76,13 +78,14 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
             Vector3 position = CursorPosition.action.ReadValue<Vector2>();
             position.z = XROrigin.Camera.nearClipPlane;
             var ray = XROrigin.Camera.ScreenPointToRay(position, Camera.MonoOrStereoscopicEye.Mono);
-            var origin = XROrigin.Camera.ScreenToWorldPoint(position, Camera.MonoOrStereoscopicEye.Mono);
-            transform.position = origin;
+            transform.position = ray.origin;
             transform.forward = ray.direction;
         }
     
         private void UpdateCursor()
         {
+            CursorImage.enabled = false;
+
             if (disableCursor)
             {
                 return;
@@ -91,8 +94,6 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
             Vector3 position = CursorPosition.action.ReadValue<Vector2>();
             position.x = position.x / canvas.scaleFactor;
             position.y = position.y / canvas.scaleFactor;
-            
-            CursorImage.enabled = false;
             
             var distance = Mathf.Infinity;
             if (Interactor.TryGetCurrentUIRaycastResult(out var uiRaycast))
