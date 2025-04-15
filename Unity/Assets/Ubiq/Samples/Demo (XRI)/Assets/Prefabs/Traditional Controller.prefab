@@ -545,7 +545,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4374319834494763927}
   - component: {fileID: 3115491280144399931}
-  - component: {fileID: 1503474620124188164}
   m_Layer: 0
   m_Name: Portrait
   m_TagString: Untagged
@@ -588,20 +587,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   toHide: []
   hideAll: 0
---- !u!114 &1503474620124188164
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1028819140950726218}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5d605d94f83edf44aba974e657b3d383, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  portrait: {fileID: 0}
-  landscape: {fileID: 0}
 --- !u!1 &1603868698395439362
 GameObject:
   m_ObjectHideFlags: 0
@@ -2097,7 +2082,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3722538627274645467}
   - component: {fileID: 7583705525778553967}
-  - component: {fileID: 2452661055626336097}
   m_Layer: 0
   m_Name: Landscape
   m_TagString: Untagged
@@ -2140,20 +2124,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   toHide: []
   hideAll: 0
---- !u!114 &2452661055626336097
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7332490301502228144}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5d605d94f83edf44aba974e657b3d383, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  portrait: {fileID: 0}
-  landscape: {fileID: 0}
 --- !u!1 &7354111339664105159
 GameObject:
   m_ObjectHideFlags: 0
