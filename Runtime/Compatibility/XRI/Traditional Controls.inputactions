@@ -1,8 +1,8 @@
 {
-    "name": "Desktop Actions",
+    "name": "Traditional Controls",
     "maps": [
         {
-            "name": "Desktop",
+            "name": "Traditional",
             "id": "c3614474-62f1-425d-819e-6867376d54bc",
             "actions": [
                 {
@@ -36,7 +36,7 @@
                     "name": "Select",
                     "type": "Button",
                     "id": "5ab50480-058b-49e2-b941-327bb892ffd4",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -63,7 +63,7 @@
                     "name": "Look Enable",
                     "type": "Button",
                     "id": "b7847876-b1bc-4b39-b9cf-29c3c6452b1b",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -72,7 +72,7 @@
                     "name": "Look Enable Override",
                     "type": "Button",
                     "id": "71b67860-28cb-42eb-81d3-124601270d8b",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -147,12 +147,34 @@
                 },
                 {
                     "name": "",
+                    "id": "252f6ffe-89d5-44f4-b809-5d17544efc91",
+                    "path": "<Touchscreen>/delta",
+                    "interactions": "",
+                    "processors": "ScaleVector2(x=0.5,y=0.5)",
+                    "groups": "",
+                    "action": "Look",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "8abab403-c404-453a-b31d-42a482770901",
                     "path": "<Mouse>/press",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Activate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8188961f-b560-4c12-af2f-ce4b0476ca6f",
+                    "path": "<Touchscreen>/Press",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -213,6 +235,17 @@
                 },
                 {
                     "name": "",
+                    "id": "009a38eb-4e3e-4ca4-a590-253aedfecaca",
+                    "path": "<Pointer>/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Cursor Position",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "a0f96602-b6f7-43b4-b62c-3211f33f8eda",
                     "path": "<Mouse>/scroll",
                     "interactions": "",
@@ -237,6 +270,17 @@
                     "name": "",
                     "id": "079220f0-4c22-487e-a0b3-bd26fc800eb7",
                     "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Look Enable",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b5700805-3fb3-4e1c-a350-6667affd970e",
+                    "path": "<Touchscreen>/Press",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
