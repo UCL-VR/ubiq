@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Generating Unique Ids - Ubiq Docs</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Generating Unique Ids";
+        var mkdocs_page_input_path = "generatinguniqueids.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Ubiq Docs
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../gettingubiq/">Getting Ubiq</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../settingupvr/">Setting Up VR</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../creatinganetworkedobject/">Creating Networked Objects</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../spawningobjects/">Object Spawning</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../localloopback/">Testing with Local Loopback</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../synchronisation/">Synchronisation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../ubiqxrinteraction/">Interaction with Ubiq XR</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../serversandrooms/">Servers and Rooms</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../eventlogginggettingstarted/">Logging</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../3dpentutorial/">Creating a 3D Pen</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../serversetup/">Server</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Advanced</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../xrinteraction/">Interaction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Logging</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloganalysis/">Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingexperimentquestionnaire/">Questionnaire</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingunittests/">Unit Tests</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingcollectorservice/">LogCollector Service</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogserialisation/">Serialisation and Memory</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Messaging</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../messaging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkids/">Network Ids</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Generating Unique Ids</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#collision-probability">Collision Probability</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#generating-random-identifiers">Generating Random Identifiers</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#identifiers-and-bandwidth">Identifiers and Bandwidth</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#object-ids-in-ubiq">Object Ids in Ubiq</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#size">Size</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#unique-ids-in-unity">Unique Ids in Unity</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#references">References</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkidtype/">Types</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../reservedids/">Reserved IDs</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../webrtc/">WebRtc</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Servers and Rooms</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../serverintroduction/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serveroverview/">Server Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serverheartbeat/">Heartbeat and Timeouts</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../leavingandjoiningrooms/">Leaving and Joining</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../botssample/">Bots</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Programming</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../asyncdesignpatterns/">Async Design Patterns</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Development</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../packaging/">Packaging</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nexus/">Nexus</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../mkdocs/">Meta</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ubiq Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Advanced</li>
+          <li class="breadcrumb-item">Messaging</li>
+      <li class="breadcrumb-item active">Generating Unique Ids</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="unique-ids">Unique Ids</h1>
+<p>One of the most important considerations when generating Ids is the probablity of collisions.</p>
+<h2 id="collision-probability">Collision Probability</h2>
+<p>Each client must be able to generate new Ids independently, to avoid dependencies on a server in peer-to-peer situations, and to avoid introducing deadlocks with the Unity programming model (such as needing a server to respond before all <code>Start()</code> calls can finish).</p>
+<p>The probability of collisions between two independently well-generated identifiers is the <em>Birthday Problem</em>. The probability of a collision is given by,</p>
+<p><img alt="" src="../images/2e34546b-a593-4acc-9f1b-9cdd53c199ca.png" /></p>
+<p>On regular desktops, it is not possible to compute this for the typical numbers involved due to floating point quantisation. However there are approximations, such as the following which will work in Matlab,</p>
+<ul>
+<li><code>p = 1 - exp(-(n^2)/(2*(2^b)))</code></li>
+</ul>
+<p>As the figure below shows, the probability of collisions depends on the number of objects in the scenario <code>n</code>, as well as the identifier length <code>b</code> (in bits). In Ubiq, the "scenario" is typically a room. </p>
+<p>There are no rules defining acceptable chances of collisions. For example, OAuth 2 specifies a probability of less than <code>10e-160</code>, which is not achievable even by 128-bit UUIDs.</p>
+<p>In the case of a typical Ubiq room, which due to voice chat limitations can support approximately 25 users, a 32 bit value would probably be adequate. The concept of a Room in Ubiq can change depending on how it is used however, so Ubiq tries to avoid making assumptions about the potential collision space. If rooms were considered to be floating regions, for example, then the number of potential users could be much higher.</p>
+<p>It is challenging to grasp levels of chance at these scales. The table below by Jeff Preshing presents collision probabilities more intuitively. (The numer of <em>hash values</em> below is the number of Objects between all users that could potentially connect in a Ubiq scenario, be that a room, set of rooms, a server, shard etc.)</p>
+<p><img alt="A table describing small chances in human terms, e.g. 1 in 100 million are the odds of dying by shark attack." src="../images/96e766f2-3d71-429c-8e53-0abce4528621.png" /></p>
+<h2 id="generating-random-identifiers">Generating Random Identifiers</h2>
+<p>The collision probabilities above are only correct if identifiers are well-generated. </p>
+<p>RFC 4122 descibes algorithms to generate 128-bit UUIDs. UUIDs are standardised identifiers on many network services. They are very popular as they can be independently generated quickly, while guaranteeing uniqueness and being amenable to storing, sorting and hashing. UUIDs can guarantee uniqueness beyond the probabilities discussed above because some versions include the use of MAC addresses, which <em>are</em> centrally registered (by the network card manufacturer) and which act as a "pre-shared secret".</p>
+<p>RFC 4122 also presents an algorithm for version 4 which is based purely on random numbers. RFC 1750 discusses random numbers in more detail. Acquiring truly random numbers for identifier generation is challenging, as common computer systems rarely have APIs to access sources of truly random numbers. Most systems use deterministic generators of some kind, initialised with a seed. If there are dependencies between different sections of random number sequences, or covariances in the seed between peers, this will change the probability of collisions.</p>
+<p>To make a good identifier, best practice is to use as many data sources as possible, with a strong mixing function. A strong mixer is one where each output bit is a complex, and different, function of all the input bits. The example given  in RFC 4122 is to gather data sources into a buffer and use a message digest function such as SHA-1.</p>
+<h2 id="identifiers-and-bandwidth">Identifiers and Bandwidth</h2>
+<p>A motivation for minimising id size is to reduce overhead. In a packet sending a <code>Vector3</code> a 16 byte (a 128-bit UUID) overhead for the Id would have an overhead of 133% without even the Component Id. Though, on modern networks even a large relative overheads may not be problems so long as the total packet size is low. IPV6, for example, has a 40 byte header alone.</p>
+<p>That is, reducing bandwidth by reducing identifier size is unlikely to be an optimal methodology. It should be expected that Ubiq header sizes increase over time, rather than decrease. Since Ubiq is based on a set of point-to-point connections, future works could consider techniques such as asymmetrical per-connection aliases to optimise bandwidth.</p>
+<h2 id="object-ids-in-ubiq">Object Ids in Ubiq</h2>
+<h3 id="size">Size</h3>
+<p>Currently, Object Ids are represented by 64 bit numbers. This is because the collision probability for this length is very low for scenarios anticipated by Ubiq in the near future, but it is still easy to handle; 32 bit is too small, while 128 bit would require explicit serialisation/deserialisation, hashing and equality comparisons. 64 bit numbers can be stored in a <code>long</code> and nowadays even mobile platforms use 64 bit processors.</p>
+<h2 id="unique-ids-in-unity">Unique Ids in Unity</h2>
+<p>Unity provides a number of data sources for hashing inside the Application and SystemInfo classes, however these are not accessible in class constructors. Therefore the .NET System.Environment, System.DateTime and System.Random classes are used.</p>
+<h2 id="references">References</h2>
+<ul>
+<li>
+<p>Jesus, P., Baquero, C., &amp; Almeida, P. (2006). ID Generation in Mobile Environments. 1–4. http://hdl.handle.net/1822/36065 </p>
+</li>
+<li>
+<p>https://neilmadden.blog/2018/08/30/moving-away-from-uuids/ </p>
+</li>
+<li>
+<p>https://preshing.com/20110504/hash-collision-probabilities/</p>
+</li>
+<li>
+<p>https://tools.ietf.org/html/rfc4122 </p>
+</li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../networkids/" class="btn btn-neutral float-left" title="Network Ids"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../networkidtype/" class="btn btn-neutral float-right" title="Types">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../networkids/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../networkidtype/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
