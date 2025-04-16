@@ -44,7 +44,7 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
             for (int i = 0; i < hintsByPlatforms.Count; i++)
             {
                 var platform = hintsByPlatforms[i].platform;
-                if ((platform == Platform.Mobile && Application.isMobilePlatform)
+                if ((platform == Platform.Mobile && IsMobilePlatform())
                     || (platform == Platform.Mac && Application.platform == RuntimePlatform.OSXPlayer))
                 {
                     activeHints = hintsByPlatforms[i].hints;
@@ -82,6 +82,14 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
             activeHints[activeIndex].gameObject.SetActive(false);
             activeIndex = (activeIndex + activeHints.Count - 1) % activeHints.Count;
             activeHints[activeIndex].gameObject.SetActive(true);
+        }
+        
+        private bool IsMobilePlatform()
+        {
+            return Application.isMobilePlatform || 
+                   Application.platform == RuntimePlatform.Android || 
+                   Application.platform == RuntimePlatform.IPhonePlayer ||
+                   Application.platform == RuntimePlatform.WebGLPlayer;
         }
 
         public void Next()

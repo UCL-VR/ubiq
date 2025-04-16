@@ -6,7 +6,7 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
     {
         public float sensitivity = 5.0f;
         public TraditionalControlsThumbstick thumbstick;
-        public TraditionalLookController look;
+        public TraditionalControlsLookController look;
 
         private void Update()
         {

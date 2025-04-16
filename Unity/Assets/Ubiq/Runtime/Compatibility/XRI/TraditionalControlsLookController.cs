@@ -12,7 +12,7 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
     /// <summary>
     /// Allows mouse or touch inputs to control the orientation of the Camera.
     /// </summary>
-    public class TraditionalLookController : MonoBehaviour
+    public class TraditionalControlsLookController : MonoBehaviour
     {
         public InputActionReference Look;
         public InputActionReference Enable;
