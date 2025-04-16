@@ -191,6 +191,7 @@ namespace Ubiq.WebXR
         
         private State state = State.Normal;
         private float cameraYOffset = 0.0f;
+        private float cameraFieldOfView = 0.0f; 
 
         private void Update()
         {
@@ -206,6 +207,9 @@ namespace Ubiq.WebXR
                 if (state != State.XR)
                 {
                     // Entering XR state after being in normal
+                    // Store camera fov
+                    cameraFieldOfView = _xrOrigin.Camera.fieldOfView;
+
                     // Adjust camera offset
                     cameraYOffset = _xrOrigin.CameraYOffset;
                     _xrOrigin.CameraYOffset = 0.0f;
@@ -223,6 +227,9 @@ namespace Ubiq.WebXR
                 if (state == State.XR)
                 {
                     // Entering normal state after being in XR
+                    // Restore field of view
+                    _xrOrigin.Camera.fieldOfView = cameraFieldOfView;
+
                     // Return camera offset to initial
                     _xrOrigin.CameraYOffset = cameraYOffset;
                     _xrOrigin.CameraFloorOffsetObject.transform.localPosition = 
@@ -231,7 +238,9 @@ namespace Ubiq.WebXR
                     // Fire the event
                     Ubiq.XR.Notifications.XRNotifications.HmdUnmounted();
                 }
-                
+
+                _xrOrigin.Camera.transform.SetLocalPositionAndRotation(
+                    Vector3.zero,Quaternion.identity);
                 state = State.Normal;
             }
         }

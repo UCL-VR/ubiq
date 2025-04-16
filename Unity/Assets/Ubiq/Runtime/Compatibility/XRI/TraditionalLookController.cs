@@ -37,6 +37,11 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
             EnableOverride.action.Enable();
             XRNotifications.OnHmdMounted += ResetPitch;
         }
+        
+        void OnDestroy()
+        {
+            XRNotifications.OnHmdMounted -= ResetPitch;
+        }
 
         // This script works by adding Yaw to the rotation of the origin, and
         // Pitch to the Camera Offset. Both of these values should aggregate
