@@ -12,7 +12,7 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
     /// <summary>
     /// Allows mouse or touch inputs to control the orientation of the Camera.
     /// </summary>
-    public class TraditionalLookController : MonoBehaviour
+    public class TraditionalControlsLookController : MonoBehaviour
     {
         public InputActionReference Look;
         public InputActionReference Enable;
@@ -36,6 +36,11 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
             Enable.action.Enable();
             EnableOverride.action.Enable();
             XRNotifications.OnHmdMounted += ResetPitch;
+        }
+        
+        void OnDestroy()
+        {
+            XRNotifications.OnHmdMounted -= ResetPitch;
         }
 
         // This script works by adding Yaw to the rotation of the origin, and

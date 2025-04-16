@@ -31,7 +31,7 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
         
         public float sensitivity = 1.0f;
         public TraditionalControlsThumbstick thumbstick;
-        public TraditionalLookController look;
+        public TraditionalControlsLookController look;
         public ContinuousMoveProvider moveProvider;
         
         private MoveReader moveReader;
