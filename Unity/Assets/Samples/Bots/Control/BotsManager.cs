@@ -166,6 +166,20 @@ namespace Ubiq.Samples.Bots
             }
         }
 
+        public void RemoveBot(Bot bot)
+        {
+            if (bots.Contains(bot))
+            {
+                Debug.Log("Removing bot " + bot.name + " from BotsManager process " + Pid);
+                bots.Remove(bot);
+                GameObject.Destroy(bot.transform.parent.gameObject);
+            }
+            else
+            {
+                Debug.LogWarning("Bot " + bot.name + " not found in BotsManager process " + Pid);
+            }
+        }
+
         public void AddBotsToRoom()
         {
             foreach (var bot in bots)
@@ -220,6 +234,22 @@ namespace Ubiq.Samples.Bots
             }
         }
 
+        private List<TimetableFactory.TimetableEvent> IncrementEventStartTime(List<TimetableFactory.TimetableEvent> events)
+        {
+            float increment = Time.time;
+
+            List<TimetableFactory.TimetableEvent> newEvents = new List<TimetableFactory.TimetableEvent>();
+            foreach (var e in events)
+            {
+                TimetableFactory.TimetableEvent newEvent = new TimetableFactory.TimetableEvent();
+                newEvent.Name = e.Name;
+                newEvent.RoomIndex = e.RoomIndex;
+                newEvent.StartTime = e.StartTime + increment; // Increment start time by 1 second
+                newEvents.Add(newEvent);
+            }
+            return newEvents;
+        }
+
         private void InitialiseBot(Bot bot)
         {
             var rc = GetRoomClient(bot);
@@ -227,6 +257,7 @@ namespace Ubiq.Samples.Bots
             rc.SetDefaultServer(BotsConfig.BotServer);
 
             var am = AvatarManager.Find(bot);
+            Debug.Log("AvatarManager found: " + am);
             if(am)
             {
                 am.OnAvatarCreated.AddListener(avatar =>
@@ -247,7 +278,8 @@ namespace Ubiq.Samples.Bots
                     }
 
                     avatar.UpdateRate = AvatarUpdateRate;
-
+                    Debug.Log("Avatar update rate set to " + AvatarUpdateRate);
+                    Debug.Log($"Avatar: {avatar} is local: {avatar.IsLocal}");
                     if (avatar.IsLocal)
                     {
                         var adm = avatar.gameObject.AddComponent<AvatarDataGenerator>();
@@ -285,7 +317,9 @@ namespace Ubiq.Samples.Bots
             {
                 case "UpdateTimetable":
                     {
-                        SetTimetableEvents(message.FromJson<UpdateTimetable>().Events);
+                        var events = message.FromJson<UpdateTimetable>().Events;
+                        var incrementedEvents = IncrementEventStartTime(events);
+                        SetTimetableEvents(incrementedEvents);
                     }
                     break;
                 case "UpdateBotManagerSettings":

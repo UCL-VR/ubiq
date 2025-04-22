@@ -169,15 +169,19 @@ public class ExperimentRunner : MonoBehaviour
 
         while(Controller.BotsRoom.Peers.Count() > 0)
         {
+            Debug.LogWarning("Waiting for all peers to leave the Bots room.");
+            Controller.ClearBots(); 
             yield return null;
         }
 
         while(Controller.BotManagers.Any(m => m.NumBots > 0))
         {
+            Debug.LogWarning("Waiting for all bots to be destroyed.");
+            Controller.ClearBots();
             yield return null;
         }
 
-        yield return new WaitForSeconds(5f); // Wait for a few seconds to let the server settle.
+        yield return new WaitForSeconds(60f); // Wait for a few seconds to let the server settle.
 
         Debug.Log("Starting Condition " + conditionIndex);
 
@@ -204,7 +208,7 @@ public class ExperimentRunner : MonoBehaviour
 
         foreach (BotManagerProxy manager in Controller.BotManagers)
         {
-            manager.UpdateTimetable(IncrementEventStartTime());
+            manager.UpdateTimetable(TimetableFactory.Instance.Events);
         }
 
         float startTime = Time.time;
@@ -228,6 +232,7 @@ public class ExperimentRunner : MonoBehaviour
             // Check for early termination criteria here...
 
             numBots++;
+            Debug.Log("Condition " + conditionIndex + " Adding bot " + numBots + ":" + NumBots + " to manager " + manager.Pid);
             yield return new WaitForSeconds(1.5f); // Every second add a new bot to a manager process in order
         }
 
@@ -242,22 +247,5 @@ public class ExperimentRunner : MonoBehaviour
         experiment.Log("ExperimentComplete"); // Footer for last log file (if any)
 
         Debug.Log("Condition " + conditionIndex + " Complete.");
-    }
-
-    private List<TimetableFactory.TimetableEvent> IncrementEventStartTime()
-    {
-        float increment = Time.time;
-
-        List<TimetableFactory.TimetableEvent> events = TimetableFactory.Instance.Events;
-        List<TimetableFactory.TimetableEvent> newEvents = new List<TimetableFactory.TimetableEvent>();
-        foreach (var e in events)
-        {
-            TimetableFactory.TimetableEvent newEvent = new TimetableFactory.TimetableEvent();
-            newEvent.Name = e.Name;
-            newEvent.RoomIndex = e.RoomIndex;
-            newEvent.StartTime = e.StartTime + increment; // Increment start time by 1 second
-            newEvents.Add(newEvent);
-        }
-        return newEvents;
     }
 }
