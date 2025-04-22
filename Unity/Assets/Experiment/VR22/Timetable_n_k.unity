@@ -433,12 +433,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Events:
   - Name: Start
-    Location: {fileID: 1749262442}
+    RoomIndex: 0
     StartTime: 0
     EndTime: 580
   - Name: Exit
-    Location: {fileID: 1749262442}
-    StartTime: 20
+    RoomIndex: 0
+    StartTime: 160
     EndTime: 10000000
 --- !u!4 &562782348
 Transform:
@@ -1160,13 +1160,13 @@ MonoBehaviour:
   DefaultCommandServer:
     listen_on_ip: 
     listen_on_port: 
-    send_to_ip: localhost
+    send_to_ip: ubig1-2025.cs.ucl.ac.uk
     send_to_port: 8009
     type: 0
   DefaultBotServer:
     listen_on_ip: 
     listen_on_port: 
-    send_to_ip: localhost
+    send_to_ip: ubig1-2025.cs.ucl.ac.uk
     send_to_port: 8010
     type: 3
   ControlRoomId: 87ef0572-67ea-43cc-b2d9-a242428ce929
@@ -1228,25 +1228,9 @@ MonoBehaviour:
   Controller: {fileID: 1598876982}
   Manager: {fileID: 1161235699}
   LocalLogCollector: {fileID: 1135745796}
-  LifetimePerConditionSeconds: 30
-  NumBots: 1
+  LifetimePerConditionSeconds: 180
+  NumBots: 30
   Conditions:
-  - Bot: {fileID: 2044676199132764484, guid: 24a291ec46b56476db226be2ca423978, type: 3}
-    UpdateRate: 60
-    Padding: 500
-    ManageRooms: 1
-  - Bot: {fileID: 2044676199132764484, guid: 24a291ec46b56476db226be2ca423978, type: 3}
-    UpdateRate: 60
-    Padding: 500
-    ManageRooms: 1
-  - Bot: {fileID: 2044676199132764484, guid: 24a291ec46b56476db226be2ca423978, type: 3}
-    UpdateRate: 60
-    Padding: 500
-    ManageRooms: 1
-  - Bot: {fileID: 2044676199132764484, guid: 24a291ec46b56476db226be2ca423978, type: 3}
-    UpdateRate: 60
-    Padding: 500
-    ManageRooms: 1
   - Bot: {fileID: 2044676199132764484, guid: 24a291ec46b56476db226be2ca423978, type: 3}
     UpdateRate: 60
     Padding: 500
@@ -1745,17 +1729,17 @@ PrefabInstance:
     - target: {fileID: 8029281231830260362, guid: f48c26e946b7fc644bf1eaebc31a8bd3,
         type: 3}
       propertyPath: networkId.a
-      value: 699893241
+      value: 332340922
       objectReference: {fileID: 0}
     - target: {fileID: 8029281231830260362, guid: f48c26e946b7fc644bf1eaebc31a8bd3,
         type: 3}
       propertyPath: networkId.b
-      value: 3954009156
+      value: 510632833
       objectReference: {fileID: 0}
     - target: {fileID: 8029281231830260362, guid: f48c26e946b7fc644bf1eaebc31a8bd3,
         type: 3}
       propertyPath: __serializedGoid
-      value: GlobalObjectId_V1-2-7e6f8108cb47c4693be2670e50523f8d-8029281231830260362-7067725730933256810
+      value: GlobalObjectId_V1-2-e04167f10b48343c2a12d8c01026af16-8029281231830260362-7067725730933256810
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f48c26e946b7fc644bf1eaebc31a8bd3, type: 3}
