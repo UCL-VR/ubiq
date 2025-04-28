@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.XR;
 using Ubiq.XR.Notifications;
 
-namespace Ubiq.Compatibility.XRI.TraditionalControls
+namespace Ubiq.XRI.TraditionalControls
 {
     public class TraditionalControlsXRStateManager : MonoBehaviour
     {

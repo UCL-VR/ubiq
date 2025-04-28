@@ -1,7 +1,7 @@
 #if XRI_3_0_7_OR_NEWER
 using UnityEngine;
 
-namespace Ubiq.Compatibility.XRI.TraditionalControls
+namespace Ubiq.XRI.TraditionalControls
 {
     public class TraditionalControlsCanvas : MonoBehaviour
     {
