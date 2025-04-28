@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 using Ubiq.XR.Notifications;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
-namespace Ubiq.Compatibility.XRI.TraditionalControls
+namespace Ubiq.XRI.TraditionalControls
 {
     /// <summary>
     /// Controls the Transform of the Mouse Cursor GameObject, ensuring Interactors,

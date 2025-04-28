@@ -7,7 +7,7 @@ using Ubiq.XR.Notifications;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
-namespace Ubiq.Compatibility.XRI.TraditionalControls
+namespace Ubiq.XRI.TraditionalControls
 {
     /// <summary>
     /// Allows mouse or touch inputs to control the orientation of the Camera.

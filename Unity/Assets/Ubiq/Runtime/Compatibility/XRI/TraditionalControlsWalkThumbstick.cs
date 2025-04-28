@@ -1,8 +1,9 @@
+#if XRI_3_0_7_OR_NEWER
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement;
 
-namespace Ubiq.Compatibility.XRI.TraditionalControls
+namespace Ubiq.XRI.TraditionalControls
 {
     public class TraditionalControlsWalkThumbstick : MonoBehaviour
     {
@@ -58,3 +59,4 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
         
     }
 }
+#endif

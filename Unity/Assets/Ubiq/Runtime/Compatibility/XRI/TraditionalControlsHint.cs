@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿#if XRI_3_0_7_OR_NEWER
+using System.Collections.Generic;
 using UnityEngine;
 
-namespace Ubiq.Compatibility.XRI.TraditionalControls
+namespace Ubiq.XRI.TraditionalControls
 {
     public class TraditionalControlsHint : MonoBehaviour
     {
@@ -37,3 +38,4 @@ namespace Ubiq.Compatibility.XRI.TraditionalControls
         }
     }
 }
+#endif
