@@ -15,6 +15,7 @@ namespace Ubiq.Samples.Bots
     [RequireComponent(typeof(NavMeshAgent))]
     public class TimetableBotAgent : MonoBehaviour
     {
+        public bool alwaysAttendEvents = true; // If false, bot will choose whether to attend an event or not. This gives more accurate capture of human behaviour but in stress testing, this should be true.
         private NavMeshAgent navMeshAgent;
         private Action<string, string> sendMessageBack;
         public Vector3 destination;
@@ -45,10 +46,12 @@ namespace Ubiq.Samples.Bots
             if (nextEvent >= events.Count - 1)
             {
                 Debug.Log("Bot " + gameObject.name + " finished timetable");
-                Destroy(transform.parent.gameObject); // Bot has finished its timetable
+                Bot bot = GetComponent<Bot>();
+                BotsManager.Find(bot).RemoveBot(bot);
+                // Destroy(transform.parent.gameObject); // Bot has finished its timetable
             }
 
-            // Debug.Log("nextEvent: "+nextEvent);
+            // Debug.Log($"{Time.time}, nextEvent: {events[nextEvent].Name} at {events[nextEvent].StartTime}");s
             if (!navMeshAgent.isActiveAndEnabled)
             {
                 return;
@@ -144,7 +147,8 @@ namespace Ubiq.Samples.Bots
             do
             {
                 i++;
-                destination = currentRoom.transform.position + UnityEngine.Random.insideUnitSphere * currentRoom.size.x / 2;
+                destination = currentRoom.transform.position + Vector3.Scale(UnityEngine.Random.insideUnitSphere, new Vector3(currentRoom.size.x / 2, 0, currentRoom.size.z / 2));
+                // Make sure the destination is within the room bounds
             } while (!NavMesh.SamplePosition(destination, out hit, float.MaxValue, NavMesh.AllAreas) && i < 100);
             destination = hit.position;
             navMeshAgent.destination = destination;
@@ -160,21 +164,39 @@ namespace Ubiq.Samples.Bots
         {
             List<TimetableFactory.TimetableEvent> publicTimetable = BotsManager.Find(GetComponent<Bot>()).GetTimetableEvents();
 
-            for (int i = 0; i < publicTimetable.Count - 1; i++)
+            events.Add(publicTimetable[0]); // Add the first event as-is
+
+            var currentGroupStartTime = publicTimetable[0].StartTime;
+            List<TimetableFactory.TimetableEvent> currentGroup = new List<TimetableFactory.TimetableEvent>();
+            // CurrentGroup is a list of events that have the same start time. Iterate through the public timetable and collect events that have the same start time. When a event with a different start time is found, randomly choose one of the events in the current group to add to the bot's timetable. Then, clear the current group and add the new event to it.
+            for (int i = 1; i < publicTimetable.Count - 1; i++)
             {
-                // Choose whether to add the event to the bot's timetable
-                if (i == 0)  // Always add the first event as-is
-                {                
-                    events.Add(publicTimetable[i]);
-                    continue;
+                if (publicTimetable[i].StartTime == currentGroupStartTime)
+                {
+                    currentGroup.Add(publicTimetable[i]);
                 }
-                if (UnityEngine.Random.value > 0.5f)
-                    continue;
-
-
-
-                events.Add(Customize(publicTimetable[i]));
+                else
+                {
+                    AddRandomEventFromGroup(currentGroup);
+                    currentGroup.Clear();
+                    currentGroup.Add(publicTimetable[i]);
+                    currentGroupStartTime = publicTimetable[i].StartTime;
+                }
             }
+
+            // If there are any events left in the current group, randomly choose one of them to add to the bot's timetable
+            AddRandomEventFromGroup(currentGroup);
+            currentGroup.Clear();
+            // if (currentGroup.Count > 0)
+            // {
+            //     // int randomIndex = UnityEngine.Random.Range(0, currentGroup.Count + 1);
+            //     int randomIndex = UnityEngine.Random.Range(0, currentGroup.Count);
+            //     if (randomIndex < currentGroup.Count)
+            //     {
+            //         events.Add(Customize(currentGroup[randomIndex]));
+            //     }
+            //     currentGroup.Clear();
+            // }
 
             events.Add(Customize(publicTimetable[publicTimetable.Count - 1]));
 
@@ -184,6 +206,24 @@ namespace Ubiq.Samples.Bots
                 events[events.Count - 1].StartTime = Mathf.Min(events[events.Count - 1].StartTime, publicTimetable[publicTimetable.Count - 1].StartTime + 15f); // Clamp start time of leaving the room to be at most 15 seconds after the original start time. This is under the assumption that the start time of the last event is 20 seconds before the end of the experiment.
                 events[events.Count - 1].EndTime = publicTimetable[publicTimetable.Count - 1].EndTime;
             } 
+        }
+        
+        private void AddRandomEventFromGroup(List<TimetableFactory.TimetableEvent> currentGroup)
+        {
+            if (currentGroup.Count <= 0)
+                return;
+
+            // Randomly choose one of the events in the current group to add to the bot's timetable
+            int randomIndex;
+            if (alwaysAttendEvents)
+                randomIndex = UnityEngine.Random.Range(0, currentGroup.Count);
+            else
+                randomIndex = UnityEngine.Random.Range(0, currentGroup.Count + 1);
+            
+            if (randomIndex < currentGroup.Count)
+            {
+                events.Add(Customize(currentGroup[randomIndex]));
+            }
         }
 
         private TimetableFactory.TimetableEvent Customize(TimetableFactory.TimetableEvent e, float noise=10f)

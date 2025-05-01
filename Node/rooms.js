@@ -212,7 +212,7 @@ class RoomServer extends EventEmitter{
     }
 
     onConnection(wrapped){
-        console.log("RoomServer: Client Connection from " + wrapped.endpoint().address + ":" + wrapped.endpoint().port);
+        // console.log(this.status.connections + " - RoomServer: Client Connection from " + wrapped.endpoint().address + ":" + wrapped.endpoint().port);
         new RoomPeer(this, wrapped);
     }
 
@@ -677,7 +677,7 @@ class Room{
                 peer.sendPeerAdded(existing); // And the new Peer about the existing one
             }
         };
-        console.log(peer.uuid + " joined room " + this.name);
+        console.log(this.peers.length + ": " + peer.uuid + " joined room " + this.name);
     }
 
     removePeer(peer){
