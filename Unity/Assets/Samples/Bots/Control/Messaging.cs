@@ -18,6 +18,17 @@ namespace Ubiq.Samples.Bots.Messaging
     }
 
     [Serializable]
+    public class UpdateTimetable : Message
+    {
+        public List<TimetableFactory.TimetableEvent> Events;
+
+        public UpdateTimetable(List<TimetableFactory.TimetableEvent> events):base("UpdateTimetable")
+        {
+            this.Events = events;
+        }
+    }
+
+    [Serializable]
     public class BotManagerSettings : Message 
     {
         public bool EnableAudio;

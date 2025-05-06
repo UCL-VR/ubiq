@@ -16,7 +16,7 @@ namespace Ubiq.Samples.Bots
     public class BotsManager : MonoBehaviour
     {
         public GameObject[] BotPrefabs;
-        public int NumBots { get => bots.Count; }
+        public int NumBots { get => bots.Count(b => b != null); }
         public float Fps { get { return FpsMovingAverage.Mean(); } private set { FpsMovingAverage.Update(value); } }
         public string Guid { get; private set; }
         public string Pid { get; private set; }
@@ -77,6 +77,8 @@ namespace Ubiq.Samples.Bots
         private string botsRoomJoinCode;
         private NetworkScene networkScene;
         private RoomClient roomClient;
+
+        private List<TimetableFactory.TimetableEvent> _timetableEvents;
 
         public class BotPeerEvent : UnityEvent<Bot>
         {
@@ -146,11 +148,35 @@ namespace Ubiq.Samples.Bots
             AddBotsToRoom(bot);
         }
 
+        private void SetTimetableEvents(List<TimetableFactory.TimetableEvent> events)
+        {
+            _timetableEvents = events;
+        }
+
+        public List<TimetableFactory.TimetableEvent> GetTimetableEvents()
+        {
+            return _timetableEvents;
+        }
+
         public void AddBots(int index, int count)
         {
             for (int i = 0; i < count; i++)
             {
                 AddBot(index);
+            }
+        }
+
+        public void RemoveBot(Bot bot)
+        {
+            if (bots.Contains(bot))
+            {
+                Debug.Log("Removing bot " + bot.name + " from BotsManager process " + Pid);
+                bots.Remove(bot);
+                GameObject.Destroy(bot.transform.parent.gameObject);
+            }
+            else
+            {
+                Debug.LogWarning("Bot " + bot.name + " not found in BotsManager process " + Pid);
             }
         }
 
@@ -166,6 +192,10 @@ namespace Ubiq.Samples.Bots
         {
             foreach (var bot in bots)
             {
+                if (bot == null)
+                {
+                    continue;
+                }
                 GameObject.Destroy(bot.transform.parent.gameObject);
             }
             bots.Clear();
@@ -204,6 +234,22 @@ namespace Ubiq.Samples.Bots
             }
         }
 
+        private List<TimetableFactory.TimetableEvent> IncrementEventStartTime(List<TimetableFactory.TimetableEvent> events)
+        {
+            float increment = Time.time;
+
+            List<TimetableFactory.TimetableEvent> newEvents = new List<TimetableFactory.TimetableEvent>();
+            foreach (var e in events)
+            {
+                TimetableFactory.TimetableEvent newEvent = new TimetableFactory.TimetableEvent();
+                newEvent.Name = e.Name;
+                newEvent.RoomIndex = e.RoomIndex;
+                newEvent.StartTime = e.StartTime + increment; // Increment start time by 1 second
+                newEvents.Add(newEvent);
+            }
+            return newEvents;
+        }
+
         private void InitialiseBot(Bot bot)
         {
             var rc = GetRoomClient(bot);
@@ -211,6 +257,7 @@ namespace Ubiq.Samples.Bots
             rc.SetDefaultServer(BotsConfig.BotServer);
 
             var am = AvatarManager.Find(bot);
+            Debug.Log("AvatarManager found: " + am);
             if(am)
             {
                 am.OnAvatarCreated.AddListener(avatar =>
@@ -231,7 +278,8 @@ namespace Ubiq.Samples.Bots
                     }
 
                     avatar.UpdateRate = AvatarUpdateRate;
-
+                    Debug.Log("Avatar update rate set to " + AvatarUpdateRate);
+                    Debug.Log($"Avatar: {avatar} is local: {avatar.IsLocal}");
                     if (avatar.IsLocal)
                     {
                         var adm = avatar.gameObject.AddComponent<AvatarDataGenerator>();
@@ -267,6 +315,13 @@ namespace Ubiq.Samples.Bots
             var Base = message.FromJson<Message>();
             switch (Base.Type)
             {
+                case "UpdateTimetable":
+                    {
+                        var events = message.FromJson<UpdateTimetable>().Events;
+                        var incrementedEvents = IncrementEventStartTime(events);
+                        SetTimetableEvents(incrementedEvents);
+                    }
+                    break;
                 case "UpdateBotManagerSettings":
                     {
                         var Message = message.FromJson<BotManagerSettings>();
@@ -302,8 +357,14 @@ namespace Ubiq.Samples.Bots
                 case "SendMessage":
                     {
                         var request = message.FromJson<SendMessage>();
-                        foreach (var bot in bots)
+                        // foreach (var bot in bots)
+                        for (int i = 0; i < bots.Count; i++)
                         {
+                            var bot = bots[i];
+                            if (bot == null)
+                            {
+                                continue;
+                            }
                             bot.SendMessage(request.MethodName, request.Parameter, SendMessageOptions.DontRequireReceiver);
                         }
                     }

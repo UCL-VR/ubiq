@@ -41,6 +41,10 @@ class KnnRoom extends Room{
           this.peers.splice(index, 1);
         }
         peer.clearRoom(); // signal that the leave is complete
+        for(var existing of this.peers){
+            existing.sendPeerRemoved(peer); // Tell the remaining peers about the missing peer (no check here because the peer was already removed from the list)
+            peer.sendPeerRemoved(existing);
+        }
 
         console.log(peer.uuid + " left room " + this.name);
         this.checkRoom();
@@ -127,9 +131,9 @@ class KnnRoom extends Room{
             KnnRoom.removeNearPeerImmediate(me, peer);
         });
 
-        if(me.kNearestPeers.length > 0 && me.kNearestPeers.length != this.k){
-            console.log("Unexpected Peer Count");
-        }
+        // if(me.kNearestPeers.length > 0 && me.kNearestPeers.length != this.k){
+        //     console.log("Unexpected Peer Count");
+        // }
     }
 
     addNearPeer(me, peer){

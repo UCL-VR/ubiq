@@ -45,7 +45,9 @@ public class BotDistributionMeasure : MonoBehaviour
         timer += Time.deltaTime;
         if (timer > 60)
         {
+#if UNITY_EDITOR
             EditorApplication.isPlaying = false;
+#endif
         }
     }
 

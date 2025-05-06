@@ -18,8 +18,10 @@ public class ExperimentRunner : MonoBehaviour
     public BotsController Controller; // For the bots
     public BotsManager Manager; // For the prefab list
     public LogCollector LocalLogCollector; // For the log collector
+    public int LifetimePerConditionSeconds; // How long to run the experiment
 
     private LogEmitter experiment;
+    private float startTime = -1f;
 
     [Serializable]
     public class Condition
@@ -56,11 +58,34 @@ public class ExperimentRunner : MonoBehaviour
         LocalLogCollector.StartCollection();
         Controller.OnMessage("RTT", OnRTT);
         Controller.OnMessage("Position", OnPosition);
+        Controller.OnMessage("BotDestination", OnBotDestination);
+
+    }
+
+    private void Update()
+    {
+//         if (startTime > 0 && Time.time - startTime > LifetimePerConditionSeconds * Conditions.Count)
+//         {
+//             experiment.Log("ExperimentComplete");
+//             LocalLogCollector.StopCollection();
+
+// #if UNITY_EDITOR
+//             UnityEditor.EditorApplication.isPlaying = false;
+// #endif
+
+// #if UNITY_STANDALONE
+//             Application.Quit();
+// #endif
+        
     }
 
     private void OnRTT(string ev)
     {
         var measurement = JsonUtility.FromJson<LatencyMeter.Measurement>(ev);
+        if (measurement.time > 1000)
+        {
+            Debug.LogWarning("RTT: " + measurement.time + "ms, FrameTime: " + measurement.frameTime + ", " +  measurement.source + " -> " + measurement.destination);
+        }
         experiment.Log("RTT", measurement.source, measurement.destination, measurement.time, measurement.frameTime);
     }
 
@@ -70,8 +95,15 @@ public class ExperimentRunner : MonoBehaviour
         experiment.Log("Position", report.slice, report.position, report.velocity);
     }
 
+    private void OnBotDestination(string parms)
+    {
+        var destination = JsonUtility.FromJson<Vector3>(parms);
+        experiment.Log("BotDestination", parms);
+    }
+
     public void Begin()
     {
+        startTime = Time.time;
         StartCoroutine(RunAllConditions());
         StartCoroutine(Step());
         StartCoroutine(Step2());
@@ -83,6 +115,16 @@ public class ExperimentRunner : MonoBehaviour
         {
             yield return Run(i);
         }
+        
+        LocalLogCollector.StopCollection();
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
+
+#if UNITY_STANDALONE
+        Application.Quit();
+#endif
     }
 
     public IEnumerator Step()
@@ -127,15 +169,19 @@ public class ExperimentRunner : MonoBehaviour
 
         while(Controller.BotsRoom.Peers.Count() > 0)
         {
+            Debug.LogWarning("Waiting for all peers to leave the Bots room.");
+            Controller.ClearBots(); 
             yield return null;
         }
 
         while(Controller.BotManagers.Any(m => m.NumBots > 0))
         {
+            Debug.LogWarning("Waiting for all bots to be destroyed.");
+            Controller.ClearBots();
             yield return null;
         }
 
-        yield return new WaitForSeconds(5f); // Wait for a few seconds to let the server settle.
+        yield return new WaitForSeconds(60f); // Wait for a few seconds to let the server settle.
 
         Debug.Log("Starting Condition " + conditionIndex);
 
@@ -153,10 +199,16 @@ public class ExperimentRunner : MonoBehaviour
                 break;
             }
         }
+        Debug.Log("Prefab: " + prefab + " | " + Manager.BotPrefabs[prefab].name);
 
         if(condition.ManageRooms)
         {
             Controller.CreateBotsRoom();
+        }
+
+        foreach (BotManagerProxy manager in Controller.BotManagers)
+        {
+            manager.UpdateTimetable(TimetableFactory.Instance.Events);
         }
 
         float startTime = Time.time;
@@ -180,8 +232,17 @@ public class ExperimentRunner : MonoBehaviour
             // Check for early termination criteria here...
 
             numBots++;
+            Debug.Log("Condition " + conditionIndex + " Adding bot " + numBots + ":" + NumBots + " to manager " + manager.Pid);
             yield return new WaitForSeconds(1.5f); // Every second add a new bot to a manager process in order
         }
+
+        float timeToWait = LifetimePerConditionSeconds - numBots * 1.5f;
+        if (timeToWait < 0)
+        {
+            timeToWait = 0;
+        }
+        Debug.Log("Waiting " + timeToWait + " seconds for bots to settle.");
+        yield return new WaitForSeconds(timeToWait);
 
         experiment.Log("ExperimentComplete"); // Footer for last log file (if any)
 

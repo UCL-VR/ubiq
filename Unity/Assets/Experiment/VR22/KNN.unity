@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028334, g: 0.22571336, b: 0.3069219, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -586,15 +586,15 @@ MonoBehaviour:
   DefaultCommandServer:
     listen_on_ip: 
     listen_on_port: 
-    send_to_ip: ec2-3-8-99-148.eu-west-2.compute.amazonaws.com
-    send_to_port: 8007
+    send_to_ip: localhost
+    send_to_port: 8009
     type: 0
   DefaultBotServer:
     listen_on_ip: 
     listen_on_port: 
-    send_to_ip: ec2-3-8-99-148.eu-west-2.compute.amazonaws.com
-    send_to_port: 8009
-    type: 0
+    send_to_ip: localhost
+    send_to_port: 8010
+    type: 3
   ControlRoomId: 87ef0572-67ea-43cc-b2d9-a242428ce929
 --- !u!4 &1567755671
 Transform:
@@ -654,13 +654,10 @@ MonoBehaviour:
   Controller: {fileID: 1598876982}
   Manager: {fileID: 1161235699}
   LocalLogCollector: {fileID: 1135745796}
-  NumBots: 100
+  LifetimeSeconds: 180
+  NumBots: 30
   Conditions:
   - Bot: {fileID: 5205131766613321428, guid: c3622ecd55537104b9f28a94ebe4e2a1, type: 3}
-    UpdateRate: 60
-    Padding: 500
-    ManageRooms: 1
-  - Bot: {fileID: 8145233317357318225, guid: 71a0405a4b385d746a31db6d1a7d9383, type: 3}
     UpdateRate: 60
     Padding: 500
     ManageRooms: 1
