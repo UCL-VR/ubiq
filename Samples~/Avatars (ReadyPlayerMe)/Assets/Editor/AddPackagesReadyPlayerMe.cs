@@ -30,7 +30,7 @@ namespace Ubiq.ReadyPlayerMe.Editor
         {
             Ubiq.Editor.PackageManagerHelper.AddPackage("https://github.com/UCL-VR/readyplayerme-core-ubiq-fork.git");
             Ubiq.Editor.PackageManagerHelper.AddPackage("https://github.com/readyplayerme/rpm-unity-sdk-avatar-loader.git#v1.3.4");
-            Ubiq.Editor.PackageManagerHelper.AddPackage("https://github.com/atteneder/glTFast.git#v5.0.0");
+            Ubiq.Editor.PackageManagerHelper.AddPackage("com.unity.cloud.gltfast@5.0.4");
             UnityEditor.EditorApplication.update -= Update;
         }
     }
