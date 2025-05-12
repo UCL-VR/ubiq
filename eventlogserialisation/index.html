@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Serialisation and Memory - Ubiq Docs</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Serialisation and Memory";
+        var mkdocs_page_input_path = "eventlogserialisation.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Ubiq Docs
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../gettingubiq/">Getting Ubiq</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../settingupvr/">Setting Up VR</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../creatinganetworkedobject/">Creating Networked Objects</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../spawningobjects/">Object Spawning</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../localloopback/">Testing with Local Loopback</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../synchronisation/">Synchronisation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../ubiqxrinteraction/">Interaction with Ubiq XR</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../serversandrooms/">Servers and Rooms</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../eventlogginggettingstarted/">Logging</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../3dpentutorial/">Creating a 3D Pen</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../serversetup/">Server</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Advanced</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../xrinteraction/">Interaction</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Logging</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloganalysis/">Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingexperimentquestionnaire/">Questionnaire</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingunittests/">Unit Tests</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingcollectorservice/">LogCollector Service</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Serialisation and Memory</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#formatters">Formatters</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#code-generation">Code Generation</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#resolvers-and-formatters">Resolvers and Formatters</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#caching">Caching</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Messaging</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../messaging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkids/">Network Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../generatinguniqueids/">Generating Unique Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkidtype/">Types</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../reservedids/">Reserved IDs</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../webrtc/">WebRtc</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Servers and Rooms</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../serverintroduction/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serveroverview/">Server Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serverheartbeat/">Heartbeat and Timeouts</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../leavingandjoiningrooms/">Leaving and Joining</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../botssample/">Bots</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Programming</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../asyncdesignpatterns/">Async Design Patterns</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Development</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../packaging/">Packaging</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nexus/">Nexus</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../mkdocs/">Meta</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ubiq Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Advanced</li>
+          <li class="breadcrumb-item">Logging</li>
+      <li class="breadcrumb-item active">Serialisation and Memory</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="serialiser">Serialiser</h1>
+<p>The logging functionality uses a custom Json serialiser that facilitates building Json objects across multiple function calls.</p>
+<p>This is based on <a href="https://github.com/neuecc/Utf8Json">neuecc's Utf8Json</a>, but with modifications to track memory usage and remove code generation requirements.</p>
+<p>The Utf8Json serialiser is in the <code>Ubiq.Logging.Utf8Json</code> namspace. It is not recommended to use the serialiser for purposes other than logging; import an unmodified version of the library separately instead.</p>
+<h2 id="formatters">Formatters</h2>
+<p>Libraries such as Utf8Json typically have methods that serialise and deseralise specific types by sequentially reading and writing tokens to and from streams. (In this case, the tokes are read and written using the <code>JsonReader</code> and <code>JsonWriter</code> structures.)</p>
+<p>Utf8Json finds the appropriate method to use using <code>FormatterResovler</code> classes. These classes return a cached <code>Formatter&lt;T&gt;</code> class, which is an object with two methods to read and write objects of type <code>T</code> as Json.</p>
+<p>The included version of Utf8Json includes formatters for a number of known types, including all the basic primitives, and enums. Enums are serialised as names. </p>
+<h3 id="code-generation">Code Generation</h3>
+<p>To serialise types that do not have an explicit formatter defined, libraries such as Utf8Json usually build serialisation methods at runtime using code generation. This is not supported on platforms that use <a href="https://docs.unity3d.com/Manual/ScriptingRestrictions.html">IL2CPP</a> however. </p>
+<p>To avoid code generation, unknown types are serialised by the Unity JsonUtility and embedded as objects.</p>
+<h3 id="resolvers-and-formatters">Resolvers and Formatters</h3>
+<p>When a type is serialised, Utf8Json will use the <code>DefaultResolver</code> to find a formatter. The <code>DefaultResolver</code> is defined in the <code>JsonSerializer</code> class as a static member and returns a <code>StandardResolver</code>, a type of composite resolver. This resolver will search each resolver registered to it in turn, and return the first <code>Formatter</code> that matches the type. The <code>StandardResolver</code> includes formatters for the built-in types, and the dynamic formatter fallback.</p>
+<h3 id="caching">Caching</h3>
+<p>Utf8Json makes common use of the following design pattern.</p>
+<pre><code>public IJsonFormatter&lt;T&gt; GetFormatter&lt;T&gt;()
+{
+    return FormatterCache&lt;T&gt;.formatter;
+}
+
+static class FormatterCache&lt;T&gt;
+{
+    public static readonly IJsonFormatter&lt;T&gt; formatter;
+
+    static FormatterCache()
+    {
+        formatter = (IJsonFormatter&lt;T&gt;)BuiltinResolverGetFormatterHelper.GetFormatter(typeof(T));
+    }
+}
+</code></pre>
+<p>This snippet leverages the behaviour of generics in C# to replace formatter references in code, without using code generation.
+In C#, when a generic type is <a href="https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/generics/generics-in-the-run-time">first constructed</a>, the runtime will produce the concrete type and substitute it in the appropriate locations in the MSIL.
+The static constructor is <a href="(https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/static-constructors)">called</a> before the formatter is referenced for the first time.</p>
+<p>That is, the generic FormatterCache<T> type is replaced in the MSIL and the formatter member it returns is resolved on demand (when the <code>FormatterCache&lt;T&gt;</code> is first constructed).</p>
+<h1 id="memory-management">Memory Management</h1>
+<p>The Utf8Json namespace manages its own global memory pools to minimise GC allocations. It does not track memory usage directly however. </p>
+<p>Instead, <code>LogCollector</code> instances track how many bytes of pooled memory they have in their queues at any time, and use this to control whether new events are buffered or dropped.</p>
+<p>Memory is rented from the pool on demand by JsonWriter objects created by <code>LogEmitter</code> instances. Outstanding memory is returned to the pool when a JsonWriter is disposed. JsonWriters are disposed by the <code>LogCollector</code> they are fed to, either after being copied for transmission or discarded when the buffer reaches capacity. <code>LogEmitter</code> instances only create JsonWriters if a <code>LogCollector</code> has been registered to recieve (and dispose of) the completed object.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../eventloggingcollectorservice/" class="btn btn-neutral float-left" title="LogCollector Service"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../messaging/" class="btn btn-neutral float-right" title="Introduction">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../eventloggingcollectorservice/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../messaging/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
