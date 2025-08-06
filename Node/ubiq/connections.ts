@@ -225,6 +225,9 @@ export class TcpConnectionWrapper implements IConnectionWrapper {
     header: Buffer
     data: any
     closed: boolean
+    private isClosing: boolean = false
+    private cleanupTimeout: NodeJS.Timeout | null = null
+
     constructor (s: Tcp.Socket) {
         this.onMessage = []
         this.onClose = []
@@ -234,23 +237,92 @@ export class TcpConnectionWrapper implements IConnectionWrapper {
         this.bufferRead = 0
         this.data = null
         this.closed = false
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
+
         const self = this
 
         this.socket.on('data', self.onData.bind(this))
+        this.socket.on('close', () => self.handleClose())
+        this.socket.on('error', (error) => {
+            console.log(`TCP connection error: ${error.message}`)
+            self.forceClose()
+        })
+    }
 
-        this.socket.on('close', function (event) {
-            if (!self.closed) {
-                self.onClose.map(callback => callback())
-                self.closed = true
+    private handleClose(): void {
+        if (this.closed) {
+            return
+        }
+
+        this.closed = true
+        this.isClosing = false
+
+        // Clear any pending cleanup timeout
+        if (this.cleanupTimeout) {
+            clearTimeout(this.cleanupTimeout)
+            this.cleanupTimeout = null
+        }
+
+        // Safely trigger callbacks
+        this.onClose.forEach(callback => {
+            try {
+                callback()
+            } catch (error) {
+                console.error('Error in onClose callback:', error)
             }
         })
-        this.socket.on('error', function (event) {
-            if (!self.closed) {
-                self.onClose.map(callback => callback())
-                self.closed = true
+
+        // Clear callback arrays to prevent memory leaks
+        this.onMessage.length = 0
+        this.onClose.length = 0
+    }
+
+    private forceClose(): void {
+        if (this.closed) {
+            return
+        }
+
+        if (!this.isClosing) {
+            this.isClosing = true
+
+            try {
+                this.socket.destroy()
+            } catch (error) {
+                console.error('Error destroying socket:', error)
             }
-        })
+
+            // Failsafe: ensure cleanup happens even if socket events don't fire
+            this.cleanupTimeout = setTimeout(() => {
+                if (!this.closed) {
+                    console.log('Force cleanup after socket destroy timeout')
+                    this.handleClose()
+                }
+            }, 1000)
+        }
+    }
+
+    close(): void {
+        if (this.closed || this.isClosing) {
+            return
+        }
+
+        this.isClosing = true
+
+        try {
+            // Try graceful close first
+            this.socket.end()
+
+            // Fallback to force close if graceful close doesn't work
+            this.cleanupTimeout = setTimeout(() => {
+                if (!this.closed) {
+                    console.log('Graceful close timeout, forcing close')
+                    this.forceClose()
+                }
+            }, 5000)
+
+        } catch (error) {
+            console.error('Error in graceful close:', error)
+            this.forceClose()
+        }
     }
 
     onData (array: Buffer): void {
@@ -258,71 +330,90 @@ export class TcpConnectionWrapper implements IConnectionWrapper {
             return // We shouldn't be receiving anything if the connection is closed, but if for whatever reason we do, don't try to process them
         }
 
-        const fragment = Buffer.from(array.buffer, array.byteOffset, array.byteLength)
-        let offset = 0
-        let available = fragment.length - offset
+        try {
+            const fragment = Buffer.from(array.buffer, array.byteOffset, array.byteLength)
+            let offset = 0
+            let available = fragment.length - offset
 
-        while (available > 0) { // we could have multiple messages packed into one fragment
-            if (this.bufferRead < this.header.length) {
-                const remaining = this.header.length - this.bufferRead
-                const toread = Math.min(remaining, available)
-                const read = fragment.copy(this.header, this.bufferRead, offset, offset + toread)
-                this.bufferRead += read
-                offset += read
-                available = fragment.length - offset
-
-                // we have just received the complete header
-                if (this.bufferRead === this.header.length) {
-                    const length = this.header.readInt32LE(0)
-                    // Sanity check the length.
-                    // If a packet greater than 100 Mb is attempted it is probably not a valid client connection.
-                    // Since we call Message.Wrap in this method, the size must be at least the minimum Message
-                    // size (12) to be a valid message.
-                    if (length < 12 || length > 100 * 1024 * 1024) {
-                        console.log(`Received message with expected length of ${length}. Force closing connection.`)
-                        this.onClose.map(callback => callback())
-                        this.close()
-                        this.closed = true
-                        return
-                    }
-                    this.data = Buffer.alloc(length + this.headersize)
-                    this.data.read = this.header.copy(this.data, 0, 0, this.headersize) // Message Wrapper expects the header.
-                }
-            }
-
-            if (this.data != null) {
-                if (this.data.read < this.data.length) {
-                    const remaining = this.data.length - this.data.read
+            while (available > 0) { // we could have multiple messages packed into one fragment
+                if (this.bufferRead < this.header.length) {
+                    const remaining = this.header.length - this.bufferRead
                     const toread = Math.min(remaining, available)
-                    const read = fragment.copy(this.data, this.data.read, offset, offset + toread)
-                    this.data.read += read
+                    const read = fragment.copy(this.header, this.bufferRead, offset, offset + toread)
+                    this.bufferRead += read
                     offset += read
                     available = fragment.length - offset
 
-                    // the message is complete
-                    if (this.data.read === this.data.length) {
-                        this.onMessage.map(callback => callback(Message.Wrap(this.data)))
-                        this.data = null
-                        this.bufferRead = 0
+                    // we have just received the complete header
+                    if (this.bufferRead === this.header.length) {
+                        const length = this.header.readInt32LE(0)
+                        // Sanity check the length.
+                        // If a packet greater than 100 Mb is attempted it is probably not a valid client connection.
+                        // Since we call Message.Wrap in this method, the size must be at least the minimum Message
+                        // size (12) to be a valid message.
+                        if (length < 12 || length > 100 * 1024 * 1024) {
+                            console.log(`Invalid message length ${length}, closing connection`)
+                            this.forceClose()
+                            return
+                        }
+                        this.data = Buffer.alloc(length + this.headersize)
+                        this.data.read = this.header.copy(this.data, 0, 0, this.headersize) // Message Wrapper expects the header.
+                    }
+                }
+
+                if (this.data != null) {
+                    if (this.data.read < this.data.length) {
+                        const remaining = this.data.length - this.data.read
+                        const toread = Math.min(remaining, available)
+                        const read = fragment.copy(this.data, this.data.read, offset, offset + toread)
+                        this.data.read += read
+                        offset += read
+                        available = fragment.length - offset
+
+                        // the message is complete
+                        if (this.data.read === this.data.length) {
+                            this.onMessage.forEach(callback => {
+                                try {
+                                    callback(Message.Wrap(this.data))
+                                } catch (error) {
+                                    console.error('Error in onMessage callback:', error)
+                                }
+                            })
+                            this.data = null
+                            this.bufferRead = 0
+                        }
                     }
                 }
             }
+        } catch (error) {
+            console.error('Error processing data:', error)
+            this.forceClose()
         }
     }
 
     send (message: Message): void {
-        this.socket.write(message.buffer)
+        if (this.closed || this.isClosing) {
+            return
+        }
+
+        try {
+            this.socket.write(message.buffer, (error) => {
+                if (error) {
+                    console.error('Error writing to socket:', error)
+                    this.forceClose()
+                }
+            })
+        } catch (error) {
+            console.error('Error sending message:', error)
+            this.forceClose()
+        }
     }
 
     endpoint (): Endpoint {
         return {
-            address: this.socket.remoteAddress ?? 'uknown',
+            address: this.socket.remoteAddress ?? 'unknown',
             port: this.socket.remotePort ?? -1
         }
-    }
-
-    close (): void {
-        this.socket.end()
     }
 }
 
