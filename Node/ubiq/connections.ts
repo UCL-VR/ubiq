@@ -225,6 +225,7 @@ export class TcpConnectionWrapper implements IConnectionWrapper {
     header: Buffer
     data: any
     closed: boolean
+    private isForceClosing: boolean = false
     private isClosing: boolean = false
     private cleanupTimeout: NodeJS.Timeout | null = null
 
@@ -255,6 +256,7 @@ export class TcpConnectionWrapper implements IConnectionWrapper {
 
         this.closed = true
         this.isClosing = false
+        this.isForceClosing = false
 
         // Clear any pending cleanup timeout
         if (this.cleanupTimeout) {
@@ -277,31 +279,30 @@ export class TcpConnectionWrapper implements IConnectionWrapper {
     }
 
     private forceClose(): void {
-        if (this.closed) {
+        if (this.closed || this.isForceClosing) {
             return
         }
 
-        if (!this.isClosing) {
-            this.isClosing = true
+        this.isClosing = true
+        this.isForceClosing = true
 
-            try {
-                this.socket.destroy()
-            } catch (error) {
-                console.error('Error destroying socket:', error)
-            }
-
-            // Failsafe: ensure cleanup happens even if socket events don't fire
-            this.cleanupTimeout = setTimeout(() => {
-                if (!this.closed) {
-                    console.log('Force cleanup after socket destroy timeout')
-                    this.handleClose()
-                }
-            }, 1000)
+        try {
+            this.socket.destroy()
+        } catch (error) {
+            console.error('Error destroying socket:', error)
         }
+
+        // Failsafe: ensure cleanup happens even if socket events don't fire
+        this.cleanupTimeout = setTimeout(() => {
+            if (!this.closed) {
+                console.log('Force cleanup after socket destroy timeout')
+                this.handleClose()
+            }
+        }, 1000)
     }
 
     close(): void {
-        if (this.closed || this.isClosing) {
+        if (this.closed || this.isClosing || this.isForceClosing) {
             return
         }
 
@@ -326,7 +327,7 @@ export class TcpConnectionWrapper implements IConnectionWrapper {
     }
 
     onData (array: Buffer): void {
-        if (this.closed) {
+        if (this.closed || this.isClosing || this.isForceClosing) {
             return // We shouldn't be receiving anything if the connection is closed, but if for whatever reason we do, don't try to process them
         }
 
@@ -392,7 +393,7 @@ export class TcpConnectionWrapper implements IConnectionWrapper {
     }
 
     send (message: Message): void {
-        if (this.closed || this.isClosing) {
+        if (this.closed || this.isClosing || this.isForceClosing) {
             return
         }
 
