@@ -324,6 +324,7 @@ namespace Ubiq.Messaging
                             processor(sgbmessage);
                         }
                     }
+                    sgbmessage.Release();
                 }
             }
         }
