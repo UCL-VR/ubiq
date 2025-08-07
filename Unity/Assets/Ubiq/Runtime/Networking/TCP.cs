@@ -293,7 +293,13 @@ namespace Ubiq.Networking
             }
             finally
             {
-                sendthread.Interrupt(); // if not already
+                try
+                {
+                    sendthread.Interrupt(); // if not already interrupted
+                }
+                catch (ThreadInterruptedException)
+                {
+                }
             }
         }
 
@@ -360,7 +366,13 @@ namespace Ubiq.Networking
             }
             finally
             {
-                recvthread.Interrupt(); // if not already interrupted
+                try
+                {
+                    recvthread.Interrupt(); // if not already interrupted
+                }
+                catch (ThreadInterruptedException)
+                {
+                }
             }
         }
 

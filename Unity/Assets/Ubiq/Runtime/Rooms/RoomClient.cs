@@ -683,33 +683,32 @@ namespace Ubiq.Rooms
         {
             // Drop all connections
             scene.ClearConnections();
+            
+            // Assign ourselves a new peer UUID for the new connection  
+            me.uuid = Guid.NewGuid().ToString(); 
 
-            if (rejoin && Guid.TryParse(room.UUID, out var uuid))
-            {
-                joinRoomOnConnection = uuid;
-            }
-
-            if (!rejoin)
-            {
-                joinRoomOnConnection = Guid.Empty;
-            }
+            // Store the room uuid to rejoin on reconnect
+            joinRoomOnConnection = rejoin && Guid.TryParse(room.UUID, out var uuid)
+                ? uuid
+                : Guid.Empty;
             
             // Join empty room
             room.Reset();
             OnJoinedRoom.Invoke(room);
             OnRoomUpdated.Invoke(room);
 
-            // Clear peers
+            // Clear peers and notify listeners
             var uuids = new List<string>();
             foreach (var peer in peers.Values)
             {
                 uuids.Add(peer.uuid);
             }
-            
             for (int i = 0; i < uuids.Count; i++)
             {
-                peers.Remove(uuids[i], out var peer);
-                OnPeerRemoved.Invoke(peer);
+                if (peers.Remove(uuids[i], out var peer))
+                {
+                    OnPeerRemoved.Invoke(peer);
+                }
             }
 
             // Reset ping so we have a small window before we try again
