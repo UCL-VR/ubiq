@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Logging - Ubiq Docs</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Logging";
+        var mkdocs_page_input_path = "eventlogginggettingstarted.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Ubiq Docs
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../gettingubiq/">Getting Ubiq</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../settingupvr/">Setting Up VR</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../creatinganetworkedobject/">Creating Networked Objects</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../spawningobjects/">Object Spawning</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../localloopback/">Testing with Local Loopback</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../synchronisation/">Synchronisation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../ubiqxrinteraction/">Interaction with Ubiq XR</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../serversandrooms/">Servers and Rooms</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Logging</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#log-flow">Log Flow</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#creating-a-questionnaire-button">Creating a Questionnaire Button</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#event-types">Event Types</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#log-collector">Log Collector</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#writing-logs">Writing Logs</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../3dpentutorial/">Creating a 3D Pen</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../serversetup/">Server</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Advanced</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../xrinteraction/">Interaction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Logging</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloganalysis/">Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingexperimentquestionnaire/">Questionnaire</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingunittests/">Unit Tests</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingcollectorservice/">LogCollector Service</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogserialisation/">Serialisation and Memory</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Messaging</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../messaging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkids/">Network Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../generatinguniqueids/">Generating Unique Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkidtype/">Types</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../reservedids/">Reserved IDs</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../webrtc/">WebRtc</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Servers and Rooms</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../serverintroduction/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serveroverview/">Server Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serverheartbeat/">Heartbeat and Timeouts</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../leavingandjoiningrooms/">Leaving and Joining</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../botssample/">Bots</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Programming</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../asyncdesignpatterns/">Async Design Patterns</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Development</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../packaging/">Packaging</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nexus/">Nexus</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../mkdocs/">Meta</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ubiq Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Getting Started</li>
+      <li class="breadcrumb-item active">Logging</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="logging">Logging</h1>
+<p>Ubiq has the ability to record, forward and store logs. Ubiq itself generates logs, and custom components can create them too.</p>
+<p>For example, the logging system could be used to record the answers to a questionnaire, or the direction of a user's gaze, and forward them to an experimentor.</p>
+<p>This guide shows how to set up and log some simple data in the <em>Hello World</em> scene.</p>
+<h2 id="log-flow">Log Flow</h2>
+<p>Log events (such as answering a question) are generated by Log Emitters with a simple call, e.g. <code>debug.Log("MyEvent")</code>. These events are received by a Log Collector. <code>LogCollector</code> is a Component belonging to a <code>NetworkScene</code>. Depending on where logs are finally written, the local <code>LogCollector</code> may forward events to another <code>LogCollector</code> in the same room, or write them directly to a file.</p>
+<p><img alt="Log Events Data Flow" src="../images/a2cf83c8-432e-4a7d-bcba-1bcd8afd0892.svg" /></p>
+<p>There can be many Log Emitters in an application. There should be one <code>LogCollector</code> per Peer. Only one <code>LogCollector</code> should be <em>writing</em> at a time.</p>
+<p><img alt="LogManager Attached to a NetworkScene Hierarchy" src="../images/324c9e07-ec87-4827-ba6c-74c64eb81d9b.png" /></p>
+<h2 id="creating-a-questionnaire-button">Creating a Questionnaire Button</h2>
+<p>Log events can come from any source. In this guide, they will be generated when a user presses a button.</p>
+<p>Create a new <code>Button</code> in the scene. Below, a new <code>GameObject</code> was added to the <em>Main Menu</em>. Create a new script, <code>ButtonLogger</code>, and add it to the Button as well.</p>
+<p><img alt="Adding a new Button over the Main Menu" src="../images/f9a34f6f-d584-41cc-8b07-2c02c9b17602.png" /></p>
+<p>The script for <code>ButtonLogger</code> is below.</p>
+<pre><code>using Ubiq.Logging;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class ButtonLogger : MonoBehaviour
+{
+    ExperimentLogEmitter events;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        events = new ExperimentLogEmitter(this);
+        GetComponent&lt;Button&gt;().onClick.AddListener(OnButtonClicked);
+    }
+
+    void OnButtonClicked()
+    {
+        events.Log(&quot;Button Pressed&quot;);
+    }
+}
+</code></pre>
+<p>First, an <code>ExperimentLogEmitter</code> is declared. This is the object that will be used to emit log events. It is declared in the class but initialised in <code>Start()</code>. This is because it has to find the local Log Collector to communicate with, which can't be done until the scene initialisation begins.</p>
+<h4 id="event-types">Event Types</h4>
+<p>Events can be given a Type. The type hints at the meaning of the event. For example, <code>Info</code> events record how the application itself is working. <code>Experiment</code> events could record data for experiments. <code>Debug</code> events could record simple debugging information.</p>
+<p>Any code can create any type of event. The type is used to filter events.</p>
+<p>The Emitter created in the <code>ButtonLogger</code> script will generate <code>Experiment</code> events.</p>
+<h4 id="log-collector">Log Collector</h4>
+<p>The default NetworkScene Prefab already contains a <code>LogCollector</code>, so there is no need to add this.</p>
+<p>A callback is registered with the Button's <code>OnClick</code> event by the <code>ButtonLogger</code> script. When this is raised by the user clicking the button, a log event ("Button Pressed") is emitted.</p>
+<p>Start the Scene and look at the Log Collector in the Inspector. As the Button is clicked the memory usage of the collector will increase, indicating that the Button is generating events.</p>
+<p><img alt="Memory Usage of Log Manager increasing" src="../images/3faa3448-5b19-4959-8034-8352579c7171.png" /></p>
+<h3 id="writing-logs">Writing Logs</h3>
+<p>The events will remain in the <code>LogCollector</code> until they are requested.</p>
+<p>Click <em>Start Collection</em>. The Entries count will increase, and opening the log folder will reveal an Experiment log, with a number of <em>Button Pressed</em> events.</p>
+<p><img alt="Log Files Created in AppData" src="../images/81afbd3b-42c1-419f-998c-1856f3fb36b3.png" /></p>
+<pre><code>[{&quot;ticks&quot;:637795015469208026,&quot;peer&quot;:&quot;f6aa7d01-24da1cf2&quot;,&quot;event&quot;:&quot;Button Pressed&quot;},
+{&quot;ticks&quot;:637795015470638029,&quot;peer&quot;:&quot;f6aa7d01-24da1cf2&quot;,&quot;event&quot;:&quot;Button Pressed&quot;},
+{&quot;ticks&quot;:637795015471998382,&quot;peer&quot;:&quot;f6aa7d01-24da1cf2&quot;,&quot;event&quot;:&quot;Button Pressed&quot;},
+{&quot;ticks&quot;:637795015473438942,&quot;peer&quot;:&quot;f6aa7d01-24da1cf2&quot;,&quot;event&quot;:&quot;Button Pressed&quot;},
+{&quot;ticks&quot;:637795015474853269,&quot;peer&quot;:&quot;f6aa7d01-24da1cf2&quot;,&quot;event&quot;:&quot;Button Pressed&quot;},
+{&quot;ticks&quot;:637795015476313220,&quot;peer&quot;:&quot;f6aa7d01-24da1cf2&quot;,&quot;event&quot;:&quot;Button Pressed&quot;},
+{&quot;ticks&quot;:637795015477743218,&quot;peer&quot;:&quot;f6aa7d01-24da1cf2&quot;,&quot;event&quot;:&quot;Button Pressed&quot;},
+{&quot;ticks&quot;:637795015479173222,&quot;peer&quot;:&quot;f6aa7d01-24da1cf2&quot;,&quot;event&quot;:&quot;Button Pressed&quot;},
+{&quot;ticks&quot;:637795015480802962,&quot;peer&quot;:&quot;f6aa7d01-24da1cf2&quot;,&quot;event&quot;:&quot;Button Pressed&quot;},
+{&quot;ticks&quot;:637795015482232892,&quot;peer&quot;:&quot;f6aa7d01-24da1cf2&quot;,&quot;event&quot;:&quot;Button Pressed&quot;}
+</code></pre>
+<h1 id="logging-arguments">Logging Arguments</h1>
+<p>The <code>LogEmitter::Log()</code> method can take a number of arguments in addition to the event name.</p>
+<p>Add a new member to the ButtonLogger, <code>AnswerName</code>, and pass it in as an argument.</p>
+<pre><code>    public string Answer;
+
+    void OnButtonClicked()
+    {
+        events.Log(&quot;Button Pressed&quot;, Answer);
+    }
+</code></pre>
+<p>The value of Answer can be set up in the inspector. Duplicate the Button and set two different values of Answer for each.</p>
+<p><img alt="Creating Additional Buttons" src="../images/8b7c15e1-9113-448f-ac49-f95893e584ee.png" /></p>
+<p>Now, when looking at the log after pressing the buttons it will show the value of Answer as well.</p>
+<pre><code>[{&quot;ticks&quot;:637795019171902297,&quot;peer&quot;:&quot;ba742247-1415eb07&quot;,&quot;event&quot;:&quot;Button Pressed&quot;,&quot;arg1&quot;:&quot;Yes&quot;},
+{&quot;ticks&quot;:637795019174622297,&quot;peer&quot;:&quot;ba742247-1415eb07&quot;,&quot;event&quot;:&quot;Button Pressed&quot;,&quot;arg1&quot;:&quot;Yes&quot;},
+{&quot;ticks&quot;:637795019180442303,&quot;peer&quot;:&quot;ba742247-1415eb07&quot;,&quot;event&quot;:&quot;Button Pressed&quot;,&quot;arg1&quot;:&quot;No&quot;},
+{&quot;ticks&quot;:637795019183882312,&quot;peer&quot;:&quot;ba742247-1415eb07&quot;,&quot;event&quot;:&quot;Button Pressed&quot;,&quot;arg1&quot;:&quot;No&quot;},
+{&quot;ticks&quot;:637795019201742296,&quot;peer&quot;:&quot;ba742247-1415eb07&quot;,&quot;event&quot;:&quot;Button Pressed&quot;,&quot;arg1&quot;:&quot;Yes&quot;}
+</code></pre>
+<p>Practically any variable that can be turned into a string can be logged this way.</p>
+<h1 id="collecting-from-a-distributed-experiment">Collecting from a Distributed Experiment</h1>
+<p>So far the <code>LogCollector</code> has just collected from the local player.</p>
+<p>Create a Build of the <em>Hello World</em> application and run it, then press the buttons a few times.</p>
+<p>Note that so far, the application has not even joined a room. This is OK because the <code>LogCollector</code> will hold all logs until they are requested.</p>
+<p>Next, press <em>Play</em> to load the <em>Hello World</em> Scene in the Editor.</p>
+<p>Now have both Peers join the same room (new or old, in any order). When both have joined, the Avatars of the other Peer should be visible in each.</p>
+<p><img alt="Editor and Stanadlone Build Peers in a Room" src="../images/5b74ce51-93f7-4707-bce7-451d79186b06.png" /></p>
+<p>In the Editor, navigate to the <code>LogCollector</code> and click on <em>Start Collection</em> in the Inspector. </p>
+<p>The Entries count will increase, and an Experiment Log file will appear in the default Logs Folder, containing any answers entered in both the Editor and Standalone Build.</p>
+<h1 id="considerations">Considerations</h1>
+<p>To find out more about the logging, see the <a href="../eventlogging/">Logging</a> section in the Advanced topics.</p>
+<p>Log events can be generated from user actions, but also other external events, or at a regular frequency (e.g. to log the <code>Transform</code> of dynamic objects)</p>
+<p>You can change the active <code>LogCollector</code> at runtime losslessly, so long as no Peers fail or unexpectedly disconnect.</p>
+<p>Collection can also be started programmatically, in addition to clicking <em>Start Collection</em>. This allows experiment code to start collection other ways, including in Standalone builds.</p>
+<p>See the Samples/Single/Questionnaire sample for a complete Questionnaire implementation.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../serversandrooms/" class="btn btn-neutral float-left" title="Servers and Rooms"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../3dpentutorial/" class="btn btn-neutral float-right" title="Creating a 3D Pen">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../serversandrooms/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../3dpentutorial/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
