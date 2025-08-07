@@ -17,7 +17,7 @@ namespace Ubiq.Networking
 
         private ArrayPool<byte> pool;
         private ConcurrentBag<MessagePoolMessage> bag;
-
+        
         public MessagePool()
         {
             pool = ArrayPool<byte>.Shared;

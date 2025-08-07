@@ -131,6 +131,7 @@ public static class ProjectTools
 
         RunAndLogProcess("robocopy", @$"""{sourceAssetsDir}"" ""{targetAssetsDir}"" /MIR");
         RunAndLogProcess("robocopy", @$"""{sourceSettingsDir}"" ""{targetSettingsDir}"" /MIR");
+        RunAndLogProcess("robocopy", @$"""{sourcePackagesDir}"" ""{targetPackagesDir}"" /MIR");
         RunAndLogProcess("robocopy", @$"""{sourcePackagesDir}"" ""{targetPackagesDir}"" manifest.json /MIR");
     }
 

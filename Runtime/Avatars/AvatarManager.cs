@@ -114,7 +114,7 @@ namespace Ubiq.Avatars
                 }
                 avatar.IsLocal = true;
                 avatar.SetInput(input);
-                gameObject.name = $"My Avatar #{ peer.uuid }";
+                gameObject.name = "Local Avatar";
 
                 LocalAvatar = avatar;
             }

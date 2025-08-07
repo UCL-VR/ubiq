@@ -73,7 +73,6 @@ namespace Ubiq.Voip.Implementations.Unity
             {
                 RequireAudioSource();
                 audioSource.clip = Microphone.Start("",true,1,16000);
-                Debug.Log("frequency: " + audioSource.clip.frequency);
             }
 
             if (state == State.Starting)

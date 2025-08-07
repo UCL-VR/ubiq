@@ -69,6 +69,7 @@ namespace Ubiq.Messaging
         private MessageStatistics statistics;
 
         public UnityEvent OnUpdate = new UnityEvent();
+        public UnityEvent OnConnectionsModified = new UnityEvent();
 
         /// <summary>
         /// Statistics on the number of messages and bytes sent and received by this NetworkScene.
@@ -81,7 +82,8 @@ namespace Ubiq.Messaging
         /// </remarks>
         public MessageStatistics Statistics { get => statistics; }
         public NetworkId Id { get; } = NetworkScene.GenerateUniqueId();
-
+        public int connectionCount => connections?.Count ?? 0;
+        
         private static NetworkScene rootNetworkScene;
 
         private void Awake()
@@ -253,11 +255,12 @@ namespace Ubiq.Messaging
         public void AddConnection(INetworkConnection connection)
         {
             connections.Add(connection);
+            OnConnectionsModified.Invoke();
         }
 
         /// <summary>
         /// Public method instructing the network scene to drop all current connections and dispose of them.
-        /// Used to recover from a connection loss to Nexus.
+        /// Used to recover from a connection loss.
         /// </summary>
         public void ClearConnections()
         {
@@ -273,6 +276,7 @@ namespace Ubiq.Messaging
                 }
             }
             connections.Clear();
+            OnConnectionsModified.Invoke();
         }
 
         private void Update()
@@ -324,6 +328,7 @@ namespace Ubiq.Messaging
                             processor(sgbmessage);
                         }
                     }
+                    sgbmessage.Release();
                 }
             }
         }

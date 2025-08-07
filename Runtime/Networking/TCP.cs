@@ -92,7 +92,6 @@ namespace Ubiq.Networking
         private Queue messagestosend = Queue.Synchronized(new Queue());
         private JmBucknall.Structures.LockFreeQueue<ReferenceCountedMessage> messagesreceived = new JmBucknall.Structures.LockFreeQueue<ReferenceCountedMessage>();
         private byte[] msgData = new byte[4]; // helper buffer to receive expected integers
-        private MessagePool pool = new MessagePool();
 
         private const int WSAECONNREFUSED = 10061;
         private const int WSAESHUTDOWN = 10058;
@@ -254,7 +253,7 @@ namespace Ubiq.Networking
                     ReceiveBytesBlocking(msgData, 0, 4);
                     int msgLen = BitConverter.ToInt32(msgData, 0);
 
-                    var msg = pool.Rent(msgLen);
+                    var msg = MessagePool.Shared.Rent(msgLen);
                     ReceiveBytesBlocking(msg.bytes, msg.start, msg.length);
 
                     if (OnMessageReceived != null)
@@ -294,7 +293,13 @@ namespace Ubiq.Networking
             }
             finally
             {
-                sendthread.Interrupt(); // if not already
+                try
+                {
+                    sendthread.Interrupt(); // if not already interrupted
+                }
+                catch (ThreadInterruptedException)
+                {
+                }
             }
         }
 
@@ -343,13 +348,31 @@ namespace Ubiq.Networking
             catch (ObjectDisposedException)
             {
             }
+            catch (SocketException e)
+            {
+                switch (e.ErrorCode)
+                {
+                    case WSAESHUTDOWN:
+                    case WSAEINTR:
+                        return;
+                    default:
+                        Debug.LogException(e);
+                        break;
+                }
+            }
             catch (Exception e)
             {
                 Debug.LogException(e);
             }
             finally
             {
-                recvthread.Interrupt(); // if not already interrupted
+                try
+                {
+                    recvthread.Interrupt(); // if not already interrupted
+                }
+                catch (ThreadInterruptedException)
+                {
+                }
             }
         }
 

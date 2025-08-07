@@ -246,13 +246,14 @@ namespace Ubiq.Rooms
         public static readonly float HeartbeatWarningThreshold = 5f;
         public static readonly float HeartbeatTimeoutThreshold = 10.0f;
         
+        private Guid lastJoinedRoom = Guid.Empty;
+        
         public TimeoutBehaviour timeoutBehaviour = TimeoutBehaviour.ReconnectAndRejoin;
 
         private PeerInterfaceFriend me = new PeerInterfaceFriend(Guid.NewGuid().ToString());
         private RoomInterfaceFriend room = new RoomInterfaceFriend();
         private NetworkScene scene;
         private NetworkId objectid; // The Id of the RoomClient object itself
-        private Guid joinRoomOnConnection = Guid.Empty;
 
         private List<Action> actions = new List<Action>();
 
@@ -508,6 +509,12 @@ namespace Ubiq.Rooms
                     {
                         var args = JsonUtility.FromJson<SetRoomArgs>(container.args);
                         room.Set(args.room);
+                        
+                        if (Guid.TryParse(room.UUID, out var uuid))
+                        {
+                            lastJoinedRoom = uuid;
+                        }
+                        
                         OnJoinedRoom.Invoke(room);
                         OnRoomUpdated.Invoke(room);
                     }
@@ -584,12 +591,6 @@ namespace Ubiq.Rooms
                     {
                         pingReceived = Time.realtimeSinceStartup;
                         PlayerNotifications.Delete(ref notification);
-                        
-                        if (joinRoomOnConnection != Guid.Empty)
-                        {
-                            Join(joinRoomOnConnection);
-                            joinRoomOnConnection = Guid.Empty;
-                        }
                     }
                     break;
             }
@@ -614,12 +615,16 @@ namespace Ubiq.Rooms
         }
 
         /// <summary>
-        /// Create a new room with the specified name and visibility
+        /// Create a new room with the specified name and visibility.
         /// </summary>
         /// <param name="name">The name of the new room</param>
         /// <param name="bool">Whether others should be able to browse for this room</param>
         public void Join(string name, bool publish)
         {
+            // Clear last joined. We may fill this again if the server can be
+            // reached. If it can, it will create the room and give us its uuid. 
+            lastJoinedRoom = Guid.Empty;
+            
             actions.Add(() =>
             {
                 SendToServerSync("Join", new JoinArgs()
@@ -633,10 +638,16 @@ namespace Ubiq.Rooms
         }
 
         /// <summary>
-        /// Joins an existing room using a join code.
+        /// Joins an existing room with a join code. If a room with this
+        /// joincode does not exist, this request may fail. In this case an
+        /// <see cref="OnJoinRejected"/> event will be emitted.
         /// </summary>
         public void Join(string joincode)
         {
+            // Clear last joined. We may fill this again if the server can be
+            // reached and can find the room and give us its uuid.
+            lastJoinedRoom = Guid.Empty;
+            
             actions.Add(() =>
             {
                 SendToServerSync("Join", new JoinArgs()
@@ -649,10 +660,13 @@ namespace Ubiq.Rooms
         }
 
         /// <summary>
-        /// Joins an existing room using a join code.
+        /// Join a room with the given uuid. If a room with this uuid does not
+        /// exist it will be created. 
         /// </summary>
         public void Join(Guid guid)
         {
+            lastJoinedRoom = guid;
+            
             actions.Add(() =>
             {
                 SendToServerSync("Join", new JoinArgs()
@@ -676,40 +690,35 @@ namespace Ubiq.Rooms
         }
 
         /// <summary>
-        /// Disconnect and reconnect. Will leave the current room. 
+        /// Disconnect and reconnect. Will leave the current room. If rejoining
+        /// the current room is required, call <see cref="Join(Guid)"/>. It is
+        /// safe to call immediately after this method returns.
         /// </summary>
-        /// <param name="rejoin">Rejoin the current room on reconnect.</param>
-        public void Reconnect(bool rejoin)
+        public void Reconnect()
         {
             // Drop all connections
             scene.ClearConnections();
-
-            if (rejoin && Guid.TryParse(room.UUID, out var uuid))
-            {
-                joinRoomOnConnection = uuid;
-            }
-
-            if (!rejoin)
-            {
-                joinRoomOnConnection = Guid.Empty;
-            }
+            
+            // Assign ourselves a new peer UUID for the new connection  
+            me.uuid = Guid.NewGuid().ToString();
             
             // Join empty room
             room.Reset();
             OnJoinedRoom.Invoke(room);
             OnRoomUpdated.Invoke(room);
 
-            // Clear peers
+            // Clear peers and notify listeners
             var uuids = new List<string>();
             foreach (var peer in peers.Values)
             {
                 uuids.Add(peer.uuid);
             }
-            
             for (int i = 0; i < uuids.Count; i++)
             {
-                peers.Remove(uuids[i], out var peer);
-                OnPeerRemoved.Invoke(peer);
+                if (peers.Remove(uuids[i], out var peer))
+                {
+                    OnPeerRemoved.Invoke(peer);
+                }
             }
 
             // Reset ping so we have a small window before we try again
@@ -779,8 +788,12 @@ namespace Ubiq.Rooms
                 if (heartbeatReceived > HeartbeatTimeoutThreshold
                     && timeoutBehaviour != TimeoutBehaviour.None)
                 {
-                    Reconnect(rejoin: timeoutBehaviour 
-                                      == TimeoutBehaviour.ReconnectAndRejoin);
+                    Reconnect();
+                    if (timeoutBehaviour == TimeoutBehaviour.ReconnectAndRejoin
+                        && lastJoinedRoom != Guid.Empty)
+                    {
+                        Join(lastJoinedRoom);
+                    }
                 }
             }
         }
