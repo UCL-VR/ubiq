@@ -1,4 +1,4 @@
-import { Message, NetworkId, Uuid, type IConnectionWrapper, type IServerWrapper } from 'ubiq'
+import { Message, NetworkId, Uuid, type IConnectionWrapper, type IServerWrapper, logger } from 'ubiq'
 import { EventEmitter } from 'events'
 import { type ValidationError } from 'jsonschema'
 import { z } from 'zod'
@@ -279,14 +279,14 @@ export class RoomServer extends EventEmitter {
 
     addServer (server: IServerWrapper): void {
         if (server.status === 'LISTENING') {
-            console.log('Added RoomServer port ' + server.port)
+            logger.log('Added RoomServer port ' + server.port)
             this.servers.push(server)
             server.onConnection.push(this.onConnection.bind(this))
         }
     }
 
     onConnection (wrapped: IConnectionWrapper): void {
-        console.log('RoomServer: Client Connection from ' + wrapped.endpoint().address + ':' + wrapped.endpoint().port)
+        logger.log('RoomServer: Client Connection from ' + wrapped.endpoint().address + ':' + wrapped.endpoint().port)
         // eslint-disable-next-line no-new
         new RoomPeer(this, wrapped)
     }
@@ -297,7 +297,7 @@ export class RoomServer extends EventEmitter {
         if ((args.uuid != null) && args.uuid !== '') {
             // Room join request by uuid
             if (!Uuid.validate(args.uuid)) {
-                console.log(peer.uuid + ' attempted to join room with uuid ' + args.uuid + ' but the we were expecting an RFC4122 v4 uuid.')
+                logger.log(peer.uuid + ' attempted to join room with uuid ' + args.uuid + ' but the we were expecting an RFC4122 v4 uuid.')
                 peer.sendRejected(args, 'Could not join room with uuid ' + args.uuid + '. We require an RFC4122 v4 uuid.')
                 return
             }
@@ -309,14 +309,14 @@ export class RoomServer extends EventEmitter {
             room = this.roomDatabase.joincode(args.joincode)
 
             if (room === null) {
-                console.log(peer.uuid + ' attempted to join room with code ' + args.joincode + ' but no such room exists')
+                logger.log(peer.uuid + ' attempted to join room with code ' + args.joincode + ' but no such room exists')
                 peer.sendRejected(args, 'Could not join room with code ' + args.joincode + '. No such room exists.')
                 return
             }
         }
 
         if (room !== null && peer.room.uuid === room.uuid) {
-            console.log(peer.uuid + ' attempted to join room with code ' + args.joincode + ' but peer is already in room')
+            logger.log(peer.uuid + ' attempted to join room with code ' + args.joincode + ' but peer is already in room')
             return
         }
 
@@ -361,7 +361,7 @@ export class RoomServer extends EventEmitter {
             this.stats.roomscreated++
             this.emit('create', room)
 
-            console.log(room.uuid + ' created with joincode ' + joincode)
+            logger.log(room.uuid + ' created with joincode ' + joincode)
         }
 
         if (peer.room.uuid != null) {
@@ -391,7 +391,7 @@ export class RoomServer extends EventEmitter {
             this.roomDatabase.add(room)
             this.emit('create', room)
 
-            console.log(room.uuid + ' created with joincode ' + joincode)
+            logger.log(room.uuid + ' created with joincode ' + joincode)
         }
         return room
     }
@@ -419,7 +419,7 @@ export class RoomServer extends EventEmitter {
         this.emit('destroy', room)
         this.roomDatabase.remove(room.uuid)
         this.stats.rooms--
-        console.log('RoomServer: Deleting empty room ' + room.uuid)
+        logger.log('RoomServer: Deleting empty room ' + room.uuid)
     }
 
     getStats (): Statistics {
@@ -473,7 +473,7 @@ class RoomPeer {
                 const timeDifferenceMs = currentTime.getTime() - this.previousTime.getTime();
 
                 if (timeDifferenceMs >= 10000) {
-                    console.log(`Peer ${this.uuid}: Timeout. Dropping.`);
+                    logger.log(`Peer ${this.uuid}: Timeout. Dropping.`);
                     this.connection.close();
                 }
             }
@@ -542,13 +542,13 @@ class RoomPeer {
                         }
                         break
                     default:
-                        console.warn(`Received unknown server message ${object.type}`)
+                        logger.warn(`Received unknown server message ${object.type}`)
                 };
             } catch (e) {
                 if (e instanceof z.ZodError) {
-                    console.log(`Peer ${this.uuid}: Error in message - ${JSON.stringify(e.issues)}`)
+                    logger.log(`Peer ${this.uuid}: Error in message - ${JSON.stringify(e.issues)}`)
                 } else {
-                    console.log(`Peer ${this.uuid}: Uknown error in server message`)
+                    logger.log(`Peer ${this.uuid}: Uknown error in server message`)
                 }
             }
         } else {
@@ -559,9 +559,9 @@ class RoomPeer {
     onValidationFailure (error: { validation: { errors: ValidationError[] }, json: any }): void {
         error.validation.errors.forEach(error => {
             // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
-            console.error(`Validation error in ${error.schema}: ${error.message}`)
+            logger.error(`Validation error in ${error.schema}: ${error.message}`)
         })
-        console.error('Message Json: ' + JSON.stringify(error.json))
+        logger.error('Message Json: ' + JSON.stringify(error.json))
     }
 
     getPeerArgs (): PeerInfo {
@@ -746,7 +746,7 @@ export class Room {
                 peer.sendPeerAdded(existing) // And the new Peer about the existing one
             }
         };
-        console.log(peer.uuid + ' joined room ' + this.name)
+        logger.log(peer.uuid + ' joined room ' + this.name)
     }
 
     removePeer (peer: RoomPeer): void {
@@ -756,7 +756,7 @@ export class Room {
             existing.sendPeerRemoved(peer) // Tell the remaining peers about the missing peer (no check here because the peer was already removed from the list)
             peer.sendPeerRemoved(existing)
         }
-        console.log(peer.uuid + ' left room ' + this.name)
+        logger.log(peer.uuid + ' left room ' + this.name)
         this.checkRoom()
     }
 

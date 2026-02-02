@@ -1,4 +1,4 @@
-import { WrappedSecureWebSocketServer, WrappedTcpServer } from 'ubiq'
+import { WrappedSecureWebSocketServer, WrappedTcpServer, logger } from 'ubiq'
 import { RoomServer, IceServerProvider, Status } from 'modules'
 import nconf from 'nconf'
 
@@ -47,9 +47,9 @@ if (roomTypeName !== undefined) {
 
 process.on('SIGINT', function () {
     roomServer.exit().then(() => {
-        console.log('Shutdown')
+        logger.log('Shutdown')
     }).catch((error) => {
-        console.error(error)
+        logger.error(error)
     }).finally(() => {
         process.exit(0)
     })
