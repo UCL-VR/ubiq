@@ -5,6 +5,7 @@ import Tcp from 'net'
 import https from 'https'
 import path from 'path'
 import fs from 'fs'
+import { logger } from './logger.js'
 
 const createServer = https.createServer
 
@@ -48,7 +49,7 @@ export class WrappedSecureWebSocketServer implements IServerWrapper {
     server: https.Server | undefined
     constructor (config: SecureWebSocketConfig) {
         if (config === undefined) {
-            console.error('SecureWebSocketConfig must be provided.')
+            logger.error('SecureWebSocketConfig must be provided.')
             return
         }
         // eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -59,11 +60,11 @@ export class WrappedSecureWebSocketServer implements IServerWrapper {
         const keyPath = path.resolve(config.key)
 
         if (!fs.existsSync(certPath)) {
-            console.error(`Certificate at ${certPath} could not be found. WebSocket server will not be started.`)
+            logger.error(`Certificate at ${certPath} could not be found. WebSocket server will not be started.`)
             return
         }
         if (!fs.existsSync(keyPath)) {
-            console.error(`Certificate at ${certPath} could not be found. WebSocket server will not be started.`)
+            logger.error(`Certificate at ${certPath} could not be found. WebSocket server will not be started.`)
             return
         }
 
@@ -97,7 +98,7 @@ export class WrappedSecureWebSocketServer implements IServerWrapper {
                 this.server.closeAllConnections()
                 this.server.close((error) => {
                     if (error != null) {
-                        console.error(error) // Not much else we can do since the server is going away!
+                        logger.error(error) // Not much else we can do since the server is going away!
                     }
                     resolve()
                 })
@@ -189,7 +190,7 @@ export class WrappedTcpServer implements IServerWrapper {
     server: Tcp.Server
     constructor (config: SocketConfig) {
         if (config === undefined) {
-            console.error('SocketConfig must be defined')
+            logger.error('SocketConfig must be defined')
         }
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const self = this
@@ -208,7 +209,7 @@ export class WrappedTcpServer implements IServerWrapper {
         await new Promise<void>((resolve) => {
             this.server.close((error) => {
                 if (error != null) {
-                    console.error(error) // Not much else we can do since the server is going away!
+                    logger.error(error) // Not much else we can do since the server is going away!
                 }
                 resolve()
             })
@@ -244,7 +245,7 @@ export class TcpConnectionWrapper implements IConnectionWrapper {
         this.socket.on('data', self.onData.bind(this))
         this.socket.on('close', () => self.handleClose())
         this.socket.on('error', (error) => {
-            console.log(`TCP connection error: ${error.message}`)
+            logger.log(`TCP connection error: ${error.message}`)
             self.forceClose()
         })
     }
@@ -269,7 +270,7 @@ export class TcpConnectionWrapper implements IConnectionWrapper {
             try {
                 callback()
             } catch (error) {
-                console.error('Error in onClose callback:', error)
+                logger.error('Error in onClose callback:', error)
             }
         })
 
@@ -289,13 +290,13 @@ export class TcpConnectionWrapper implements IConnectionWrapper {
         try {
             this.socket.destroy()
         } catch (error) {
-            console.error('Error destroying socket:', error)
+            logger.error('Error destroying socket:', error)
         }
 
         // Failsafe: ensure cleanup happens even if socket events don't fire
         this.cleanupTimeout = setTimeout(() => {
             if (!this.closed) {
-                console.log('Force cleanup after socket destroy timeout')
+                logger.log('Force cleanup after socket destroy timeout')
                 this.handleClose()
             }
         }, 1000)
@@ -315,13 +316,13 @@ export class TcpConnectionWrapper implements IConnectionWrapper {
             // Fallback to force close if graceful close doesn't work
             this.cleanupTimeout = setTimeout(() => {
                 if (!this.closed) {
-                    console.log('Graceful close timeout, forcing close')
+                    logger.log('Graceful close timeout, forcing close')
                     this.forceClose()
                 }
             }, 5000)
 
         } catch (error) {
-            console.error('Error in graceful close:', error)
+            logger.error('Error in graceful close:', error)
             this.forceClose()
         }
     }
@@ -353,7 +354,7 @@ export class TcpConnectionWrapper implements IConnectionWrapper {
                         // Since we call Message.Wrap in this method, the size must be at least the minimum Message
                         // size (12) to be a valid message.
                         if (length < 12 || length > 100 * 1024 * 1024) {
-                            console.log(`Invalid message length ${length}, closing connection`)
+                            logger.log(`Invalid message length ${length}, closing connection`)
                             this.forceClose()
                             return
                         }
@@ -377,7 +378,7 @@ export class TcpConnectionWrapper implements IConnectionWrapper {
                                 try {
                                     callback(Message.Wrap(this.data))
                                 } catch (error) {
-                                    console.error('Error in onMessage callback:', error)
+                                    logger.error('Error in onMessage callback:', error)
                                 }
                             })
                             this.data = null
@@ -387,7 +388,7 @@ export class TcpConnectionWrapper implements IConnectionWrapper {
                 }
             }
         } catch (error) {
-            console.error('Error processing data:', error)
+            logger.error('Error processing data:', error)
             this.forceClose()
         }
     }
@@ -400,12 +401,12 @@ export class TcpConnectionWrapper implements IConnectionWrapper {
         try {
             this.socket.write(message.buffer, (error) => {
                 if (error) {
-                    console.error('Error writing to socket:', error)
+                    logger.error('Error writing to socket:', error)
                     this.forceClose()
                 }
             })
         } catch (error) {
-            console.error('Error sending message:', error)
+            logger.error('Error sending message:', error)
             this.forceClose()
         }
     }

@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import { logger } from 'ubiq'
 import { type Room, type RoomServer } from './roomserver'
 
 interface IceServer {
@@ -41,7 +42,7 @@ export class IceServerProvider {
     // clients preferentially and the secret will not be used.
     addIceServer (uri: string, secret = '', timeoutSeconds = 0,
         refreshSeconds = 0, username = '', password = ''): void {
-        console.log('IceServerProvider: Adding ice server with uri ' + uri)
+        logger.log('IceServerProvider: Adding ice server with uri ' + uri)
 
         if (this.iceServers.some((iceServer) => { return iceServer.uri === uri })) {
             return
@@ -123,7 +124,7 @@ export class IceServerProvider {
 // Used internally - not exported
 // Generate fresh credentials for an ice server and link all rooms with new info
 function refresh (iceServer: IceServer, roomServer: RoomServer): void {
-    console.log('IceServerProvider: Refreshing credentials for ice server with uri ' + iceServer.uri)
+    logger.log('IceServerProvider: Refreshing credentials for ice server with uri ' + iceServer.uri)
     const cred = generateCredentials(iceServer.secret, iceServer.timeoutSeconds)
     iceServer.username = cred.username
     iceServer.password = cred.password
@@ -159,7 +160,7 @@ function generateSha1Hmac (secret: any, msg: crypto.BinaryLike | crypto.KeyObjec
 // If room has ice server with uri but different hmac, update hmac
 // If changes would be made to room properties, push new room args
 function link (room: Room, uri: string, username: string, password: string): void {
-    console.log('IceServerProvider: Linking room ' + room.uuid + ' to ice server ' + uri + '[' + username + ':' + password + ']')
+    logger.log('IceServerProvider: Linking room ' + room.uuid + ' to ice server ' + uri + '[' + username + ':' + password + ']')
 
     let prop = room.properties.get('ice-servers')
     if (prop === '') {
@@ -196,7 +197,7 @@ function link (room: Room, uri: string, username: string, password: string): voi
 // Ensure room does not have an ice server with matching uri
 // If changes would be made to room properties, push new room args
 function unlink (room: Room, uri: string): void {
-    console.log('IceServerProvider: Unlinking room ' + room.uuid + ' from ice server ' + uri)
+    logger.log('IceServerProvider: Unlinking room ' + room.uuid + ' from ice server ' + uri)
     const args = room.getRoomArgs()
 
     // Find ice-servers property

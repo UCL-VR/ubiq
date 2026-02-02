@@ -2,6 +2,7 @@
 // status, allow gathering of statistics, and performing uptime tests.
 
 import type { RoomServer } from './roomserver'
+import { logger } from 'ubiq'
 import https from 'https'
 import path from 'path'
 import fs from 'fs'
@@ -33,7 +34,7 @@ export class Status {
             options.key = fs.readFileSync(path.resolve(config.key))
             options.cert = fs.readFileSync(path.resolve(config.cert))
         } catch (error) {
-            console.error('Unable to read certificate for status module. You will not be able to create secure connections to the status APIs.')
+            logger.error('Unable to read certificate for status module. You will not be able to create secure connections to the status APIs.')
         }
 
         const app = express()
@@ -100,7 +101,7 @@ export class Status {
         })
 
         https.createServer(options, app).listen(config.port, () => {
-            console.log(`Added status server on port ${config.port}`)
+            logger.log(`Added status server on port ${config.port}`)
         })
     }
 

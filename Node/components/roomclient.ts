@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events'
 import { NetworkId, Uuid, type INetworkComponent, type NetworkScene, type Message, type NetworkContext } from 'ubiq'
+import { logger } from 'ubiq/logger'
 import { type PeerInfo, type RoomInfo, type AppendPeerPropertiesArgs, type AppendRoomPropertiesArgs, type JoinArgs, type RoomServerMessage } from 'modules/roomserver'
 
 // Implements a RoomClient Network Component. This can be attached to a
@@ -35,7 +36,7 @@ export class RoomPeer {
 
     setProperty (key: string, value: string): void {
         if (this.#setPeerProperty === undefined) {
-            console.error('Properties may only be set on the local Peer')
+            logger.error('Properties may only be set on the local Peer')
         } else {
             this.#setPeerProperty(key, value)
         }

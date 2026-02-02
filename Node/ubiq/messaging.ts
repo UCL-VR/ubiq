@@ -1,6 +1,7 @@
 import perf_hooks from 'perf_hooks'
 import { Buffer } from 'buffer' // This import is needed for rollup to polyfill Buffer
 import { z } from 'zod'
+import { logger } from './logger.js'
 
 const performance = perf_hooks.performance
 
@@ -72,7 +73,7 @@ export class NetworkId {
 
     static WriteBuffer (networkId: NetworkId, buffer: Buffer, offset: number): void {
         if (networkId === undefined) {
-            console.error('Undefined networkId when writing ' + (new Error().stack))
+            logger.error('Undefined networkId when writing ' + (new Error().stack))
             return
         }
         buffer.writeUInt32LE(networkId.a, offset + 0)

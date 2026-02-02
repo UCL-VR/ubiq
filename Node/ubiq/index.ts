@@ -35,3 +35,7 @@ export {
 export type {
     INetworkComponent
 } from './networkscene.js'
+
+export {
+    logger
+} from './logger.js'
