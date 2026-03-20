@@ -1,18 +1,30 @@
 {
-  "name": "ubiq",
-  "version": "0.1.0",
-  "description": "Ubiq messaging components for Node",
+  "name": "@ucl-vr/ubiq",
+  "version": "1.0.0",
+  "description": "Core messaging and networking library for the Ubiq platform. Provides connection management, message passing, and network scene abstractions over TCP and WebSocket.",
   "author": "UCL VECG",
   "homepage": "https://github.com/UCL-VR/ubiq",
   "license": "Apache-2.0",
   "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": ["lib"],
+  "scripts": {
+    "build": "tsc"
+  },
   "dependencies": {
     "jsonschema": "^1.4.0",
     "uuid": "^8.3.2",
-    "ws": "^8.2.3"
+    "ws": "^8.2.3",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/uuid": "^9.0.3",
     "@types/ws": "^8.5.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/UCL-VR/ubiq.git",
+    "directory": "Node/ubiq"
   }
 }

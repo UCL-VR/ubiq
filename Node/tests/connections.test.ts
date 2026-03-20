@@ -1,6 +1,6 @@
 import { RoomClient } from 'components'
 import WebSocket from 'ws'
-import { NetworkScene, TcpConnectionWrapper, WebSocketConnectionWrapper } from 'ubiq'
+import { NetworkScene, TcpConnectionWrapper, WebSocketConnectionWrapper } from '@ucl-vr/ubiq'
 import nconf from 'nconf'
 import { createConnection } from 'net'
 

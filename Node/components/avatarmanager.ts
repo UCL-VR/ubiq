@@ -1,5 +1,5 @@
-import type { Message, NetworkContext, NetworkScene } from 'ubiq'
-import { NetworkId } from 'ubiq'
+import type { Message, NetworkContext, NetworkScene } from '@ucl-vr/ubiq'
+import { NetworkId } from '@ucl-vr/ubiq'
 import { EventEmitter } from 'events'
 import type { RoomClient, RoomPeer } from './roomclient'
 

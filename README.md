@@ -12,7 +12,7 @@ Ubiq's goal is to enable your networked project. It includes message passing, ro
 
 ## For Researchers
 
-Instructions for setting up your own server are included. Ubiq does not rely on any third-party services, making it GDPR-safe for your experiments.
+Instructions for setting up your own server are included. Ubiq does not rely on any third-party services, making it GDPR-safe for your experiments. The server and core messaging library are also available on npm as [`@ucl-vr/ubiq-server`](https://www.npmjs.com/package/@ucl-vr/ubiq-server) and [`@ucl-vr/ubiq`](https://www.npmjs.com/package/@ucl-vr/ubiq).
 
 ## Supported Unity Versions
 

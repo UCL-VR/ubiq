@@ -10,7 +10,7 @@ Currently `ubiq-master` is running on `8010`. This is the primary, public server
 
 It is expected and encouraged that feature branches are created, run on nexus temporarily for development, then removed when no longer needed.
 
-The following sections describe how Nexus is maintained by the VECG team. You do not need to follow this pattern to maintain your own server, but it may be instructive.
+The following sections describe how Nexus is maintained by the VECG team. You do not need to follow this pattern to maintain your own server, but it may be instructive. The server is also available as an npm package (`@ucl-vr/ubiq-server`) — see [Server Setup](serversetup.md) for details.
 
 ## Administration
 

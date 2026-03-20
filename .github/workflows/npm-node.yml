@@ -1,0 +1,64 @@
+name: Publish npm packages
+on:
+  push:
+    tags: ['node-v*.*.*']
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/node-v}" >> $GITHUB_OUTPUT
+
+      - name: Set package versions
+        working-directory: Node
+        run: |
+          cd ubiq && npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version && cd ..
+          cd modules && npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version && cd ..
+          cd components && npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version && cd ..
+          npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version
+
+      - name: Install dependencies
+        working-directory: Node
+        run: npm ci
+
+      - name: Build @ucl-vr/ubiq
+        working-directory: Node/ubiq
+        run: npm run build
+
+      - name: Build modules
+        working-directory: Node/modules
+        run: npm run build
+
+      - name: Build components
+        working-directory: Node/components
+        run: npm run build
+
+      - name: Build @ucl-vr/ubiq-server
+        working-directory: Node
+        run: npx tsc -p tsconfig.build.json
+
+      - name: Publish @ucl-vr/ubiq
+        working-directory: Node/ubiq
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @ucl-vr/ubiq-server
+        working-directory: Node
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

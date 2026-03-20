@@ -1,4 +1,4 @@
-import { WrappedSecureWebSocketServer, WrappedTcpServer } from 'ubiq'
+import { WrappedSecureWebSocketServer, WrappedTcpServer } from '@ucl-vr/ubiq'
 import { RoomServer, IceServerProvider, Status } from 'modules'
 import nconf from 'nconf'
 

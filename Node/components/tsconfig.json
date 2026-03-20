@@ -4,7 +4,6 @@
         "lib": [
             "es2020"
         ],
-        "allowJs": true,
         "skipLibCheck": true,
         "strict": true,
         "forceConsistentCasingInFileNames": true,

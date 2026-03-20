@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
-import { NetworkId, Uuid, type INetworkComponent, type NetworkScene, type Message, type NetworkContext } from 'ubiq'
-import { type PeerInfo, type RoomInfo, type AppendPeerPropertiesArgs, type AppendRoomPropertiesArgs, type JoinArgs, type RoomServerMessage } from 'modules/roomserver'
+import { NetworkId, Uuid, type INetworkComponent, type NetworkScene, type Message, type NetworkContext } from '@ucl-vr/ubiq'
+import { type PeerInfo, type RoomInfo, type AppendPeerPropertiesArgs, type AppendRoomPropertiesArgs, type JoinArgs, type RoomServerMessage } from 'modules'
 
 // Implements a RoomClient Network Component. This can be attached to a
 // NetworkScene to have the NetworkScene join a Room.

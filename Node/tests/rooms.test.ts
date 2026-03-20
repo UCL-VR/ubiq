@@ -1,5 +1,5 @@
 import { RoomClient, type Room, type RoomPeer } from 'components'
-import { NetworkScene, UbiqTcpConnection, Uuid, type IConnectionWrapper } from 'ubiq'
+import { NetworkScene, UbiqTcpConnection, Uuid, type IConnectionWrapper } from '@ucl-vr/ubiq'
 import nconf from 'nconf'
 
 // This set of unit tests is concerned with the RoomServer behaviour. They test

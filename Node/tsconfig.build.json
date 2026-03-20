@@ -4,7 +4,6 @@
         "lib": [
             "es2020"
         ],
-        "allowJs": true,
         "skipLibCheck": true,
         "strict": true,
         "forceConsistentCasingInFileNames": true,
@@ -13,11 +12,10 @@
         "moduleResolution": "node",
         "resolveJsonModule": true,
         "isolatedModules": true,
-        "incremental": true,
-        "outDir": "lib",
         "declaration": true,
+        "outDir": "dist"
     },
-    "files": ["./index.ts"],
+    "include": ["app.ts"],
     "exclude": [
         "node_modules"
     ]

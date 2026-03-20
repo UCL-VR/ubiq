@@ -3,7 +3,7 @@
 // This application creates a process that joins a room, and listens for changes
 // to a specific Property - "propertiesservicekey" - on all Peers in the Room.
 
-import { NetworkScene, UbiqTcpConnection } from 'ubiq'
+import { NetworkScene, UbiqTcpConnection } from '@ucl-vr/ubiq'
 import { RoomClient } from 'components';
 import nconf from 'nconf'
 

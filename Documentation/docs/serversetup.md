@@ -1,12 +1,14 @@
 # Quick Start
 
+## From the repository
+
 The server code is included in the Ubiq repository in the `Node` directory.
 
 After checking out the code, run,
 
 ```
 npm install
-``` 
+```
 
 in the `Node` directory. The server can then be started with,
 
@@ -15,6 +17,22 @@ npm start
 ```
 
 This will start a server with the default TCP port - the same one running on Nexus - that Unity can connect to. Continue below if you also need to support Browser Clients.
+
+## From npm
+
+The server and core library are also published on npm under the `@ucl-vr` scope. This is useful if you want to integrate the server into another Node.js project as a dependency, or build a custom application on top of the Ubiq messaging layer.
+
+Install the server:
+
+```
+npm install @ucl-vr/ubiq-server
+```
+
+Or, if you only need the core messaging library (connections, message passing, network scenes):
+
+```
+npm install @ucl-vr/ubiq
+```
 
 # Advanced
 

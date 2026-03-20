@@ -1,10 +1,16 @@
 {
   "name": "components",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Ubiq Peer Components for Node",
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": ["lib"],
+  "scripts": {
+    "build": "tsc"
+  },
   "keywords": [],
   "author": "UCL VECG",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/UCL-VR/ubiq",
-  "type": "module"
+  "homepage": "https://github.com/UCL-VR/ubiq"
 }
