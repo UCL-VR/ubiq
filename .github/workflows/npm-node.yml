@@ -23,13 +23,14 @@ jobs:
         id: version
         run: echo "VERSION=${GITHUB_REF#refs/tags/node-v}" >> $GITHUB_OUTPUT
 
-      - name: Set package versions
+      - name: Validate tag matches package version
         working-directory: Node
         run: |
-          cd ubiq && npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version && cd ..
-          cd modules && npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version && cd ..
-          cd components && npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version && cd ..
-          npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [ "$PKG_VERSION" != "${{ steps.version.outputs.VERSION }}" ]; then
+            echo "::error::Tag version (${{ steps.version.outputs.VERSION }}) does not match package.json version ($PKG_VERSION)"
+            exit 1
+          fi
 
       - name: Install dependencies
         working-directory: Node
