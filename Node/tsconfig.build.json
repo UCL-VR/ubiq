@@ -15,7 +15,7 @@
         "declaration": true,
         "outDir": "dist"
     },
-    "include": ["app.ts"],
+    "include": ["app.ts", "bin/ubiq-server.ts"],
     "exclude": [
         "node_modules"
     ]

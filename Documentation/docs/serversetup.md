@@ -20,7 +20,22 @@ This will start a server with the default TCP port - the same one running on Nex
 
 ## From npm
 
-The server and core library are also published on npm under the `@ucl-vr` scope. This is useful if you want to integrate the server into another Node.js project as a dependency, or build a custom application on top of the Ubiq messaging layer.
+The server and core library are also published on npm under the `@ucl-vr` scope.
+
+To start a server without installing anything:
+
+```
+npx @ucl-vr/ubiq-server
+```
+
+Or install globally:
+
+```
+npm install -g @ucl-vr/ubiq-server
+ubiq-server
+```
+
+You can also add the packages as dependencies in another Node.js project, for example to build a custom application on top of the Ubiq messaging layer.
 
 Install the server:
 
