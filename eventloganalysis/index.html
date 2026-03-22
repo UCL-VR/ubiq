@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Analysis - Ubiq Docs</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Analysis";
+        var mkdocs_page_input_path = "eventloganalysis.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Ubiq Docs
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../gettingubiq/">Getting Ubiq</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../settingupvr/">Setting Up VR</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../creatinganetworkedobject/">Creating Networked Objects</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../spawningobjects/">Object Spawning</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../localloopback/">Testing with Local Loopback</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../synchronisation/">Synchronisation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../ubiqxrinteraction/">Interaction with Ubiq XR</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../serversandrooms/">Servers and Rooms</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../eventlogginggettingstarted/">Logging</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../3dpentutorial/">Creating a 3D Pen</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../serversetup/">Server</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Advanced</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../xrinteraction/">Interaction</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Logging</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogging/">Introduction</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Analysis</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#python">Python</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#excel">Excel</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#matlab">Matlab</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingexperimentquestionnaire/">Questionnaire</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingunittests/">Unit Tests</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingcollectorservice/">LogCollector Service</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogserialisation/">Serialisation and Memory</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Messaging</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../messaging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkids/">Network Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../generatinguniqueids/">Generating Unique Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkidtype/">Types</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../reservedids/">Reserved IDs</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../webrtc/">WebRtc</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Servers and Rooms</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../serverintroduction/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serveroverview/">Server Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serverheartbeat/">Heartbeat and Timeouts</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../leavingandjoiningrooms/">Leaving and Joining</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../botssample/">Bots</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Programming</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../asyncdesignpatterns/">Async Design Patterns</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Development</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../packaging/">Packaging</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nexus/">Nexus</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../mkdocs/">Meta</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ubiq Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Advanced</li>
+          <li class="breadcrumb-item">Logging</li>
+      <li class="breadcrumb-item active">Analysis</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="analysis">Analysis</h1>
+<p>The Event Logger outputs <em>structured</em> logs, as Json objects. These can be processed on any platform that can read Json files.</p>
+<p>A sample log file is shown below.</p>
+<pre><code>[
+{&quot;ticks&quot;:637799309335620180,&quot;peer&quot;:&quot;088edbc1-1d1f09b5&quot;,&quot;type&quot;:&quot;Ubiq.Messaging.NetworkScene&quot;,&quot;event&quot;:&quot;Awake&quot;,&quot;arg1&quot;:&quot;DESKTOP-F1J0MRR&quot;,&quot;arg2&quot;:&quot;System Product Name (ASUS)&quot;,&quot;arg3&quot;:&quot;f73fe01b1e21031d49274a1491d1d6b5714c92e9&quot;},
+{&quot;ticks&quot;:637799309384207356,&quot;peer&quot;:&quot;088edbc1-1d1f09b5&quot;,&quot;type&quot;:&quot;Ubiq.Voip.VoipPeerConnectionManager&quot;,&quot;objectid&quot;:&quot;088edbc1-1d1f09b5&quot;,&quot;componentid&quot;:50,&quot;event&quot;:&quot;CreatePeerConnectionForPeer&quot;,&quot;arg1&quot;:&quot;6c494697-2e79f5e3&quot;,&quot;arg2&quot;:&quot;26a6ee77-3cec71fe&quot;},
+{&quot;ticks&quot;:637799309384277353,&quot;peer&quot;:&quot;088edbc1-1d1f09b5&quot;,&quot;type&quot;:&quot;Ubiq.Voip.VoipPeerConnectionManager&quot;,&quot;objectid&quot;:&quot;088edbc1-1d1f09b5&quot;,&quot;componentid&quot;:50,&quot;event&quot;:&quot;RequestPeerConnection&quot;,&quot;arg1&quot;:&quot;6c494697-2e79f5e3&quot;,&quot;arg2&quot;:&quot;26a6ee77-3cec71fe&quot;},
+{&quot;ticks&quot;:637799309087959820,&quot;peer&quot;:&quot;26a6ee77-3cec71fe&quot;,&quot;type&quot;:&quot;Ubiq.Messaging.NetworkScene&quot;,&quot;event&quot;:&quot;Awake&quot;,&quot;arg1&quot;:&quot;Oculus Quest&quot;,&quot;arg2&quot;:&quot;Oculus Quest&quot;,&quot;arg3&quot;:&quot;b8db4746286db62ecad4c6fa13f17ab6&quot;},
+{&quot;ticks&quot;:637799309303272560,&quot;peer&quot;:&quot;26a6ee77-3cec71fe&quot;,&quot;type&quot;:&quot;Ubiq.Voip.VoipPeerConnectionManager&quot;,&quot;objectid&quot;:&quot;26a6ee77-3cec71fe&quot;,&quot;componentid&quot;:50,&quot;event&quot;:&quot;CreatePeerConnectionForRequest&quot;,&quot;arg1&quot;:&quot;6c494697-2e79f5e3&quot;}
+]
+</code></pre>
+<p>In this example, two peers - a desktop PC (Unity Editor) and an Oculus Quest - join a room. The <code>NetworkScene</code> and <code>VoipPeerConnectionManager</code> both log events.</p>
+<p>Some Json members are defined by the <code>Emitter</code> type. For example, the <code>ContextLogger</code> writes the <code>objectid</code> of the context passed to it on creation. The <code>arg</code> members correspond to those passed to the <code>Log()</code> method. All entries include a timestamp and the Id of the Peer that generated the log. Timestamps are given in .Net <a href="https://docs.microsoft.com/en-us/dotnet/api/system.datetime.ticks">Ticks</a>.</p>
+<h2 id="python">Python</h2>
+<p>Python can be used to analys logs programmatically. The Jupyter notebook below shows how to import and process logs using <a href="https://pandas.pydata.org/">Pandas</a>, a powerful data analysis library for Python.</p>
+<p><img alt="Image of Jupyter Notebook Code" src="../images/e13a146f-7f90-486d-8131-a47d44f8c87c.png" /></p>
+<ul>
+<li><a href="../html/b27a1510-38ec-4821-92b1-478dcbcf1ab1.html">See the Notebook in full</a></li>
+<li><a href="../files/Debug_Log.ipynb">Download Jupyter Notebook</a></li>
+<li><a href="../files/Debug_Log.json">Download Example Log File</a></li>
+</ul>
+<h2 id="excel">Excel</h2>
+<p>Structured event logs are amenable to being viewed in a table. Microsoft Excel PowerQuery can import Json files and load events into Excel Worksheets.</p>
+<p>To do this:</p>
+<ol>
+<li>Open a new <code>Workbook</code></li>
+<li>From the <code>Data</code> tab, choose <code>Get Data</code> -&gt; <code>From File</code> -&gt; <code>From Json</code></li>
+<li>Open the log file, for example <code>Application_log_2021-04-23-10-56-03_0.json</code></li>
+<li>Select the <code>List</code> header and click <code>Convert To Table</code>. This will instruct Excel to treat each entry as a row.</li>
+<li>Leave the Default Values in place and Click <code>OK</code>. The <code>View</code> will now appear as a <code>Column</code>.</li>
+<li>Use the button in the top right to add the <code>Expand Column</code> step. This will split each record into a set of columns. Make sure to click <code>Load More...</code> if visible to ensure you get every possible field in the table.</li>
+<li>Click <code>OK</code></li>
+<li>Click <code>Close &amp; Load</code> to build your table.</li>
+</ol>
+<p>You can now order by Ticks, and filter columns such as Events.</p>
+<h2 id="matlab">Matlab</h2>
+<p>Like Python, Matlab can load Json using the jsondecode function.</p>
+<pre><code>% Read the text file and use jsondecode to produce a cell array of
+% structures.
+
+events = jsondecode(fileread(&quot;Debug_Log.json&quot;));
+
+% The structures will have different fields, so we must use loops to filter
+% them before they can be combined into a single struct array or table.
+
+% Below, find all the events of type SpawnObject, and combine them into a
+% new array.
+
+spawn = [];
+
+for i = 1:numel(events)
+   % The curly braces access the contents of the cell i, which is the
+   % struct itself.
+   s = events{i};
+   if categorical(cellstr(s.event)) == categorical(&quot;SpawnObject&quot;)
+       spawn = [spawn; s];
+   end
+end
+
+% Convert the new array into a table
+T = struct2table(spawn);
+
+% Use the table to change the type of the sceneid column so we can easily
+% split the events by which peer they are from.
+T.peer = categorical(T.peer);
+
+% Filter the events to keep only those emitted by the Peer that initiated
+% the spawn
+T = T(T.arg3,:);
+
+% Plot the number of objects spawned over time, by each Peer
+figure;
+hold all;
+peers = unique(T.peer);
+for p = peers'
+   spawned = T(T.peer == p,:);
+   plot(spawned.ticks,1:size(spawned,1));
+end
+
+xlabel(&quot;Time (ticks)&quot;);
+ylabel(&quot;Number of Objects&quot;);
+legend(peers);
+</code></pre>
+<p><img alt="Matlab Plot" src="../images/9e093fbb-d84f-4f48-ae00-0a7019975d79.svg" /></p>
+<ul>
+<li><a href="../files/Debug_Log.m">Download Matlab Source</a></li>
+<li><a href="../files/Debug_Log.json">Download Example Log File</a></li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../eventlogging/" class="btn btn-neutral float-left" title="Introduction"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../eventloggingexperimentquestionnaire/" class="btn btn-neutral float-right" title="Questionnaire">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../eventlogging/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../eventloggingexperimentquestionnaire/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

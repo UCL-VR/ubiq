@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Bots - Ubiq Docs</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Bots";
+        var mkdocs_page_input_path = "botssample.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Ubiq Docs
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../gettingubiq/">Getting Ubiq</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../settingupvr/">Setting Up VR</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../creatinganetworkedobject/">Creating Networked Objects</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../spawningobjects/">Object Spawning</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../localloopback/">Testing with Local Loopback</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../synchronisation/">Synchronisation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../ubiqxrinteraction/">Interaction with Ubiq XR</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../serversandrooms/">Servers and Rooms</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../eventlogginggettingstarted/">Logging</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../3dpentutorial/">Creating a 3D Pen</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../serversetup/">Server</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Advanced</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../xrinteraction/">Interaction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Logging</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloganalysis/">Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingexperimentquestionnaire/">Questionnaire</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingunittests/">Unit Tests</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingcollectorservice/">LogCollector Service</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogserialisation/">Serialisation and Memory</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Messaging</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../messaging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkids/">Network Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../generatinguniqueids/">Generating Unique Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkidtype/">Types</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../reservedids/">Reserved IDs</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../webrtc/">WebRtc</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Servers and Rooms</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../serverintroduction/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serveroverview/">Server Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serverheartbeat/">Heartbeat and Timeouts</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../leavingandjoiningrooms/">Leaving and Joining</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Bots</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#bot-peer">Bot Peer</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#bot">Bot</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#managing-multiple-bots">Managing Multiple Bots</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#botsmanager-botscontroller">BotsManager &amp; BotsController</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#bot-scene">Bot Scene</a>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Programming</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../asyncdesignpatterns/">Async Design Patterns</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Development</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../packaging/">Packaging</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nexus/">Nexus</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../mkdocs/">Meta</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ubiq Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Advanced</li>
+      <li class="breadcrumb-item active">Bots</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="bots">Bots</h1>
+<p>Ubiq has the ability to simulate large numbers of users. This may be useful when stress testing, for example. This is demonstrated in the <em>Bots</em> Application Sample.</p>
+<h2 id="bot-peer">Bot Peer</h2>
+<p>In a regular application, a user interacts with the world through the <code>PlayerController</code>. They connect to the network using a <code>NetworkScene</code> and become a <em>Ubiq Peer</em>.</p>
+<p>It is the same with the Bot and Bot Peer. The Bot GameObject contains Components which interact with the world. Pairing a <code>Bot</code> with a <code>NetworkScene</code> creates a <em>Bot Peer</em>, that can connect to a room and act autonomously.</p>
+<p><img alt="" src="../images/d713fe99-caba-47ba-805d-11a4da98c6d6.svg" /></p>
+<p>The Bot Peer is equivalent to a user application. In the Editor, the Bot Peer can be joined to a room by using the RoomClient Editor Controls, just like a regular Peer. Alternatively, the default Bot, and others, can be controlled en-masse using the Bots Controller.</p>
+<p><img alt="" src="../images/2eb639a7-a67e-4033-bcdb-9fa36c773fde.png" /></p>
+<p>The Bot Peer Prefab can be dropped into new scenes and controlled via the Editor, where small numbers of Bots are required.</p>
+<h3 id="bot">Bot</h3>
+<p>The Bot Prefab implements the behaviour of the non-player controlled character. The sample Bot contains a number of common abilities, which can be extended by adding additional custom Components.</p>
+<p><strong>Avatar</strong></p>
+<p>The Bot Peer contains a skeleton allowing it to embody an Avatar at remote peers.</p>
+<p><strong>Behaviour</strong></p>
+<p>The Bot Peer Avatar is controlled by the Bot Component. This uses a nav mesh to move between random points in the environment.</p>
+<p><strong>Audio</strong></p>
+<p>The Bot Peer can speak with a pre-recorded audio clip. This is through a Component that takes the place of the Microphone input in a player-controlled Peer.</p>
+<h2 id="managing-multiple-bots">Managing Multiple Bots</h2>
+<p>Usually, a single Unity process is a single Ubiq Peer, with one NetworkScene. This is because a single PC can usually only drive one set of user input devices at a time.</p>
+<p>With bots, a single process can host multiple Bots, but each Bot is still a separate Peer, and has its own NetworkScene. This is achived using the same scene-graph Forests as the <em>Local Loopback</em> scene.</p>
+<p><img alt="" src="../images/672a7cae-bffd-4257-848d-fe1a54c5abe2.png" /></p>
+<h3 id="botsmanager-botscontroller">BotsManager &amp; BotsController</h3>
+<p>The <em>Bots</em> Application Sample contains Components to create and manage large numbers of bots.</p>
+<p>The <code>BotsManager</code> is the Component that creates and configures Bot Peers within a single process. Bots Managers are controlled remotely by a <code>BotsController</code>. </p>
+<p><img alt="" src="../images/039f4355-b486-4e4a-a280-3b7646f25edf.svg" /></p>
+<p>The <code>BotsController</code> and <code>BotsManager</code> use Ubiq to communicate. The <code>BotsManager</code> and <code>BotsController</code> join the same <em>Command and Control Room</em>. The Bot Peers themselves join different rooms, possibly even on different servers. The <code>BotManager</code> communicates with the Bot Peers through the local scene graph.</p>
+<p>Multiple Bot Managers across different processes can be controlled this way, each managing a number of Bots.</p>
+<p><img alt="" src="../images/14008103-11ff-4307-a0a7-7b91ffaee82e.svg" /></p>
+<p>A typical Unity process running on a modern desktop can handle approximately 20 bots. All three Components can run within one scene graph, within one process, as in the Bots Sample Scene, or can be split between multiple machines to control hundreds of bots.</p>
+<p><em>Creating Bots with the Bots Scene</em></p>
+<p>Opening the Bots scene and pressing Play will show a birds-eye view of the local process, and a control panel. This scene is only meant to be used on the desktop.</p>
+<p><img alt="" src="../images/3866ced2-97a1-404a-8305-64d67b7ed1f7.png" /></p>
+<p>The Bots scene already has one Bot Peer created. This GameObject's NetworkScene Editor Controls or the Create Room/Join Room Control Panel Buttons can be used to immediately join the Bot into a room with other Peers - bots or normal Peers.</p>
+<p><em>Stress Testing with the Bots scene</em></p>
+<p>One of the uses for Bots is stress testing. The Bots Sample is set up to show this.</p>
+<p>The Bots Scene contains a number of Components, and a UI.</p>
+<p><strong>Bots Control</strong></p>
+<p>This GameObject contains resources to allow a user to control one or more Bot Managers with the UI. It also includes the Camera and Event Manager. The UI contained under Bots Control drives the <code>BotsController</code>, which in turn directs Bot Managers. </p>
+<p>The <code>BotsController</code> is in the Control Room GameObject, which has its own NetworkScene and so forms the Bots Controller Peer.</p>
+<p>This branch also contains a Peer (Bots Room Peer) that can be connected to the Bots' room, in order to do things such as take statistics or collect logs.</p>
+<p><strong>Bots Manager</strong></p>
+<p>The Bots Manager GameObject is the forest for the Bots Manager Peer. Though they are in the same scene graph, the Bots Manager Peer and Bots Controller Peer both join the same command and control room.</p>
+<p><strong>Environment</strong></p>
+<p>To reduce memory overhead, multiple Bot Peers share the same Environment, though as they have their own NetworkScene they don't directly interact outside of Ubiq networking.</p>
+<p><strong>Bot Peer 1</strong></p>
+<p>The Scene includes one Bot Peer instance. The Control Panel can be used to add more.</p>
+<p><strong>Bots Config</strong></p>
+<p>The Bots Config GameObject hosts a helper Component to set which servers the Control Room and Bots Room should be hosted on at design time. By allowing these to be set at design time, the Bots Scene can be built to an executable to be run headless on different machines without needing further configuration.</p>
+<p>Make sure to change the Control Room Id before running the sample against Nexus, in case others are running the same sample.</p>
+<p><em>Controlling Bots</em></p>
+<p>The Bots Manager is used to spawn new Bot Peer instances. Bot Peers exist in the same application but are completley independent as far as the network, and other peers, are concerned.
+The UI in the Bots scene is for the Bot Controller. There is no interface for interacting with the virtual world, VR or otherwise, as there is no Network Scene for players in the Bots example.
+Bots can be instructed to join any room however, including those with regular players.</p>
+<p><em>Command and Control and Bots Rooms</em></p>
+<p>When the Scene is started, the Control Panel UI will control the local Bot Manager. However, there is a limit to how many Bot Peers a single Unity process can host.</p>
+<p>Bot Managers across different Unity processes can work together to control very large numbers of bots.</p>
+<p>The Control Panel and Bot Manager are two distinct Ubiq Peers. They communicate using Ubiq Messages through a 'Command and Control' Room.</p>
+<p>When the Control Panel starts, it creates a new Room and has the local Bot Manager join it. Additional Bot Managers from other processes can join this room too, and fall under the control of the Control Panel.</p>
+<p>The Command and Control Room can be any Ubiq Room, including the one that the Bots join. </p>
+<p>The Room can be set via the command line with the -commandroomjoincode argument. This, combined with -batchmode, can allow many headless Unity instances to spawn bots.</p>
+<p>In practice though, when doing things like stress testing, the Room should be different, even on a different server if doing server stress testing.</p>
+<p><strong>Servers</strong></p>
+<p>There are in total four distinct Peers in the single Bots Sample: the Bot Controller (Control Room), the Bot Manager (Control Room), the Bot Room Peer (Bots Room) and the default Bot Peer (Bots Room). </p>
+<p>The Bots Config Component is used to change the server(s) for all of these at once.</p>
+<p>The default server for Bot Peer 1 is set in the standard NetworkScene Prefab; it is overridden before connecting when the Control Panel is used to control the Bots.</p>
+<p><em>Control Panel</em></p>
+<p>The UI has two sets of controls: Common controls and Instance controls.</p>
+<p>Common Controls apply to all Bot Managers, and Instance controls apply to just that Bot Manager.</p>
+<p>When only one Bot Manager instance is known, the controls behave identically.</p>
+<p><strong>Toggle Camera</strong></p>
+<p>As each Peer acts as if it were the only one in the process, each Peer will show all other Peers Avatars. This can create high rendering loads. Avatars can be hidden by toggling the Camera, which changes the Culling Mask. The camera is not completley disabled, as it is needed for the UI.</p>
+<p><strong>Enable Audio</strong></p>
+<p>Enables or Disables the audio chat channel for new Bots. This can be used to reduce compute load on the clients. This may be desireable if stress testing a server, for example, as audio data doesn't pass through the server.</p>
+<p><strong>Create/Join Room</strong></p>
+<p>The Create Room button creates a new room for <em>Bots</em>, and commands any existing Bots to join it. Alternatively, an existing Join Code can be entered and the Join Room button used. Either can be used as many times as desired to change all the Bots at once, without re-creating the Bots.</p>
+<p><strong>Number of Peers</strong></p>
+<p>Shows the number of Peers in the Bots Room, including the 'dummy' peer. A process may host a number of Bots that have not yet joined a room. Use this figure to monitor the actual number of bots in a room together.</p>
+<p><strong>Bot Manager Instances</strong></p>
+<p>Below the Common Controls each Bot Manager that the Controller is aware of is listed. Each line shows the Id of the Manager, as well as a the number of bots it is hosting. The Input Field and Add Bot Button can be used add new Bots to that instance.</p>
+<p>If a Bots Room has been set up, new Bots will automatically join it.</p>
+<p>The FPS is used to approximate the performance or load of the Bots Manager. The Colour is controlled by the Fps Gradient member of the Bots Manager Control Prefab (between 0-100 Fps).</p>
+<h2 id="bot-scene">Bot Scene</h2>
+<p>The Bots Application Sample also contains a sample scene with a single Bot Peer, along with a Player Peer. This can be used to see what it is like for players to interact with Bots. In this scene, the Player and the Bot should be joined to the same room manually using the RoomClient Editor controls.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../leavingandjoiningrooms/" class="btn btn-neutral float-left" title="Leaving and Joining"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../asyncdesignpatterns/" class="btn btn-neutral float-right" title="Async Design Patterns">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../leavingandjoiningrooms/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../asyncdesignpatterns/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
