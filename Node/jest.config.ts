@@ -16,8 +16,12 @@ const config: JestConfigWithTsJest = {
             }
         ]
     },
-    resolver: 'ts-jest-resolver'
-
+    resolver: 'ts-jest-resolver',
+    moduleNameMapper: {
+        '^@ucl-vr/ubiq$': '<rootDir>/ubiq/index.ts',
+        '^modules$': '<rootDir>/modules/index.ts',
+        '^components$': '<rootDir>/components/index.ts',
+    }
 }
 
 export default config

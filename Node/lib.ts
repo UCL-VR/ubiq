@@ -1,7 +1,7 @@
 // This file is the entry point for the bundler used to build Ubiq classes for
 // the Browser with Rollup.
 
-export { NetworkId, NetworkScene, WebSocketConnectionWrapper } from 'ubiq'
+export { NetworkId, NetworkScene, WebSocketConnectionWrapper } from '@ucl-vr/ubiq'
 export { RoomClient, PeerConnectionManager, AvatarManager, ThreePointTrackedAvatar, LogCollector } from 'components'
 
 // This file is intended to bundle almost all the Ubiq Components and

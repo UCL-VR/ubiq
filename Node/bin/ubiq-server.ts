@@ -1,17 +1,22 @@
+#!/usr/bin/env node
+
+import { fileURLToPath } from 'url'
+import path from 'path'
 import { WrappedSecureWebSocketServer, WrappedTcpServer } from '@ucl-vr/ubiq'
 import { RoomServer, IceServerProvider, Status } from 'modules'
 import nconf from 'nconf'
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+// At runtime __dirname is dist/bin/, so go up two levels to reach the package root
+const packageRoot = path.resolve(__dirname, '..', '..')
+
 // nconf loads the configuration hierarchically - settings that load *first*
-// take priority. default.json contains most of the rarely changing
-// configuration properties, stored with the branch. Additional configuration
-// files - where present - add or override parameters, such as pre-shared
-// secrets, that should not be in source control.
+// take priority. CLI arguments and local config files override defaults.
 process.argv.slice(2).forEach(element => {
     nconf.file(element, element)
 })
-nconf.file('local', 'config/local.json')
-nconf.file('default', 'config/default.json')
+nconf.file('local', path.join(process.cwd(), 'config', 'local.json'))
+nconf.file('default', path.join(packageRoot, 'config', 'default.json'))
 
 const roomServer = new RoomServer()
 roomServer.addServer(new WrappedTcpServer(nconf.get('roomserver:tcp')))
@@ -34,16 +39,11 @@ if (iceServers !== undefined) {
     }
 }
 
-// Set the type of room this Server should use. Make sure
-// that the room type has been imported before we get here.
-
 const roomTypeName = nconf.get('roomserver:roomType')
 if (roomTypeName !== undefined) {
     // eslint-disable-next-line no-eval
     roomServer.T = eval(roomTypeName)
 }
-
-// Registering for SIGINT allows various modules to shutdown gracefully
 
 process.on('SIGINT', function () {
     roomServer.exit().then(() => {

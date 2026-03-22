@@ -11,7 +11,7 @@
 // has left the room.
 
 // Import Ubiq types
-import { NetworkScene, UbiqTcpConnection } from 'ubiq'
+import { NetworkScene, UbiqTcpConnection } from '@ucl-vr/ubiq'
 import { LogCollector, RoomClient } from 'components'
 import nconf from 'nconf'
 import fs from 'fs'

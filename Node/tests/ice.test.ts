@@ -1,4 +1,4 @@
-import { NetworkScene, UbiqTcpConnection, Uuid, WrappedTcpServer } from 'ubiq'
+import { NetworkScene, UbiqTcpConnection, Uuid, WrappedTcpServer } from '@ucl-vr/ubiq'
 
 // This module hooks into a room, so we use some convenience methods from the
 // rooms tests

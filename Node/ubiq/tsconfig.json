@@ -13,7 +13,8 @@
         "resolveJsonModule": true,
         "isolatedModules": true,
         "incremental": true,
-        "outDir": "lib",                    
+        "outDir": "lib",
+        "declaration": true,
     },
     "files": ["./index.ts"],
     "exclude": [

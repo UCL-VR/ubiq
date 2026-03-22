@@ -1,4 +1,4 @@
-import { Message, NetworkId, Uuid, type IConnectionWrapper, type IServerWrapper } from 'ubiq'
+import { Message, NetworkId, Uuid, type IConnectionWrapper, type IServerWrapper } from '@ucl-vr/ubiq'
 import { EventEmitter } from 'events'
 import { type ValidationError } from 'jsonschema'
 import { z } from 'zod'
