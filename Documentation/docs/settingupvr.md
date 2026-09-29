@@ -1,4 +1,4 @@
-# Setting Up Ubik for VR
+# Setting Up Ubiq for VR
 
 Ubiq uses Unity's XR Plug-in Management system for all samples. This allows you to enable a VR plugin matching your device and to interact with it through a unified interface. There is a quick guide below for each supported platform.
 
