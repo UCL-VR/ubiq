@@ -30,25 +30,6 @@
       },
       "hash": "988183549f806027748928cd95e84155d72708af"
     },
-    "com.readyplayerme.avatarloader": {
-      "version": "https://github.com/readyplayerme/rpm-unity-sdk-avatar-loader.git#v1.3.4",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {
-        "com.unity.ugui": "1.0.0",
-        "com.unity.nuget.newtonsoft-json": "3.0.2"
-      },
-      "hash": "cf9120d670c96014a687e3cbd69ff6d0a2e69a07"
-    },
-    "com.readyplayerme.core-ubiq-fork": {
-      "version": "https://github.com/UCL-VR/readyplayerme-core-ubiq-fork.git",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {
-        "com.unity.nuget.newtonsoft-json": "3.0.2"
-      },
-      "hash": "42fc06d7ca09f6e99757aa45856436afa3220e79"
-    },
     "com.unity.ai.navigation": {
       "version": "1.1.5",
       "depth": 0,
