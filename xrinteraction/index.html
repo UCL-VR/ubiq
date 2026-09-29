@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Interaction - Ubiq Docs</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Interaction";
+        var mkdocs_page_input_path = "xrinteraction.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Ubiq Docs
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../gettingubiq/">Getting Ubiq</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../settingupvr/">Setting Up VR</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../creatinganetworkedobject/">Creating Networked Objects</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../spawningobjects/">Object Spawning</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../localloopback/">Testing with Local Loopback</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../synchronisation/">Synchronisation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../ubiqxrinteraction/">Interaction with Ubiq XR</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../serversandrooms/">Servers and Rooms</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../eventlogginggettingstarted/">Logging</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../3dpentutorial/">Creating a 3D Pen</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../serversetup/">Server</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Advanced</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Interaction</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#cross-platform-support">Cross Platform Support</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#3d-interaction">3D Interaction</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#hands">Hands</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#graspers-and-users">Graspers and Users</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#2d-interaction">2D Interaction</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#raycasters">Raycasters</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#player-controller">Player Controller</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Logging</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloganalysis/">Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingexperimentquestionnaire/">Questionnaire</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingunittests/">Unit Tests</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingcollectorservice/">LogCollector Service</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogserialisation/">Serialisation and Memory</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Messaging</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../messaging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkids/">Network Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../generatinguniqueids/">Generating Unique Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkidtype/">Types</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../reservedids/">Reserved IDs</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../webrtc/">WebRtc</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Servers and Rooms</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../serverintroduction/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serveroverview/">Server Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serverheartbeat/">Heartbeat and Timeouts</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../leavingandjoiningrooms/">Leaving and Joining</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../botssample/">Bots</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Programming</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../asyncdesignpatterns/">Async Design Patterns</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Development</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../packaging/">Packaging</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nexus/">Nexus</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../mkdocs/">Meta</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ubiq Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Advanced</li>
+      <li class="breadcrumb-item active">Interaction</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="xr-interaction">XR Interaction</h1>
+<p>Ubiq includes a straightforward XR interaction framework. This supports high level actions such as <em>Using</em> and <em>Grasping</em> 2D and 3D objects, as well as interacting with the <a href="https://docs.unity3d.com/Manual/com.unity.ugui.html">Unity UI system</a>.</p>
+<p>Ubiq is not dependent on its own interaction system, and it is expected users may utilise the <a href="https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@1.0/manual/index.html">Unity XR Interaction Toolkit</a>, <a href="https://docs.microsoft.com/en-us/windows/mixed-reality/develop/unity/mrtk-getting-started">MRTK</a>, <a href="https://vrtoolkit.readme.io/">VRTK</a> or another system for advanced functionality.</p>
+<p>The Ubiq system is intended to support common XR requirements however, while being very simple to use, and transparently cross-platform. All the Ubiq Samples are created with the Ubiq interaction system.</p>
+<h3 id="cross-platform-support">Cross Platform Support</h3>
+<p>The Ubiq interaction system is designed to work on both the desktop and in XR. This is achieved by maintaining two sets of input processing Components, that only respond to keyboard &amp; mouse interactions, and XR controller interactions, respectively.</p>
+<p>These Components are designed to co-exist on one set of GameObjects, allowing the same Player Prefab to be used for desktop and XR applications with no change.</p>
+<p>For the interactables - 3D objects and 2D controls - identical events are recieved regardless of the source, so user code will work both for XR and the desktop transparently.</p>
+<h2 id="3d-interaction">3D Interaction</h2>
+<p>Interacting with 3D objects is <em>action based</em>. Users can <em>Use</em> or <em>Grasp</em> objects. What these actions do is entirely up to user code.</p>
+<p>For example, users could Use a button which spawns an object or turns on a light. They could Grasp a box which attaches to their hand, or a door which swings around an axis.</p>
+<p>To implement these behaviours, Components implement <code>IUsable</code> or <code>IGraspable</code>. They will then recieve callbacks to <code>Use()</code>/<code>UnUse()</code> and <code>Grasp()</code>/<code>Release()</code>, respectively.</p>
+<p>In XR, Players Use or Grasp objects by putting their controllers on an object and using the Trigger and Grip buttons. On the Desktop, users can use the cursor to click on objects with the Left or Middle mouse buttons.</p>
+<p>Components implementing <code>IUsable</code> and <code>IGraspable</code> must be attached to objects with Colliders, though they do not need a RigidBody.</p>
+<h3 id="hands">Hands</h3>
+<p>The methods of <code>IUsable</code> and <code>IGraspable</code> are passed <code>Hand</code> instances. <code>Hand</code> represents an entity in 3D space (a <code>MonoBehaviour</code>) that can interact with other 3D objects. </p>
+<p>Other than existing in 3D, the <code>Hand</code> type is very abstract. It mainly exists to provide a 3D anchor, and to allow Components to distinguish between different controllers. A <code>Hand</code> does not have to have any physical presence (a RigidBody, or Collider). </p>
+<p>Implementations of <code>IUsable</code> and <code>IGraspable</code> should be prepared to be used or grasped by multiple <code>Hand</code> instances simultaneously.</p>
+<h3 id="graspers-and-users">Graspers and Users</h3>
+<p>Calls to the <code>IUsable</code> and <code>IGraspable</code> implementations are made by the <code>UsableObjectUser</code> and <code>GraspableObjectGrasper</code> Components. These rely on the <code>HandController</code> Component, which implements the XR controller tracking and input processing based on the Unity XR namespace. There are desktop equivalents of <code>UsableObjectUser</code> and <code>GraspableObjectGrasper</code>. </p>
+<p>These references are to the concrete types and so it is not currently possible to use <code>UsableObjectUser</code> or <code>GraspableObjectGrasper</code> with custom hand implementations. Though it is possible to re-implement them and pass a custom <code>Hand</code> subclass to the <code>IUsable</code> and <code>IGraspable</code> implementations.</p>
+<h2 id="2d-interaction">2D Interaction</h2>
+<p>The Ubiq XR interaction integrates with Unity's UI system. Players can raycast from their hands to interact with Unity Canvases and controls.</p>
+<p>To enable Ubiq XR interaction with a Canvas, add the <code>XRUICanvas</code> component to it. Once this Component is added users can interact with the Unity controls using raycasts from the controllers, or the mouse cursor on the desktop.</p>
+<p>When using the <code>XRUICanvas</code> an <code>EventSystem</code> is no longer required. Cameras are not required either on World Space Canvases, allowing them to be declared in Prefabs and instantiated dynamically.</p>
+<h3 id="raycasters">Raycasters</h3>
+<p>The 2D and 3D interaction mechanisms are separate. UI interaction is performed through UIRaycasters. There are XR and Desktop raycasters (<code>XRUIRaycaster</code> and <code>DesktopUIRaycaster</code>). Instances of both are attached to the sample Player Prefab.</p>
+<h2 id="player-controller">Player Controller</h2>
+<p>Users move through the world using Player Controllers. The Samples contain a Player Prefab with a camera and two hands. Player Controllers can move linearly or teleport. Interaction always occurs through a <code>Hand</code> instance, so a Player Controller is not technically necessary.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../serversetup/" class="btn btn-neutral float-left" title="Server"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../eventlogging/" class="btn btn-neutral float-right" title="Introduction">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../serversetup/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../eventlogging/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

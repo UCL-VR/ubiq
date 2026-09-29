@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>LogCollector Service - Ubiq Docs</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "LogCollector Service";
+        var mkdocs_page_input_path = "eventloggingcollectorservice.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Ubiq Docs
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../gettingubiq/">Getting Ubiq</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../settingupvr/">Setting Up VR</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../creatinganetworkedobject/">Creating Networked Objects</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../spawningobjects/">Object Spawning</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../localloopback/">Testing with Local Loopback</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../synchronisation/">Synchronisation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../ubiqxrinteraction/">Interaction with Ubiq XR</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../serversandrooms/">Servers and Rooms</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../eventlogginggettingstarted/">Logging</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../3dpentutorial/">Creating a 3D Pen</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../serversetup/">Server</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Advanced</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../xrinteraction/">Interaction</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Logging</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloganalysis/">Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingexperimentquestionnaire/">Questionnaire</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingunittests/">Unit Tests</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">LogCollector Service</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#use-case">Use Case</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#questionnaire-scene">Questionnaire Scene</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#configuration">Configuration</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogserialisation/">Serialisation and Memory</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Messaging</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../messaging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkids/">Network Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../generatinguniqueids/">Generating Unique Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkidtype/">Types</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../reservedids/">Reserved IDs</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../webrtc/">WebRtc</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Servers and Rooms</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../serverintroduction/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serveroverview/">Server Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serverheartbeat/">Heartbeat and Timeouts</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../leavingandjoiningrooms/">Leaving and Joining</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../botssample/">Bots</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Programming</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../asyncdesignpatterns/">Async Design Patterns</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Development</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../packaging/">Packaging</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nexus/">Nexus</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../mkdocs/">Meta</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ubiq Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Advanced</li>
+          <li class="breadcrumb-item">Logging</li>
+      <li class="breadcrumb-item active">LogCollector Service</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="log-collector-service">Log Collector Service</h1>
+<p>The LogCollectorService is an example NodeJs application that joins a room and writes all the Experiment Log Events (0x2) in that Room to disk.</p>
+<p>The sample is located in the <code>Node/samples/logcollectorservice</code> directory.</p>
+<h2 id="use-case">Use Case</h2>
+<p>The Log Collector Service can be used to automatically collect data from self-directed experiments.</p>
+<p>To do this, an experimentor would create a build that automatically joined a pre-defined Room. Additionally, the Log Collector Service would be started on a server and configured to join the same Room.</p>
+<p>As participants ran their builds and completed the experiment, they would all join the same room and forward their events to the <code>LogCollector</code> running in the Log Collector Service, which would write those events to disk on the server.</p>
+<h2 id="questionnaire-scene">Questionnaire Scene</h2>
+<p>A good way to try the Log Collector Service is to use the <em>Questionnaire</em> Sample (Samples/Single/Questionnaire).</p>
+<p>Add the Join Room Component to the NetworkScene, and set the Room GUID to the same one as in the <code>logcollectorservice</code> app.</p>
+<p>Be sure to generate a new GUID to avoid collisions with others potentially trying the same demonstration.</p>
+<p>Then, start and stop the Questionnaire scene, submitting the Questionnaire a few times each run.</p>
+<p>In the logcollectorservice directory, a number of log files should be created, with the Ids that the Peer took on each time it started.</p>
+<h2 id="configuration">Configuration</h2>
+<p>The logcollectorservice application is configured by changing the source code of app.js. The two variables that are likely to change are the log event type, and the room GUID.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../eventloggingunittests/" class="btn btn-neutral float-left" title="Unit Tests"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../eventlogserialisation/" class="btn btn-neutral float-right" title="Serialisation and Memory">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../eventloggingunittests/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../eventlogserialisation/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
