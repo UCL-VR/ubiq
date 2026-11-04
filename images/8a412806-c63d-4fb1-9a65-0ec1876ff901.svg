@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="177.56726mm"
+   height="63.960857mm"
+   viewBox="0 0 177.56726 63.960857"
+   version="1.1"
+   id="svg8"
+   inkscape:version="1.0.2 (e86c870879, 2021-01-15)"
+   sodipodi:docname="8a412806-c63d-4fb1-9a65-0ec1876ff901.svg"
+   inkscape:export-filename="D:\UCL\Ubiq Images\Images\Logging\90c6e96e-781b-4205-8b03-5ad4c5d29150.png"
+   inkscape:export-xdpi="600"
+   inkscape:export-ydpi="600">
+  <defs
+     id="defs2">
+    <marker
+       style="overflow:visible"
+       id="marker2372"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path2370" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker1928"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1926" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker1876"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1874" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker1830"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1828" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker1790"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1788" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker1756"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1754" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker1728"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1726" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker1706"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1704" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow2Lend"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lend"
+       inkscape:isstock="true"
+       inkscape:collect="always">
+      <path
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1443" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker1728-1"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1726-4" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker1706-8"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1704-0" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker1728-7"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1726-3" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2.8"
+     inkscape:cx="264.9937"
+     inkscape:cy="158.45477"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:snap-bbox="true"
+     inkscape:bbox-paths="true"
+     inkscape:bbox-nodes="true"
+     inkscape:snap-bbox-edge-midpoints="true"
+     inkscape:snap-bbox-midpoints="true"
+     inkscape:snap-midpoints="true"
+     inkscape:object-paths="true"
+     inkscape:snap-intersection-paths="true"
+     inkscape:window-width="3840"
+     inkscape:window-height="2066"
+     inkscape:window-x="-11"
+     inkscape:window-y="-11"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-13.513795,-83.963201)">
+    <g
+       id="g1159"
+       transform="translate(-20.847023,6.3886886)">
+      <rect
+         style="opacity:0.996;fill:none;fill-opacity:0.462396;stroke:#000000;stroke-width:0.0952981;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+         id="rect833"
+         width="31.943689"
+         height="15.787991"
+         x="54.44273"
+         y="102.80717" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:3.88622px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0971558"
+         x="58.198982"
+         y="109.04636"
+         id="text837"><tspan
+           sodipodi:role="line"
+           id="tspan835"
+           x="58.198982"
+           y="109.04636"
+           style="stroke-width:0.0971558">LogCollector</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:2.82222px;line-height:1.05;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0971558"
+         x="60.379021"
+         y="114.8183"
+         id="text837-5"><tspan
+           sodipodi:role="line"
+           id="tspan835-2"
+           x="60.379021"
+           y="114.8183"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:sans-serif;-inkscape-font-specification:sans-serif;stroke-width:0.0971558">Forward Mode</tspan></text>
+    </g>
+    <g
+       id="g1166"
+       transform="translate(-7.3073571,6.3886886)">
+      <rect
+         style="opacity:0.996;fill:none;fill-opacity:0.462396;stroke:#000000;stroke-width:0.0952981;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+         id="rect833-8"
+         width="31.943689"
+         height="15.787991"
+         x="94.143204"
+         y="102.75558" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:3.88622px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0971558"
+         x="97.899452"
+         y="108.99478"
+         id="text837-2"><tspan
+           sodipodi:role="line"
+           id="tspan835-5"
+           x="97.899452"
+           y="108.99478"
+           style="stroke-width:0.0971558">LogCollector</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:2.82222px;line-height:1.05;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0971558"
+         x="100.07949"
+         y="114.76672"
+         id="text837-5-1"><tspan
+           sodipodi:role="line"
+           id="tspan835-2-7"
+           x="100.07949"
+           y="114.76672"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:sans-serif;-inkscape-font-specification:sans-serif;stroke-width:0.0971558">Forward Mode</tspan></text>
+    </g>
+    <g
+       id="g1194"
+       transform="translate(-20.063999,5.7462936)">
+      <rect
+         style="opacity:0.996;fill:none;fill-opacity:0.462396;stroke:#000000;stroke-width:0.0952981;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+         id="rect833-8-9"
+         width="31.943689"
+         height="15.787991"
+         x="159.35696"
+         y="103.42377" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:3.88622px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0971558"
+         x="163.11322"
+         y="109.66297"
+         id="text837-2-9"><tspan
+           sodipodi:role="line"
+           id="tspan835-5-8"
+           x="163.11322"
+           y="109.66297"
+           style="stroke-width:0.0971558">LogCollector</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:2.82222px;line-height:1.05;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0971558"
+         x="165.29326"
+         y="115.43491"
+         id="text837-5-1-4"><tspan
+           sodipodi:role="line"
+           id="tspan835-2-7-4"
+           x="165.29326"
+           y="115.43491"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:sans-serif;-inkscape-font-specification:sans-serif;stroke-width:0.0971558">Forward Mode</tspan></text>
+    </g>
+    <g
+       id="g1201"
+       transform="translate(-18.799957,56.070391)">
+      <rect
+         style="opacity:0.996;fill:none;fill-opacity:0.462396;stroke:#000000;stroke-width:0.0952981;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+         id="rect833-8-4"
+         width="31.943689"
+         height="15.787991"
+         x="105.6358"
+         y="28.454659" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:3.88622px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0971558"
+         x="109.39205"
+         y="34.693863"
+         id="text837-2-2"><tspan
+           sodipodi:role="line"
+           id="tspan835-5-6"
+           x="109.39205"
+           y="34.693863"
+           style="stroke-width:0.0971558">LogCollector</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:2.82222px;line-height:1.05;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0971558"
+         x="113.61159"
+         y="40.465805"
+         id="text837-5-1-3"><tspan
+           sodipodi:role="line"
+           id="tspan835-2-7-47"
+           x="113.61159"
+           y="40.465805"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:sans-serif;-inkscape-font-specification:sans-serif;stroke-width:0.0971558">Write Mode</tspan></text>
+    </g>
+    <g
+       id="g1066"
+       transform="translate(-11.225304,-12.027121)">
+      <rect
+         style="opacity:0.996;fill:none;fill-opacity:0.462396;stroke:#000000;stroke-width:0.0864558;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+         id="rect833-0-7"
+         width="31.952532"
+         height="12.990502"
+         x="170.31059"
+         y="146.91745" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:3.88622px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0971558"
+         x="175.44795"
+         y="154.43359"
+         id="text837-0-69"><tspan
+           sodipodi:role="line"
+           id="tspan835-6-4"
+           x="175.44795"
+           y="154.43359"
+           style="stroke-width:0.0971558">LogEmitter</tspan></text>
+    </g>
+    <g
+       id="g1066-7"
+       transform="translate(-47.607377,-12.027121)">
+      <rect
+         style="opacity:0.996;fill:none;fill-opacity:0.462396;stroke:#000000;stroke-width:0.0864558;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+         id="rect833-0-7-2"
+         width="31.952532"
+         height="12.990502"
+         x="170.31059"
+         y="146.91745" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:3.88622px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0971558"
+         x="175.44795"
+         y="154.43359"
+         id="text837-0-69-2"><tspan
+           sodipodi:role="line"
+           id="tspan835-6-4-4"
+           x="175.44795"
+           y="154.43359"
+           style="stroke-width:0.0971558">LogEmitter</tspan></text>
+    </g>
+    <g
+       id="g1066-5"
+       transform="translate(-83.989437,-12.027121)">
+      <rect
+         style="opacity:0.996;fill:none;fill-opacity:0.462396;stroke:#000000;stroke-width:0.0864558;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+         id="rect833-0-7-22"
+         width="31.952532"
+         height="12.990502"
+         x="170.31059"
+         y="146.91745" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:3.88622px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0971558"
+         x="175.44795"
+         y="154.43359"
+         id="text837-0-69-7"><tspan
+           sodipodi:role="line"
+           id="tspan835-6-4-7"
+           x="175.44795"
+           y="154.43359"
+           style="stroke-width:0.0971558">LogEmitter</tspan></text>
+    </g>
+    <g
+       id="g1066-6"
+       transform="translate(-120.37151,-12.027121)">
+      <rect
+         style="opacity:0.996;fill:none;fill-opacity:0.462396;stroke:#000000;stroke-width:0.0864558;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+         id="rect833-0-7-9"
+         width="31.952532"
+         height="12.990502"
+         x="170.31059"
+         y="146.91745" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:3.88622px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0971558"
+         x="175.44795"
+         y="154.43359"
+         id="text837-0-69-1"><tspan
+           sodipodi:role="line"
+           id="tspan835-6-4-8"
+           x="175.44795"
+           y="154.43359"
+           style="stroke-width:0.0971558">LogEmitter</tspan></text>
+    </g>
+    <g
+       id="g1066-3"
+       transform="translate(-156.75357,-12.027121)">
+      <rect
+         style="opacity:0.996;fill:none;fill-opacity:0.462396;stroke:#000000;stroke-width:0.0864558;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+         id="rect833-0-7-0"
+         width="31.952532"
+         height="12.990502"
+         x="170.31059"
+         y="146.91745" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:3.88622px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0971558"
+         x="175.44795"
+         y="154.43359"
+         id="text837-0-69-3"><tspan
+           sodipodi:role="line"
+           id="tspan835-6-4-1"
+           x="175.44795"
+           y="154.43359"
+           style="stroke-width:0.0971558">LogEmitter</tspan></text>
+    </g>
+    <g
+       id="g1256"
+       transform="matrix(1.5356871,0,0,1.5356871,-75.504154,20.753031)">
+      <path
+         style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 145.19417,41.293131 v 11.024878 h 8.01809 v -9.421251 l -1.60363,-1.603627 z"
+         id="path1248"
+         sodipodi:nodetypes="cccccc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 151.60863,41.293131 v 1.603619 l 1.60363,8e-6"
+         id="path1252"
+         sodipodi:nodetypes="ccc" />
+    </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.165;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:1;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1830)"
+       d="m 29.533283,134.89033 c 0,-7.32337 20.03427,-3.09374 20.03427,-9.90649"
+       id="path1258"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.165;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:1;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1790)"
+       d="m 65.915348,134.89033 c 0,-7.32337 -16.347795,-3.09373 -16.347795,-9.90648"
+       id="path1258-4"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.165;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:1;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1756)"
+       d="m 102.80769,134.89033 c 0,-7.32337 0.003,-2.82184 0.003,-9.63459"
+       id="path1258-46"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.165;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:1;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1928)"
+       d="m 175.06155,134.89033 c 0,-7.32337 -19.79674,-3.11952 -19.79674,-9.93227"
+       id="path1258-46-5"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.165;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:1;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1876)"
+       d="m 138.67948,134.89033 c 0,-7.32337 16.58533,-3.11952 16.58533,-9.93227"
+       id="path1258-46-5-3"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.165;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:1;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1706)"
+       d="m 49.567553,109.19586 c 0,-7.32337 53.240137,-2.07007 53.240137,-8.88282"
+       id="path1258-1"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.165;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:1;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1728)"
+       d="m 102.80769,109.14427 c 0,-7.32337 0,-2.01848 0,-8.83123"
+       id="path1258-1-4"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.165;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:1;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend)"
+       d="m 118.77954,92.419043 h 28.68912"
+       id="path1420" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.165;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:1;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1706-8)"
+       d="m 155.26481,109.17006 c 0,-7.32337 -52.45712,-2.04427 -52.45712,-8.85702"
+       id="path1258-1-3"
+       sodipodi:nodetypes="cc" />
+    <g
+       id="g1066-5-9"
+       transform="translate(-125.62902,-60.993656)">
+      <rect
+         style="opacity:0.996;fill:none;fill-opacity:0.462396;stroke:#000000;stroke-width:0.0864558;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+         id="rect833-0-7-22-2"
+         width="31.952532"
+         height="12.990502"
+         x="170.31059"
+         y="146.91745" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:3.88622px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0971558"
+         x="175.44795"
+         y="154.43359"
+         id="text837-0-69-7-6"><tspan
+           sodipodi:role="line"
+           id="tspan835-6-4-7-8"
+           x="175.44795"
+           y="154.43359"
+           style="stroke-width:0.0971558">LogEmitter</tspan></text>
+    </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.165;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:1;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1728-7)"
+       d="m 76.634103,92.419048 10.201743,-4e-6"
+       id="path1258-1-4-2"
+       sodipodi:nodetypes="cc" />
+  </g>
+</svg>

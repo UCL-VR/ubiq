@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Creating Networked Objects - Ubiq Docs</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Creating Networked Objects";
+        var mkdocs_page_input_path = "creatinganetworkedobject.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Ubiq Docs
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../gettingubiq/">Getting Ubiq</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../settingupvr/">Setting Up VR</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Creating Networked Objects</a>
+    <ul class="current">
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../spawningobjects/">Object Spawning</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../localloopback/">Testing with Local Loopback</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../synchronisation/">Synchronisation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../ubiqxrinteraction/">Interaction with Ubiq XR</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../serversandrooms/">Servers and Rooms</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../eventlogginggettingstarted/">Logging</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../3dpentutorial/">Creating a 3D Pen</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../serversetup/">Server</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Advanced</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../xrinteraction/">Interaction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Logging</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloganalysis/">Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingexperimentquestionnaire/">Questionnaire</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingunittests/">Unit Tests</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventloggingcollectorservice/">LogCollector Service</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../eventlogserialisation/">Serialisation and Memory</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Messaging</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../messaging/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkids/">Network Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../generatinguniqueids/">Generating Unique Ids</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../networkidtype/">Types</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../reservedids/">Reserved IDs</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../webrtc/">WebRtc</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Servers and Rooms</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../serverintroduction/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serveroverview/">Server Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../serverheartbeat/">Heartbeat and Timeouts</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../leavingandjoiningrooms/">Leaving and Joining</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../botssample/">Bots</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Programming</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../asyncdesignpatterns/">Async Design Patterns</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Development</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../packaging/">Packaging</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nexus/">Nexus</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../mkdocs/">Meta</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ubiq Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Getting Started</li>
+      <li class="breadcrumb-item active">Creating Networked Objects</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="building-a-basic-networked-object">Building a Basic Networked Object</h1>
+<p>Networked objects are Components that can keep themselves synchronised by exchanging messages over the network. You can create new Networked Objects to implement your own networked behaviour.</p>
+<p>1) Create a new Unity Script and add it to the GameObject that you want to be networked. You can do this via the inspector by clicking on &quot;Add Component&quot; and typing the new name.</p>
+<p><img alt="" src="../images/bd892032-38e4-4ddd-bc38-0d10437cdcb6.png" /></p>
+<p>2) Include Ubiq.Messaging</p>
+<pre><code>    using System.Collections;
+    using System.Collections.Generic;
+    using UnityEngine;
+    using Ubiq.Messaging;
+
+    public class MyNetworkedObject : MonoBehaviour
+    {
+        // Start is called before the first frame update
+        void Start()
+        {
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+
+        }
+    }
+</code></pre>
+<p>3) Create a new member, <code>context</code>. <code>context</code> will hold the address of your object on the network, and allow you to send messages.</p>
+<pre><code>using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Ubiq.Messaging;
+
+public class MyNetworkedObject : MonoBehaviour
+{
+    NetworkContext context;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+    }
+}
+</code></pre>
+<p>4) Declare a method called <code>ProcessMessage</code>, which takes a <code>ReferenceCountedSceneGraphMessage</code>. This is where messages to your Component will come in.</p>
+<pre><code>using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Ubiq.Messaging;
+
+public class MyNetworkedObject : MonoBehaviour
+{
+    NetworkContext context;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+    }
+
+    public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+    {
+
+    }
+}
+</code></pre>
+<p>5) In your <code>Start()</code> method, call <code>NetworkScene.Register()</code>. This registers your Component with Ubiq and gets it an address on the network. The return value is a <code>NetworkContext</code> which you can store in the member created previously.</p>
+<pre><code>using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Ubiq.Messaging;
+
+public class MyNetworkedObject : MonoBehaviour
+{
+    NetworkContext context;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        context = NetworkScene.Register(this);
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+    }
+
+    public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+    {
+
+    }
+}
+</code></pre>
+<p>6) Define what a message between instances of your Component will look like. In the message, write the variables that you want to send. Below we create a message to send the object's position.</p>
+<pre><code>using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Ubiq.Messaging;
+
+public class MyNetworkedObject : MonoBehaviour
+{
+    NetworkContext context;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        context = NetworkScene.Register(this);
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+    }
+
+    private struct Message
+    {
+        public Vector3 position;
+    }
+
+    public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+    {
+
+    }
+}
+</code></pre>
+<p>7) Add code to parse and process incoming messages to <code>ProcessMessage</code>. Below, we convert the ReferenceCountedSceneGraphMessage into a Message, and then access the position member to set the object's position in world space.</p>
+<pre><code>using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Ubiq.Messaging;
+
+public class MyNetworkedObject : MonoBehaviour
+{
+    NetworkContext context;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        context = NetworkScene.Register(this);
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+    }
+
+    private struct Message
+    {
+        public Vector3 position;
+    }
+
+    public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+    {
+        // Parse the message
+        var m = message.FromJson&lt;Message&gt;();
+
+        // Use the message to update the Component
+        transform.localPosition = m.position;
+    }
+}
+</code></pre>
+<p>8) Messages will only be sent to your Component, from other instances of your Component, so you also need to Send messages as well. This is done through the NetworkContext you recieved when the Component was registered.</p>
+<p>Below, we check if the position of the object has changed in the last frame, and if so, send the new position to all other instances of the object.
+We detect if the position has changed by keeping track of the position in the last frame in a new member, <code>lastPosition</code>.</p>
+<p>We also modify <code>ProcessMessage</code> slightly, to update <code>lastPosition</code> when a message is received - otherwise, an incoming message will generate an outgoing message, and two Components will send messages back and forth in an endless cycle even if the player hasn't changed the objects position!</p>
+<pre><code>using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Ubiq.Messaging;
+
+public class MyNetworkedObject : MonoBehaviour
+{
+    NetworkContext context;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        context = NetworkScene.Register(this);
+    }
+
+    Vector3 lastPosition;
+
+    // Update is called once per frame
+    void Update()
+    {
+        if(lastPosition != transform.localPosition)
+        {
+            lastPosition = transform.localPosition;
+            context.SendJson(new Message()
+            {
+                position = transform.localPosition
+            });
+        }
+    }
+
+    private struct Message
+    {
+        public Vector3 position;
+    }
+
+    public void ProcessMessage(ReferenceCountedSceneGraphMessage message)
+    {
+        // Parse the message
+        var m = message.FromJson&lt;Message&gt;();
+
+        // Use the message to update the Component
+        transform.localPosition = m.position;
+
+        // Make sure the logic in Update doesn't trigger as a result of this message
+        lastPosition = transform.localPosition;
+    }
+}
+</code></pre>
+<p>9) Your first networked object is now complete!</p>
+<p>Add a cube to your object so you can see it in the scene. Continue with the tutorials to see it in action!</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../settingupvr/" class="btn btn-neutral float-left" title="Setting Up VR"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../spawningobjects/" class="btn btn-neutral float-right" title="Object Spawning">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../settingupvr/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../spawningobjects/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
