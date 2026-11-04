@@ -1,0 +1,9 @@
+{
+   "tcp":
+    {
+	"port": 8009,
+	"uri": "localhost"
+    },
+    "room": "b7e2c4a1-9d58-4f63-8a10-2c6e5d9f31a4"
+}
+

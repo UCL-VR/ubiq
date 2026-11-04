@@ -19,8 +19,8 @@ import fs from 'fs'
 // This sample must be started from the root of the Node directory. I.e.,
 // > node --loader ts-node/esm samples/logcollectorservice/app.js
 
-nconf.file('default', "config/samples.json")
-const config = nconf.get()
+nconf.file('default', "config/samples.json");
+const config = nconf.get();
 
 // Configuration
 const eventType = 2;
@@ -85,4 +85,8 @@ logcollector.lockCollection();
 
 // Join by UUID. Use an online generator to create a new one for your 
 // experiment.
+
+const heartbeat = setInterval(() => roomclient.ping(), 3000);
+connection.onClose.push(() => clearInterval(heartbeat));
+
 roomclient.join(config.room); 
